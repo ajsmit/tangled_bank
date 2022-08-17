@@ -2,7 +2,7 @@
 
 This GitHub repository serves the [Tangled Bank](http://tangledbank.netlify.app) website. The Tangled Bank website offers a series of modules that caters for the needs of the University of the Western cape Biodiversity and Biological Sciences undergraduate and BSc (Hons) students. 
 
-The aim of these modules is to guide students through the basics of using R via RStudio for analysis of environmental and biological data.
+The aim of these modules is to guide students through the basics of using R for the analysis of environmental and biological data.
 
 The modules include:
 
