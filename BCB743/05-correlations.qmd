@@ -1,0 +1,142 @@
+---
+date: "2021-01-01"
+title: "5. Correlations and Associations"
+subtitle: "Revisiting pairwise correlations in environmental data, and introducing species associations"
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+<!--- # Topic 6: Correlations and associations --->
+
+::: callout-tip
+## **Material required for this chapter**
+
+| Type       | Name                       | Link                                                                    |
+|---------------|---------------|------------------------------------------|
+| **Slides** | Correlation lecture slides | [💾 `BCB743_06_correlations.pdf`](../slides/BCB743_06_correlations.pdf) |
+| **Data**   | The Doubs River data       | [💾 `Doubs.RData`](../data/NEwR-2ed_code_data/NeWR2-Data/Doubs.RData)   |
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to complete in this Chapter
+
+* [Task B 1--8](assessments/Task_B.qmd)
+:::
+
+![More than meets the eye.](/images/more_than_meets_the_eye.jpeg)
+
+## Set-up the analysis environment
+
+```{r}
+library(tidyverse)
+library(vegan)
+library(Hmisc) # for rcorr()
+```
+
+## The Doubs River data
+
+The background to the data is described by David Zelený on his excellent
+[website](https://www.davidzeleny.net/anadat-r/doku.php/en:data:doubs)
+and in the book **Numerical Ecology with R** by @borcard2011numerical.
+These data are a beautiful example of how gradients structure
+biodiversity. It will be in your own interest to fully understand how
+the various environmental factors used as explanatory variables vary
+along a riverine gradient from the source to the terminus of the river.
+
+### Correlations between environmental variables
+
+**Correlation** refers to the statistical (non-causal) relationship between two continuous variables. It measures the extent to which changes in one variable correspond to changes in another variable. Correlations are quantified into values ranging from -1 and +1, with -1 indicating a perfect negative correlation, +1 indicating a perfect positive correlation, and 0 indicating no correlation. A positive correlation implies that as one variable increases, the other variable also increases. Conversely, a negative correlation implies that as one variable increases, the other decreases. Correlation can be calculated using several methods, the most common one being the Pearson correlation coefficient. Non-parametric correlations can be applied to ordinal or non-normal data.
+
+```{r}
+load("../data/NEwR-2ed_code_data/NEwR2-Data/Doubs.RData")
+
+head(env, 5)
+```
+
+We use
+[correlations](https://ajsmit.netlify.app/workshops/quantecol/chapters/06-correlations/)
+to establish how the environmental variables relate to one another
+across the sample sites. We do not need to standardise as one would do
+for the calculation of Euclidian distances, but in some instances data
+transformations might be necessary:
+
+```{r}
+env_cor <- round(cor(env), 2)
+env_cor
+```
+
+Or if we want to see the associated *p*-values to establish a
+statistical significance:
+
+```{r}
+rcorr(as.matrix(env))
+```
+
+We can also do a visual exploration (see Question 1, below).
+
+<!-- ```{r} -->
+
+<!-- library(ggcorrplot) -->
+
+<!-- ggcorrplot(env_cor, type = 'upper', outline.col = "white", -->
+
+<!--            colors = c("#00AFBB", "white", "#FC4E07"), -->
+
+<!--            lab = TRUE) -->
+
+<!-- ``` -->
+
+### Association between species
+
+**Species associations** refer to the relationships or interactions between different species within an ecosystem or community. The term can be used to describe the outcome of a wide range of relationships, including competition, predation, symbiosis (mutualism, commensalism, parasitism), or simply the tendency for different species to occur in the same habitats or microhabitats.
+
+When two or more species are frequently found in the same area or under the same conditions, they are positively associated. This could be due to similar environmental preferences, mutualistic relationships, or one species depending on the presence of another. For example, bees and flowering plants have a mutualistic relationship where the bees gather nectar for food, and in the process, they pollinate the flowers. In this sense, bees would be positively associated with some flowering plants.
+
+Conversely, if two species are rarely found in the same area or under the same conditions, they are negatively associated. This can be due to competition for resources, predation, or differing environmental preferences.
+
+Analyses of species associations can help us understand the complex dynamics of ecological communities, including how species interact with each other and their environment, the roles they play in their ecosystems, and the effects of environmental changes on species distributions and community composition. A first glance insight into the existence of some of these types of interactions can be found by examining tables of association among spocies.
+
+The Doubs River fish species dataset is an example of abundance data and
+it will serve well to examine the properties of an association matrix:
+
+```{r}
+head(spe)
+```
+
+In order to calculate an association matrix for the fish species we
+first need to **transpose** the data:
+
+```{r}
+spe_t <- t(spe)
+```
+
+Now we can calculate the association matrix:
+
+```{r}
+spe_assoc1 <- vegdist(spe_t, method = "jaccard")
+ # display only a portion of the data...
+as.matrix((spe_assoc1))[1:10, 1:10]
+```
+
+```{r}
+spe_assoc2 <- vegdist(spe_t, method = "jaccard", binary = TRUE)
+as.matrix((spe_assoc2))[1:10, 1:10]
+```
+
+```{r}
+#| echo: false
+.pkg_file <- here::here("bib", "pkgs.txt")
+write_pkgs <- function() {
+  pkgs <- .packages() |> sort() |> unique()
+  np <- length(pkgs)
+  cat(np, " packages used here:\n", paste(pkgs, collapse = ", ")  )
+  if(np > 0) cat(pkgs, file = .pkg_file, append=TRUE, sep = "\n")
+}
+```
+
+
+## References
+
+::: {#refs}
+:::

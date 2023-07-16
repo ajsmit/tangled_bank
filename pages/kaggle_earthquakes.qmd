@@ -1,0 +1,152 @@
+---
+title: "Kaggle Earthquake database"
+author: "AJ Smit"
+format:
+  html:
+    code-fold: false
+    toc-title: "On this page"
+    standalone: true
+    toc-location: right
+    page-layout: full
+---
+
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+library(tidyverse)
+library(ggthemes)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthhires)
+```
+
+Here's a map of earthquake location and magnitude (>=5.5) from 1965-2016. The data may be found on [Kaggle](https://www.kaggle.com/datasets/usgs/earthquake-database).
+
+```{r}
+#| eval: true
+WGS84_proj <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+NE_proj <- "+proj=natearth +lon_0=170"
+```
+
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+quakes <- read_csv("../data/kaggle_earthquakes_database.csv",
+  skip = 3, col_types = cols(Date = col_date(format = "%d/%m/%Y")))
+quakes_sf <- quakes |> 
+  st_as_sf(coords = c("Longitude", "Latitude"),
+    crs = WGS84_proj)
+quakes_sf_trans <- st_transform(quakes_sf, NE_proj)
+head(quakes_sf)
+```
+
+```{r}
+#| eval: true
+plot(quakes_sf[,"Magnitude"])
+```
+
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+world_1 <- ne_countries(returnclass = 'sf',
+  scale = 10, type = "countries") |> 
+  select(continent, sovereignt, iso_a3) |> 
+  st_break_antimeridian(lon_0 = 170) |> 
+  st_transform(NE_proj)
+```
+
+```{r}
+#| eval: true
+#| fig-width: 12
+#| dpi: 300
+ggplot() +
+  geom_sf(data = world_1, colour = "grey60", fill = "grey70") +
+  geom_sf(data = quakes_sf_trans, aes(colour = Magnitude, size = Magnitude),
+    stat = "sf_coordinates",
+    shape = "*", alpha = 0.4) +
+  scale_colour_viridis_c(option = "mako", direction = 1) +
+  guides(size = "none",
+    colour = guide_colourbar(title = "Magnitude",
+      title.position = "left")) +
+  coord_sf(expand = FALSE) +
+  labs(x = NULL, y = NULL,
+    title = "The Kaggle Earthquake Data",
+    subtitle = "Significant Earthquakes, 1965-2016") +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_line(colour = "grey90"),
+    legend.background = element_blank(),
+    legend.title = element_text(angle = 90),
+    legend.title.align = 0.5)
+```
+
+<!-- ```{r} -->
+<!-- crs_robin <- "+proj=robin +lat_0=0 +lon_0=0 +x0=0 +y0=0" -->
+
+<!-- # projection outline in long-lat coordinates -->
+<!-- lats <- c(90:-90, -90:90, 90) -->
+<!-- longs <- c(rep(c(180, -180), each = 181), 180) -->
+
+<!-- robin_outline <-  -->
+<!--   list(cbind(longs, lats)) %>% -->
+<!--   st_polygon() %>% -->
+<!--   st_sfc( -->
+<!--     crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs" -->
+<!--   ) %>%  -->
+<!--   st_transform(crs = crs_robin) -->
+<!-- plot(robin_outline) -->
+
+<!-- # 1. -->
+<!-- robin_coords <- as_tibble(st_coordinates(robin_outline)) -->
+
+<!-- # bounding box in transformed coordinates -->
+<!-- xlim <- c(min(robin_coords[,"X"]), max(robin_coords[,"X"])) -->
+<!-- ylim <- c(min(robin_coords[,"Y"]), max(robin_coords[,"Y"])) -->
+
+<!-- # 2. -->
+<!-- bbox <- st_sfc(st_point(c(min(longs), min(lats))), -->
+<!--                st_point(c(max(longs), max(lats))), -->
+<!--                          crs = WGS84_proj) -->
+<!-- bbox_trans <- st_transform(bbox, crs_robin) -->
+<!-- bbox_coords <- st_coordinates(bbox_trans) -->
+
+<!-- # bounding box in transformed coordinates -->
+<!-- xlim <- c(bbox_coords[1,"X"], bbox_coords[2,"X"]) -->
+<!-- ylim <- c(bbox_coords[1,"Y"], bbox_coords[2,"Y"]) -->
+
+<!-- # 3.  -->
+<!-- # bounding box in transformed coordinates -->
+<!-- xlim <- c(-18494733, 18613795) -->
+<!-- ylim <- c(-9473396, 9188587) -->
+<!-- robin_bbox <-  -->
+<!--   list( -->
+<!--     cbind( -->
+<!--       c(xlim[1], xlim[2], xlim[2], xlim[1], xlim[1]),  -->
+<!--       c(ylim[1], ylim[1], ylim[2], ylim[2], ylim[1]) -->
+<!--     ) -->
+<!--   ) %>% -->
+<!--   st_polygon() %>% -->
+<!--   st_sfc(crs = crs_robin) -->
+<!-- plot(robin_bbox) -->
+
+<!-- # area outside the earth outline -->
+<!-- robin_without <- st_difference(robin_bbox, robin_outline) -->
+
+<!-- ggplot(world_sf) +  -->
+<!--   geom_sf(fill = "#E69F00B0", color = "black", size = 0.5/.pt) +  -->
+<!--   geom_sf(data = robin_without, fill = "white", color = NA) + -->
+<!--   geom_sf(data = robin_outline, fill = NA, color = "grey30", size = 0.5/.pt) + -->
+<!--   scale_x_continuous(name = NULL, breaks = seq(-120, 120, by = 60)) + -->
+<!--   scale_y_continuous(name = NULL, breaks = seq(-60, 60, by = 30)) + -->
+<!--   coord_sf(xlim = 0.95*xlim, ylim = 0.95*ylim, expand = FALSE, crs = crs_robin, ndiscr = 1000) +  -->
+<!--   ggtitle("Robinson") + -->
+<!--   theme_minimal() + -->
+<!--   theme( -->
+<!--     panel.background = element_rect(fill = "#56B4E950", color = "white", size = 1), -->
+<!--     panel.grid.major = element_line(color = "gray30", size = 0.25) -->
+<!--   ) -->
+<!-- ``` -->
+

@@ -1,0 +1,170 @@
+---
+date: "2021-01-01"
+title: "9. Correspondence Analysis (CA)"
+subtitle: ""
+---
+
+<!--- # Topic 9: Correspondence Analysis (CA) --->
+
+::: callout-tip
+## **Material required for this chapter**
+
+| Type           | Name                                     | Link                                                                              |
+|----------------|------------------------------------------|-----------------------------------------------------------------------------------|
+| **Slides**     | CA lecture slides                        | [💾 `BCB743_09_CA.pdf`](../slides/BCB743_09_CA.pdf)                               |
+| **Data**       | The Doubs River data                     | [💾 `Doubs.RData`](../data/NEwR-2ed_code_data/NeWR2-Data/Doubs.RData)             |
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to complete in this Chapter
+
+* [Task E 1--4](assessments/Task_E.qmd)
+:::
+
+CA is an eigenvalue method that can be applied to calculate the degree of 'correspondence' between the rows and columns of a presence-absence or abundance species table. We say that CA maximises the correspondence between species scores and sample scores, whereas a PCA maximises the variance explained. The technique is best applied to a species dataset where the species (in the columns) show unimodal distributions across sites (down the rows). CA represents the distances among sites and among species by the $\chi^{2}$ distance metric (rather than Euclidean distances in PCA), which does not suffer from the [double-zero problem](https://www.davidzeleny.net/anadat-r/doku.php/en:similarity#:~:text=Chi%2Dsquare%20distances.-,Double%2Dzero%20problem,which%20similarity%2Fdistance%20is%20calculated.&text=The%20fact%20that%20the%20mesic,or%20difference%20between%20both%20samples.). Some ecologists argue that CA might be too much influenced by rare species. In ordination diagrams, species and sites are also represented by points as per usual convention. The relative positions of these points (species vs. sites, species vs. other species, or sites vs. other sites) indicate how strongly they 'correspond' to one another.
+
+CA therefore finds the ordination space that answers questions such as, "Which sites do my species prefer?" or "Which sites to my species correspond to?" (from [GUSTA ME](https://sites.google.com/site/mb3gustame/indirect-gradient-analysis/ca)). Also see David Zelený's [Analysis of community ecology data in R](https://www.davidzeleny.net/anadat-r/doku.php/en:ca_dca).
+
+## Set-up the analysis environment
+
+```{r}
+library(tidyverse)
+library(vegan)
+
+# setting up a 'root' file path so I don't have to keep doing it later...
+root <- "../data/"
+```
+
+## The Doubs River data
+
+This time we work with the species data:
+
+```{r}
+load(paste0(root, "NEwR-2ed_code_data/NEwR2-Data/Doubs.RData"))
+head(spe, 8)
+```
+
+## Do the CA
+
+The **vegan** function `cca()` can be used for CA and Constrained Correspondence Analysis (CCA). When we do not specify constraints, as we do here, we will do a simple CA:
+
+```{r error=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+spe_ca <- cca(spe)
+```
+
+Okay, so there's a problem. The error message says that at least one of the rows sums to 0. Which one?
+
+```{r}
+apply(spe, 1, sum)
+```
+
+We see that the offending row is row 8, so we can omit it. This function will omit any row that sums to zero (or less):
+
+```{r}
+spe <- spe[rowSums(spe) > 0, ]
+head(spe, 8)
+```
+
+Now we are ready for the CA:
+
+```{r}
+spe_ca <- cca(spe)
+spe_ca
+```
+
+The more verbose `summary()` output:
+
+```{r}
+summary(spe_ca)
+```
+
+The output looks similar to that of a PCA. The important things to note are the **inertia** (unconstrained and total inertia are the same), the **Eigenvalues for the unconstrained axes**, the **Species scores,** and the **Site scores**. Their interpretation is the same as before, but we can reiterate. Let us calculate the total inertia:
+
+```{r}
+round(sum(spe_ca$CA$eig), 5)
+```
+
+The inertia for the first axis (CA1) is:
+
+```{r}
+round(spe_ca$CA$eig[1], 5)
+```
+
+The inertia of CA1 *and* CA2 is:
+
+```{r}
+round(sum(spe_ca$CA$eig[1:2]), 5)
+```
+
+The fraction of the variance explained by CA1 and CA2 is:
+
+```{r}
+round(sum(spe_ca$CA$eig[1:2]) / sum(spe_ca$CA$eig) * 100, 2) # result in %
+```
+
+Above, the value is the same one as in **Cumulative Proportion** in the `summary(spe_ca)` output under the CA2 column.
+
+Species scores are *actual* species scores as they now relate to species data. The most positive and most negative eigenvectors (or loadings) indicate those species that dominate in their influence along particular CA axes. For example, CA1 will be most heavily loaded by the species Cogo and Satr (eigenvectors of 1.50075 and 1.66167, respectively). If there is an environmental gradient, it will be these species that will be most affected. At the very least, we can say that the contributions of these species are having an overriding influence on the community differences seen between sites.
+
+Site scores are also as seen earlier in PCA. The highest positive or negative loadings indicate sites that are dispersed far apart on the biplot (in ordination space). They will have large differences in fish community composition.
+
+Please see *Numerical Ecology in R* (pp. 133 to 140). There you will find explanations for how to interpret the ordinations and the ordination diagrams shown below.
+
+## Ordination diagrams
+
+The biplots for the above ordination are given here:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6 
+plot(spe_ca, scaling = 1, main = "CA fish abundances - biplot scaling 1")
+plot(spe_ca, scaling = 2, main = "CA fish abundances - biplot scaling 2")
+dev.off()
+dev.new()
+```
+
+**Scaling 1:** This scaling *emphasises relationships between rows* accurately in low-dimensional ordination space. Distances among objects (samples or sites) in the biplot are approximations of their $\chi^{2}$ distances in multidimensional space. Objects found near a point representing a species are likely to contain a high contribution of that species.
+
+**Scaling 2:** This scaling *emphasises relationships between columns* accurately in low-dimensional ordination space. Distances among objects (samples or sites) in the biplot are not approximations of their $\chi^{2}$ distances in multidimensional space, but the distances among species are. Species positioned close to the point representing an object (a sample or site) are more likely to be found in that object or to have higher frequency there.
+
+Below are biplots with site and species scores for four selected species. The plots are augmented with response surfaces made with penalised splines for each species showing i) where it are most abundant and ii) the direction of the response (here non-linear). On the last panel (bottom right) I also project vectors for the environmental drivers and mark the ones with the greatest influence in red. Lastly, the point size scales with species scores:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6 
+par(mar = c(4, 4, 0.9, 0.5) + .1, mfrow = c(2, 2))
+with(spe, ordisurf(spe_ca ~ Satr, bubble = 3,
+                   family = quasipoisson, knots = 2, col = "turquoise",
+                   display = "sites", main = "Satr", plot = TRUE))
+abline(h = 0, v = 0, lty = 3)
+with(spe, ordisurf(spe_ca ~ Scer, bubble = 3,
+                   family = quasipoisson, knots = 2, col = "turquoise",
+                   display = "sites", main = "Scer"))
+abline(h = 0, v = 0, lty = 3)
+with(spe, ordisurf(spe_ca ~ Teso, bubble = 3,
+                   family = quasipoisson, knots = 2, col = "turquoise",
+                   display = "sites", main = "Teso"))
+abline(h = 0, v = 0, lty = 3)
+with(spe, ordisurf(spe_ca ~ Cogo, bubble = 3,
+                   family = quasipoisson, knots = 2, col = "turquoise",
+                   display = "sites", main = "Cogo"))
+abline(h = 0, v = 0, lty = 3)
+
+# a posteriori projection of environmental variables in a CA
+env <- dplyr::select(env, -1)
+
+# we removed the 8th row in spe, so do it here too
+env <- dplyr::slice(env, -8)
+
+# the last plot produced (CA scaling 2) must be active
+# scaling 2 is default
+(spe_ca_env <- envfit(spe_ca, env, scaling = 2))
+
+plot(spe_ca_env, col = "grey40")
+plot(spe_ca_env, p.max = 0.05, col = "red") # plot significant variables with a different colour
+```
+
+## References
+
+::: {#refs}
+:::

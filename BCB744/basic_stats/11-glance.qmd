@@ -1,0 +1,68 @@
+---
+date: "2021-01-01"
+title: "11. Non-parametric statistical tests at a glance"
+subtitle: "Making sense of it all"
+---
+
+In Chapters 7, 8, 9, and 10 we have seen [*t*-tests](07-t_tests.qmd), [ANOVAs](08-anova.qmd), [simple linear regressions](09-regressions.qmd), and [correlations](10-correlations.qmd). These tests may be substituted with non-parametric tests if our assumptions about our data fail us. The most commonly encountered non-parametric methods include the following:
+
+-   **Wilcoxon rank-sum test** The test is used when the two samples being compared are related, meaning that each observation in one sample is paired with a corresponding observation in the other sample. The test is designed to detect whether there is a difference between the paired observations. Specifically, the Wilcoxon signed-rank test ranks the absolute differences between the pairs of observations, and then compares the sum of the ranks for positive differences to the sum of the ranks for negative differences. The test produces a *p*-value indicating the probability of observing such a difference by chance, assuming the null hypothesis that there is no difference between the paired observations. *Use the Wilcoxon test as a non-parametric substitute for a paired sample *t*-test*. See `wilcox.test()`.
+
+-   **Mann-Whitney $U$ test** This test is used when the two samples being compared are independent, meaning that there is no pairing between observations in the two samples. The test is designed to detect whether there is a difference between the two groups based on the ranks of the observations. Specifically, the Mann-Whitney $U$ test ranks all observations from both samples, combines the ranks across the two samples, and calculates a test statistic ($U$) that indicates whether one sample tends to have higher ranks than the other sample. The test produces a *p*-value indicating the probability of observing such a difference by chance, assuming the $H_0$ that there is no difference between the two groups. *Use this test in stead of a one- or two-sample *t*-test when assumptions of normality or homoscedasticity are not met*. See `wilcox.test()`.
+
+-   **Kruskal-Wallis test** The Kruskal-Wallis test is a non-parametric statistical test used to compare three or more independent groups on a continuous outcome variable. The test is designed to detect whether there is a difference in the medians of the groups. The Kruskal-Wallis test works by ranking all the observations from all the groups, then calculating a test statistic ($H$) that measures the degree of difference in the ranked values between the groups. The test produces a *p*-value indicating the probability of observing such a difference by chance, assuming the $H_0$ that there is no difference in the medians of the groups. *The Kruskal-Wallis test is often used as a non-parametric alternative to the one-way ANOVA*. See `kruskal.test()`.
+
+-   **Friedman test** This test is a non-parametric statistical test used to compare three or more related groups on a continuous outcome variable. The test is designed to detect whether there is a difference in the medians of the groups. The Friedman test works by ranking all the observations within each group, then calculating a test statistic ($\chi^2$) that measures the degree of difference in the ranked values between the groups. The test produces a $p$-value indicating the probability of observing such a difference by chance, assuming the $H_0$ that there is no difference in the medians of the groups. *The Friedman test is often used as a non-parametric alternative to the repeated measures ANOVA*. You can use the `friedman_test()` in the **rstatix** package or the `friedman.test()` in Base R.
+
+
+Tables 1 and 2 summarise common parametric and non-parametric statistical tests, along with a brief explanation of each test and the most common R function used to perform the test. Non-parametric tests are robust alternatives to parametric tests when the assumptions of the parametric test are not met. Also provided is additional information on the nature of the independent (IV) and dependent variables (DV) for each test.
+
+:::{.column-page-inset-right}
+**Table 1:** When our data are normal with equal variances across groups, choose the suitable parametric test
+
+| Statistical Test | Explanation | Variables | R Function | Non-Parametric Substitute |
+| --- | --- | --- | --- | --- |
+| **Parametric Tests** | | | | |
+| Paired-sample *t*-test | Tests if the difference in means between paired samples is significantly different from zero. Assumes normality and equal variances. | Continuous (DV) | `t.test(..., var.equal = TRUE)` | Wilcoxon signed-rank test |
+| Student's *t*-test | Tests if the means of two independent groups are significantly different. Assumes normality and equal variances. | Continuous (DV) and categorical (IV) | `t.test(..., var.equal = TRUE)` | Mann-Whitney U test |
+| Welch's *t*-test (unequal variances) | Use this test when data are normal but variances differ between the two groups. It can be used for paired- and two-sample *t*-tests. | Continuous (DV) and categorical (IV) | `t.test()` | Mann-Whitney U test or Wilcoxon signed-rank test |
+| ANOVA (one-way ANOVA only; ANOVAs with interactions do not have non-parametric tests) | Tests if the means of three or more independent groups are significantly different. Assumes normality, equal variances, and independence. | Continuous (DV) and categorical (IV) | `aov()` | Kruskal-Wallis test |
+| ANOVA with Welch's approximation of variances | Tests if the means of three or more independent groups are significantly different. Assumes normality but variances may differ. | Continuous (DV) and categorical (IV) | `oneway.test()` | Kruskal-Wallis test |
+| Regression Analysis | Models the relationship between two continuous variables. Assumes linearity, normality, and equal variances of errors. | Continuous (DV) and continuous (IV) | `lm()` | N/A |
+| Pearson Correlation | Measures the strength and direction of the linear relationship between two continuous variables. Assumes normality and linearity. | Continuous (DV) and continuous (IV) | `cor.test()` | Spearman's $\rho$ or Kendall's $\tau$ rank correlation |
+:::
+
+**Table 2:** Should the data not be normal and/or are heteroscedastic, substitute the parametric test with a non-parametric option.
+
+:::{.column-page-inset-right}
+| Statistical Test | Explanation | Variables | R Function | Parametric Equivalent |
+| --- | --- | --- | --- | --- |
+| **Non-Parametric Tests** | | | | |
+| Wilcoxon signed-rank test | Tests if the medians of two related samples are significantly different. Does not assume normality. | Continuous (DV) | `wilcox.test()` | Paired-sample *t*-test |
+| Mann-Whitney U test | Tests if the medians of two independent groups are significantly different. Does not assume normality or equal variances. | Continuous (DV) and categorical (IV) | `wilcox.test()` | Student's *t*-test |
+| Kruskal-Wallis test | Tests if the medians of three or more independent groups are significantly different. Does not assume normality or equal variances. | Continuous (DV) and categorical (IV) | `kruskal.test()` | ANOVA, or ANOVA with Welch's approximation of variances |
+| Friedman test | Tests if the medians of three or more related samples are significantly different. Does not assume normality. | Continuous (DV) and categorical (IV) | `friedman.test()` | Repeated measures ANOVA |
+| Spearman's rank correlation | Measures the strength and direction of the monotonic relationship between two continuous variables. Does not assume normality or linearity. | Continuous (DV) and continuous (IV) | `cor.test(method = "spearman")` | Pearson correlation |
+:::
+
+<!--
+
+
+Here is a quick guide to apply to paired tests, one- and two-sample tests, as well as one- and two-sided hypotheses (i.e. *t*-tests and their ilk). Also see the [CheatSheet](../../docs/Methods_cheatsheet_v1.pdf).
+
+| Assumption        | R function                    | Note                                                 |
+|:------------------|:------------------------------|:-----------------------------------------------------|
+| Equal variances   | `t.test(..., var.equal=TRUE)` | Student's *t*-test                                   |
+| Unequal variances | `t.test(...)`                 | Using Welch's approximation of variances             |
+| Normal data       | `t.test(...)`                 | As per equal/unequal variance cases, above           |
+| Data not normal   | `wilcox.test(...)`            | Wilcoxon (1-sample) or Mann-Whitney (2-sample) tests |
+
+When we compare more than two groups we usually do an ANOVA, and the same situation is true. For ANOVAs our options include (but are not limited to):
+
+| Assumption                          | R function          | Note                                                                                                                                                                                                      |
+|:------------------------------------|:--------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Normal data, equal variances        | `aov(...)`          | A vanilla analysis of variance                                                                                                                                                                            |
+| Normal data, unequal variances      | `oneway.test(...)`  | Using Welch's approximation of variances, if needed, but robust if variances differ no more than 4-fold; could also stabilise variances using a square-root transformation; may also use `kruskal.test()` |
+| Data not normal (and/or non-normal) | `kruskal.test(...)` | Kruskal-Wallis rank sum test                                                                                                                                                                              |
+
+-->

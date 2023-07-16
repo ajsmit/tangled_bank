@@ -1,0 +1,179 @@
+---
+author: "AJ Smit"
+title: "Retrieving Chlorophyll-*a* Data from ERDDAP Servers"
+subtitle: "An Introduction to ERDDAP"
+date: "`r Sys.Date()`"
+description: "This vignette demonstrates basic ideas behind ERDDAP."
+bibliography: ../references.bib
+csl: ../marine-biology.csl
+format:
+  html:
+    code-fold: false
+    toc-title: "On this page"
+    standalone: true
+    toc-location: right
+    page-layout: full
+---
+
+```{r}
+# The packages we will use
+library(tidyverse) # A staple for modern data management in R
+library(tidync) # For easily dealing with NetCDF data
+library(rerddap) # For easily downloading subsets of data
+library(doParallel) # For parallel processing
+```
+
+This document is a more basic version of the tutorial Robert Schlegel wrote, and which is available on our GitHub site as a [vignette of the **heatwaveR**](https://robwschlegel.github.io/heatwaveR/articles/OISST_preparation.html) package.
+
+## What are ERDDAP servers?
+
+According to the [ERDDAP website](https://coastwatch.pfeg.noaa.gov/erddap/index.html), "ERDDAP is a data server that gives you a simple, consistent way to download subsets of scientific datasets in common file formats and make graphs and maps. This particular ERDDAP installation has oceanographic data (for example, data from satellites and buoys)."
+
+ERDDAP allows us to conveniently access, subset, and download a multitude of gridded Earth system datasets maintained around the globe. Alternatives to ERDDAP include:
+
+* Using a [python script](https://tangledbank.netlify.app/vignettes/alt_method.html) on the command line.
+* The [MOTU client](https://help.marine.copernicus.eu/en/articles/4682997-what-are-the-advantages-of-the-subsetter-download-mechanism) (also python based).
+* [OPeNDAP](https://help.marine.copernicus.eu/en/articles/6522070-what-is-opendap-and-how-to-access-copernicus-marine-data).
+* [FTP](https://help.marine.copernicus.eu/en/articles/4683022-what-are-the-advantages-of-the-file-transfer-protocol-ftp-data-access-service).
+* [WMS](WMS).
+
+I will provide tutorial for each of these in due course.
+
+## ERDDAP sources
+
+The **rerddap** package provides a useful interface to ERDDAP servers via R. Internally, it uses the unix utility, `curl`. The package comes with a built-in list of links to widely used ERDDAP servers, which can be seen in a [json file](https://irishmarineinstitute.github.io/awesome-erddap/erddaps.json) maintained by the package authors. Included are well-known servers such as:
+
+-   Various CoastWatch Nodes
+-   NOAA's National Centers for Environmental Information (NCEI)
+-   European Marine Observation and Data Network (EMODnet) Physics
+    ERDDAP
+-   Regional Ocean Modelling System
+-   French Research Institute for the Exploitation of the Sea (IFREMER)
+-   NOAA Pacific Marine Environmental Laboratory (PMEL)
+-   ...and many more
+
+Other servers may be accessed if they are not listed here.
+
+## Accessing ERDDAP servers
+
+Let us interrogate the list of servers known to the package. To find these servers, we use the `servers()` function:
+
+```{r}
+# ERDDAP servers?
+serv_list <- servers()
+```
+
+This load the database of server names. There are four columns with useful information:
+
+```{r}
+colnames(serv_list)
+```
+
+The content of the columns is reasonably self-explanatory.
+
+We may be interested in some kind of variable contained somewhere in any of these servers. For example, the MODIS satellite platform provides gridded chlorophyll-*a* data, and so we can construct a search using the `ed_search()` function:
+
+```{r}
+which_chl <- ed_search(query = "chlorophyll-a", which = "griddap")
+
+# voluminous output
+# head(which_chl)
+```
+
+Above you'll notice the `which = "griddap"` argument. [**griddap**](https://coastwatch.pfeg.noaa.gov/erddap/griddap/documentation.html) is one of two kinds of ERDDAP data, the other being **tabledap**. **griddap** indicates that the data are *gridded*, that is, that Earth's surface was 'divided` (computationally) into grid cells, each with a well-defined geographical centre and N and W extent. These cells may vary in size from approx. 1 km latitude/longitude (0.01° × 0.01°) 'pixels' to up to 2.5 × 2.5° pixels, or larger. Each of these grid cells (or pixels) is represented by some biogeophysical quantity, such as chlorophyll-*a*, sea surface temperature (SST), or wind speed (and many more). For each pixel a series of data across time might be available.
+
+[**tabledap**](https://coastwatch.pfeg.noaa.gov/erddap/tabledap/documentation.html) (`which = tabledap`) on the other hand contains data that can be better represented as tables, such as station data (moorings, sites where coral reefs were continuously monitored for coral bleaching, etc.) particular to some points on Earth's surface, but which do not systematically cover all of the land or ocean surface. These data can be seen as being discrete in space, but it may be continuous in time.
+
+I select `dataset_id` "erdMH1chla1day" which corresponds to the `title` "Chlorophyll-a, Aqua MODIS, NPP, L3SMI, Global, 4km, Science Quality, 2003-present (1 Day Composite)". Note that I also select the version of the dataset in which longitudes west of the prime meridian run from -179.9792 to ~0. One can find this information inside the `which_chl` object and searching in the `title` column of the `info` dataframe contained within. 
+
+```{r}
+#| eval: false
+View(which_chl[["info"]])
+```
+
+We can obtain more information about the data using the `browse()` command, which opens some information (the meta-data) in a web browser:
+
+```{r}
+#| eval: false
+browse('erdMH1chla1day')
+```
+
+We can see that this dataset is **griddap** data. We can also use the `info()` function and now more concise but equally useful information is returned in the R console:
+
+```{r}
+info("erdMH1chla1day")
+```
+
+The convenience of ERDDAP is that we may specify various parameters to limit the data to download to a specific subset.
+
+```{r}
+lats = c(36.7950, 39.6790) # a region around the Azores
+lons = c(-31.5933, -23.6177)
+time = c("2003-01-01", "2022-07-27") # the full temporal extent
+```
+
+Now we put together a function to download the files in CSV format. 
+
+```{r}
+#| eval: false
+# this function downloads and prepares data based on user provided start and end dates
+# run once only, then save the downloaded data!
+chl_sub_dl <- function(time_df) {
+  chl_dat <- griddap(datasetx = "erdMH1chla1day", 
+                     url = "https://upwell.pfeg.noaa.gov/erddap/", 
+                     time = c(time_df$start, time_df$end),
+                     latitude = lats,
+                     longitude = lons,
+                     fields = "chlorophyll")$data %>% 
+    mutate(time = as.Date(stringr::str_remove(time, "T00:00:00Z")))
+}
+```
+
+The rationale for this script is provided in [Downloading and Preparing NOAA OISST Data: ERDDAP](../vignettes/prep_NOAA_OISST.qmd). Basically, even though each year of data for the extent used in this vignette is not very large, the ERDDAP server does not like it when more than nine years of consecutive data are requested (at least, this was true several years ago, and I have not yet tried to establish of this limitation was removed). The server will also end a user's connection after ~17 individual files have been requested. Because we can’t download all of the data in one request, and we can’t download the data one year at a time, we will need to make requests for multiple batches of data. To accomplish this we will create a dataframe of start and end dates that will allow us to automate the entire download while meeting the aforementioned criteria. 
+
+```{r}
+#| eval: false
+# date download range by start and end dates per year
+dl_years <- data.frame(date_index = 1:3,
+                       start = as.Date(c("2003-01-01",
+                                         "2010-01-01",
+                                         "2017-01-01")),
+                       end = as.Date(c("2009-12-31",
+                                       "2016-12-31",
+                                       "2022-07-27")))
+```
+
+Now we may download all of the data with one nested request using some of the **tidyverse**'s functionality---we apply the function we made above to the dataframe of start and end dates. The time this takes will vary greatly based on connection speed:
+
+```{r}
+#| eval: false
+system.time(
+  chl_data <- dl_years %>% 
+    group_by(date_index) %>% 
+    group_modify(~chl_sub_dl(.x)) %>% 
+    ungroup()
+) # 997.642 seconds, ~yy seconds per batch
+```
+
+Finally, we save the data to a .Rdata file to avoid having to download it again:
+
+```{r}
+#| eval: false
+save(chl_data, file = "/data/MODIS_chl_data.Rdata")
+```
+
+Or we can download and save to disk as a netCDF (manually renamed to
+`chl_data.nc` afterwards):
+
+```{r}
+#| eval: false
+griddap(datasetx = "erdMH1chla1day", 
+        url = "https://upwell.pfeg.noaa.gov/erddap/", 
+        time = time,
+        latitude = lats,
+        longitude = lons,
+        fields = "chlorophyll",
+        store = disk(path = getwd()))
+```
+
+

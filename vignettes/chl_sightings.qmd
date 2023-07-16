@@ -1,0 +1,772 @@
+---
+title: "Plotting the Whale Sightings and Chlorophyll-*a* Concentrations"
+subtitle: "A brief demonstration of data summaries"
+date: "`r Sys.Date()`"
+description: "This vignette demonstrates exploratory data analyses."
+bibliography: ../references.bib
+csl: ../marine-biology.csl
+format:
+  html:
+    code-fold: false
+    toc-title: "On this page"
+    standalone: true
+    toc-location: right
+    page-layout: full
+---
+
+## Load packages
+
+```{r}
+#| message: false
+library(tidyverse)
+library(lubridate)
+library(gganimate)
+library(raster)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(maptools)
+library(elevatr)
+library(RANN) # for the nearest neighbour search
+library(ggpubr)
+library(gt) # for nice tables
+
+source("../R/map_theme.R")
+```
+
+```{r}
+#| echo: false
+#| eval: false
+# OpenTopography API
+set_opentopo_key("cd52ef9b8b407a17fd417843e571fc27")
+```
+
+![The Azores region in the whales sightings
+study.](../images/Azores.png){#fig-map}
+
+This analysis uses the Azores chlorophyll-*a* data downloaded in
+[Retrieving Chlorophyll-*a* Data from ERDDAP Servers](chl_ERDDAP.qmd).
+
+## Background
+
+The region around the Azores is characterised by relatively higher
+nutrient availability in a 'sea' of otherwise oligotrophic conditions,
+and hence they are of major interest as biodiversity hotspots. The
+enhanced productivity results from high mesoscale activity (often
+measured as Eddy Kinetic Energy, EKE) and the presence (and interaction
+with) undersea topographic features [@santos2013phytoplankton]. The
+enhanced chlorophyll-a biomass in the region results in it being an
+important foraging area for whales *en route* to areas further north in
+the Atlantic [@gonzalez2018multi].
+
+We expect seasonal variation to provide a strongly signal in the region,
+with typical autumn/winter to spring chl-*a* blooms. All satellite ocean
+colour products show the same general pattern with the highest pigment
+concentrations during spring months and the lowest during summer. SST
+also shows a seasonal trend, with highest SST during summer and the
+lowest during winter.
+
+## Rui's objectives
+
+Our main objective is to interpret if Azorean waters are a migratory
+corridor for the four main baleen whale’s species sighted in the Azores
+(blue, *Balaenoptera musculus*; fin, *B. physalus*; sei, *B. borealis*;
+humpback whale, *Megaptera novaeangliae*), during their migration from
+breeding to feeding areas, and vice-versa. This leads to other main
+questions: 
+
+* How long the target species use the study area during migration? -->
+    Unlikely achievable without IDs.
+* Are they returning in different years? --> Probably not possible without
+    IDs of individual whales.
+* How does the intensity and timing of the spring bloom influence
+the migration? --> Timing question already addressed, but we can 
+    probably improve. Question about intensity vs sightings can be done
+    using a regression-type approach.
+
+## Questions
+
+1.  Do whales track temporal appearance of chl-*a* max? \[**Yes**\] What
+    is the lag? \[**Table 1**\]
+
+    a.  Is there a correlation in time between whale presence and lagged
+        co-located chl-*a* conc.?
+    b.  Is the correlation between whale presence and chl-*a* conc
+        spatially fixed at i) Pico and Faial and ii) São Miguel, or
+    c.  do max aggregations at localities located near i) Pico and Faial
+        and ii) São Miguel coincide with the chl-*a* max there? I.e. is
+        there a spatial association?
+
+2.  Is there some association between chl-*a* biomass and the number of
+    whales visiting the region? Look at inter-annual variation.
+
+3.  Show the inverse association between chl-*a* biomass and SST.
+
+4.  @gonzalez2018multi identify Mean Kinetic Energy (MKE), meridional
+    and zonal transport components, eddies, bathymetry (depth), slope,
+    nett primary productivity, distance from coast and wind at multiple
+    spatial and temporal scales as influencing whale sightings.
+
+5.  Is there a difference in habitat suitability between the north of the
+    islands, the south, or around the sea mounts? --> Do a multivariate
+    analyses of all variables (see @gonzalez2018multi), with data classified
+    a priori into the subsets representing the three regions.
+
+## Load the whale sighting data
+
+```{r}
+#| message: false
+sights <- read_csv(
+  "../data/occurences_sampled.Mn.txt",
+  show_col_types = FALSE
+)
+
+# make a column with year only
+sights <- sights |>
+  mutate(year = year(date),
+         month = month(date, label = TRUE),
+         week = week(date),
+         yday = yday(date))
+```
+
+## Explore the whale sighting data
+
+The time span of the study:
+
+```{r}
+range(sights$date)
+```
+
+```{r}
+yrs <- max(year(sights$date)) - min(year(sights$date))
+```
+
+The longitudinal and latitudinal range:
+
+```{r}
+range(sights$lat)
+range(sights$lon)
+```
+
+```{r}
+median(sights$lat)
+median(sights$lon)
+```
+
+There is one outlier which I will remove:
+
+```{r}
+sights <- sights |> 
+  filter(lat > min(lat))
+```
+
+From here I define the spatial extent for the study region as:
+
+```{r}
+# the extent of the full regional map
+# a region around the Azores
+
+ymin <- min(sights$lat) - 0.25; ymax <- max(sights$lat) + 0.25
+xmin <- min(sights$lon) - 0.25; xmax <- max(sights$lon) + 0.25
+
+sights_bbox <- st_bbox(c(xmin = xmin, xmax = xmax, ymax = ymax, ymin = ymin),
+                       crs = CRS)
+
+area_sf <- st_as_sfc(sights_bbox)
+
+# EPSG:4326
+# WGS 84 -- WGS84 - World Geodetic System 1984, used in GPS
+st_crs(area_sf) = 4326
+```
+
+The bounding box for the study region is:
+
+```{r}
+sights_bbox
+```
+
+Start preparing all the map layers by loading the Natural Earth data for
+the continent outlines:
+
+```{r}
+# Get countries
+world_ne <- ne_countries(
+  scale = "large",
+  returnclass = "sf"
+)
+class(world_ne)
+```
+
+A first stab plot of the region shows:
+
+```{r}
+#| fig-cap: "The Azores Islands."
+#| label: fig-basicMap
+#| out-width: "90%"
+#| fig-width: 5
+
+ggplot(data = world_ne) +
+  geom_sf(col = "black", fill = "black", linewidth = 0.4) +
+  coord_sf(xlim = c(xmin, xmax),
+           ylim = c(ymin, ymax),
+           expand = FALSE) +
+  labs(x = NULL, y = NULL) +
+  theme_map()
+```
+
+Next we get a DEM of the region using **elevatr**:
+
+```{r}
+#| eval: false
+dem <- elevatr::get_elev_raster(locations = area_sf, z = 7, 
+                                src = "srtm15plus",
+                                clip = "bbox")
+
+# keep for later and to prevent having to download each time
+save(dem, file = "../data/azores.dem")
+```
+
+```{r}
+# re-use previously downloaded dem
+load("../data/azores.dem")
+
+# make dataframe from DEM raster
+dem_df <- as.data.frame(dem, xy = TRUE, na.rm = TRUE)
+colnames(dem_df)[3] <- "layer"
+```
+
+## Mapping and plotting observations
+
+Let us add all the map layer together:
+
+i.  the bathymetry for the region,
+ii. the land area polygons around the above-water regions, and
+iii. all the whale sighting data.
+
+```{r}
+#| fig-cap: "A view of the aggregated whale sigtings over the period 1989-08-20 to 2022-05-07."
+#| label: fig-aggregatedSightings
+#| out-width: "90%"
+#| fig-width: 5
+
+# make a colourmap
+library(cmocean)
+cmap <- cmocean("topo")
+cols <- cmap(51) # for bathy/topo
+cols3 <- rainbow(33) # for observations
+
+# create the layered graph
+ggplot() +
+  geom_raster(data = dem_df, aes(x = x, y = y, fill = layer)) +
+  geom_sf(data = world_ne, col = "white", fill = NA, linewidth = 0.4) +
+  scale_fill_gradientn(colours = cols,
+                       values = scales::rescale(c(min(dem_df$layer), 0,
+                                                  max(dem_df$layer))),
+                       breaks = c(-4000, -2000, -1000, 0, 500, 1000, 2000),
+                       name = "Elevation /\nDepth (m)") +
+  geom_point(data = sights, aes(x = lon, y = lat, colour = year(date)),
+             size = 0.5, shape = 4, alpha = 1) +
+  scale_color_gradientn(colours = cols3,
+                        name = "Year") +
+  coord_sf(xlim = c(xmin, xmax),
+           ylim = c(ymin, ymax),
+           expand = FALSE) +
+  labs(x = NULL, y = NULL) +
+  theme_map()
+```
+
+Are there distribution differences across years? Difficult to see in the
+above figure, so I create an animation of pooled annual observations
+across years:
+
+```{r}
+#| fig-cap: "An animation of whale sigtings over the period 1989-08-20 to 2022-05-07."
+#| label: fig-animationSightings
+#| eval: false
+#| out-width: "90%"
+#| fig-width: 5
+
+p <- ggplot() +
+  geom_raster(data = dem_df, aes(x = x, y = y, fill = layer)) +
+  geom_sf(data = world_ne, col = "white", fill = NA, linewidth = 0.4) +
+  scale_fill_gradientn(colours = cols,
+                       values = scales::rescale(c(min(dem_df$layer), 0,
+                                                  max(dem_df$layer))),
+                       breaks = c(-4000, -2000, -1000, 0, 500, 1000, 2000),
+                       name = "Elevation /\nDepth (m)") +
+  geom_point(data = sights, aes(x = lon, y = lat),
+             colour = "red", size = 0.8, shape = 1, alpha = 1) +
+  coord_sf(xlim = c(xmin, xmax),
+           ylim = c(ymin, ymax),
+           expand = FALSE) +
+  theme_map() +
+  labs(title = 'Year: {floor(frame_time)}', x = NULL, y = NULL) +
+  transition_time(year) +
+  ease_aes('linear')
+
+gganimate::animate(p, fps = 2, nframes = 1 * yrs, device = "svg")
+
+gganimate::anim_save("../data/sightings_anim.gif")
+```
+
+![Animation of yearly whale
+sightings.](sightings_anim.gif){#fig-animationSightings}
+
+## Annual chl-*a* climatology
+
+```{r}
+chlDir <- "/Users/ajsmit/Documents/R/R_in_Ocean_Science/_development/ERDDAP/"
+load(paste0(chlDir, "MODIS_chl_data.Rdata"))
+
+# Create a column of weeks
+chl_data <- chl_data |> 
+  mutate(year = year(time),
+         month = month(time, label = TRUE),
+         week = week(time),
+         yday = yday(time))
+```
+
+```{r}
+#| fig-cap: "Median chl-*a* concentrations over the period 2003-01-01 to 2022-07-27."
+#| label: fig-aggregateChlorophyll
+#| out-width: "90%"
+#| fig-width: 5
+
+library(palr)
+pal <- chl_pal(palette = TRUE)
+
+chl_data |> 
+  group_by(longitude, latitude) |> 
+  summarise(med_chlorophyll = median(chlorophyll, na.rm = TRUE),
+            .groups = "drop") |> 
+  ggplot() + 
+  geom_tile(aes(x = longitude, y = latitude, fill = med_chlorophyll)) +
+  geom_sf(data = world_ne, col = "white", fill = "black", linewidth = 0.4) +
+  scale_fill_gradientn(
+    colours = pal$cols,
+    trans = "log",
+    breaks = c(0.1, 1, 3, 9)
+  ) +
+  guides(fill = guide_colourbar(title = "Chl-a [mg/L]",
+                                title.position = "top",
+                                direction = "horizontal",
+                                barwidth = 8)) +
+  scale_x_continuous(breaks = seq(-30.5, -25, 2.75)) +
+  scale_y_continuous(breaks = seq(37, 39.5, 1.25)) +
+  coord_sf(xlim = c(xmin, xmax),
+           ylim = c(ymin, ymax),
+           expand = FALSE) +
+  labs(title = "MODIS Aqua annual chlorophyll-a climatology",
+       x = NULL, y = NULL) +
+  theme_map() +
+  theme(legend.position = "bottom")
+```
+
+## Monthly chl-*a* climatology
+
+Plots for the full regional extent:
+
+```{r}
+#| fig-cap: "Monthly climatological median chl-*a* concentrations over the period 2003-01-01 to 2022-07-27."
+#| label: fig-monthlyChlorophyll
+#| out-width: "90%"
+#| fig-width: 5
+
+chl_data |> 
+  mutate(month = month(time, label = TRUE)) |> 
+  group_by(longitude, latitude, month) |> 
+  summarise(med_chlorophyll = median(chlorophyll, na.rm = TRUE),
+            .groups = "drop") |> 
+  ggplot() + 
+  geom_tile(aes(x = longitude, y = latitude, fill = med_chlorophyll)) +
+  geom_sf(data = world_ne, col = "white", fill = "grey50", linewidth = 0.4) +
+  scale_fill_gradientn(
+    colours = pal$cols,
+    trans = "log",
+    breaks = c(0.05, 0.1, 1),
+    limits = c(0.05, 1)
+  ) +
+  guides(fill = guide_colourbar(title = "Chl-a [mg/m3]",
+                                title.position = "top",
+                                direction = "horizontal",
+                                barwidth = 8)) +
+  scale_x_continuous(breaks = c(-30.5, -25)) +
+  scale_y_continuous(breaks = c(37, 39.5)) +
+  coord_sf(xlim = c(xmin, xmax),
+           ylim = c(ymin, ymax),
+           expand = FALSE) +
+  labs(title = "MODIS Aqua seasonal chlorophyll-a climatology",
+       x = NULL, y = NULL) +
+  theme_map() +
+  theme(legend.position = "bottom") +
+  facet_wrap(vars(month), ncol = 3)
+```
+
+I also plot the seasonal profile for the central (Ilha do Faial, Ilha do
+Pico, São Jorge, Graciosa, Ilha Terceira) and eastern-most (Ilha do São
+Miguel, São Pedro) island groups. The respective bounding boxes are:
+
+```{r}
+# center group
+c_lonmin <- -29
+c_lonmax <- -27.5
+c_latmin <- 38
+c_latmax <- 39
+
+# eastern group
+e_lonmin <- -26
+e_lonmax <- -25
+e_latmin <- 37.5
+e_latmax <- 38
+```
+
+```{r}
+#| fig-cap: "Monthly climatological median chl-*a* concentrations over the period 2003-01-01 to 2022-07-27 for the central island group comprised of Ilha do Faial, Ilha do Pico, São Jorge, Graciosa, and Ilha Terceira."
+#| label: fig-monthlyCentralChlorophyll
+#| out-width: "90%"
+#| fig-width: 5
+
+chl_data |>
+  filter(between(longitude, c_lonmin, c_lonmax),
+         between(latitude, c_latmin, c_latmax)) |>
+  mutate(month = month(time, label = TRUE)) |>
+  group_by(longitude, latitude, month) |>
+  summarise(med_chlorophyll = median(chlorophyll, na.rm = TRUE),
+            .groups = "drop") |>
+  ggplot() +
+  geom_tile(aes(x = longitude, y = latitude, fill = med_chlorophyll)) +
+  geom_point(data = sights, aes(x = lon, y = lat),
+             colour = "black", shape = 4, size = 0.5) +
+  geom_sf(
+    data = world_ne,
+    col = "white",
+    fill = "grey50",
+    linewidth = 0.4
+  ) +
+  scale_fill_gradientn(
+    colours = pal$cols,
+    trans = "log",
+    breaks = c(0.05, 0.1, 1),
+    limits = c(0.05, 1)
+  ) +
+  guides(
+    fill = guide_colourbar(
+      title = "Chl-a [mg/m3]",
+      title.position = "top",
+      direction = "horizontal",
+      barwidth = 8
+    )
+  ) +
+  scale_x_continuous(breaks = c(-28.6, -27.8)) +
+  scale_y_continuous(breaks = c(38.2, 38.8)) +
+  coord_sf(
+    xlim = c(c_lonmin, c_lonmax),
+    ylim = c(c_latmin, c_latmax),
+    expand = FALSE
+  ) +
+  labs(title = "Seasonal chl-a climatology",
+       subtitle = "Central group",
+       x = NULL, y = NULL) +
+  theme_map() +
+  theme(legend.position = "bottom") +
+  facet_wrap(vars(month), ncol = 3)
+```
+
+```{r}
+#| fig-cap: "Monthly climatological median chl-*a* concentrations over the period 2003-01-01 to 2022-07-27 for the eastern island group comprised of Ilha do São Miguel and São Pedro."
+#| label: fig-monthlyEasternChlorophyll
+#| out-width: "90%"
+#| fig-width: 5
+
+chl_data |>
+  filter(between(longitude, e_lonmin, e_lonmax),
+         between(latitude, e_latmin, e_latmax)) |>
+  mutate(month = month(time, label = TRUE)) |>
+  group_by(longitude, latitude, month) |>
+  summarise(med_chlorophyll = median(chlorophyll, na.rm = TRUE),
+            .groups = "drop") |>
+  ggplot() +
+  geom_tile(aes(x = longitude, y = latitude, fill = med_chlorophyll)) +
+  geom_point(
+    data = sights,
+    aes(x = lon, y = lat),
+    colour = "black",
+    shape = 4,
+    size = 0.5
+  ) +
+  geom_sf(
+    data = world_ne,
+    col = "white",
+    fill = "grey50",
+    linewidth = 0.4
+  ) +
+  scale_fill_gradientn(
+    colours = pal$cols,
+    trans = "log",
+    breaks = c(0.05, 0.1, 1),
+    limits = c(0.05, 1)
+  ) +
+  guides(
+    fill = guide_colourbar(
+      title = "Chl-a [mg/m3]",
+      title.position = "top",
+      direction = "horizontal",
+      barwidth = 8
+    )
+  ) +
+  scale_x_continuous(breaks = c(-25.8, -25.2)) +
+  scale_y_continuous(breaks = c(37.6, 37.9)) +
+  coord_sf(
+    xlim = c(e_lonmin, e_lonmax),
+    ylim = c(e_latmin, e_latmax),
+    expand = FALSE
+  ) +
+  labs(
+    title = "Seasonal chl-a climatology",
+    subtitle = "Eastern group",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_map() +
+  theme(
+    legend.position = "bottom",
+  ) +
+  facet_wrap(vars(month), ncol = 3)
+```
+
+## 'Climatology' of whale sightings
+
+I create a histogram of Julian days (day of the year), which summarises
+the times during the year across the observational record when most
+sightings are observed for the full region, the central group, and the
+eastern group.
+
+I also want to create a plot of cl-*a* concentration with time for the
+full extent, the central group, and the eastern group. All of these
+plots will then be displayed in an intuitive manner so that the time of
+highest chl-*a* concentration can be displayed next to the timing of
+whale sightings.
+
+```{r}
+#| fig-cap: "The annual course of sightings (D-F) and the corresponding onset of the chlorophyll-*a* maximum (A-C)."
+#| label: fig-timingsFigures
+#| out-width: "90%"
+
+# make labels to use along the x-axis in stead of yday
+fig_labels <-
+  data.frame(date = seq.Date(
+    from = as.Date("2020-01-01"),
+    to = as.Date("2020-12-01"),
+    by = "2 month"
+  ))
+fig_labels <- fig_labels |> 
+  mutate(yday = yday(date),
+         month = month(date, label = TRUE))
+
+# plot the sightings histograms
+a <- sights |>
+  ggplot(aes(x = yday)) +
+  stat_bin(geom = "step",
+           binwidth = 14,
+           colour = "navy",
+           linewidth = 0.75) + 
+  scale_x_continuous(breaks = fig_labels$yday,
+                     labels = fig_labels$month) +
+  labs(x = NULL, y = "Number of sightings",
+       title = "Full region")
+
+b <- sights |>
+  filter(between(lon, c_lonmin, c_lonmax),
+         between(lat, c_latmin, c_latmax)) |>
+  ggplot(aes(x = yday)) +
+  stat_bin(geom = "step",
+           binwidth = 14,
+           colour = "darkcyan",
+           linewidth = 0.75) + 
+  scale_x_continuous(breaks = fig_labels$yday,
+                     labels = fig_labels$month) +
+  labs(x = NULL, y = "Number of sightings",
+       title = "Central group")
+
+c <- sights |> 
+  filter(between(lon, e_lonmin, e_lonmax),
+         between(lat, e_latmin, e_latmax)) |>
+  ggplot(aes(x = yday)) + 
+  scale_x_continuous(breaks = fig_labels$yday,
+                     labels = fig_labels$month) +
+  stat_bin(geom = "step",
+           binwidth = 14,
+           colour = "indianred3",
+           linewidth = 0.75) +
+  labs(x = NULL, y = "Number of sightings",
+       title = "Eastern group")
+
+# calculate a cyclic rolling mean with a window width of 30 days
+# for the chlorophyll-a data
+w_width <- 30
+smooth_fun <- function(data) {
+  chl <- data |>
+    group_by(yday) |>
+    summarise(med_chl = median(chlorophyll, na.rm = TRUE),
+            .groups = "drop")
+  
+  chl_pad <-
+    data.frame(yday = rbind(tail(chl[, 1], w_width/2),
+                            chl[, 1],
+                            head(chl[, 1], w_width/2)),
+               chlorophyll = rbind(tail(chl[, -1], w_width/2),
+                                   chl[, -1],
+                                   head(chl[, -1], w_width/2)))
+
+  chl_out <- chl_pad |>
+    mutate(s_chl = RcppRoll::roll_mean(
+      med_chl,
+      n = w_width,
+      fill = NA,
+      align = "center"
+    ))
+  return(chl_out[(w_width/2 + 1):(nrow(chl_out) - w_width/2), ])
+}
+
+full <- smooth_fun(chl_data)
+
+center_group <- chl_data |>
+  filter(between(longitude, c_lonmin, c_lonmax),
+         between(latitude, c_latmin, c_latmax)) |> 
+  smooth_fun()
+
+east_group <- chl_data |>
+  filter(between(longitude, e_lonmin, e_lonmax),
+         between(latitude, e_latmin, e_latmax)) |> 
+  smooth_fun()
+
+# plot the chlorophyll-a data
+d <- ggplot(full, aes(x = yday)) +
+  geom_line(aes(y = med_chl), colour = "navy") +
+  geom_line(
+    aes(y = s_chl),
+    colour = "yellow",
+    alpha = 0.9,
+    linewidth = 0.7
+  ) + 
+  scale_x_continuous(breaks = fig_labels$yday,
+                     labels = fig_labels$month) +
+  labs(title = "Full region",
+       x = NULL,
+       y = expression(Chl-a~(mg.m^-3)))
+
+e <- ggplot(center_group, aes(x = yday)) +
+  geom_line(aes(y = med_chl), colour = "darkcyan") +
+  geom_line(
+    aes(y = s_chl),
+    colour = "yellow",
+    alpha = 0.9,
+    linewidth = 0.7
+  ) + 
+  scale_x_continuous(breaks = fig_labels$yday,
+                     labels = fig_labels$month) +
+  labs(title = "Central group",
+       x = NULL,
+       y = expression(Chl-a~(mg.m^-3)))
+
+f <- ggplot(east_group, aes(x = yday)) +
+  geom_line(aes(y = med_chl), colour = "indianred3") +
+  geom_line(
+    aes(y = s_chl),
+    colour = "yellow",
+    alpha = 0.9,
+    linewidth = 0.7
+  ) + 
+  scale_x_continuous(breaks = fig_labels$yday,
+                     labels = fig_labels$month) +
+  labs(title = "Eastern group",
+       x = NULL,
+       y = expression(Chl-a~(mg.m^-3)))
+    
+ggarrange(d, e, f, a, b, c, align = "hv",
+          nrow = 2, ncol = 3,
+          labels = "AUTO")
+```
+
+What is the timing of the peak sightings and chl-*a* maximum?
+@visser2011timing found that peak abundances of the blue *Balaenoptera
+musculus*, fin *B. physalus*, humpback *Megaptera novaeangliae* and sei
+whale *B. borealis* occurred from April to May, tracking the onset of
+the spring bloom by 13 to 16 wk (depending on species). The lag period
+accounts for the development of the whales' zooplankton prey, which is
+positioned at a trophic position intermediate between phytoplankton and
+whales. Similar findings were obtained in this study (Table 1), although
+no distinction was made between cetacean species.
+
+```{r}
+#| echo: false
+# day on which max sightings attained for full data extent:
+a_dat <- layer_data(a)
+a_max <- a_dat |> 
+  filter(count == max(count)) |> 
+  dplyr::select(x, count)
+
+# day on which max sightings attained for central group:
+b_dat <- layer_data(b)
+b_max <- b_dat |> 
+  filter(count == max(count)) |> 
+  dplyr::select(x, count)
+
+# day on which max sightings attained for eastern group:
+c_dat <- layer_data(c)
+c_max <- c_dat |> 
+  filter(count == max(count)) |> 
+  dplyr::select(x, count)
+```
+
+```{r}
+#| echo: false
+timings <- data.frame(
+  row.names = c("Full extent",
+                "Central group",
+                "Eastern group"),
+  chl_max = c(full[full$s_chl == max(full$s_chl),][, 1],
+              center_group[center_group$s_chl == max(center_group$s_chl),][, 1],
+              east_group[east_group$s_chl == max(east_group$s_chl),][, 1]),
+  sightings = c(a_max[, 1],
+                b_max[, 1],
+                c_max[, 1]),
+  lag = c(a_max[, 1] - full[full$s_chl == max(full$s_chl),][, 1],
+          b_max[, 1] - center_group[center_group$s_chl == max(center_group$s_chl),][, 1],
+          c_max[, 1] - east_group[east_group$s_chl == max(east_group$s_chl),][, 1])
+)
+```
+
+```{r}
+#| echo: false
+timings_tbl <- gt(timings, rownames_to_stub = TRUE) |> 
+  tab_header(
+    title = md("Table 1: Timing of the chlorophyll-*a* maximum and the peak day of sightings"),
+    subtitle = md("Chlorophyll-*a* maximum and sightings timing are day of the year, and for lag it is the number of days between the chlorophyll-*a* maximum and peak observations")
+  ) |> 
+  tab_stubhead(label = "Extent") |> 
+  cols_label(
+    chl_max = html("Chlorophyll-a"),
+    sightings = html("Sightings"),
+    lag = html("Lag,<br>(days)")
+  ) |> 
+  tab_spanner(
+    label = "Day of the year",
+    columns = c(chl_max, sightings)
+  ) |> 
+  cols_align(
+    align = "center",
+    columns = c(chl_max, sightings, lag)
+  )
+
+timings_tbl
+```
+
+## Finding the nearest chl-*a* pixels to the whale sightings
+
+This analysis is continued in [Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-*a* Data](../vignettes/chl_localisation.qmd).
+
+## References
+
+::: {#refs}
+:::

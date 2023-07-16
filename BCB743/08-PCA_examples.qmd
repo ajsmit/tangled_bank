@@ -1,0 +1,213 @@
+---
+date: "2021-01-01"
+title: "8b. PCA Additional Examples"
+subtitle: "Analysing the Iris data with a PCA"
+title-block-banner: false
+format:
+  html:
+    toc-location: right
+---
+
+<!--- # Topic 8b: Principal Component Analysis (PCA) --->
+
+## Set-up the analysis environment
+
+```{r}
+library(tidyverse)
+library(vegan)
+library(ggcorrplot) # for the correlations
+library(ggpubr)
+```
+
+## The *Iris* data
+
+The *Iris* dataset is a well-known collection of data that represent the morphological characteristics of three species of *Iris*, viz. *I. setosa*, *I. versicolor*, and *I. virginica*. The morphological characteristics measured include sepal length and width and petal length and width.
+
+The question we can address using a PCA is, "which of these variables (sepal length and width, petal length and width) is most responsible for causing visual morphological differences between the three species?"
+
+```{r}
+data("iris")
+head(iris)
+```
+
+### Visualise the raw data
+The first thing to do after having loaded the data is to see how the variables are correlated with one-another, and we can do so with a simple pairwise correlation. I'll demonstrate five ways of doing so.
+
+#### Method 1:
+```{r}
+corr <- cor(iris[, 1:4])
+
+ggcorrplot(corr, type = 'upper', outline.col = "white",
+           colors = c("#00AFBB", "white", "#FC4E07"),
+           lab = TRUE)
+```
+
+#### Method 2:
+```{r}
+#| fig-height: 6
+#| fig-width: 6
+cols <- c("#00AFBB", "#E7B800", "#FC4E07")
+pairs(iris[, 1:4], pch = 19,  cex = 0.5,
+      col = cols[iris$Species],
+      lower.panel = NULL)
+```
+
+#### Method 3:
+```{r}
+#| fig-height: 8
+#| fig-width: 8
+library(GGally)
+ggpairs(iris, aes(colour = Species, alpha = 0.4)) +
+  scale_color_discrete(type = cols) +
+  scale_fill_discrete(type = cols)
+```
+
+#### Method 4:
+```{r}
+#| fig-height: 8
+#| fig-width: 8
+library(scatterPlotMatrix)
+scatterPlotMatrix(iris, zAxisDim = "Species")
+```
+
+#### Method 5:
+```{r}
+#| fig-height: 2
+#| fig-width: 7
+iris |> 
+  pivot_longer(cols = Sepal.Length:Petal.Width,
+               values_to = "mm",
+               names_to = "structure") |> 
+  ggplot(aes(x = structure, y = mm)) +
+  geom_jitter(aes(colour = Species), shape = 9, width = 0.3, alpha = 0.6) +
+  scale_color_discrete(type = cols) +
+  coord_flip() +
+  theme_bw() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey60", linetype = "dashed")
+  )
+```
+
+By examining all the plots, above (but particularly the simplest one in Method 5), what can we conclude about which morphological variable is **most** responsible for the visual differences among species? The petal dimensions seem to be the most telling by virtue of their being less overlap of point representing the three species, particularly that of its length. The dimensions of the sepals seem to be less important as offering a way to distinguish the species. 
+
+A PCA should be able to reduce the complexity of measurements and tell us which of the four variables is **most** able to tell the species apart. It should reduce the four dimensions (sepal width and length, and petal width and length) into the most influential one or two rotated and scaled orthogonal dimensions (axes).
+
+### Do the PCA
+```{r}
+iris_pca <- rda(iris[, 1:4], scale = FALSE)
+iris_pca
+```
+
+```{r}
+summary(iris_pca, display = "sp") # omit display of site scores
+```
+
+### Plot the PC scores as a normal panel of points
+
+```{r}
+#| fig-height: 2
+#| fig-width: 7
+PC1_scores <- as.data.frame(scores(iris_pca, choices = c(1, 2, 3, 4), display = "sites"))
+PC1_scores$Species <- iris$Species
+
+PC1_scores |> 
+  pivot_longer(cols = PC1:PC4,
+               values_to = "score",
+               names_to = "PC") |> 
+  ggplot(aes(x = PC, y = score)) +
+  geom_jitter(aes(colour = Species), shape = 9, width = 0.3, alpha = 0.6) +
+  scale_color_discrete(type = cols) +
+  coord_flip() +
+  theme_bw() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(colour = "pink", linetype = "dashed")
+  )
+```
+
+### Make biplots
+
+#### A default biplot
+
+```{r}
+#| fig-height: 6
+#| fig-width: 8
+biplot(iris_pca, type = c("text", "points"))
+```
+
+#### A `ggplot()` biplot
+
+Assemble a biplot from scratch in **ggplot2**. This requires that we extract from the `iris_pca` object all the necessary components and layer them one-by-one using `ggplot()`:
+
+```{r}
+#| fig-height: 4
+#| fig-width: 8
+library(ggforce) # for geom_circle
+
+# species scores (actually morph properties here) for biplot arrows:
+iris_spp_scores <- data.frame(scores(iris_pca, display = "species"))
+
+# add center point for arrows to start at:
+iris_spp_scores$xy_start <- rep(0, 4)
+
+# add the rownames as a column for plotting at the arrow heads:
+iris_spp_scores$morph <- rownames(iris_spp_scores)
+rownames(iris_spp_scores) <- NULL
+
+# var explained along PC1 used for labeling the x-axis:
+PC1_var <- round(iris_pca$CA$eig[1] / sum(iris_pca$CA$eig) * 100, 1)
+
+# var explained along PC2 used for labeling the y-axis:
+PC2_var <- round(iris_pca$CA$eig[2] / sum(iris_pca$CA$eig) * 100, 1)
+
+# calculate the radius of the circle of equilibrium contribution
+# (Num Ecol with R, p. 125):
+r <- sqrt(2/4)
+
+# species scores (actually indiv measurements here) for biplot points:
+iris_site_scores <- data.frame(scores(iris_pca, display = "sites"))
+iris_site_scores$Species <- iris$Species
+
+ggplot(iris_site_scores, aes(x = PC1, y = PC2)) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed") +
+  geom_vline(aes(xintercept = 0), linetype = "dashed") +
+  geom_point(aes(colour = Species), shape = 9) +
+  geom_circle(aes(x0 = 0, y0 = 0, r = r), # not yet correctly scaled!!
+              linetype = 'dashed',
+              lwd = 0.6, inherit.aes = FALSE) +
+  geom_segment(data = iris_spp_scores, aes(x = xy_start, y = xy_start,
+                                           xend = PC1, yend = PC2),
+               lineend = "butt",
+               arrow = arrow(length = unit(3, "mm"),
+                             type = "closed",
+                             angle = 20),
+               alpha = 0.7, colour = "dodgerblue") +
+  geom_label(data = iris_spp_scores, aes(x = PC1, y = PC2, label = morph),
+             nudge_y = -0.12,
+             colour = "dodgerblue") +
+  scale_color_discrete(type = cols) +
+  coord_equal() +
+  scale_x_continuous(limits = c(-1, 4.6)) +
+  labs(x = paste0("PC1 (", PC1_var, "% variance explained)"),
+       y = paste0("PC2 (", PC2_var, "% variance explained)")) +
+  theme_bw() +
+  theme(
+    panel.grid.major.x = element_line(colour = "pink", linetype = "dashed"),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(colour = "pink", linetype = "dashed"),
+    panel.grid.minor.y = element_blank(),
+    legend.position = c(0.9, 0.2),
+    legend.box.background = element_rect(colour = "black")
+  )
+```
+
+What do we see in the biplot? We see that most of the variation in morphology between the three *Iris* species is explained by PC1 (obviously), which accounts for 92.5% of the total inertia. Very little is added along PC2 (only an additional 5.3% variance explained), so we may safely ignore it. Looking at the 'Species scores' associated with PC1 (see `summary(iris_pca)`), we see that the heaviest loading is with petal length, which causes the long arrow in the positive PC1 direction; it has virtually no loading along PC2, and this is confirmed by the fact that the arrow is positioned almost parallel along PC1 and does not deviate up or down in the PC2 direction. We can also see that the biplot arrow for petal width sits completely on top of the petal length arrow. This means that petal length and width are almost perfectly correlated (we can also see this in the pairwise correlations where the *r*-value is 0.96).
+
+## References
+
+::: {#refs}
+:::
+

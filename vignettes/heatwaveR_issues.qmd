@@ -1,0 +1,77 @@
+---
+author: "AJ Smit"
+date: "`r Sys.Date()`"
+title: "heatwaveR issues"
+bibliography: ../references.bib
+csl: ../marine-biology.csl
+format:
+  html:
+    default-image-extension: svg
+    code-fold: false
+    toc-title: "On this page"
+    standalone: true
+    toc-location: right
+    page-layout: full
+    smooth-scroll: true
+    anchor-sections: true
+    number-sections: true
+---
+
+```{r}
+#| message: false
+#| warning: false
+# devtools::install_github("robwschlegel/heatwaveR")
+library(tidyverse)
+library(heatwaveR)
+# session_info()
+```
+
+```{r}
+# heatwaves
+clm1 <- ts2clm(sst_WA, climatologyPeriod = c("1982-01-01", "2011-12-31"))
+```
+
+Applying `detect_event(..., protoEvent = FALSE)` (the default) returns protoEvents as part of the climatology even if they were not requested. The protoEvents must only be returned when `protoEvents = TRUE`.
+
+```{r}
+# heatwaves
+ev1 <- detect_event(clm1)
+```
+
+When `detect_event(..., protoEvent = TRUE)`, a climatology with the protoEvents is returned without the associated detected events (expected behaviour upheld).
+
+```{r}
+# heatwaves
+ev2 <- detect_event(clm1, protoEvents = TRUE)
+```
+
+Below, swithing on `climatology = TRUE` returns the events in a long dataframe, but it is not actually a climatology. From the helpfile:
+
+> "If set to TRUE, this function will return a list of two dataframes, same as `detect_event`. The first dataframe climatology, contains the same information as found in `detect_event`, but with the addition of the daily intensity (anomaly above seasonal doy threshold) and category values."
+
+Below, the 'climatology' returned by `category()` is a truncated climatology since dates and associated temperatures on the dates when events were not detected are not present. The climatology returned by `detect_event()` has ALL the data, from the first day of the raw data time series right through to the last. Either the help file must be updated, or the full climatology must be returned.
+
+```{r}
+cat1 <- category(ev1, name = "WA", climatology = TRUE)
+```
+
+There is an issue with `detect_event(..., categories = TRUE)` when fed a climatology created from a temperature time series which does not have the standard name, `temp`:
+
+```{r}
+sst <- sst_Med |> 
+  rename(temperature = temp)
+
+clm2 <- ts2clm(sst, y = temperature, climatologyPeriod = c("1982-01-01", "2011-12-31"))
+
+# events are named and seasons are present, but columns `p_moderate`, `p_strong`, `p_severe` and `p_extreme` are empty
+ev3 <- detect_event(clm2, y = temperature, categories = TRUE)
+
+# here the expected behaviour the above columns is observed
+ev4 <- detect_event(clm2, y = temperature)
+cat2 <- category(ev4, y = temperature)
+
+# using the climatology that has the name `temp` works fine when the categories are requested as part of the `detect_event()` function
+ev5 <- detect_event(clm1, categories = TRUE)
+```
+
+Lastly, for the `S = TRUE` switch in `category()`, what happens when the data straddle the equator? Also, there is no way to specify the S or N hemispheres when categories are requested as part of `detect_event()` so this should probably be added.
