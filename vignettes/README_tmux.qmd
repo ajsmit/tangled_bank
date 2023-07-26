@@ -1,0 +1,203 @@
+---
+title: "Using tmux"
+author: "AJ Smit"
+engine: knitr
+format:
+  html:
+    code-fold: false
+    toc-title: "On this page"
+    standalone: true
+    toc-location: right
+    page-layout: full
+    embed-resources: true
+---
+
+Always work within **tmux**
+
+**tmux** is a terminal multiplexer, an important tool for scientific computing. It offers a solution for managing multiple terminal sessions simultaneously on local machines and remote servers, such as High-Performance Computing (HPC) systems. Its flexibility allows concurrently operating several console-based applications within a single window, spanning multiple sessions as needed.
+
+On a local machine, **tmux** proves invaluable for maintaining long-running processes or those operating in the background, eliminating the need for a constant active terminal window. This practicality ensures that your work environment remains uncluttered and allows for greater focus on complex tasks at hand.
+
+It is within the context of remote systems where **tmux** demonstrates its convenience. In scientific computing, computations on HPC systems can often extend over long periods, sometimes lasting several hours or even days. During such extensive operations, there may arise a need to disconnect, perhaps due to network instability or simply the wish to transition between different work environments.
+
+**tmux** addresses this issue by offering persistent sessions. This means your computations continue uninterrupted even when network connectivity is lost or intentionally disconnected. You can shut down your laptop, move between the office, home, or your favourite coffee shop, and reconnect to your session without disrupting your ongoing processes.
+
+So, **tmux** optimises the potential of remote computing, ensuring maximum productivity and minimum interruption in your scientific work. The adoption of **tmux** into your workflow not only enhances your computing capabilities but also revolutionises the way you manage your scientific computing.
+
+## Installation
+
+Prerequisites:
+
+- [**tmux**](https://github.com/tmux/tmux/wiki) >= v2.4
+- Mac OS X, Linux (tested on Ubuntu 14 and CentOS7), FreeBSD (tested on 11.1)
+
+On Mac OS X, install the latest 2.6 version with `brew install tmux`, assuming, of course, [Homebrew](https://brew.sh/) is installed. 
+
+I rely on a **tmux** config by [samoshkin](https://github.com/samoshkin/tmux-config/) that makes working with simultaneous local and remote sessions easier. Much of the inspiration for this tutorial comes from him.
+
+To install the modified **tmux** config, execute on both the local machine and the remote host:
+
+```{bash}
+#| eval: false
+$ git clone https://github.com/samoshkin/tmux-config.git
+$ ./tmux-config/install.sh
+```
+
+The `install.sh` script does following:
+
+- copies files to `~/.tmux` directory
+- symlink **tmux** config file at `~/.tmux.conf`; if an existing `~/.tmux.conf` is found it will be backed up
+- [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm) will be installed at the default location `~/.tmux/plugins/tpm`, unless it is already presemt
+- required **tmux** plugins will be installed
+
+## **tmux** on local and remote machines
+
+### Basic **tmux** usage on the local machine
+
+Below are the most basic steps for getting started with **tmux**:
+
+1. On the command prompt, type `tmux new -s <session_name>`
+2. Run the desired program
+3. Use the key sequence `Ctrl-a d` to detach from the session
+4. Reattach to the **tmux** session by typing `tmux attach-session -t <session_name>`
+5. Split panes with a vertical division (left-right): `Ctrl-a |`
+6. Split panes with a horizontal division (top-bottom): `Ctrl-a -`
+7. Navigation between panes: `Ctrl-a →`, `Ctrl-a ←`, `Ctrl-a ↑` and `Ctrl-a ↓` 
+
+### **tmux** on remote HPC clusters (persistent ssh sessions)
+
+If you spend most of your time ssh-ing to remote hosts, make use of the persistent sessions made possible by **tmux**.
+
+Using **tmux** on the cluster allows you to create interactive allocations you can detach from. Usually, if you get an interactive allocation and then disconnect from the cluster, for example, by putting your laptop to sleep, your allocation will be terminated and your job killed. By using **tmux**, you can detach gracefully and **tmux** will maintain your allocation in an active session running on the remote cluster. 
+
+First, ssh into a server (e.g. Lengau) and then establish a **tmux** session there. Only then initiate the work processes (e.g. **ftp**, **wget**, **R** or other processing, etc.). If you need to shut your local machine down, simply detach from the remote session using `Ctrl-a d` (or just leave it running). If necessary, log out from the server (or simply leave the ssh connection active) and come back later into the **tmux** session to resume the work there.
+
+Here are the steps to follow to do this correctly:
+
+1. `ssh` to the cluster of choice
+2. Start **tmux** in the login node (not the compute node)
+3. Inside your **tmux** session, submit an interactive or batch job
+4. Inside your job allocation (on a compute node), start your application (e.g. **R**)
+5. You can split the session into a duplicate pane and view the process there with **htop** or **bpytop** or equivalent
+5. Detach from **tmux** by typing `Ctrl + a` then `d` and carry on with your life
+6. Later, on the *same* login node, reattach by running `**tmux** attach`
+
+Make sure to:
+
+- run **tmux** on the login node, NOT on compute nodes
+- run `salloc` inside **tmux**, not the reverse
+
+With the snooty new **tmux** config file, local *and* remote **tmux** instances are mapped `Ctrl-a`. To allow the prefix to be unambiguously assigned to *either* the local (outer **tmux** session) machine or the remote (inner **tmux** session) host, one presses `F12` when operating in the local session. This action disables all key bindings and prefix handling in the local session, providing unhindered interaction with the inner remote session as if it were the local one. Consequently, the usual `Ctrl-a` prefix can be used in the remote session without any interference. This technique ensures that the outer session remains passive, eliminating the chance of any keystroke disruption being transmitted to the inner session.
+
+So, when a **tmux** pane is active on the local machine and I’m connected via `ssh` to *Lengau* and another **tmux** session activated there, one can supply **tmux** commands to the remote session by first pressing `F12` and then `Ctrl-a` followed by a specific command one wants to run on the remote host. For example, to detach the remote **tmux** session, type this: `Ctrl-a d`. Allowing the prefix to again focus on the local machine involves simply pressing `F12` again and then one can continue to work there as usual with `Ctrl-a <command>`.
+
+### Create a new named session
+
+```{bash}
+#| eval: false
+$ tmux new -s <session_name>
+```
+
+For the GEOMAR FTP download I called it:
+
+```{bash}
+#| eval: false
+> tmux new -s GEOMAR_FTP
+# this is just one window for the wget session
+``` 
+
+Any other processes are here:
+
+```{bash}
+#| eval: false
+> tmux new -s WORK_SESSION
+# here are two short panes and a tall one
+```
+
+### Commands on panes
+
+Here is the table with the third column removed:
+
+| **tmux key** | **Description** |
+| --- | --- |
+| `C-a` | Default prefix, used instead of "C-b". |
+| `<prefix> C-e` | Open ~/.tmux.conf file in your $EDITOR |
+| `<prefix> C-r` | Reload tmux configuration from ~/.tmux.conf file |
+| `<prefix> r` | Rename current window |
+| `<prefix> R` | Rename current session |
+| `<prefix> -` | Split new pane horizontally |
+| `<prefix> |` | Split new pane vertically |
+| `<prefix> <` | Select next pane |
+| `<prefix> >` | Select previous pane |
+| `<prefix> ←` | Select pane on the left |
+| `<prefix> →` | Select pane on the right |
+| `<prefix> ↑` | Select pane on the top |
+| `<prefix> ↓` | Select pane on the bottom |
+| `<prefix> C-←` | Resize pane to the left |
+| `<prefix> C-→` | Resize pane to the right |
+| `<prefix> C-↑` | Resize pane to the top |
+| `<prefix> C-↓` | Resize pane to the bottom |
+| `<prefix> >` | Move to next window |
+| `<prefix> <` | Move to previous window |
+| `<prefix> Tab` | Switch to most recently used window |
+| `<prefix> L` | Link window from another session by entering target session and window reference |
+| `<prefix> \` | Swap panes back and forth with 1st pane. When in main-horizontal or main-vertical layout, the main panel is always at index 1. This key binding let you swap secondary pane with main one, and do the opposite. |
+| `<prefix> C-o` | Swap current active pane with next one |
+| `<prefix> +` | Toggle zoom for current pane |
+| `<prefix> x` | Kill current pane |
+| `<prefix> X` | Kill current window |
+| `<prefix> C-x` | Kill other windows but current one (with confirmation) |
+| `<prefix> Q` | Kill current session (with confirmation) |
+| `<prefix> C-u` | Merge current session with another. Essentially, this moves all windows from current session to another one |
+| `<prefix> d` | Detach from session |
+| `<prefix> D` | Detach other clients except current one from session |
+| `<prefix> C-s` | Toggle status bar visibility |
+| `<prefix> m` | Monitor current window for activity |
+| `<prefix> M` | Monitor current window for silence by entering silence period |
+| `<prefix> F12` | Switch off all key binding and prefix handling in current window. See "Nested sessions" paragraph for more info |
+| `exit` | Closes a pane (all processes killed) |
+
+Note that I've remapped `Ctrl-b` (default) to `Ctrl-a` for easier access (on the local terminal).
+
+- `Ctrl-a ;` Toggles between the current and previous pane
+- `Ctrl-a o` Goes to the next pane
+
+### Navigation commands on windows
+
+- `Ctrl-a c` Creates a new window (with shell)
+- `Ctrl-a w` Chooses a window from a list
+- `Ctrl-a 0` Switches to window 0 (by number )
+- `Ctrl-a ,` Renames the current window
+- `Ctrl-a x` Closes the current pane
+- `Ctrl-a c` Creates a new window
+- `Ctrl-a p` Previous window
+- `Ctrl-a n` Next window
+- `Ctrl-a <number>` Navigates amongst windows by number
+
+## Detaching and re-attaching
+
+Detach from a session and return to your normal shell by `$ Ctrl-a d`. All active processes continue to run. To attach to a session first, you need to find the name of the session. To get a list of the currently running sessions type `**tmux** ls`and then re-attach by `**tmux** attach-session -t <session_name>` or `**tmux** attach-session -t <number>`.
+
+## Clipboard integration
+
+In the default setting, when you copy text within **tmux**, it is retained in the private **tmux** buffer and does not interface with the system clipboard. This also applies when you establish a ssh connection to a remote machine and attach to a **tmux** session there. The copied text remains confined to the buffer of the remote session, not transferred or synchronised with your local system clipboard. Naturally, if you initiate a local **tmux** session and subsequently engage in a nested remote session, any copied text will also be exclusive to that session's buffer and will not reach your system clipboard.
+
+This is one of the major limitations of **tmux**, that you might just decide to give up using it. Let's explore possible solutions. The overcome this problem [samoshkin](https://github.com/samoshkin/tmux-config/) has implemented some magic resulting in the improved copy/paste functionality documented next.
+
+There are some tweaks to copy mode and scrolling behaviour that you should be aware of. There is a root keybinding to enter Copy mode: `M-Up`. Once in copy mode, you have several scroll controls:
+
+- `M-Up`, `M-down` scroll by line
+- `M-PageUp`, `M-PageDown` scroll by half screen
+- `PageUp`, `PageDown` scroll by whole screen
+- scroll by mouse wheel, scroll step is changed from `5` lines to `2`
+- `Space` starts selection
+- `Enter` copies selection and exits copy mode (equivalent to `y`)
+- `Y` copies the whole line
+- `D` copies to the end of line
+- `prefix C-p` lists all items in copy buffer
+- `prexix p` pastes the most recent item from the buffer
+
+Note that any trailing newline characters are removed when text is copied. Consequently, when you paste the buffer into a command prompt, it will not execute immediately.
+
+Furthermore, the mouse can be employed to select text. By default, the action of copying text triggers an immediate exit from the copy mode upon a `MouseDragEnd` event. This can be quite inconvenient because occasionally, you might just want to highlight the text, but **tmux** abruptly terminates the copy mode and resets the scroll at the end. To alleviate this issue, a modified behaviour causes the `MouseDragEnd` event to not prompt the `copy-selection-and-cancel` action. Consequently, the text is copied but the copy mode is not cancelled, and the selection is not cleared. You can reset the selection simply by clicking the mouse.
+

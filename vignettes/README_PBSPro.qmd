@@ -1,0 +1,85 @@
+---
+title: "PBS Pro workload manager on Lengau"
+author: "AJ Smit"
+engine: knitr
+format:
+  html:
+    code-fold: false
+    toc-title: "On this page"
+    standalone: true
+    toc-location: right
+    page-layout: full
+    embed-resources: true
+---
+
+## PBS Pro
+
+PBS Pro is a workload management system that is designed to manage and optimise the scheduling of computational tasks on supercomputers and clusters. In PBS Pro, tasks are represented by jobs, which are units of work that the system schedules and manages. PBS Pro can handle two types of jobs: interactive and batch.
+
+### Interactive jobs
+
+Interactive jobs are those in which the user wants to interact with the job while it's running. This can be useful for debugging or for running applications that require user input. When you submit an interactive job, PBS Pro allocates resources for it and then provides a shell prompt on one of the allocated nodes where you can run your commands. For example, you could submit an interactive job using the 'qsub' command with the '-I' flag:
+
+```{bash}
+#| eval: false
+$ qsub -I -P ERTH1192 -l select=1:ncpus=4:mem=4gb,walltime=01:00:00
+```
+
+This command submits an interactive job requesting one node, with 4 CPUs, 4 GB of memory, and a maximum runtime of 1 hour.
+
+Below is a list of the most commonly used PBS Pro arguments given to `qsub` used for initiating and specifying an interactive job, together with a brief explanation for each argument:
+
+| Argument | Explanation |
+| --------- | ----------- |
+| `-I` | Initiates an interactive job. |
+| `-P projectname` | Associates the job with a specific project name (`ERTH1192`). Replace "projectname" with the desired project name. This is usually used in multi-project environments where resources are divided among multiple projects. |
+| `-N name` | Specifies the name of the job. Replace `name` with the desired name. |
+| `-l select=value:ncpus=value:mem=value` | This argument specifies the resources required for the job. `select` is the number of nodes, `ncpus` is the number of CPUs per node, and `mem` is the memory required. Replace `value` with the desired amount. |
+| `-l walltime=HH:MM:SS` | Specifies the maximum running time for the job in hours (HH), minutes (MM), and seconds (SS). |
+| `-q queue` | Specifies the queue to which the job is submitted. Replace `queue` with the desired queue name. |
+| `-j oe` | Merges the standard output and error streams into a single file. |
+| `-o path_to_file` | Specifies the path to the file where the standard output stream of the job is saved. |
+| `-e path_to_file` | Specifies the path to the file where the standard error stream of the job is saved. |
+| `-V` | Exports all environment variables to the job. |
+| `-m be` | Sends an email at the beginning and the end of the job. |
+
+The available queues with their nominal parameters are given in the following table.  Please take note that these limits may be adjusted dynamically to manage the load on the system.
+
+| Queue Name  | Max. cores per job | Min. cores per job | Max. jobs in queue | Max. jobs running | Max. time (hrs) | Notes | Access |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| serial | 23 | 1 | 24 | 10 | 48 | For single-node non-parallel jobs. | |
+| seriallong | 12 | 1 | 24 | 10 | 144 | For very long sub 1-node jobs. | |
+| smp | 24 | 24 | 20 | 10 | 96 | For single-node parallel jobs. | |
+| normal | 240 | 25 | 20 | 10 | 48 | The standard queue for parallel jobs | |
+| large | 2400 | 264 | 10 | 5 | 96 | For large parallel runs | Restricted |
+| xlarge | 6000 | 2424 | 2 | 1 | 96 | For extra-large parallel runs | Restricted |
+| express | 2400 | 25 | N/A | 100 total nodes | 96 | For paid commercial use only | Restricted |
+| bigmem | 280 | 28 | 4 | 1 | 48 | For the large memory (1TiB RAM) nodes. | Restricted |
+| vis | 12 | 1 | 1 | 1 | 3 | Visualisation node | |
+| test | 24 | 1 | 1 | 1 | 3 | Normal nodes, for testing only | |
+| gpu_1 | 10 | 1 | | 2 | 12 | Up to 10 cpus, 1 GPU | |
+| gpu_2 | 20 | 1 | | 2 | 12 | Up to 20 cpus, 2 GPUs | |
+| gpu_3 | 36 | 1 | | 2 | 12 | Up to 36 cpus, 3 GPUs | |
+| gpu_4 | 40 | 1 | | 2 | 12 | Up to 40 cpus, 4 GPUs | |
+| gpu_long | 20 | 1 | | 1 | 24 | Up to 20 cpus, 1 or 2 GPUs | Restricted |
+
+
+
+### Batch jobs
+
+Batch jobs, on the other hand, are jobs that can run without user interaction. These are typically used for long-running tasks or for running scripts. When you submit a batch job, you need to provide a script that contains the commands you want to run. For example:
+
+```{bash}
+#| eval: false
+#!/bin/bash
+#PBS -N MyBatchJob
+#PBS -l select=1:ncpus=4:mem=4gb,walltime=01:00:00
+
+$ cd $PBS_O_WORKDIR
+$ ./my_program
+```
+
+This script, when submitted as a batch job using `qsub`, will run `my_program` on a single node with 4 CPUs and 4 GB of memory. The `PBS_O_WORKDIR` variable is automatically set by PBS Pro to the directory from which the `qsub` command was run.
+
+Batch jobs are typically used when you have a set of commands or a script that you want to run without needing to manually intervene or interact with the job while it's running.
+

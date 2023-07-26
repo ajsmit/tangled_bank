@@ -1,0 +1,242 @@
+---
+title: "Using Lengau"
+author: "AJ Smit"
+engine: knitr
+format:
+  html:
+    code-fold: false
+    toc-title: "On this page"
+    standalone: true
+    toc-location: right
+    page-layout: full
+    embed-resources: true
+---
+
+## Lengau
+
+The Lengau High Performance Computing (HPC) system is a supercomputer located at the Centre for High Performance Computing (CHPC) in Cape Town, South Africa. "Lengau" is a Setswana word meaning "cheetah," reflecting the system's speed and power.
+
+The Lengau system is one of the most powerful supercomputers in Africa. Lengau is used for a wide range of computationally intensive tasks, including climate modelling, bioinformatics, materials science simulations, computational fluid dynamics, and other computations that require large-scale data processing and complex calculations.
+
+## CHPC Quick Start Guide
+
+The CHPC maintains a [quick start guide](http://wiki.chpc.ac.za/quick:start).
+
+The CHPC has approved the registration of my Research Programme entitled "Extreme climatic events in the coastal zone." The shortname 'ERTH1192' has to be used in all associated computations.
+
+## Login
+
+```{bash}
+#| eval: false
+$ ssh asmit@lengau.chpc.ac.za
+$ <password>
+```
+
+Once ssh'd into login node, make sure to always work within a [**tmux**](README_tmux.html) session.
+
+There are two visualisation nodes, which may be useful for access FTP sites via **wget** (take a look [here]( http://wiki.chpc.ac.za/howto:remote_viz)). One of them, `chpclic1`, has access to the internet in such that **wget** can be used to retrieve data from a FTP site. To do this, log into Lengau as usual, then **ssh** into `chpclic1`; simply give the command `ssh chpclic1`  (there is no need for user-ID or password) and the server has exactly the same file systems mounted as the rest of the cluster:
+
+```{bash}
+#| eval: false
+$ ssh chpclic1
+```
+
+So it is quite convenient to download files from it. One can also switch between the various other nodes by `ssh`ing:
+
+```{bash}
+#| eval: false
+$ ssh login1
+$ ssh login2 # this is not for computing as processes will be killed
+$ ssh dtn # the data transfer node
+```
+
+## Interactive nodes
+
+For testing code and small jobs, use an interactive node. To request an interactive session on 6x cores, the full command for `qsub` is:
+
+```{bash}
+#| eval: false
+$ qsub -I -P ERTH1192 -q serial -l select=1:ncpus=6:mpiprocs=6:nodetype=haswell_reg
+```
+
+Above, the `-q serial` indicates that we want less than 1 full compute node. Else, for the command for a full core is:
+
+```{bash}
+#| eval: false
+$ qsub -I -P ERTH1192 -q smp -l select=1:ncpus=24:mpiprocs=24:nodetype=haswell_reg
+```
+
+Note:
+
+-   please think carefully about whether you really need a full node (`-q smp`), or if 1, 2 or 3 cores might be sufficient (`-q serial`)
+-   `I` selects an interactive job
+-   `l` informs about the node, cpu, and mpiprocs, etc. specs.
+-   the queue must be `smp`, `serial` or `test`
+-   interactive jobs only get one node: `select=1`
+-   for the `smp` queue you can request several cores: `ncpus=24`
+-   you can add `-X` to get X-forwarding for graphics applications
+-   you still must specify your project
+-   you can run MPI code: indicate how many ranks you want with `mpiprocs=`
+
+If you find your interactive session timing out too soon then add `-l walltime=4:0:0` to the above command line to request the maximum 4 hours.
+
+## The lustre file system
+
+Use the lustre filesystem for all jobs:
+
+```{bash}
+#| eval: false
+$ /mnt/lustre/users/asmit/
+# or
+$ cd lustre
+```
+
+Copy files to lustre filesystem:
+
+`cd` into local directory that has the files, then...
+
+```{bash}
+#| eval: false
+$ scp <file(s)> asmit@scp.chpc.ac.za:/mnt/lustre/users/asmit/<directory>/
+```
+
+## Modules
+
+Check which are available:
+
+```{bash}
+#| eval: false
+$ module avail
+```
+
+Load one, e.g.:
+
+```{bash}
+#| eval: false
+$ module load chpc/R/3.5.1-gcc7.2.0
+
+# or
+
+$ module load chpc/earth/R/4.3.1
+```
+
+## R on Lengau
+
+### Set-up and install packages
+
+Although R is available in the `chpc/earth/R/4.3.1` module, I have installed Miniconda and run R within it. This is to avoid some challenges with required libraries that cannot always be located when some R packages (**devtools** and **tidyverse**) with the R in the above module.
+
+To install Miniconda and R, I used the [latest Linux installer](https://docs.conda.io/en/latest/miniconda.html) and then follow these instructions:
+
+```{bash}
+#| eval: false
+$ wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+$ bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+$ conda deactivate # deactivate the base env
+$ conda config --set auto_activate_base false # don't automagically load the base env
+$ conda create --name r_env r-base r-essentials # create a new env with R
+$ pip3 install -U radian # because I like radian instead of the default R console
+```
+
+Running R then does not require that you load R with one of the modules on Lengau, but you need to activate the conda environment first:
+
+```{bash}
+#| eval: false
+$ conda activate r_env
+```
+
+Install R packages following the instructions [here](https://docs.anaconda.com/free/anaconda/packages/using-r-language/). Basically, when using conda to install R packages, add `r-` before the regular package name. For instance, if you want to install **ncdf4**, use:
+
+```{bash}
+#| eval: false
+$ conda install r-ncdf4
+```
+
+Packages can also be installed within the R (or radian) console with `install.packages()` but some dependency issues might arise. Compiling and installing R packages must be done in `login1` as it has internet access:
+
+```{bash}
+#| eval: false
+$ ssh login1
+# create a new tmux session or load an existing one
+$ radian
+```
+
+To get **heatwaveR** running requires a workaround as it is not available via conda. Install **RcppArmadillo** first with `conda install r-RcppArmadillo` and then enter the R console and do `install.packages("heatwaveR")`.
+
+### Using R
+
+It is recommended to do all light R-related tasks within an interactive node within [tmux](../vignettes/README_tmux.qmd):
+
+```{bash}
+#| eval: false
+# create a new tmux session or load an existing one
+$ qsub -I -P ERTH1192 -q smp -l select=1:ncpus=24:mpiprocs=24:nodetype=haswell_reg
+$ conda activate r_env
+$ radian
+```
+
+To find the number of physical CPUs and the total number of cores on the Linux command line:
+
+```{bash}
+#| eval: false
+$ sysctl hw.ncpu hw.physicalcpu
+hw.ncpu: 8
+hw.physicalcpu: 4
+```
+
+On Lengau from the login node on `scp.chpc.ac.za`:
+
+```{bash}
+#| eval: false
+$ lscpu | egrep 'CPU\(s\)|per core|per socket'
+CPU(s):                24
+On-line CPU(s) list:   0-23
+Thread(s) per core:    1
+Core(s) per socket:    12
+NUMA node0 CPU(s):     0,2,4,6,8,10,12,14,16,18,20,22
+NUMA node1 CPU(s):     1,3,5,7,9,11,13,15,17,19,21,23
+```
+
+Above is the configuration of a single node on Lengau: i.e. 24 CPUs spread across 2 x 12 core physical units. To undertake calculations, one could either:
+
+* use only one (or half) node and use a multi-core approach to parallelisation to use all of the CPUs on the node; or,
+* use parallelisation tools to spread our computations across multiple host nodes in the cluster.
+
+### Batch processing big jobs
+
+Some text to follow here...
+
+## Hardware terminology
+
+-   **Node:** a single motherboard, with possibly multiple sockets for multiple processors
+-   **Processor/Socket:** the silicon-containing likely multiple cores (the physical CPU, maybe with multiple cores)
+-   **Core:** the unit of computation; often has hardware support for multiple…
+-   **Pseudo-cores:** (aka ‘threads’) can appear to the OS as multiple cores but share much functionality with other pseudo-cores on the same core
+-   **Wall-time:** the amount of time your code runs on the cluster
+-   **Memory:** the amount of memory your job will require to run
+
+## Software terminology (processes and threads)
+
+**Process:** data and code in memory:
+
+- there are one or more threads of execution within a process
+- threads in the same process can see most of the same memory
+- processes generally cannot peer into another processes memory
+- interpreted languages: generally, you can only directly work with processes
+- can call libraries that invoke threads (e.g. BLAS/LAPACK, which has been enabled in R)
+
+The basic idea of parallel computing:
+
+-	split the problem (or data) into pieces
+-	apply a computation to each piece in parallel (e.g. across multiple cores within a processor and maybe also across multiple nodes in a cluster)
+-	combine the results back together
+
+How does R do this?
+
+-	for single node (no inter-node communication): **doMC**
+-	for multi-node (with internode communication): **foreach**, **parallel**, **doMC**, **doSNOW**
+-	**parallel** and **foreach** functions distribute for loop to resident cores
+-	**multicore**, **batch** & **condor** serve multicore computers
+-	**mclapply** applies any function to each element of a vector in parallel (note:… **mcparallel** works very well for task parallelism; **mclapply** for data parallelism)
+-	**multidplyr** is a backend for **dplyr** that partitions a data frame across multiple cores
+-	**future**, **future.apply**, and **furrr**
