@@ -126,10 +126,11 @@ $ module load chpc/earth/R/4.3.1
 
 Although R is available in the `chpc/earth/R/4.3.1` module, I have installed Miniconda and run R within it. This is to avoid some challenges with required libraries that cannot always be located when some R packages (**devtools** and **tidyverse**) with the R in the above module.
 
-To install Miniconda and R, I used the [latest Linux installer](https://docs.conda.io/en/latest/miniconda.html) and then follow these instructions:
+The following steps must be done in `login1` as it has internet access. To install Miniconda and R, I used the [latest Linux installer](https://docs.conda.io/en/latest/miniconda.html) and then follow these instructions:
 
 ```{bash}
 #| eval: false
+$ ssh login1 # because it has internet access
 $ wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
 $ bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
 $ conda deactivate # deactivate the base env
@@ -152,11 +153,10 @@ Install R packages following the instructions [here](https://docs.anaconda.com/f
 $ conda install r-ncdf4
 ```
 
-Packages can also be installed within the R (or radian) console with `install.packages()` but some dependency issues might arise. Compiling and installing R packages must be done in `login1` as it has internet access:
+Then start radian and continue using R. Note that packages can be installed within the R (or radian) console with `install.packages()` but some dependency issues might arise. Install packages with `conda install ...` before trying to install packages within the R console. For longer running or more compute intensive multi-core/multi-node tasks, initiate an proper interactive compute node first with `qsub ...`.
 
 ```{bash}
 #| eval: false
-$ ssh login1
 # create a new tmux session or load an existing one
 $ radian
 ```
@@ -170,7 +170,9 @@ It is recommended to do all light R-related tasks within an interactive node wit
 ```{bash}
 #| eval: false
 # create a new tmux session or load an existing one
-$ qsub -I -P ERTH1192 -q smp -l select=1:ncpus=24:mpiprocs=24:nodetype=haswell_reg
+$ qsub -I -P ERTH1192 -q normal -l select=2:ncpus=24:mpiprocs=24:nodetype=haswell_reg,walltime=04:00:00
+# or..
+$ qsub -I -P ERTH1192 -q smp -l select=1:ncpus=24:mpiprocs=24:nodetype=haswell_reg,walltime=04:00:00
 $ conda activate r_env
 $ radian
 ```
