@@ -1,0 +1,105 @@
+---
+title: "Detect lab event streaks based on specified thresholds"
+author: "AJ Smit"
+date: "`r Sys.Date()`"
+description: "This vignette demonstrates basic ideas behind regridding."
+bibliography: ../references.bib
+csl: ../marine-biology.csl
+format:
+  html:
+    code-fold: false
+    toc-title: "On this page"
+    standalone: true
+    toc-location: right
+    page-layout: full
+---
+
+```{r}
+#| warnings: false
+#| message: false
+library(heatwaveR)
+library(plyr) # because I like plyr
+library(dplyr)
+```
+
+Here is a question we received via **heatwaveR**'s GitHub page regarding using our package's functions to detect streaks of outcomes based on a threshold in some lab experiment. The question is as follows:
+
+> "I was looking for a function that could help me with data wrangling and I believe the `exceedance()` function is exactly what I'm looking for. I have a dataframe with person IDs, date of treatment, day since treatment, and a lab value. Essentially, I am hoping to find the longest streak of consecutive days where the lab value is below a certain threshold, and extending the streak if the lab value does not rise above the threshold for \>3 days.
+
+> I wrangled my dataframe into a dataframe with the IDs, date, and lab value as follows ..."
+
+## Prepare a dataframe with the IDs, date, and lab values
+
+```{r}
+num_subjects <- 5
+num_days <- 20
+set.seed(13)
+subject_ids <- rep(1:num_subjects, each = num_days)
+dates <- rep(seq(as.Date("2023-01-01"), by = "1 day", length.out = num_days),
+             times = num_subjects)
+lab_values <- runif(num_subjects * num_days, min = 0, max = 3000)
+df <- data.frame(
+  SubjectID = factor(subject_ids),
+  Date = as.Date(dates),
+  Lab = lab_values
+)
+```
+
+## Calculate streaks lengths based on linear (over time) thresholds
+
+It turns out that one of the other built-in functions can exactly do what you need. We simply need to make some adjustments to the dataframe fed to the `detect_event()` function, which is the function that will count the streak lengths.
+
+Calculate a mean value and a threshold; you can calculate an overall mean and threshold, or a mean and threshold for each group--- this will depend on your experimental design and hypotheses.
+
+I calculate a mean and threshold based on the pooled data (across A-C):
+
+```{r}
+df2 <- df |> 
+  mutate(seas = mean(Lab),
+         thresh = 500) # your threshold value here
+```
+
+Even though we calculated the mean value, this is not used; only the threshold is used.
+
+```{r}
+results <- plyr::dlply(.data = df2, .variables = "SubjectID", function(sub_df) {
+  detect_event(sub_df,
+               x = Date,
+               y = Lab,
+               seasClim = seas,
+               threshClim = thresh,
+               minDuration = 1,
+               maxGap = 3, 
+               coldSpell = TRUE,
+               protoEvents = FALSE)
+})
+```
+
+`results` is a list of dataframes, one pair of dataframes for each subject. Let us look at the first list element, which is for `SubjectID == 1`:
+
+```{r}
+results[[1]]
+```
+
+The first dataframe is called `climatology` and the other is called `events`. Don't worry about the names as the function was initially written for climate events. The `climatology` dataframe contains all the data for `SubjectID` that were initially supplied in `df2` and a few new columns, `threshCriterion`, `durationCriterion`, `event`, and `event_no` are added at the end. When the `Lab` value dips below the `thresh`, `threshCriterion` will flag as `TRUE` regardless of how long it remains below the threshold. `durationCriterion` flags as `TRUE` if the number of times `threshCriterion` is equal to or greater than `minDuration`. `event` flags as `TRUE` if `threshCriterion` is `TRUE` AND `durationCriterion` is `TRUE`. A unique identifier is given for each event in `event_no`.
+
+The `events` dataframe contains the `event_no`, the start and end dates of the event, and the event `duration` (your 'streaks'). Various other summary stats are also calculated, but these might not be relevant for your question. Or are they?
+
+If you are only interested in the `event` dataframe and want to combine all the streaks into one table with the results, do this---note the use of `ddply()` rather than `dlply()`:
+
+```{r}
+results <- plyr::ddply(.data = df2, .variables = "SubjectID", function(sub_df) {
+  detect_event(sub_df,
+               x = Date,
+               y = Lab,
+               seasClim = seas,
+               threshClim = thresh,
+               minDuration = 1,
+               maxGap = 3, 
+               coldSpell = TRUE,
+               protoEvents = FALSE)$event
+})
+results |> 
+  select(SubjectID, event_no, duration)
+```
+

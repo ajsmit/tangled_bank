@@ -1,0 +1,104 @@
+---
+author: "AJ Smit"
+title: "Dates From netCDF Files: Two Approaches"
+date: "`r Sys.Date()`"
+description: "This vignette demonstrates basic ideas behind dates in netCDF files."
+bibliography: ../references.bib
+csl: ../marine-biology.csl
+format:
+  html:
+    code-fold: false
+    toc-title: "On this page"
+    standalone: true
+    toc-location: right
+    page-layout: full
+---
+
+
+Working with dates in netCDF files can be tricky. Often netCDF files are distributed as one file for each day over several decades. In this case, the time dimension would be of length one and the coordinate variable would provide the date. However, in these cases, the date is usually also encoded within the filename. One therefore has two options for extracting the dates in these situations:
+
+* parse the dates encoded in the filename and create a date data class from scratch, or
+* extract the date from the netCDF files by using information about the date units in the coordinate variable *attributes* and *value*.
+
+Let as look at each approach. 
+
+## Parse dates encoded within the filename
+
+```{r}
+# load the libraries
+library(tidyverse)
+library(lubridate)
+library(ncdf4)
+
+# list the files in the directory
+ncDir <- "/Volumes/OceanData/AVHRR_OI-NCEI-L4-GLOB-v2.0/Africa_LME"
+SST_files <- dir(path = ncDir, full.names = TRUE)
+```
+
+The number of netCDF files (one per day) is:
+
+```{r}
+length(SST_files)
+```
+
+The full path and filenames are:
+
+```{r}
+SST_files[1:5] # showing the first 5 files
+```
+
+Looking at the filenames, we see the first eight digits indicate the date in the format `YYYYMMDD`. How do I know this? I read the data product's manual! 
+
+The first file in the time series indicates the time series starts on `19810901`, or `1981-09-01`. The last date is `2019-12-31`:
+
+```{r}
+basename(SST_files[length(SST_files)]) # I removed the file path
+```
+
+Now that we know where to find the dates in the filename, let us create a date from scratch.
+
+```{r}
+fName <- basename(SST_files[1]) # the filename without the file path
+fName
+
+fDate <- substr(fName, 1, 8) # extract the substring comprised of the first eight characters
+fDate
+
+date <- as.Date(fDate, format = "%Y%m%d")
+date
+```
+
+## Extract date information from the netCDF coordinate variable
+
+To use this approach, we must first open the netCDF file with one of the R netCDF libraries. Here I use **ncdf4**. Then we get the time coordinate variable's attribute and the content of the variable:
+
+```{r}
+# open one of the first file in the listing
+nc <- nc_open(SST_files[1])
+
+# extract the date units
+tunits <- ncatt_get(nc, "time", "units")
+tunits
+
+# extract the time and convert it to something sensible
+time <- ncvar_get(nc, "time")
+time
+```
+
+This is a strange value for a date! This is because each day is counted as the number of seconds from a predefined starting time, in this case, exactly midnight on `1981-01-01`. We convert this to something useful like this:
+
+```{r}
+date <- as.POSIXct(time, origin = "1981-01-01 00:00:00")
+date
+```
+
+Note above... Why not exaclty midnight, `1981-09-01 00:00:00`? Instead, we have 2 hours after midnight. This is because `as.POSIXct()` took our local locale into account and automagically converted to SAST or GMT+2. We can prevent this behaviour by setting the time zone explicitely. Below I ignore this discrepancy, but it might be important to consider under some specific situations.
+
+To get rid of the `HH:MM:SS` we convert to a normal date class (not POSIXct).
+
+```{r}
+date <- as.Date(date)
+date
+```
+
+Above I showed how to find the date for any one of the files in a long list of files. Once we know how to do it for one file, we can easily apply it to each file in the directory listing when we create a dataframe that combine all the daily files into one (combining all the coordinate variables, typically `lon`, `lat`, and `time`).
