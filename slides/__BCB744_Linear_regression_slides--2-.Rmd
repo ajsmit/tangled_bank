@@ -1,0 +1,139 @@
+---
+title: "Simple Linear Regression"
+subtitle: "Part 2"  
+author: 
+  - "AJ Smit"
+date: '2020/06/25 (updated: `r Sys.Date()`)'
+output:
+  xaringan::moon_reader:
+    css:
+      - default
+      - ki
+      - "uwc_logo.css"
+      - "default-fonts.css"
+    yolo: false
+    self_contained: TRUE  
+    lib_dir: libs
+    nature:
+      highlightStyle: idea
+      highlightLines: true
+      highlightLanguage: r
+      countIncrementalSlides: false
+      ratio: 16:9
+---
+
+```{r setup, include=FALSE, echo=FALSE} 
+library(tidyverse)
+library(ggpubr)
+knitr::opts_chunk$set(echo = TRUE,
+                      comment = "R>",
+                      message = FALSE,
+                      warning = FALSE,
+                      include = TRUE,
+                      fig.retina = 3,
+                      fig.width = 6,
+                      fig.height = 3.6,
+                      fig.align = "center")
+```
+
+## Assumptions of linear regressions
+
+As with *t*-tests and ANOVAs, we require that some assumptions are met:    
+
+- **Normally distributed data**
+- **Homogeneity of variances or the errors (residuals)**
+- **Independence of data**
+
+Of course, another assumption is also that there is a **linear relationship** between the predictor and predictant. But maybe the relationship is better described by a polynomial function (i.e. a model that accommodates some kind of 'bendiness' in the best fit line added to the data points), or some other non-linear model (e.g. logarithmic, exponential, logistic, Michaelis-Menten, Gompertz, or a non-parametric Generalised Additive Model).
+
+Outliers also have a huge effect on linear regressions.
+
+In Part 2 of the Simple Linear Regression lectures we will look at some of the ways we can go about testing these assumptions.
+
+---
+## First things first
+
+In ANOVAs and *t*-tests, we can generally assess the normality of the data and the homogeneity of variances *before* doing the tests. With regressions we can only do this after fitting the model.
+
+For *t*-tests, ANOVAs, and linear regressions, we know upfront whether or not the data satisfy the independence criterion.
+
+As we have described in Part 1, we start by fitting the model. Then we check for the overall model significance (results of F-test), the significance of the $\beta$ coefficient, and, if needed, the significance of the $\alpha$ term. It is also useful to assess the $r^{2}$ value. These describe the *fitted values*. To do this, simply fit the model and create a plot with the fitted line.
+
+Only then we check for normality and homogeneity of variances, and for this we use the *residuals*.
+
+---
+```{r, message=FALSE, echo=FALSE}
+lungs <- read_tsv("../data/LungCapData.csv") # read a tab separated value file
+mod <- lm(LungCap ~ Age, data = lungs)
+```
+
+As we have seen before, the **fitted values** can be accessed as followed (see `attributes(mod)`):
+
+```{r}
+head(mod$fitted)
+```
+
+The fitted values are the values that describe the path of the best fit line:
+
+```{r, message=FALSE, fig.width=6, fig.height=2.6, tidy=FALSE}
+ggplot(data = lungs, aes(x = Age, y = LungCap)) +
+  geom_point(shape = 1, colour = "red3") +
+  geom_line(aes(y = mod$fitted.values), colour = "blue3") + #<<
+  labs(x = "Age", y = "Lung capacity") + theme_pubr()
+```
+
+---
+ggplot2 offers a direct and convenient way for fitting a linear model as we have done in the previous slide, but the summary of the model fit will be missing:
+
+```{r, message=FALSE, fig.width=6, fig.height=2.6}
+ggplot(lungs, aes(Age, LungCap)) +
+  geom_point(shape = 1, colour = "red3") +
+  stat_smooth(method = lm, se = TRUE, colour = "blue3", size = 0.2) + # CIs around LM
+  labs(x = "Age", y = "Lung capacity") + theme_pubr()
+```
+
+---
+The **residuals** are what is left over after removing the linear slope of the data. Calling `attributes(mod)` will let you see how to access the residuals.
+
+```{r}
+head(mod$residuals)
+```
+
+Slightly adapting our code for fitting the linear model gives us the plot of residuals:
+
+```{r, message=FALSE, fig.width=6, fig.height=2.6}
+ggplot(data = lungs, aes(x = Age)) +
+  geom_point(aes(y = mod$residuals), shape = 1, colour = "red3") +
+  labs(x = "Age", y = "Residual") + theme_pubr()
+```
+
+---
+## Testing the assumptions
+
+```{r, message=FALSE, echo=TRUE, warning=FALSE, fig.width=11, fig.height=3.5}
+library(ggfortify)
+autoplot(mod, colour = "salmon", shape = 1, size = 0.2, ncol = 2, which = c(1:2)) + theme_pubr()
+```
+
+- **Residuals vs Fitted:** Is the relationship linear? You want to see a horizontal line without distinct bumps and deviations from the horizontal.
+- **Normal Q-Q:** Are the residuals normally distributed? The points should be on a straight line.
+
+---
+```{r, message=FALSE, echo=TRUE, warning=FALSE, fig.width=11, fig.height=3.5}
+autoplot(mod, colour = "salmon", shape = 1, size = 0.2, ncol = 2, which = c(3, 5)) + theme_pubr()
+```
+
+- **Scale-Location:** Are the residuals homoscedastic? The fitted line must be horizontal, and the standardised residuals (points) must be spread equally far above/below the line along the length of the fitted line.
+- **Residuals vs Leverage:** Are there outliers? Look out for the labelled points -- the numbers correspond to the row in the dataframe that contains the outlaying values.
+
+---
+.left-column[## Questions]
+
+.right-column[
+- What would be the slope of a linear model fitted to the residuals?
+- What would be the intercept of a linear model fitted to the residuals?
+- State the null hypotheses for the intercept and slope for this linear model, and provide statistical support for accepting/not accepting the linear model fitted to the residuals.
+- What is the significance of the overall model fit?
+- Why (to all of the above)?
+- Create a plot of the fitted line added to the scatterplot of residuals.
+]

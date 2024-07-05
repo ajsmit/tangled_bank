@@ -1,0 +1,183 @@
+---
+title: "Correlations"
+subtitle: "Part 2"  
+author: 
+  - "AJ Smit"
+date: '2020/06/28 (updated: `r Sys.Date()`)'
+output:
+  xaringan::moon_reader:
+    css:
+      - default
+      - "default-fonts.css"
+      - ki
+      - "uwc_logo.css"
+    yolo: false
+    self_contained: TRUE  
+    lib_dir: libs
+    nature:
+      highlightStyle: idea
+      highlightLines: true
+      highlightLanguage: r
+      countIncrementalSlides: false
+      ratio: 16:9
+---
+
+```{r setup, include = FALSE, echo = FALSE} 
+library(tidyverse)
+library(ggpubr)
+knitr::opts_chunk$set(echo = TRUE,
+                      comment = "R>",
+                      message = FALSE,
+                      warning = FALSE,
+                      include = TRUE,
+                      fig.retina = 3,
+                      fig.width = 6,
+                      fig.height = 3.6,
+                      fig.align = "center")
+```
+
+```{r, echo=FALSE, include=FALSE}
+data(iris)
+setosa <- iris %>%
+  filter(Species == "setosa") %>%
+  select(-Species)
+```
+
+class: center, middle
+# Doing the correlation
+
+---
+## What function do we use to do the correlation?
+
+The name of a very basic function for a correlation test is `cor()`.
+
+Let's find some help on the function first:
+```{r, eval = FALSE}
+?cor # or,
+help(cor)
+```
+
+---
+## How do we do the Pearson Product Moment correlation?
+
+The equation for the Pearson's correlation coefficient is:
+
+$$r = \frac{\sum_{i=1}^{n}(x_{i}-\bar{x})(y_{i}-\bar{y})}{\sqrt{\sum_{i=1}^{n}(x_{i}-\bar{x})^2\sum_{i=1}^{n}(y_{i}-\bar{y})}}$$
+
+Where $\bar{x}$ and $\bar{y}$ are the means for the X and Y variables, respectively.
+
+The default for `cor()` is to fit a Pearson correlation, so we may omit the `method` argument:
+
+```{r}
+with(setosa, cor(Sepal.Length, Sepal.Width))
+```
+
+## What does the output mean?
+
+The output and interpretation are simple. There are not associated *p*-values. There are no associated hypothesis tests. It simply tells of about the strength of association between the two variables.
+
+---
+## A more comprehensive correlation
+
+We can do a more detailed correlation using `cor.test()`:
+
+```{r}
+with(setosa, cor.test(x = Sepal.Length, Sepal.Width))
+```
+
+---
+## What if want to see the association between all the variables in the `setosa` dataset?
+
+For this we can rely on the `cor()` function again:
+
+```{r}
+setosa_pearson <- cor(setosa)
+setosa_pearson
+```
+
+---
+## How would we visualise all these associations?
+
+In the Iris dataset, above, we compared associations for each pair of the following columns: `Sepal.Length`, `Sepal.Width`, `Petal.Length`, and `Petal.Width`. This required six pairs of correlations, which would be a pain if we wanted to create a visualisation for each of the six pairs. We can do it quickly, e.g.:
+
+```{r}
+ecklonia <- read_csv("../data/ecklonia.csv") %>% 
+  select(-species, - site, - ID)
+head(ecklonia)
+```
+
+---
+```{r, fig.width = 7, fig.height = 7}
+ecklonia_pearson <- cor(ecklonia)
+library(corrplot)
+corrplot(ecklonia_pearson, method = "circle", type = "lower",
+         number.digits = 2, addCoef.col = "salmon", tl.col = "black")
+```
+
+---
+```{r, fig.width = 10, fig.height = 7}
+pairs(data = ecklonia, ~ stipe_length + stipe_diameter + frond_length + primary_blade_length +
+        primary_blade_width + stipe_mass + frond_mass)
+```
+
+---
+## What if we had ordinal data instead of continuous data?
+
+Ordinal data are ordered categorical factors; in other words, the data are rank ordered. Let us create a test dataset:
+
+```{r}
+lungs <- read_tsv("../data/LungCapData.csv") %>%
+  mutate(size_class_intervals = as.factor(cut(Height, breaks = 4)),
+         size_class = cut(Height, breaks = 4, labels = c("infant", "toddler", "adolecent", "teen"),
+                          ordered = TRUE))
+head(lungs)
+```
+
+For more information about creating categorical data from continuous data, see <https://www.youtube.com/watch?v=EWs1Ordh8nI>.
+
+---
+```{r}
+is.ordered(lungs$size_class)
+```
+
+```{r}
+head(as.numeric(lungs$size_class), 111)
+```
+
+---
+The equation for Spearman's *rho* is:
+
+$$r = \frac{\sum_{i=1}^{n}(x_{i}'-\bar{x})(y_{i}'-\bar{y})}{\sqrt{\sum_{i=1}^{n}(x_{i}'-\bar{x})^2\sum_{i=1}^{n}(y_{i}'-\bar{y})}}$$
+
+Where $x_{i}'$ and $y_{i}'$ are the ranks for each observation in the X and Y variables, respectively.
+
+## How do we apply a Spearman's *rho* correlation by ranks?
+
+```{r}
+cor.test(as.numeric(lungs$size_class), lungs$LungCap, method = "spearman")
+```
+
+---
+.left-column[## Questions]
+
+.right-column[
+Find your own data set suitable for a correlation analysis.
+
+- State the null and alternative hypotheses. Do a Pearson's correlation. Explain the findings.
+- Do the tests necessary to evaluate the various assumptions for the above analysis.
+- Create all the associated figures for the above analysis.
+- Transform one of the variables to ordinal data, and do a Spearman's *rho* or Kendall's *tau* correlation. Explain the findings.
+]
+
+---
+.right-column[
+- Do a full correlation analysis on the full `iris` dataset (i.e. all three species):
+
+    - state all null hypotheses;
+    
+    - test all assumptions;
+    
+    - create all necessary plots;
+    
+    - write a few sentences on the findings.
+]

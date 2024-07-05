@@ -9,6 +9,8 @@ subtitle: "Getting familiar with data handling in R"
 #| warning: false
 #| echo: false
 library(tidyverse)
+library(TidyDensity)
+library(ggpubr)
 ```
 
 ::: {.callout-note appearance="simple"}
@@ -27,9 +29,7 @@ library(tidyverse)
 
 # Introduction
 
-A good grasp of data distributions is a prerequisite of any statistical analysis. It enables us to describe and summarise the underlying patterns, trends, and variations in our data, allowing for more robust predictions and inferences about natural processes, whether they describe the outcomes of experiments or the structure of biodiversity in the nature. By understanding the distribution of our data, biologists and ecologists can select the most appropriate statistical techniques for their analyses, ensuring the validity of their conclusions and ultimately facilitating the development of more robust and defensible insights about our research. As we progress through this Chapter, we will learn about the most common data distributions encountered in ecological research, and how to effectively apply statistical methods to analyse and interpret them.
-
-Let us learn about the different types of data distributions we are likely to encounter in the wild.
+A good grasp of data distributions is a prerequisite of any statistical analysis. It enables us to describe and summarise the underlying patterns, trends, and variations in our data. In doing so, it allows for more robust predictions and inferences about natural processes, such as outcomes of experiments or the structure of biodiversity. By understanding the distribution of our data, we can select the most appropriate statistical techniques and ensure the validity of our conclusions. Only through the application of the correct inferential statistics can we facilitate the development of robust and defensible insights about our research. In this Chapter we will learn about the most common data distributions encountered in ecological research, and how this knowledge will empower us to effectively apply statistical methods to analyse and interpret them.
 
 # Discrete distributions
 
@@ -39,7 +39,7 @@ A discrete random variable has a finite or countable number of possible values. 
 
 Bernoulli and Binomial distributions are both discrete probability distributions that describe the *outcomes of binary events*. They are similar but there are also some key differences between the two. In real life examples encountered in ecology and biology we will probably mostly encounter the Binomial distributions. Let us consider each is more detail.
 
-**Bernoulli distribution** The Bernoulli distribution represents a single binary trial or experiment with only two possible outcomes---'success' (usually represented as `1`) and 'failure' (usually represented as `0`). The probability of success is denoted by $p$, while the probability of failure is $1 - p$. A Bernoulli distribution is characterised by only one parameter, $p$, which represents the probability of success for the single trial (@eq-bernoulli).
+**Bernoulli distribution** The Bernoulli distribution represents a single binary trial or experiment with only two possible outcomes---'success' (usually represented as `1`) and 'failure' (usually represented as `0`). The probability of success is denoted by $p$, while the probability of failure is $1 - p$. A Bernoulli distribution is characterised by only one parameter, $p$, which represents the probability of success for the single trial (@eq-bernoulli) (@fig-bernoulli1, @fig-bernoulli2).
 
 ::: {.column-margin}
 **The Bernoulli distribution:**
@@ -53,7 +53,45 @@ $$ {#eq-bernoulli}
 where $X$ is a random variable, $k$ is the outcome (1 for success and 0 for failure), and $p$ is the probability of success.
 :::
 
-**Binomial distribution** The Binomial distribution represents the sum of outcomes in a fixed number of independent Bernoulli trials with the same probability of success, $p$. It is characterised by two parameters---$n$ (the number of trials) and $p$ (the probability of success in each trial). The Binomial distribution describes the probability of obtaining a specific number of successes ($k$) in $n$ trials (@eq-binomial).
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "Bernoulli distribution with 50 trials and 20 simulations set at a probability of p = 0.2. This could be a heavily loaded coin that has a 20% chance of landing heads."
+#| label: fig-bernoulli1
+
+bern <- tidy_bernoulli(.n = 50, .prob = 0.2, .num_sims = 20)
+
+ggarrange(
+  tidy_autoplot(bern, .plot_type = "density"),
+  tidy_autoplot(bern, .plot_type = "quantile"),
+  tidy_autoplot(bern, .plot_type = "probability"),
+  tidy_autoplot(bern, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
+```
+
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "Bernoulli distribution with 50 trials and 20 simulations set at a probability of p = 0.5. This represents an unbiased coin that has an equal chance of landing on head or tail."
+#| label: fig-bernoulli2
+
+bern <- tidy_bernoulli(.n = 50, .prob = 0.5, .num_sims = 20)
+
+ggarrange(
+  tidy_autoplot(bern, .plot_type = "density"),
+  tidy_autoplot(bern, .plot_type = "quantile"),
+  tidy_autoplot(bern, .plot_type = "probability"),
+  tidy_autoplot(bern, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
+```
+
+**Binomial distribution** The Binomial distribution represents the sum of outcomes in a fixed number of independent Bernoulli trials with the same probability of success, $p$. It is characterised by two parameters---$n$ (the number of trials) and $p$ (the probability of success in each trial). The Binomial distribution describes the probability of obtaining a specific number of successes ($k$) in $n$ trials (@eq-binomial) (@fig-binomial2).
 
 ::: {.column-margin}
 **The Binomial distribution:**
@@ -62,7 +100,45 @@ $$P(X=k) = \binom{n}{k} p^k (1-p)^{n-k}$$ {#eq-binomial}
 where $X$ is a random variable, $k$ is the number of successes, $n$ is the total number of trials, and $p$ is the probability of success in each trial.
 :::
 
-There are several examples of Binomial distributions in ecological and biological contexts. The Binomial distribution is relevant when studying the number of successes in a fixed number of independent trials, each with the same probability of success. A few examples of the Bernoulli distribution in ecological and biological data:
+<!-- ```{r} -->
+<!-- #| echo: false -->
+<!-- #| fig.align: center -->
+<!-- #| fig.width: 10 -->
+<!-- #| fig.height: 6  -->
+<!-- #| fig.cap: "Binomial distribution with 50 trials and 20 simulations at an *a priori* set probability of p = 0.75." -->
+<!-- #| label: fig-binomial1 -->
+
+<!-- binom1 <- tidy_binomial(.n = 40, .num_sims = 10, .prob = 0.75) -->
+
+<!-- ggarrange( -->
+<!--   tidy_autoplot(binom1, .plot_type = "density"), -->
+<!--   tidy_autoplot(binom1, .plot_type = "quantile"), -->
+<!--   tidy_autoplot(binom1, .plot_type = "probability"), -->
+<!--   tidy_autoplot(binom1, .plot_type = "qq"), -->
+<!--   ncol = 2, nrow = 2 -->
+<!-- ) -->
+<!-- ``` -->
+
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "Binomial distribution with 40 trials and 10 simulations at an *a priori* set probability of p = 0.5."
+#| label: fig-binomial2
+
+binom2 <- tidy_binomial(.n = 40, .num_sims = 10, .prob = 0.5)
+
+ggarrange(
+  tidy_autoplot(binom2, .plot_type = "density"),
+  tidy_autoplot(binom2, .plot_type = "quantile"),
+  tidy_autoplot(binom2, .plot_type = "probability"),
+  tidy_autoplot(binom2, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
+```
+
+There are several examples of Binomial distributions in ecological and biological contexts. The Binomial distribution is relevant when studying the number of successes in a fixed number of independent trials, each with the same probability of success. A few examples of the Bernoulli distribution:
 
 -   **Seed germination** Suppose we plant 100 seeds of a particular plant species and wants to know the probability of a certain number of seeds germinating. If the probability of germination for each seed is constant then we can model the number of germinated seeds by a Binomial distribution.
 
@@ -76,7 +152,7 @@ Note that in these examples we assume a fixed probability and independence betwe
 
 ## Negative Binomial distribution
 
-A Negative Binomial random variable, $X$, counts the number of successes in a sequence of independent Bernoulli trials with probability $p$ before $r$ failures occur. This distribution could for example be used to predict the number of heads that result from a series of coin tosses before three tails are observed (@eq-negbinomial).
+A Negative Binomial random variable, $X$, counts the number of successes in a sequence of independent Bernoulli trials with probability $p$ before $r$ failures occur. This distribution could for example be used to predict the number of heads that result from a series of coin tosses before three tails are observed (@eq-negbinomial) (@fig-negbinomial).
 
 ::: {.column-margin}
 **The Negative Binomial distribution:**
@@ -85,9 +161,29 @@ $$P(X=k) = \binom{k+r-1}{k} p^r (1-p)^k$$ {#eq-negbinomial}
 The equation describes the probability mass function (PMF) of a Negative Binomial distribution, where $X$ is a random variable, $k$ is the number of failures, $r$ is the number of successes, and $p$ is the probability of success in each trial. The binomial coefficient is denoted by $\binom{k+r-1}{k}$, which calculates the number of ways to arrange $k$ failures and $r$ successes such that the last trial is a success.
 :::
 
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "A negative binomial distribution with 50 trials and 10 simulations at an *a priori* expectation of p = 0.75."
+#| label: fig-negbinomial
+
+negbinom <- tidy_negative_binomial(.n = 50, .size = 5, .prob = 0.7, .num_sims = 10)
+
+ggarrange(
+  tidy_autoplot(negbinom, .plot_type = "density"),
+  tidy_autoplot(negbinom, .plot_type = "quantile"),
+  tidy_autoplot(negbinom, .plot_type = "probability"),
+  tidy_autoplot(negbinom, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
+```
+
+
 ## Geometric distribution
 
-A geometric random variable, $X$, represents the number of trials that are required to observe a single success. Each trial is independent and has success probability $p$. As an example, the geometric distribution is useful to model the number of times a die must be tossed in order for a six to be observed (@eq-geometric).
+A geometric random variable, $X$, represents the number of trials that are required to observe a single success. Each trial is independent and has success probability $p$. As an example, the geometric distribution is useful to model the number of times a die must be tossed in order for a six to be observed (@eq-geometric) (@fig-geomet).
 
 ::: {.column-margin}
 **The Geometric distribution:**
@@ -96,9 +192,28 @@ $$P(X=k) = p (1-p)^k$$ {#eq-geometric}
 The equation represents the PMF of a Geometric distribution, where $X$ is a random variable, $k$ is the number of failures before the first success, and $p$ is the probability of success in each trial. The Geometric distribution can be thought of as a special case of the Negative Binomial distribution with $r = 1$, which models the number of failures before achieving a single success.
 :::
 
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "A geometric distribution with 50 trials and 10 simulations at an *a priori* expectation of p = 0.75."
+#| label: fig-geomet
+
+geomet <- tidy_geometric(.n = 50, .prob = 0.7, .num_sims = 10)
+
+ggarrange(
+  tidy_autoplot(geomet, .plot_type = "density"),
+  tidy_autoplot(geomet, .plot_type = "quantile"),
+  tidy_autoplot(geomet, .plot_type = "probability"),
+  tidy_autoplot(geomet, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
+```
+
 ## Poisson distribution
 
-A Poisson random variable, $X$, tallies the number of events occurring in a fixed interval of time or space, given that these events occur with an average rate $\lambda$. Poisson distributions can be used to model events such as meteor showers and or number of people entering a shopping mall (@eq-poisson).
+A Poisson random variable, $X$, tallies the number of events occurring in a fixed interval of time or space, given that these events occur with an average rate $\lambda$. Poisson distributions can be used to model events such as meteor showers and or number of people entering a shopping mall (@eq-poisson) (@fig-poisson).
 
 ::: {.column-margin}
 **The Poisson distribution:**
@@ -106,6 +221,25 @@ $$P(X=k) = \frac{e^{-\lambda} \lambda^k}{k!}$$ {#eq-poisson}
 
 The function represents the PMF of a Poisson distribution, where $X$ is a random variable, $k$ is the number of events or occurrences, and $\lambda$ (lambda) is the average rate of occurrences (events per unit of time or space). The constant $e$ is the base of the natural logarithm, and $k!$ is the factorial of $k$. The Poisson distribution is commonly used to model the number of events occurring within a fixed interval of time or space when events occur independently and at a constant average rate.
 :::
+
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "A Poisson distribution with 50 trials and 10 simulations at an *a priori* expectation of p = 0.75."
+#| label: fig-poisson
+
+poisson <- tidy_poisson(.n = 50, .lambda = 2, .num_sims = 10)
+
+ggarrange(
+  tidy_autoplot(poisson, .plot_type = "density"),
+  tidy_autoplot(poisson, .plot_type = "quantile"),
+  tidy_autoplot(poisson, .plot_type = "probability"),
+  tidy_autoplot(poisson, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
+```
 
 # Continuous distributions
 
@@ -115,7 +249,7 @@ The function represents the PMF of a Poisson distribution, where $X$ is a random
 ![The idealised Normal distribution showing the proportion of data within 1, 2, and 3SD from the mean.](../../images/Standard_deviation_diagram.svg){#fig-expectednormal}
 :::
 
-Another name for this kind of distribution is a Gaussian distribution. A random sample with a Gaussian distribution is normally distributed. These values are *independent and identically distributed* random variables (i.i.d.), and they have an expected mean given by $\mu$ (or $\hat{x}$ in Chapter 3.2.1) and a finite variance given by $\sigma^{2}$ (or $S^{2}$ in Chapter 3.3.1); if the number of samples drawn from a population is sufficiently large, the estimated mean and SD will be indistinguishable from the population (as per the central limit theorem). It is represented by @eq-normal.
+Another name for this kind of distribution is a Gaussian distribution. A random sample with a Gaussian distribution is normally distributed. These values are *independent and identically distributed* random variables (i.i.d.), and they have an expected mean given by $\mu$ (or $\hat{x}$ in Chapter 3.2.1) and a finite variance given by $\sigma^{2}$ (or $S^{2}$ in Chapter 3.3.1); if the number of samples drawn from a population is sufficiently large, the estimated mean and SD will be indistinguishable from the population (as per the central limit theorem). It is represented by @eq-normal (@fig-normal).
 
 ::: {.column-margin}
 **The Normal distribution:**
@@ -125,12 +259,31 @@ $$ {#eq-normal}
 where $x$ is a continuous random variable, $\mu$ (mu) is the mean, and $\sigma$ (sigma) is the standard deviation. The constant factor $\frac{1}{\sigma\sqrt{2\pi}}$ ensures that the Probability Density Function (PDF) integrates to 1, and the exponential term is responsible for the characteristic bell-shaped curve of the Normal distribution.
 :::
 
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "Normal distribution with 40 trials and 5 simulations."
+#| label: fig-normal
+
+normnal <- tidy_normal(.n = 100, .num_sims = 5)
+
+ggarrange(
+  tidy_autoplot(normnal, .plot_type = "density"),
+  tidy_autoplot(normnal, .plot_type = "quantile"),
+  tidy_autoplot(normnal, .plot_type = "probability"),
+  tidy_autoplot(normnal, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
+```
+
 ::: {.callout-note appearance="simple"}
 ## Central Limit Theorem
 
 The Central Limit Theorem (CLT) is a fundamental result in probability theory and statistics, which states that the distribution of the sum (or average) of a large number of independent, identically distributed (IID) random variables approaches a Normal distribution regardless of the shape of the original distribution. So, the CLT asserts that the Normal distribution is the limiting distribution for the sum or average of many random variables, as long as certain conditions are met.
 
-The CLT has important implications in statistical analysis, as it provides a basis for making inferences about population parameters using sample statistics. For example, when dealing with large sample sizes, the sampling distribution of the sample mean is approximately normally distributed, even if the underlying population distribution is not normal. This allows us to apply inferential techniques based on the Normal distribution, such as hypothesis testing and constructing confidence intervals, to estimate population parameters using sample data.
+The CLT provides a basis for making inferences about population parameters using sample statistics. For example, when dealing with large sample sizes, the sampling distribution of the sample mean is approximately normally distributed, even if the underlying population distribution is not normal. This allows us to apply inferential techniques based on the Normal distribution, such as hypothesis testing and constructing confidence intervals, to estimate population parameters using sample data.
 
 Some conditions must be met for the CLT to be true:
 
@@ -139,471 +292,170 @@ Some conditions must be met for the CLT to be true:
 -   **The number of random variables (sample size) must be sufficiently large** Although there is no strict rule for the sample size, a common rule of thumb is that the sample size should be at least 30 for the CLT to be a reasonable approximation.
 :::
 
-```{r, echo=FALSE, eval=FALSE}
-# library(animation)
-# library(e1071)
-
-## The function to animate a histogram
-# hist_fig <- function(i){
-#   set.seed(666)
-#   norm_dat <- data.frame(dat = rnorm(n = i, mean = 10, sd = 1),
-#                          sample = "A")
-#   hist <- ggplot(data = norm_dat, aes(x = dat)) + 
-#     geom_histogram(aes(y = ..density..),
-#                  position = 'identity',
-#                  colour = "black", fill = "turquoise", alpha = 0.6) +
-#     geom_density(colour = "black", fill = "salmon", alpha = 0.6) +
-#     annotate("text", x = 6.5, y = 0.35, size = 5, 
-#              label = paste0("N = ", i, 
-#                             "\nmean = 10", 
-#                             "\nSD = 1",
-#                             "\nskew = ", round(skewness(norm_dat$dat), 2),
-#                             "\nkurt = ", round(kurtosis(norm_dat$dat), 2))) +
-#     scale_x_continuous(limits = c(6, 14)) +
-#     scale_y_continuous(limits = c(0, 0.4)) +
-#     ggtitle("Normal distribution") +
-#     labs(x = "value")
-#     print(hist)
-# }
-
-## Create animation of the histogram
-# animate_hist <- function() {
-#   lapply(c(rep(10, 5), seq(20, 90, 10), seq(100, 900, 100), seq(900, 1000, 10), rep(1000, 5)), function(i) {
-#     hist_fig(i)
-#   })
-# }
-
-# Note that this spits out in the main directory and is manually moved to the figures folder
-
-# saveGIF(animate_hist())
-# system.time(saveGIF(animate_hist(), interval = 0.5, ani.width = 600, movie.name = "hist_norm_n.gif")) ## ~12 seconds
-knitr::include_graphics("figures/hist_norm_n.gif")
-```
-
 ## Uniform distribution
 
-The continuous uniform distribution is sometime called a rectangular distribution. Simply, it states that all measurements of the same magnitude included with this distribution are equally probable. This is basically random numbers.
+The continuous uniform distribution is sometime called a rectangular distribution. Simply, it states that all measurements of the same magnitude included with this distribution are equally probable. This is basically random numbers (@fig-unif).
 
-```{r, echo=FALSE, eval=FALSE}
-# Create base distributions
-set.seed(666)
-unif_dat <- data.frame(dist = c(runif(10, 0, 10), runif(100, 0, 10), runif(1000, 0, 10),
-                                runif(10, 0, 50), runif(100, 0, 50), runif(1000, 0, 50),
-                                runif(10, 0, 100), runif(100, 0, 100), runif(1000, 0, 100)),
-                       unif_group = paste(rep(c(rep("n = 10", 10), rep("n = 100", 100), rep("n = 1000", 1000)), 3),
-                                          rep("min = 0", 3330),
-                                          c(rep("max = 10", 1110), rep("max = 50", 1110), rep("max = 100", 1110)), 
-                                          sep = ", "))
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "Uniform distribution with 100 trials and 5 simulations."
+#| label: fig-unif
 
-# Create density curves
-unif_dens <- data.frame()
-for(i in 1:length(levels(unif_dat$unif_group))) {
-  x <- density(unif_dat$dist[unif_dat$unif_group == levels(unif_dat$unif_group)[i]])$x
-  y <- density(unif_dat$dist[unif_dat$unif_group == levels(unif_dat$unif_group)[i]])$y
-  df <- data.frame(x = x, y = y, unif_group = levels(unif_dat$unif_group)[i])
-  unif_dens <- rbind(unif_dens, df)
-}
+unif <- tidy_uniform(.n = 100, .min = 0, .max = 5, .num_sims = 5)
 
-# Create all of the buttons
-l <- list()
-for(i in 1:length(levels(unif_dat$unif_group))) {
-  l[[i]] <- list(method = "restyle",
-                 args = list("transforms[0].value", unique(unif_dat$unif_group)[i]),
-                 label = unique(unif_dat$unif_group)[i])
-}
-
-# Run the figure
-p <- plot_ly(data = unif_dat, 
-             transforms = list(
-               list(type = 'filter',
-                    target = ~unif_group,
-                    operation = '=',
-                    value = unique(unif_dat$unif_group)[5]))) %>%
-  add_histogram(x = ~dist, name = "Histogram") %>%
-  add_boxplot(x = ~dist, yaxis = "y3", name = "Boxplot") %>% 
-  add_trace(data = unif_dens, x = ~x, y = ~y, mode = "lines", fill = "tozeroy", 
-            yaxis = "y2", name = "Density",
-            transforms = list(
-              list(type = 'filter',
-                   target = ~unif_group,
-                   operation = '=',
-                   value = unique(unif_dat$unif_group)[5]))) %>%
-  layout(title = "Uniform distribution",
-         xaxis = list(title = "value"), 
-         yaxis = list(title = "count"),
-         yaxis2 = list(overlaying = "y", zeroline = FALSE,
-                       showline = FALSE, showticklabels = FALSE, showgrid = FALSE),
-         yaxis3 = list(overlaying = "y"),
-         updatemenus = list(list(y = 1.05, x = 0.2, active = 4, buttons = l)))
-p
+ggarrange(
+  tidy_autoplot(unif, .plot_type = "density"),
+  tidy_autoplot(unif, .plot_type = "quantile"),
+  tidy_autoplot(unif, .plot_type = "probability"),
+  tidy_autoplot(unif, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
 ```
 
 ## Student T distribution
 
-This is a continuous probability distribution that arises when estimating the mean of a normally distributed population in situations where the sample size is small and population standard deviation is unknown. It is used in the statistical significance testing between the means of different sets of samples, and not much so in the modelling of natural phenomena.
+This is a continuous probability distribution that arises when estimating the mean of a normally distributed population in situations where the sample size is small and population standard deviation is unknown. It is used in the statistical significance testing between the means of different sets of samples, and not much so in the modelling of many kinds of experiments or observations (@fig-studt).
 
-```{r, echo=FALSE, eval=FALSE}
-# Create base distributions
-set.seed(666)
-t_dat <- data.frame(dist =    c(rt(10, 5, 0), rt(100, 5, 0), rt(1000, 5, 0),
-                                rt(10, 20, 0), rt(100, 20, 0), rt(1000, 20, 0),
-                                rt(10, 100, 0), rt(100, 100, 0), rt(1000, 100, 0),
-                                rt(10, 5, 3), rt(100, 5, 3), rt(1000, 5, 3),
-                                rt(10, 20, 3), rt(100, 20, 3), rt(1000, 20, 3),
-                                rt(10, 100, 3), rt(100, 100, 3), rt(1000, 100, 3),
-                                rt(10, 5, 6), rt(100, 5, 6), rt(1000, 5, 6),
-                                rt(10, 20, 6), rt(100, 20, 6), rt(1000, 20, 6),
-                                rt(10, 100, 6), rt(100, 100, 6), rt(1000, 100, 6)),
-                       t_group = paste(rep(c(rep("n = 10", 10), rep("n = 100", 100), rep("n = 1000", 1000)), 9),
-                                          rep(c(rep("df = 5", 1110), rep("df = 20", 1110), rep("df = 100", 1110)), 3),
-                                          c(rep("ncp = 0", 3330), rep("ncp = 3", 3330), rep("ncp = 6", 3330)), 
-                                          sep = ", "))
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "Uniform distribution with 100 trials and 5 simulations."
+#| label: fig-studt
 
-# Create density curves
-t_dens <- data.frame()
-for(i in 1:length(levels(t_dat$t_group))) {
-  x <- density(t_dat$dist[t_dat$t_group == levels(t_dat$t_group)[i]])$x
-  y <- density(t_dat$dist[t_dat$t_group == levels(t_dat$t_group)[i]])$y
-  df <- data.frame(x = x, y = y, t_group = levels(t_dat$t_group)[i])
-  t_dens <- rbind(t_dens, df)
-}
+studt <- tidy_t(.n = 100, .df = 1, .ncp = 0, .num_sims = 5)
 
-# Create all of the buttons
-l <- list()
-for(i in 1:length(levels(t_dat$t_group))) {
-  l[[i]] <- list(method = "restyle",
-                 args = list("transforms[0].value", unique(t_dat$t_group)[i]),
-                 label = unique(t_dat$t_group)[i])
-}
-
-# Run the figure
-p <- plot_ly(data = t_dat, 
-             transforms = list(
-               list(type = 'filter',
-                    target = ~t_group,
-                    operation = '=',
-                    value = unique(t_dat$t_group)[14]))) %>%
-  add_histogram(x = ~dist, name = "Histogram") %>%
-  add_boxplot(x = ~dist, yaxis = "y3", name = "Boxplot") %>% 
-  add_trace(data = t_dens, x = ~x, y = ~y, mode = "lines", fill = "tozeroy", 
-            yaxis = "y2", name = "Density",
-            transforms = list(
-              list(type = 'filter',
-                   target = ~t_group,
-                   operation = '=',
-                   value = unique(t_dat$t_group)[14]))) %>%
-  layout(title = "Student T distribution",
-         xaxis = list(title = "value"), 
-         yaxis = list(title = "count"),
-         yaxis2 = list(overlaying = "y", zeroline = FALSE,
-                       showline = FALSE, showticklabels = FALSE, showgrid = FALSE),
-         yaxis3 = list(overlaying = "y"),
-         updatemenus = list(list(y = 1.05, x = 0.2, active = 13, buttons = l)))
-p
+ggarrange(
+  tidy_autoplot(studt, .plot_type = "density"),
+  tidy_autoplot(studt, .plot_type = "quantile"),
+  tidy_autoplot(studt, .plot_type = "probability"),
+  tidy_autoplot(studt, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
 ```
 
 ## Chi-squared distribution
 
-Mostly used in hypothesis testing, but not to encapsulate the distribution of data drawn to represent natural phenomena.
+Mostly used in hypothesis testing, but not to encapsulate the distribution of data drawn to represent natural phenomena (@fig-chi).
 
-```{r, echo=FALSE, eval=FALSE}
-# Create base distributions
-set.seed(666)
-chisq_dat <- data.frame(dist = c(rchisq(10, 5, 0), rchisq(100, 5, 0), rchisq(1000, 5, 0),
-                                rchisq(10, 20, 0), rchisq(100, 20, 0), rchisq(1000, 20, 0),
-                                rchisq(10, 100, 0), rchisq(100, 100, 0), rchisq(1000, 100, 0),
-                                rchisq(10, 5, 2), rchisq(100, 5, 2), rchisq(1000, 5, 2),
-                                rchisq(10, 20, 2), rchisq(100, 20, 2), rchisq(1000, 20, 2),
-                                rchisq(10, 100, 2), rchisq(100, 100, 2), rchisq(1000, 100, 2),
-                                rchisq(10, 5, 4), rchisq(100, 5, 4), rchisq(1000, 5, 4),
-                                rchisq(10, 20, 4), rchisq(100, 20, 4), rchisq(1000, 20, 4),
-                                rchisq(10, 100, 4), rchisq(100, 100, 4), rchisq(1000, 100, 4)),
-                    chisq_group = paste(rep(c(rep("n = 10", 10), rep("n = 100", 100), rep("n = 1000", 1000)), 9),
-                                    rep(c(rep("df = 5", 1110), rep("df = 20", 1110), rep("df = 100", 1110)), 3),
-                                    c(rep("ncp = 0", 3330), rep("ncp = 2", 3330), rep("ncp = 4", 3330)), 
-                                          sep = ", "))
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "Chi distribution with 100 trials and 5 simulations."
+#| label: fig-chi
 
-# Create density curves
-chisq_dens <- data.frame()
-for(i in 1:length(levels(chisq_dat$chisq_group))) {
-  x <- density(chisq_dat$dist[chisq_dat$chisq_group == levels(chisq_dat$chisq_group)[i]])$x
-  y <- density(chisq_dat$dist[chisq_dat$chisq_group == levels(chisq_dat$chisq_group)[i]])$y
-  df <- data.frame(x = x, y = y, chisq_group = levels(chisq_dat$chisq_group)[i])
-  chisq_dens <- rbind(chisq_dens, df)
-}
+chi <- tidy_chisquare(.n = 100, .df = 1, .ncp = 0, .num_sims = 5)
 
-# Create all of the buttons
-l <- list()
-for(i in 1:length(levels(chisq_dat$chisq_group))) {
-  l[[i]] <- list(method = "restyle",
-                 args = list("transforms[0].value", unique(chisq_dat$chisq_group)[i]),
-                 label = unique(chisq_dat$chisq_group)[i])
-}
-
-# Run the figure
-p <- plot_ly(data = chisq_dat, 
-             transforms = list(
-               list(type = 'filter',
-                    target = ~chisq_group,
-                    operation = '=',
-                    value = unique(chisq_dat$chisq_group)[14]))) %>%
-  add_histogram(x = ~dist, name = "Histogram") %>%
-  add_boxplot(x = ~dist, yaxis = "y3", name = "Boxplot") %>% 
-  add_trace(data = chisq_dens, x = ~x, y = ~y, mode = "lines", fill = "tozeroy", 
-            yaxis = "y2", name = "Density",
-            transforms = list(
-              list(type = 'filter',
-                   target = ~chisq_group,
-                   operation = '=',
-                   value = unique(chisq_dat$chisq_group)[14]))) %>%
-  layout(title = "Chi-squared distribution",
-         xaxis = list(title = "value"), 
-         yaxis = list(title = "count"),
-         yaxis2 = list(overlaying = "y", zeroline = FALSE,
-                       showline = FALSE, showticklabels = FALSE, showgrid = FALSE),
-         yaxis3 = list(overlaying = "y"),
-         updatemenus = list(list(y = 1.05, x = 0.2, active = 13, buttons = l)))
-p
+ggarrange(
+  tidy_autoplot(chi, .plot_type = "density"),
+  tidy_autoplot(chi, .plot_type = "quantile"),
+  tidy_autoplot(chi, .plot_type = "probability"),
+  tidy_autoplot(chi, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
 ```
 
 ## Exponential distribution
 
-This is a probability distribution that describes the time between events in a Poisson point process, i.e., a process in which events occur continuously and independently at a constant average rate.
+This is a probability distribution that describes the time between events in a Poisson point process, i.e., a process in which events occur continuously and independently at a constant average rate (@fig-exp).
 
-```{r, echo=FALSE, eval=FALSE}
-# Create base distributions
-set.seed(666)
-exp_dat <- data.frame(dist = c(rexp(10, 1), rexp(100, 1), rexp(1000, 1),
-                                rexp(10, 2), rexp(100, 2), rexp(1000, 2),
-                                rexp(10, 3), rexp(100, 3), rexp(1000, 3)),
-                       exp_group = paste(rep(c(rep("n = 10", 10), rep("n = 100", 100), rep("n = 1000", 1000)), 3),
-                                          c(rep("rate = 1", 1110), rep("rate = 2", 1110), rep("rate = 3", 1110)), 
-                                          sep = ", "))
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "An exponential distribution with 100 trials and 5 simulations."
+#| label: fig-exp
 
-# Create density curves
-exp_dens <- data.frame()
-for(i in 1:length(levels(exp_dat$exp_group))) {
-  x <- density(exp_dat$dist[exp_dat$exp_group == levels(exp_dat$exp_group)[i]])$x
-  y <- density(exp_dat$dist[exp_dat$exp_group == levels(exp_dat$exp_group)[i]])$y
-  df <- data.frame(x = x, y = y, exp_group = levels(exp_dat$exp_group)[i])
-  exp_dens <- rbind(exp_dens, df)
-}
+exp <- tidy_exponential(.n = 100, .rate = 1, .num_sims = 5)
 
-# Create all of the buttons
-l <- list()
-for(i in 1:length(levels(exp_dat$exp_group))) {
-  l[[i]] <- list(method = "restyle",
-                 args = list("transforms[0].value", unique(exp_dat$exp_group)[i]),
-                 label = unique(exp_dat$exp_group)[i])
-}
-
-# Run the figure
-p <- plot_ly(data = exp_dat, 
-             transforms = list(
-               list(type = 'filter',
-                    target = ~exp_group,
-                    operation = '=',
-                    value = unique(exp_dat$exp_group)[5]))) %>%
-  add_histogram(x = ~dist, name = "Histogram") %>%
-  add_boxplot(x = ~dist, yaxis = "y3", name = "Boxplot") %>% 
-  add_trace(data = exp_dens, x = ~x, y = ~y, mode = "lines", fill = "tozeroy", 
-            yaxis = "y2", name = "Density",
-            transforms = list(
-              list(type = 'filter',
-                   target = ~exp_group,
-                   operation = '=',
-                   value = unique(exp_dat$exp_group)[5]))) %>%
-  layout(title = "Exponential distribution",
-         xaxis = list(title = "observed occurrences"), 
-         yaxis = list(title = "count"),
-         yaxis2 = list(overlaying = "y", zeroline = FALSE,
-                       showline = FALSE, showticklabels = FALSE, showgrid = FALSE),
-         yaxis3 = list(overlaying = "y"),
-         updatemenus = list(list(y = 1.05, x = 0.2, active = 4, buttons = l)))
-p
+ggarrange(
+  tidy_autoplot(exp, .plot_type = "density"),
+  tidy_autoplot(exp, .plot_type = "quantile"),
+  tidy_autoplot(exp, .plot_type = "probability"),
+  tidy_autoplot(exp, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
 ```
 
 ## F distribution
 
-```{r, echo=FALSE, eval=FALSE}
-# Create base distributions
-set.seed(666)
-f_dat <- data.frame(dist =     c(rf(10, 5, 5), rf(100, 5, 5), rf(1000, 5, 5),
-                                 rf(10, 20, 5), rf(100, 20, 5), rf(1000, 20, 5),
-                                 rf(10, 100, 5), rf(100, 100, 5), rf(1000, 100, 5),
-                                 rf(10, 5, 20), rf(100, 5, 20), rf(1000, 5, 20),
-                                 rf(10, 20, 20), rf(100, 20, 20), rf(1000, 20, 20),
-                                 rf(10, 100, 20), rf(100, 100, 20), rf(1000, 100, 20),
-                                 rf(10, 5, 100), rf(100, 5, 100), rf(1000, 5, 100),
-                                 rf(10, 20, 100), rf(100, 20, 100), rf(1000, 20, 100),
-                                 rf(10, 100, 100), rf(100, 100, 100), rf(1000, 100, 100)),
-                        f_group = paste(rep(c(rep("n = 10", 10), rep("n = 100", 100), rep("n = 1000", 1000)), 9),
-                                            rep(c(rep("df1 = 5", 1110), rep("df1 = 20", 1110), rep("df1 = 100", 1110)), 3),
-                                            c(rep("df2 = 5", 3330), rep("df2 = 20", 3330), rep("df2 = 100", 3330)), 
-                                          sep = ", "))
+This is a probability distribution that arises in the context of the analysis of variance (ANOVA) and regression analysis. It is used to compare the variances of two populations (@fig-f).
 
-# Create density curves
-f_dens <- data.frame()
-for(i in 1:length(levels(f_dat$f_group))) {
-  x <- density(f_dat$dist[f_dat$f_group == levels(f_dat$f_group)[i]])$x
-  y <- density(f_dat$dist[f_dat$f_group == levels(f_dat$f_group)[i]])$y
-  df <- data.frame(x = x, y = y, f_group = levels(f_dat$f_group)[i])
-  f_dens <- rbind(f_dens, df)
-}
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "An F distribution with 100 trials and 5 simulations."
+#| label: fig-f
 
-# Create all of the buttons
-l <- list()
-for(i in 1:length(levels(f_dat$f_group))) {
-  l[[i]] <- list(method = "restyle",
-                 args = list("transforms[0].value", unique(f_dat$f_group)[i]),
-                 label = unique(f_dat$f_group)[i])
-}
+f <- tidy_f(.n = 100, .df1 = 1, .df2 = 1, .ncp = 5, .num_sims = 5)
 
-# Run the figure
-p <- plot_ly(data = f_dat, 
-             transforms = list(
-               list(type = 'filter',
-                    target = ~f_group,
-                    operation = '=',
-                    value = unique(f_dat$f_group)[14]))) %>%
-  add_histogram(x = ~dist, name = "Histogram") %>%
-  add_boxplot(x = ~dist, yaxis = "y3", name = "Boxplot") %>% 
-  add_trace(data = f_dens, x = ~x, y = ~y, mode = "lines", fill = "tozeroy", 
-            yaxis = "y2", name = "Density",
-            transforms = list(
-              list(type = 'filter',
-                   target = ~f_group,
-                   operation = '=',
-                   value = unique(f_dat$f_group)[14]))) %>%
-  layout(title = "F distribution",
-         xaxis = list(title = "value"), 
-         yaxis = list(title = "count"),
-         yaxis2 = list(overlaying = "y", zeroline = FALSE,
-                       showline = FALSE, showticklabels = FALSE, showgrid = FALSE),
-         yaxis3 = list(overlaying = "y"),
-         updatemenus = list(list(y = 1.05, x = 0.2, active = 13, buttons = l)))
-p
+ggarrange(
+  tidy_autoplot(f, .plot_type = "density"),
+  tidy_autoplot(f, .plot_type = "quantile"),
+  tidy_autoplot(f, .plot_type = "probability"),
+  tidy_autoplot(f, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
 ```
 
 ## Gamma distribution
 
-```{r, echo=FALSE, eval=FALSE}
-# Create base distributions
-set.seed(666)
-gamma_dat <- data.frame(dist = c(rgamma(10, 1), rgamma(100, 1), rgamma(1000, 1),
-                               rgamma(10, 2), rgamma(100, 2), rgamma(1000, 2),
-                               rgamma(10, 3), rgamma(100, 3), rgamma(1000, 3)),
-                      gamma_group = paste(rep(c(rep("n = 10", 10), rep("n = 100", 100), rep("n = 1000", 1000)), 3),
-                                        c(rep("shape = 1", 1110), rep("shape = 2", 1110), rep("shape = 3", 1110)), 
-                                          sep = ", "))
+This is a two-parameter family of continuous probability distributions. It is used to model the time until an event occurs. It is a generalisation of the exponential distribution (@fig-gamma).
 
-# Create density curves
-gamma_dens <- data.frame()
-for(i in 1:length(levels(gamma_dat$gamma_group))) {
-  x <- density(gamma_dat$dist[gamma_dat$gamma_group == levels(gamma_dat$gamma_group)[i]])$x
-  y <- density(gamma_dat$dist[gamma_dat$gamma_group == levels(gamma_dat$gamma_group)[i]])$y
-  df <- data.frame(x = x, y = y, gamma_group = levels(gamma_dat$gamma_group)[i])
-  gamma_dens <- rbind(gamma_dens, df)
-}
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "A Gamma distribution with 100 trials and 5 simulations."
+#| label: fig-gamma
 
-# Create all of the buttons
-l <- list()
-for(i in 1:length(levels(gamma_dat$gamma_group))) {
-  l[[i]] <- list(method = "restyle",
-                 args = list("transforms[0].value", unique(gamma_dat$gamma_group)[i]),
-                 label = unique(gamma_dat$gamma_group)[i])
-}
+gamma <- tidy_gamma(.n = 100, .shape = 1, .scale = 0.4, .num_sims = 5)
 
-# Run the figure
-p <- plot_ly(data = gamma_dat, 
-             transforms = list(
-               list(type = 'filter',
-                    target = ~gamma_group,
-                    operation = '=',
-                    value = unique(gamma_dat$gamma_group)[5]))) %>%
-  add_histogram(x = ~dist, name = "Histogram") %>%
-  add_boxplot(x = ~dist, yaxis = "y3", name = "Boxplot") %>% 
-  add_trace(data = gamma_dens, x = ~x, y = ~y, mode = "lines", fill = "tozeroy", 
-            yaxis = "y2", name = "Density",
-            transforms = list(
-              list(type = 'filter',
-                   target = ~gamma_group,
-                   operation = '=',
-                   value = unique(gamma_dat$gamma_group)[5]))) %>%
-  layout(title = "Gamma distribution",
-         xaxis = list(title = "value"), 
-         yaxis = list(title = "count"),
-         yaxis2 = list(overlaying = "y", zeroline = FALSE,
-                       showline = FALSE, showticklabels = FALSE, showgrid = FALSE),
-         yaxis3 = list(overlaying = "y"),
-         updatemenus = list(list(y = 1.05, x = 0.2, active = 4, buttons = l)))
-p
+ggarrange(
+  tidy_autoplot(gamma, .plot_type = "density"),
+  # tidy_autoplot(gamma, .plot_type = "quantile"),
+  tidy_autoplot(gamma, .plot_type = "probability"),
+  tidy_autoplot(gamma, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
 ```
 
 ## Beta distribution
 
-```{r, echo=FALSE, eval=FALSE}
-# Create base distributions
-set.seed(666)
-beta_dat <- data.frame(dist = c(rbeta(10, 1, 1), rbeta(100, 1, 1), rbeta(1000, 1, 1),
-                                rbeta(10, 2, 1), rbeta(100, 2, 1), rbeta(1000, 2, 1),
-                                rbeta(10, 3, 1), rbeta(100, 3, 1), rbeta(1000, 3, 1),
-                                rbeta(10, 1, 2), rbeta(100, 1, 2), rbeta(1000, 1, 2),
-                                rbeta(10, 2, 2), rbeta(100, 2, 2), rbeta(1000, 2, 2),
-                                rbeta(10, 3, 2), rbeta(100, 3, 2), rbeta(1000, 3, 2),
-                                rbeta(10, 1, 3), rbeta(100, 1, 3), rbeta(1000, 1, 3),
-                                rbeta(10, 2, 3), rbeta(100, 2, 3), rbeta(1000, 2, 3),
-                                rbeta(10, 3, 3), rbeta(100, 3, 3), rbeta(1000, 3, 3)),
-                       beta_group = paste(rep(c(rep("n = 10", 10), rep("n = 100", 100), rep("n = 1000", 1000)), 9),
-                                          rep(c(rep("shape1 = 1", 1110), rep("shape1 = 2", 1110), rep("shape3 = 3", 1110)), 3),
-                                          c(rep("shape2 = 1", 3330), rep("shape2 = 2", 3330), rep("shape3 = 3", 3330)), 
-                                          sep = ", "))
-# Create density curves
-beta_dens <- data.frame()
-for(i in 1:length(levels(beta_dat$beta_group))) {
-  x <- density(beta_dat$dist[beta_dat$beta_group == levels(beta_dat$beta_group)[i]])$x
-  y <- density(beta_dat$dist[beta_dat$beta_group == levels(beta_dat$beta_group)[i]])$y
-  df <- data.frame(x = x, y = y, beta_group = levels(beta_dat$beta_group)[i])
-  beta_dens <- rbind(beta_dens, df)
-}
+This is a family of continuous probability distributions defined on the interval [0, 1] parameterised by two positive shape parameters, typically denoted by α and β. It is used to model the behaviour of random variables limited to intervals of finite length in a wide variety of disciplines (@fig-beta).
 
-# Create all of the buttons
-l <- list()
-for(i in 1:length(levels(beta_dat$beta_group))) {
-  l[[i]] <- list(method = "restyle",
-                 args = list("transforms[0].value", unique(beta_dat$beta_group)[i]),
-                 label = unique(beta_dat$beta_group)[i])
-}
+```{r}
+#| echo: false
+#| fig.align: center
+#| fig.width: 10
+#| fig.height: 6 
+#| fig.cap: "A Beta distribution with 100 trials and 5 simulations."
+#| label: fig-beta
 
-# Run the figure
-p <- plot_ly(data = beta_dat, 
-             transforms = list(
-               list(type = 'filter',
-                    target = ~beta_group,
-                    operation = '=',
-                    value = unique(beta_dat$beta_group)[8]))) %>%
-  add_histogram(x = ~dist, name = "Histogram") %>%
-  add_boxplot(x = ~dist, yaxis = "y3", name = "Boxplot") %>% 
-  add_trace(data = beta_dens, x = ~x, y = ~y, mode = "lines", fill = "tozeroy", 
-            yaxis = "y2", name = "Density",
-            transforms = list(
-              list(type = 'filter',
-                   target = ~beta_group,
-                   operation = '=',
-                   value = unique(beta_dat$beta_group)[8]))) %>%
-  layout(title = "Beta distribution",
-         xaxis = list(title = "value"), 
-         yaxis = list(title = "count"),
-         yaxis2 = list(overlaying = "y", zeroline = FALSE,
-                       showline = FALSE, showticklabels = FALSE, showgrid = FALSE),
-         yaxis3 = list(overlaying = "y"),
-         updatemenus = list(list(y = 1.05, x = 0.2, active = 7, buttons = l)))
-p
+beta <- tidy_beta(.n = 100, .shape1 = 1, .shape2 = 1, .ncp = 0, .num_sims = 5)
+
+ggarrange(
+  tidy_autoplot(beta, .plot_type = "density"),
+  tidy_autoplot(beta, .plot_type = "quantile"),
+  tidy_autoplot(beta, .plot_type = "probability"),
+  tidy_autoplot(beta, .plot_type = "qq"),
+  ncol = 2, nrow = 2
+)
 ```
 
 # Finding one's data distribution
 
-Data belonging to a sample will never exactly follow a specific distribution, even when the test for normality says it does---there will always be a small probability that they are non-normal and is in fact better described by some other distribution. In other words, data are only *compatible* with a certain distribution, and one can never answer the question "Does my data follow the distribution xy exactly?" as simply as providing a yes/no answer. So what now? How does one find one's data distribution? We can use the *Cullen and Frey graph* function that lives in the **fitdistrplus** package. This graph tells us whether the skewness and kurtosis of our data are consistent with that of a particular distribution. We will demonstrate by generating various data distributions and testing them using the Cullen and Frey graph.
+Data belonging to a sample will never exactly follow a specific distribution, even when the test for normality says it does---there will always be a small probability that they are non-normal and is in fact better described by some other distribution. In other words, data are only *compatible* with a certain distribution, and one can never answer the question "Does my data follow the distribution xy exactly?" as simply as providing a yes/no answer. So what now? How does one find one's data distribution? We can use the **Cullen and Frey graph** function that lives in the **fitdistrplus** package. This graph tells us whether the skewness and kurtosis of our data are consistent with that of a particular distribution. We will demonstrate by generating various data distributions and testing them using the Cullen and Frey graph.
 
 ```{r dist-plot1, message=FALSE}
 #| column: screen-inset-shaded

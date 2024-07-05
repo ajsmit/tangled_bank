@@ -1,0 +1,168 @@
+---
+title: "Correlations"
+subtitle: "Part 1"  
+author: 
+  - "AJ Smit"
+date: '2020/06/28 (updated: `r Sys.Date()`)'
+output:
+  xaringan::moon_reader:
+    css:
+      - default
+      - "default-fonts.css"
+      - ki
+      - "uwc_logo.css"
+    yolo: false
+    self_contained: TRUE  
+    lib_dir: libs
+    nature:
+      highlightStyle: idea
+      highlightLines: true
+      highlightLanguage: r
+      countIncrementalSlides: false
+      ratio: 16:9
+---
+
+```{r setup, include = FALSE, echo = FALSE} 
+library(tidyverse)
+library(ggpubr)
+knitr::opts_chunk$set(echo = TRUE,
+                      comment = "R>",
+                      message = FALSE,
+                      warning = FALSE,
+                      include = TRUE,
+                      fig.retina = 3,
+                      fig.width = 6,
+                      fig.height = 3.6,
+                      fig.align = "center")
+```
+
+## Correlation
+
+For more details about Correlation, please visit <https://ajsmit.github.io/Basic_stats/correlations.html>.
+
+Another take on correlations can be seen at:
+
+- <https://rpubs.com/aaronsc32/anova-compare-more-than-two-groups>
+
+---
+## What is a correlation for?
+
+- To investigate the strength of a potential association between two (or more) variables. 
+- No requirement that one variable *causes* a response in the other (unlike regression; see Chapter 8).
+
+The research question is, “Is X related to Y?” or "Does X predict Y?".
+
+---
+## What is the nature of the data?
+
+- Paired variables, but neither is dependent or independent.
+- One is continuous, the other can be continuous or ordinal.
+
+---
+## What is the correlation coefficient?
+
+Correlation is denoted by $r$, the correlation coefficient, which ranges from -1 to 1.
+
+- As the coefficient strives to become closer to 1, the stronger is a *positive* correlation; i.e., as X increases so does Y.
+- Coefficients closer to -1 represent a negative correlation; i.e. as X decreases, Y increases. 
+- As $r$ approaches $0$, the weaker the correlation between the variables becomes; i.e. $r=0$ indicates no correlation between the two variables.
+
+The correlation coefficient, $r$, should not be confused with the regression coefficient, $r^{2}$ or $R^{2}$.
+
+---
+## What assumptions do the data need to fulfil?
+
+Like all statistical tests, correlation requires a series of assumptions as well. We also require that the data are i) paired (each X observation must have an associated Y value), and ii) that there are no outliers.
+
+Assumptions:
+1. The association must be approximately linear
+2. The samples follow independent normal distributions (but see below)
+3. The requirement for homoscedasticity
+
+There are two main types of correlations, depending on the nature of the data:
+1. Continuous normal data (Pearson's Product Moment correlation)
+2. Ordinal data, may be non-normal (Spearman's *rho* correlation, or Kendall's *tau* correlation)
+
+---
+class: center, middle
+# Examples
+
+---
+## What do the data look like?
+
+```{r}
+data(iris)
+head(iris)
+```
+
+---
+```{r}
+summary(iris)
+```
+The data are continuous and each X value has a corresponding Y value. If it is normally distributed and homoscedastic, we can apply a Pearson's Product Moment correlation.
+
+---
+## Visually, what is the association between `Sepal.Length` and `Sepal.Width`?
+
+.left-column[
+- $x$: Sepal.Length
+- $y$: Sepal.Width
+
+Let's examine *Iris setosa* only.
+]
+
+.right-column[
+```{r}
+setosa <- iris %>%
+  filter(Species == "setosa") %>%
+  select(-Species)
+
+ggplot(data = setosa, aes(x = Sepal.Length,
+                          y = Sepal.Width)) +
+  geom_point(shape = 1, colour = "red3") +
+  labs(x = "Length", y = "Width") + theme_pubr()
+```
+]
+
+---
+## What about the assumptions?
+
+**1. The association must be approximately linear.**
+
+From the plot on the previous slide, yes, the relationship is linear. If the scatter plot showed a curved pattern, we are dealing with a nonlinear association between the two variables.
+
+---
+**2. The samples follow independent normal distributions.**
+
+For each variable, X and Y, use Shapiro-Wilk normality test: `shapiro.test()`
+```{r}
+shapiro.test(setosa$Sepal.Length)
+shapiro.test(setosa$Sepal.Width)
+```
+
+Above we see that the two *p*-values are > 0.05, hence the distribution of the data is not significantly different from that of a normal distribution. We can assume normality.
+
+---
+We can also assess the normality assumption through visual inspection of Q-Q plots (quantile-quantile plots). A Q-Q plot draws the correlation between a given sample and the normal distribution. To do so, we can use `ggpubr::ggqqplot()`:
+
+```{r, fig.width = 9, fig.height = 3}
+plt_a <- ggqqplot(setosa$Sepal.Length, ylab = "Sepal Length") # a ggpubr function
+plt_b <- ggqqplot(setosa$Sepal.Width, ylab = "Sepal Width")
+ggarrange(plt_a, plt_b, ncol = 2)  # a ggpubr function
+```
+
+Looking at the plots, we can conclude that both sets of samples follow normal distributions.
+
+---
+**3. The requirement for homoscedasticity**
+
+Fit a line of best fit, and see if the values lay evenly above and below the line:
+
+```{r}
+ggplot(data = setosa, aes(x = Sepal.Width, y = Sepal.Length)) +
+  geom_point() +
+  geom_smooth(method = "lm") + theme_pubr()
+```
+
+Yes, everything seems in order.
+

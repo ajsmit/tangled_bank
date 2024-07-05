@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.510">
+<meta name="generator" content="quarto-1.4.554">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="author" content="AJ Smit">
 <meta name="dcterms.date" content="2023-11-22">
@@ -57,6 +57,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
@@ -83,7 +84,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   "type": "textbox",
   "limit": 50,
   "keyboard-shortcut": [
-    null
+    "f",
+    "/",
+    "s"
   ],
   "language": {
     "search-no-results-text": "No results",
@@ -93,6 +96,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
@@ -106,11 +110,11 @@ gtag('config', 'G-SCYH68M489', { 'anonymize_ip': true});
 </script><script type="text/javascript" charset="UTF-8">
 document.addEventListener('DOMContentLoaded', function () {
 cookieconsent.run({
-  "notice_banner_type":"simple",
-  "consent_type":"implied",
-  "palette":"light",
+  "notice_banner_type":"headline",
+  "consent_type":"express",
+  "palette":"dark",
   "language":"en",
-  "page_load_consent_levels":["strictly-necessary","functionality","tracking","targeting"],
+  "page_load_consent_levels":["strictly-necessary"],
   "notice_banner_reject_button_hide":false,
   "preferences_center_close_button_hide":false,
   "website_name":""
@@ -124,8 +128,12 @@ cookieconsent.run({
     document.body.classList.add('hypothesis-enabled');
   });
 </script>
+<meta property="og:title" content="The Tangled Bank - Detect event streaks based on specified thresholds">
+<meta property="og:description" content="This vignette demonstrates how to use a heatwaveR function to the analysis of experimental data for finding the run lengths of events that meet certain criteria.">
+<meta property="og:image" content="https://tangledbank.netlify.app/blog/2023-11-22-run-lengths/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==">
+<meta property="og:site_name" content="The Tangled Bank">
 </head>
-<body class="nav-sidebar floating nav-fixed">
+<body class="nav-sidebar docked nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
@@ -196,6 +204,10 @@ cookieconsent.run({
     <a class="dropdown-item" href="../../vignettes/elem_ts_methods.html">
  <span class="dropdown-text">Wavelet Analysis of Diatom Time Series</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/buffer_data_extract.html">
+ <span class="dropdown-text">Extracting gridded data within a buffer</span></a>
+  </li>  
     </ul>
 </li>
   <li class="nav-item dropdown ">
@@ -239,11 +251,6 @@ cookieconsent.run({
 </i> 
 <span class="menu-text"></span></a>
   </li>  
-  <li class="nav-item compact">
-    <a class="nav-link" href="https://twitter.com/ajsmit"> <i class="bi bi-twitter" role="img">
-</i> 
-<span class="menu-text"></span></a>
-  </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-bi-github" role="button" data-bs-toggle="dropdown" aria-expanded="false">
       <i class="bi bi-github" role="img">
@@ -265,6 +272,11 @@ cookieconsent.run({
 </div> <!-- /navcollapse -->
           <div class="quarto-navbar-tools">
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
 </div>
       </div> <!-- /container-fluid -->
     </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
@@ -280,7 +292,7 @@ cookieconsent.run({
     </div>
   </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-center sidebar-header">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto"><div class="pt-lg-2 mt-2 text-end sidebar-header">
       <a href="../../index.html" class="sidebar-logo-link">
       <img src="../../images/hex_logo.png" alt="" class="sidebar-logo py-0 d-lg-inline d-none"></a>
       </div>
@@ -447,7 +459,7 @@ cookieconsent.run({
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/intro_r/10-mapping_quakes.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">10. The Fiji Earthquake Data</span></a>
+ <span class="menu-text">10. The Fiji Earthquake data</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -505,6 +517,12 @@ cookieconsent.run({
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/BCB744_scientific_philosophy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Biostatistics and the philosophy of scientific inquiry</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/01-data-in-R.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">1. Data classes and structures in R</span></a>
   </div>
@@ -531,12 +549,6 @@ cookieconsent.run({
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/05-inference.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">5. Statistical inference and hypothesis testing</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../../BCB744/basic_stats/05a-decision_guide.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">5a. A quick guide to selecting the right test</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -571,14 +583,26 @@ cookieconsent.run({
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../BCB744/basic_stats/11-glance.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">11. Non-parametric statistical tests at a glance</span></a>
+  <a href="../../BCB744/basic_stats/11-decision_guide.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">11. A guide to selecting the right parametric test</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../BCB744/basic_stats/12-confidence.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">12. Confidence intervals</span></a>
+  <a href="../../BCB744/basic_stats/12-glance.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12. Non-parametric statistical tests at a glance</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/13-confidence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">13. Confidence intervals</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/14-transformations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">14. Data transformations</span></a>
   </div>
 </li>
       </ul>
@@ -593,7 +617,7 @@ cookieconsent.run({
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false">
- <span class="menu-text">BCB743</span></a>
+ <span class="menu-text">BCB743 (Quantitative Ecology)</span></a>
           <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -621,6 +645,12 @@ cookieconsent.run({
   <div class="sidebar-item-container"> 
   <a href="../../BCB743/06-deep_dive.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">6. Deep Dive into Gradients</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/dis-metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Useful distance and dissimilarities metrics</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -673,14 +703,32 @@ cookieconsent.run({
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../BCB743/12-constrained_ordination.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">12. Constrained Ordination</span></a>
+  <a href="../../BCB743/unconstrained-summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summary: Unconstrained Ordinations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/12a-constrained_ordination.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12a. Constrained Ordination</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/Seaweed_in_Two_Oceans_v2/12b-two_oceans_appendices.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12b. Seaweeds in Two Oceans: Beta-diversity (Appendices)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB743/13-cluster_analysis.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">13. Cluster Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/14-multiple_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">14. Multiple Linear Regression (MLR)</span></a>
   </div>
 </li>
       </ul>
@@ -759,14 +807,14 @@ cookieconsent.run({
     <div class="quarto-title-meta-contents">
     <p class="author"><a href="https://ajsmit.netlify.app">AJ Smit</a> <a href="https://orcid.org/0000-0002-3799-6126" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
   </div>
-    <div class="quarto-title-meta-contents">
+  <div class="quarto-title-meta-contents">
         <p class="affiliation">
             <a href="https://uwc.ac.za">
             University of the Western Cape
             </a>
           </p>
       </div>
-    </div>
+  </div>
 
 <div class="quarto-title-meta column-body">
 
@@ -790,58 +838,58 @@ cookieconsent.run({
 
 
 </header><div class="cell" data-warnings="false">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwaveR/index.html">heatwaveR</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://had.co.nz/plyr">plyr</a></span><span class="op">)</span> <span class="co"># because I like plyr</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(heatwaveR)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(plyr) <span class="co"># because I like plyr</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Here is a question we received via <strong>heatwaveR</strong>’s GitHub page regarding using our package’s functions to detect streaks of outcomes based on a threshold in some lab experiment. The question is as follows:</p>
 <blockquote class="blockquote">
-<p>“I was looking for a function that could help me with data wrangling and I believe the <code><a href="https://rdrr.io/pkg/heatwaveR/man/exceedance.html">exceedance()</a></code> function is exactly what I’m looking for. I have a dataframe with person IDs, date of treatment, day since treatment, and a lab value. Essentially, I am hoping to find the longest streak of consecutive days where the lab value is below a certain threshold, and extending the streak if the lab value does not rise above the threshold for &gt;3 days.</p>
+<p>“I was looking for a function that could help me with data wrangling and I believe the <code>exceedance()</code> function is exactly what I’m looking for. I have a dataframe with person IDs, date of treatment, day since treatment, and a lab value. Essentially, I am hoping to find the longest streak of consecutive days where the lab value is below a certain threshold, and extending the streak if the lab value does not rise above the threshold for &gt;3 days.</p>
 </blockquote>
 <blockquote class="blockquote">
 <p>I wrangled my dataframe into a dataframe with the IDs, date, and lab value as follows …”</p>
 </blockquote>
 <section id="prepare-a-dataframe-with-the-ids-date-and-lab-values" class="level2"><h2 class="anchored" data-anchor-id="prepare-a-dataframe-with-the-ids-date-and-lab-values">Prepare a dataframe with the IDs, date, and lab values</h2>
 <div class="cell">
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">num_subjects</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
-<span><span class="va">num_days</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">13</span><span class="op">)</span></span>
-<span><span class="va">subject_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">num_subjects</span>, each <span class="op">=</span> <span class="va">num_days</span><span class="op">)</span></span>
-<span><span class="va">dates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="st">"2023-01-01"</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">"1 day"</span>, length.out <span class="op">=</span> <span class="va">num_days</span><span class="op">)</span>,</span>
-<span>             times <span class="op">=</span> <span class="va">num_subjects</span><span class="op">)</span></span>
-<span><span class="va">lab_values</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">num_subjects</span> <span class="op">*</span> <span class="va">num_days</span>, min <span class="op">=</span> <span class="fl">0</span>, max <span class="op">=</span> <span class="fl">3000</span><span class="op">)</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  SubjectID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">subject_ids</span><span class="op">)</span>,</span>
-<span>  Date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="va">dates</span><span class="op">)</span>,</span>
-<span>  Lab <span class="op">=</span> <span class="va">lab_values</span></span>
-<span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>num_subjects <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>num_days <span class="ot">&lt;-</span> <span class="dv">20</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="fu">set.seed</span>(<span class="dv">13</span>)</span>
+<span id="cb2-4"><a href="#cb2-4"></a>subject_ids <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>num_subjects, <span class="at">each =</span> num_days)</span>
+<span id="cb2-5"><a href="#cb2-5"></a>dates <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">seq</span>(<span class="fu">as.Date</span>(<span class="st">"2023-01-01"</span>), <span class="at">by =</span> <span class="st">"1 day"</span>, <span class="at">length.out =</span> num_days),</span>
+<span id="cb2-6"><a href="#cb2-6"></a>             <span class="at">times =</span> num_subjects)</span>
+<span id="cb2-7"><a href="#cb2-7"></a>lab_values <span class="ot">&lt;-</span> <span class="fu">runif</span>(num_subjects <span class="sc">*</span> num_days, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">3000</span>)</span>
+<span id="cb2-8"><a href="#cb2-8"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb2-9"><a href="#cb2-9"></a>  <span class="at">SubjectID =</span> <span class="fu">factor</span>(subject_ids),</span>
+<span id="cb2-10"><a href="#cb2-10"></a>  <span class="at">Date =</span> <span class="fu">as.Date</span>(dates),</span>
+<span id="cb2-11"><a href="#cb2-11"></a>  <span class="at">Lab =</span> lab_values</span>
+<span id="cb2-12"><a href="#cb2-12"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section><section id="calculate-streaks-lengths-based-on-linear-over-time-thresholds" class="level2"><h2 class="anchored" data-anchor-id="calculate-streaks-lengths-based-on-linear-over-time-thresholds">Calculate streaks lengths based on linear (over time) thresholds</h2>
-<p>It turns out that one of the other built-in functions can exactly do what you need. We simply need to make some adjustments to the dataframe fed to the <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html">detect_event()</a></code> function, which is the function that will count the streak lengths.</p>
+<p>It turns out that one of the other built-in functions can exactly do what you need. We simply need to make some adjustments to the dataframe fed to the <code>detect_event()</code> function, which is the function that will count the streak lengths.</p>
 <p>Calculate a mean value and a threshold; you can calculate an overall mean and threshold, or a mean and threshold for each group— this will depend on your experimental design and hypotheses.</p>
 <p>I calculate a mean and threshold based on the pooled data (across A-C):</p>
 <div class="cell">
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df2</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/plyr/man/mutate.html">mutate</a></span><span class="op">(</span>seas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">Lab</span><span class="op">)</span>,</span>
-<span>         thresh <span class="op">=</span> <span class="fl">500</span><span class="op">)</span> <span class="co"># your threshold value here</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>df2 <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> </span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="fu">mutate</span>(<span class="at">seas =</span> <span class="fu">mean</span>(Lab),</span>
+<span id="cb3-3"><a href="#cb3-3"></a>         <span class="at">thresh =</span> <span class="dv">500</span>) <span class="co"># your threshold value here</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Even though we calculated the mean value, this is not used; only the threshold is used.</p>
 <div class="cell">
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/dlply.html">dlply</a></span><span class="op">(</span>.data <span class="op">=</span> <span class="va">df2</span>, .variables <span class="op">=</span> <span class="st">"SubjectID"</span>, <span class="kw">function</span><span class="op">(</span><span class="va">sub_df</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html">detect_event</a></span><span class="op">(</span><span class="va">sub_df</span>,</span>
-<span>               x <span class="op">=</span> <span class="va">Date</span>,</span>
-<span>               y <span class="op">=</span> <span class="va">Lab</span>,</span>
-<span>               seasClim <span class="op">=</span> <span class="va">seas</span>,</span>
-<span>               threshClim <span class="op">=</span> <span class="va">thresh</span>,</span>
-<span>               minDuration <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>               maxGap <span class="op">=</span> <span class="fl">3</span>, </span>
-<span>               coldSpell <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>               protoEvents <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>results <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">dlply</span>(<span class="at">.data =</span> df2, <span class="at">.variables =</span> <span class="st">"SubjectID"</span>, <span class="cf">function</span>(sub_df) {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="fu">detect_event</span>(sub_df,</span>
+<span id="cb4-3"><a href="#cb4-3"></a>               <span class="at">x =</span> Date,</span>
+<span id="cb4-4"><a href="#cb4-4"></a>               <span class="at">y =</span> Lab,</span>
+<span id="cb4-5"><a href="#cb4-5"></a>               <span class="at">seasClim =</span> seas,</span>
+<span id="cb4-6"><a href="#cb4-6"></a>               <span class="at">threshClim =</span> thresh,</span>
+<span id="cb4-7"><a href="#cb4-7"></a>               <span class="at">minDuration =</span> <span class="dv">1</span>,</span>
+<span id="cb4-8"><a href="#cb4-8"></a>               <span class="at">maxGap =</span> <span class="dv">3</span>, </span>
+<span id="cb4-9"><a href="#cb4-9"></a>               <span class="at">coldSpell =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-10"><a href="#cb4-10"></a>               <span class="at">protoEvents =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-11"><a href="#cb4-11"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><code>results</code> is a list of dataframes, one pair of dataframes for each subject. Let us look at the first list element, which is for <code>SubjectID == 1</code>:</p>
 <div class="cell">
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">results</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>results[[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$climatology
    SubjectID       Date        Lab     seas thresh threshCriterion
@@ -902,21 +950,21 @@ $event
 </div>
 <p>The first dataframe is called <code>climatology</code> and the other is called <code>events</code>. Don’t worry about the names as the function was initially written for climate events. The <code>climatology</code> dataframe contains all the data for <code>SubjectID</code> that were initially supplied in <code>df2</code> and a few new columns, <code>threshCriterion</code>, <code>durationCriterion</code>, <code>event</code>, and <code>event_no</code> are added at the end. When the <code>Lab</code> value dips below the <code>thresh</code>, <code>threshCriterion</code> will flag as <code>TRUE</code> regardless of how long it remains below the threshold. <code>durationCriterion</code> flags as <code>TRUE</code> if the number of times <code>threshCriterion</code> is equal to or greater than <code>minDuration</code>. <code>event</code> flags as <code>TRUE</code> if <code>threshCriterion</code> is <code>TRUE</code> AND <code>durationCriterion</code> is <code>TRUE</code>. A unique identifier is given for each event in <code>event_no</code>.</p>
 <p>The <code>events</code> dataframe contains the <code>event_no</code>, the start and end dates of the event, and the event <code>duration</code> (your ‘streaks’). Various other summary stats are also calculated, but these might not be relevant for your question. Or are they?</p>
-<p>If you are only interested in the <code>event</code> dataframe and want to combine all the streaks into one table with the results, do this—note the use of <code><a href="https://rdrr.io/pkg/plyr/man/ddply.html">ddply()</a></code> rather than <code><a href="https://rdrr.io/pkg/plyr/man/dlply.html">dlply()</a></code>:</p>
+<p>If you are only interested in the <code>event</code> dataframe and want to combine all the streaks into one table with the results, do this—note the use of <code>ddply()</code> rather than <code>dlply()</code>:</p>
 <div class="cell">
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/ddply.html">ddply</a></span><span class="op">(</span>.data <span class="op">=</span> <span class="va">df2</span>, .variables <span class="op">=</span> <span class="st">"SubjectID"</span>, <span class="kw">function</span><span class="op">(</span><span class="va">sub_df</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html">detect_event</a></span><span class="op">(</span><span class="va">sub_df</span>,</span>
-<span>               x <span class="op">=</span> <span class="va">Date</span>,</span>
-<span>               y <span class="op">=</span> <span class="va">Lab</span>,</span>
-<span>               seasClim <span class="op">=</span> <span class="va">seas</span>,</span>
-<span>               threshClim <span class="op">=</span> <span class="va">thresh</span>,</span>
-<span>               minDuration <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>               maxGap <span class="op">=</span> <span class="fl">3</span>, </span>
-<span>               coldSpell <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>               protoEvents <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">$</span><span class="va">event</span></span>
-<span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="va">results</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">SubjectID</span>, <span class="va">event_no</span>, <span class="va">duration</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>results <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">ddply</span>(<span class="at">.data =</span> df2, <span class="at">.variables =</span> <span class="st">"SubjectID"</span>, <span class="cf">function</span>(sub_df) {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="fu">detect_event</span>(sub_df,</span>
+<span id="cb7-3"><a href="#cb7-3"></a>               <span class="at">x =</span> Date,</span>
+<span id="cb7-4"><a href="#cb7-4"></a>               <span class="at">y =</span> Lab,</span>
+<span id="cb7-5"><a href="#cb7-5"></a>               <span class="at">seasClim =</span> seas,</span>
+<span id="cb7-6"><a href="#cb7-6"></a>               <span class="at">threshClim =</span> thresh,</span>
+<span id="cb7-7"><a href="#cb7-7"></a>               <span class="at">minDuration =</span> <span class="dv">1</span>,</span>
+<span id="cb7-8"><a href="#cb7-8"></a>               <span class="at">maxGap =</span> <span class="dv">3</span>, </span>
+<span id="cb7-9"><a href="#cb7-9"></a>               <span class="at">coldSpell =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-10"><a href="#cb7-10"></a>               <span class="at">protoEvents =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>event</span>
+<span id="cb7-11"><a href="#cb7-11"></a>})</span>
+<span id="cb7-12"><a href="#cb7-12"></a>results <span class="sc">|&gt;</span> </span>
+<span id="cb7-13"><a href="#cb7-13"></a>  <span class="fu">select</span>(SubjectID, event_no, duration)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  SubjectID event_no duration
 1         1        1        7
@@ -933,7 +981,7 @@ $event
 
 <!-- -->
 
-</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div id="quarto-reuse" class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2023,
+</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2023,
   author = {Smit, AJ},
   title = {Detect Event Streaks Based on Specified Thresholds},
   date = {2023-11-22},
@@ -1228,6 +1276,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
           // default icon
           link.classList.add("external");
       }
@@ -1266,7 +1319,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
     });
   }
   const xrefs = window.document.querySelectorAll('a.quarto-xref');
@@ -1281,27 +1338,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       }
     }
     stripColumnClz(note)
-    const typesetMath = (el) => {
-      if (window.MathJax) {
-        // MathJax Typeset
-        window.MathJax.typeset([el]);
-      } else if (window.katex) {
-        // KaTeX Render
-        var mathElements = el.getElementsByClassName("math");
-        var macros = [];
-        for (var i = 0; i < mathElements.length; i++) {
-          var texText = mathElements[i].firstChild;
-          if (mathElements[i].tagName == "SPAN") {
-            window.katex.render(texText.data, mathElements[i], {
-              displayMode: mathElements[i].classList.contains('display'),
-              throwOnError: false,
-              macros: macros,
-              fleqn: false
-            });
-          }
-        }
-      }
-    }
     if (id === null || id.startsWith('sec-')) {
       // Special case sections, only their first couple elements
       const container = document.createElement("div");
@@ -1316,10 +1352,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             break;
           }
         }
-        typesetMath(container);
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
         return container.innerHTML
       } else {
-        typesetMath(note);
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
         return note.innerHTML;
       }
     } else {
@@ -1328,8 +1368,15 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       if (anchorLink) {
         anchorLink.remove();
       }
-      typesetMath(note);
-      return note.innerHTML;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
     }
   }
   for (var i=0; i<xrefs.length; i++) {
@@ -1549,121 +1596,120 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 });
-</script><script src="https://giscus.app/client.js" data-repo="ajsmit/tangled_bank" data-repo-id="R_kgDOJ8D59A" data-category="General" data-category-id="DIC_kwDOJ8D59M4CbNfZ" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" async="">
-</script><input type="hidden" id="giscus-base-theme" value="light"><input type="hidden" id="giscus-alt-theme" value="dark"><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb9" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Detect event streaks based on specified thresholds"</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "This vignette demonstrates how to use a __heatwaveR__ function to the analysis of experimental data for finding the run lengths of events that meet certain criteria."</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2023-11-22"</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="an">date-modified:</span><span class="co"> "2023-11-23"</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="an">draft:</span><span class="co"> false</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">  - analysis</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">  - MHW</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="an">feed:</span><span class="co"> true</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="an">bibliography:</span><span class="co"> ../../references.bib</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="an">csl:</span><span class="co"> ../../marine-biology.csl</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="co">#| warnings: false</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(heatwaveR)</span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plyr) <span class="co"># because I like plyr</span></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>Here is a question we received via **heatwaveR**'s GitHub page regarding using our package's functions to detect streaks of outcomes based on a threshold in some lab experiment. The question is as follows:</span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; "I was looking for a function that could help me with data wrangling and I believe the </span><span class="in">`exceedance()`</span><span class="at"> function is exactly what I'm looking for. I have a dataframe with person IDs, date of treatment, day since treatment, and a lab value. Essentially, I am hoping to find the longest streak of consecutive days where the lab value is below a certain threshold, and extending the streak if the lab value does not rise above the threshold for </span><span class="sc">\&gt;</span><span class="at">3 days.</span></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; I wrangled my dataframe into a dataframe with the IDs, date, and lab value as follows ..."</span></span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="fu">## Prepare a dataframe with the IDs, date, and lab values</span></span>
-<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>num_subjects <span class="ot">&lt;-</span> <span class="dv">5</span></span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>num_days <span class="ot">&lt;-</span> <span class="dv">20</span></span>
-<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">13</span>)</span>
-<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>subject_ids <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>num_subjects, <span class="at">each =</span> num_days)</span>
-<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>dates <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">seq</span>(<span class="fu">as.Date</span>(<span class="st">"2023-01-01"</span>), <span class="at">by =</span> <span class="st">"1 day"</span>, <span class="at">length.out =</span> num_days),</span>
-<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>             <span class="at">times =</span> num_subjects)</span>
-<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>lab_values <span class="ot">&lt;-</span> <span class="fu">runif</span>(num_subjects <span class="sc">*</span> num_days, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">3000</span>)</span>
-<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">SubjectID =</span> <span class="fu">factor</span>(subject_ids),</span>
-<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>  <span class="at">Date =</span> <span class="fu">as.Date</span>(dates),</span>
-<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lab =</span> lab_values</span>
-<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a><span class="fu">## Calculate streaks lengths based on linear (over time) thresholds</span></span>
-<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>It turns out that one of the other built-in functions can exactly do what you need. We simply need to make some adjustments to the dataframe fed to the <span class="in">`detect_event()`</span> function, which is the function that will count the streak lengths.</span>
-<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>Calculate a mean value and a threshold; you can calculate an overall mean and threshold, or a mean and threshold for each group--- this will depend on your experimental design and hypotheses.</span>
-<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>I calculate a mean and threshold based on the pooled data (across A-C):</span>
-<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a>df2 <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> </span>
-<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">seas =</span> <span class="fu">mean</span>(Lab),</span>
-<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>         <span class="at">thresh =</span> <span class="dv">500</span>) <span class="co"># your threshold value here</span></span>
-<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a>Even though we calculated the mean value, this is not used; only the threshold is used.</span>
-<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">dlply</span>(<span class="at">.data =</span> df2, <span class="at">.variables =</span> <span class="st">"SubjectID"</span>, <span class="cf">function</span>(sub_df) {</span>
-<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>  <span class="fu">detect_event</span>(sub_df,</span>
-<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a>               <span class="at">x =</span> Date,</span>
-<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a>               <span class="at">y =</span> Lab,</span>
-<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a>               <span class="at">seasClim =</span> seas,</span>
-<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a>               <span class="at">threshClim =</span> thresh,</span>
-<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a>               <span class="at">minDuration =</span> <span class="dv">1</span>,</span>
-<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>               <span class="at">maxGap =</span> <span class="dv">3</span>, </span>
-<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>               <span class="at">coldSpell =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>               <span class="at">protoEvents =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a><span class="in">`results`</span> is a list of dataframes, one pair of dataframes for each subject. Let us look at the first list element, which is for <span class="in">`SubjectID == 1`</span>:</span>
-<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a>results[[<span class="dv">1</span>]]</span>
-<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a>The first dataframe is called <span class="in">`climatology`</span> and the other is called <span class="in">`events`</span>. Don't worry about the names as the function was initially written for climate events. The <span class="in">`climatology`</span> dataframe contains all the data for <span class="in">`SubjectID`</span> that were initially supplied in <span class="in">`df2`</span> and a few new columns, <span class="in">`threshCriterion`</span>, <span class="in">`durationCriterion`</span>, <span class="in">`event`</span>, and <span class="in">`event_no`</span> are added at the end. When the <span class="in">`Lab`</span> value dips below the <span class="in">`thresh`</span>, <span class="in">`threshCriterion`</span> will flag as <span class="in">`TRUE`</span> regardless of how long it remains below the threshold. <span class="in">`durationCriterion`</span> flags as <span class="in">`TRUE`</span> if the number of times <span class="in">`threshCriterion`</span> is equal to or greater than <span class="in">`minDuration`</span>. <span class="in">`event`</span> flags as <span class="in">`TRUE`</span> if <span class="in">`threshCriterion`</span> is <span class="in">`TRUE`</span> AND <span class="in">`durationCriterion`</span> is <span class="in">`TRUE`</span>. A unique identifier is given for each event in <span class="in">`event_no`</span>.</span>
-<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a>The <span class="in">`events`</span> dataframe contains the <span class="in">`event_no`</span>, the start and end dates of the event, and the event <span class="in">`duration`</span> (your 'streaks'). Various other summary stats are also calculated, but these might not be relevant for your question. Or are they?</span>
-<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a>If you are only interested in the <span class="in">`event`</span> dataframe and want to combine all the streaks into one table with the results, do this---note the use of <span class="in">`ddply()`</span> rather than <span class="in">`dlply()`</span>:</span>
-<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">ddply</span>(<span class="at">.data =</span> df2, <span class="at">.variables =</span> <span class="st">"SubjectID"</span>, <span class="cf">function</span>(sub_df) {</span>
-<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a>  <span class="fu">detect_event</span>(sub_df,</span>
-<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a>               <span class="at">x =</span> Date,</span>
-<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a>               <span class="at">y =</span> Lab,</span>
-<span id="cb9-106"><a href="#cb9-106" aria-hidden="true" tabindex="-1"></a>               <span class="at">seasClim =</span> seas,</span>
-<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a>               <span class="at">threshClim =</span> thresh,</span>
-<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a>               <span class="at">minDuration =</span> <span class="dv">1</span>,</span>
-<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a>               <span class="at">maxGap =</span> <span class="dv">3</span>, </span>
-<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a>               <span class="at">coldSpell =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a>               <span class="at">protoEvents =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>event</span>
-<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a>results <span class="sc">|&gt;</span> </span>
-<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SubjectID, event_no, duration)</span>
-<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb9" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1"></a><span class="co">---</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="an">title:</span><span class="co"> "Detect event streaks based on specified thresholds"</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="an">description:</span><span class="co"> "This vignette demonstrates how to use a __heatwaveR__ function to the analysis of experimental data for finding the run lengths of events that meet certain criteria."</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a><span class="an">date:</span><span class="co"> "2023-11-22"</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="an">date-modified:</span><span class="co"> "2023-11-23"</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="an">draft:</span><span class="co"> false</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="an">categories:</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a><span class="co">  - R</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="co">  - analysis</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a><span class="co">  - MHW</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="an">feed:</span><span class="co"> true</span></span>
+<span id="cb9-12"><a href="#cb9-12"></a><span class="an">bibliography:</span><span class="co"> ../../references.bib</span></span>
+<span id="cb9-13"><a href="#cb9-13"></a><span class="an">csl:</span><span class="co"> ../../marine-biology.csl</span></span>
+<span id="cb9-14"><a href="#cb9-14"></a><span class="co">---</span></span>
+<span id="cb9-15"><a href="#cb9-15"></a></span>
+<span id="cb9-18"><a href="#cb9-18"></a><span class="in">```{r}</span></span>
+<span id="cb9-19"><a href="#cb9-19"></a><span class="co">#| warnings: false</span></span>
+<span id="cb9-20"><a href="#cb9-20"></a><span class="co">#| message: false</span></span>
+<span id="cb9-21"><a href="#cb9-21"></a><span class="fu">library</span>(heatwaveR)</span>
+<span id="cb9-22"><a href="#cb9-22"></a><span class="fu">library</span>(plyr) <span class="co"># because I like plyr</span></span>
+<span id="cb9-23"><a href="#cb9-23"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb9-24"><a href="#cb9-24"></a><span class="in">```</span></span>
+<span id="cb9-25"><a href="#cb9-25"></a></span>
+<span id="cb9-26"><a href="#cb9-26"></a>Here is a question we received via **heatwaveR**'s GitHub page regarding using our package's functions to detect streaks of outcomes based on a threshold in some lab experiment. The question is as follows:</span>
+<span id="cb9-27"><a href="#cb9-27"></a></span>
+<span id="cb9-28"><a href="#cb9-28"></a><span class="at">&gt; "I was looking for a function that could help me with data wrangling and I believe the </span><span class="in">`exceedance()`</span><span class="at"> function is exactly what I'm looking for. I have a dataframe with person IDs, date of treatment, day since treatment, and a lab value. Essentially, I am hoping to find the longest streak of consecutive days where the lab value is below a certain threshold, and extending the streak if the lab value does not rise above the threshold for </span><span class="sc">\&gt;</span><span class="at">3 days.</span></span>
+<span id="cb9-29"><a href="#cb9-29"></a></span>
+<span id="cb9-30"><a href="#cb9-30"></a><span class="at">&gt; I wrangled my dataframe into a dataframe with the IDs, date, and lab value as follows ..."</span></span>
+<span id="cb9-31"><a href="#cb9-31"></a></span>
+<span id="cb9-32"><a href="#cb9-32"></a><span class="fu">## Prepare a dataframe with the IDs, date, and lab values</span></span>
+<span id="cb9-33"><a href="#cb9-33"></a></span>
+<span id="cb9-36"><a href="#cb9-36"></a><span class="in">```{r}</span></span>
+<span id="cb9-37"><a href="#cb9-37"></a>num_subjects <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb9-38"><a href="#cb9-38"></a>num_days <span class="ot">&lt;-</span> <span class="dv">20</span></span>
+<span id="cb9-39"><a href="#cb9-39"></a><span class="fu">set.seed</span>(<span class="dv">13</span>)</span>
+<span id="cb9-40"><a href="#cb9-40"></a>subject_ids <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>num_subjects, <span class="at">each =</span> num_days)</span>
+<span id="cb9-41"><a href="#cb9-41"></a>dates <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">seq</span>(<span class="fu">as.Date</span>(<span class="st">"2023-01-01"</span>), <span class="at">by =</span> <span class="st">"1 day"</span>, <span class="at">length.out =</span> num_days),</span>
+<span id="cb9-42"><a href="#cb9-42"></a>             <span class="at">times =</span> num_subjects)</span>
+<span id="cb9-43"><a href="#cb9-43"></a>lab_values <span class="ot">&lt;-</span> <span class="fu">runif</span>(num_subjects <span class="sc">*</span> num_days, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">3000</span>)</span>
+<span id="cb9-44"><a href="#cb9-44"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb9-45"><a href="#cb9-45"></a>  <span class="at">SubjectID =</span> <span class="fu">factor</span>(subject_ids),</span>
+<span id="cb9-46"><a href="#cb9-46"></a>  <span class="at">Date =</span> <span class="fu">as.Date</span>(dates),</span>
+<span id="cb9-47"><a href="#cb9-47"></a>  <span class="at">Lab =</span> lab_values</span>
+<span id="cb9-48"><a href="#cb9-48"></a>)</span>
+<span id="cb9-49"><a href="#cb9-49"></a><span class="in">```</span></span>
+<span id="cb9-50"><a href="#cb9-50"></a></span>
+<span id="cb9-51"><a href="#cb9-51"></a><span class="fu">## Calculate streaks lengths based on linear (over time) thresholds</span></span>
+<span id="cb9-52"><a href="#cb9-52"></a></span>
+<span id="cb9-53"><a href="#cb9-53"></a>It turns out that one of the other built-in functions can exactly do what you need. We simply need to make some adjustments to the dataframe fed to the <span class="in">`detect_event()`</span> function, which is the function that will count the streak lengths.</span>
+<span id="cb9-54"><a href="#cb9-54"></a></span>
+<span id="cb9-55"><a href="#cb9-55"></a>Calculate a mean value and a threshold; you can calculate an overall mean and threshold, or a mean and threshold for each group--- this will depend on your experimental design and hypotheses.</span>
+<span id="cb9-56"><a href="#cb9-56"></a></span>
+<span id="cb9-57"><a href="#cb9-57"></a>I calculate a mean and threshold based on the pooled data (across A-C):</span>
+<span id="cb9-58"><a href="#cb9-58"></a></span>
+<span id="cb9-61"><a href="#cb9-61"></a><span class="in">```{r}</span></span>
+<span id="cb9-62"><a href="#cb9-62"></a>df2 <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> </span>
+<span id="cb9-63"><a href="#cb9-63"></a>  <span class="fu">mutate</span>(<span class="at">seas =</span> <span class="fu">mean</span>(Lab),</span>
+<span id="cb9-64"><a href="#cb9-64"></a>         <span class="at">thresh =</span> <span class="dv">500</span>) <span class="co"># your threshold value here</span></span>
+<span id="cb9-65"><a href="#cb9-65"></a><span class="in">```</span></span>
+<span id="cb9-66"><a href="#cb9-66"></a></span>
+<span id="cb9-67"><a href="#cb9-67"></a>Even though we calculated the mean value, this is not used; only the threshold is used.</span>
+<span id="cb9-68"><a href="#cb9-68"></a></span>
+<span id="cb9-71"><a href="#cb9-71"></a><span class="in">```{r}</span></span>
+<span id="cb9-72"><a href="#cb9-72"></a>results <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">dlply</span>(<span class="at">.data =</span> df2, <span class="at">.variables =</span> <span class="st">"SubjectID"</span>, <span class="cf">function</span>(sub_df) {</span>
+<span id="cb9-73"><a href="#cb9-73"></a>  <span class="fu">detect_event</span>(sub_df,</span>
+<span id="cb9-74"><a href="#cb9-74"></a>               <span class="at">x =</span> Date,</span>
+<span id="cb9-75"><a href="#cb9-75"></a>               <span class="at">y =</span> Lab,</span>
+<span id="cb9-76"><a href="#cb9-76"></a>               <span class="at">seasClim =</span> seas,</span>
+<span id="cb9-77"><a href="#cb9-77"></a>               <span class="at">threshClim =</span> thresh,</span>
+<span id="cb9-78"><a href="#cb9-78"></a>               <span class="at">minDuration =</span> <span class="dv">1</span>,</span>
+<span id="cb9-79"><a href="#cb9-79"></a>               <span class="at">maxGap =</span> <span class="dv">3</span>, </span>
+<span id="cb9-80"><a href="#cb9-80"></a>               <span class="at">coldSpell =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb9-81"><a href="#cb9-81"></a>               <span class="at">protoEvents =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb9-82"><a href="#cb9-82"></a>})</span>
+<span id="cb9-83"><a href="#cb9-83"></a><span class="in">```</span></span>
+<span id="cb9-84"><a href="#cb9-84"></a></span>
+<span id="cb9-85"><a href="#cb9-85"></a><span class="in">`results`</span> is a list of dataframes, one pair of dataframes for each subject. Let us look at the first list element, which is for <span class="in">`SubjectID == 1`</span>:</span>
+<span id="cb9-86"><a href="#cb9-86"></a></span>
+<span id="cb9-89"><a href="#cb9-89"></a><span class="in">```{r}</span></span>
+<span id="cb9-90"><a href="#cb9-90"></a>results[[<span class="dv">1</span>]]</span>
+<span id="cb9-91"><a href="#cb9-91"></a><span class="in">```</span></span>
+<span id="cb9-92"><a href="#cb9-92"></a></span>
+<span id="cb9-93"><a href="#cb9-93"></a>The first dataframe is called <span class="in">`climatology`</span> and the other is called <span class="in">`events`</span>. Don't worry about the names as the function was initially written for climate events. The <span class="in">`climatology`</span> dataframe contains all the data for <span class="in">`SubjectID`</span> that were initially supplied in <span class="in">`df2`</span> and a few new columns, <span class="in">`threshCriterion`</span>, <span class="in">`durationCriterion`</span>, <span class="in">`event`</span>, and <span class="in">`event_no`</span> are added at the end. When the <span class="in">`Lab`</span> value dips below the <span class="in">`thresh`</span>, <span class="in">`threshCriterion`</span> will flag as <span class="in">`TRUE`</span> regardless of how long it remains below the threshold. <span class="in">`durationCriterion`</span> flags as <span class="in">`TRUE`</span> if the number of times <span class="in">`threshCriterion`</span> is equal to or greater than <span class="in">`minDuration`</span>. <span class="in">`event`</span> flags as <span class="in">`TRUE`</span> if <span class="in">`threshCriterion`</span> is <span class="in">`TRUE`</span> AND <span class="in">`durationCriterion`</span> is <span class="in">`TRUE`</span>. A unique identifier is given for each event in <span class="in">`event_no`</span>.</span>
+<span id="cb9-94"><a href="#cb9-94"></a></span>
+<span id="cb9-95"><a href="#cb9-95"></a>The <span class="in">`events`</span> dataframe contains the <span class="in">`event_no`</span>, the start and end dates of the event, and the event <span class="in">`duration`</span> (your 'streaks'). Various other summary stats are also calculated, but these might not be relevant for your question. Or are they?</span>
+<span id="cb9-96"><a href="#cb9-96"></a></span>
+<span id="cb9-97"><a href="#cb9-97"></a>If you are only interested in the <span class="in">`event`</span> dataframe and want to combine all the streaks into one table with the results, do this---note the use of <span class="in">`ddply()`</span> rather than <span class="in">`dlply()`</span>:</span>
+<span id="cb9-98"><a href="#cb9-98"></a></span>
+<span id="cb9-101"><a href="#cb9-101"></a><span class="in">```{r}</span></span>
+<span id="cb9-102"><a href="#cb9-102"></a>results <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">ddply</span>(<span class="at">.data =</span> df2, <span class="at">.variables =</span> <span class="st">"SubjectID"</span>, <span class="cf">function</span>(sub_df) {</span>
+<span id="cb9-103"><a href="#cb9-103"></a>  <span class="fu">detect_event</span>(sub_df,</span>
+<span id="cb9-104"><a href="#cb9-104"></a>               <span class="at">x =</span> Date,</span>
+<span id="cb9-105"><a href="#cb9-105"></a>               <span class="at">y =</span> Lab,</span>
+<span id="cb9-106"><a href="#cb9-106"></a>               <span class="at">seasClim =</span> seas,</span>
+<span id="cb9-107"><a href="#cb9-107"></a>               <span class="at">threshClim =</span> thresh,</span>
+<span id="cb9-108"><a href="#cb9-108"></a>               <span class="at">minDuration =</span> <span class="dv">1</span>,</span>
+<span id="cb9-109"><a href="#cb9-109"></a>               <span class="at">maxGap =</span> <span class="dv">3</span>, </span>
+<span id="cb9-110"><a href="#cb9-110"></a>               <span class="at">coldSpell =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb9-111"><a href="#cb9-111"></a>               <span class="at">protoEvents =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>event</span>
+<span id="cb9-112"><a href="#cb9-112"></a>})</span>
+<span id="cb9-113"><a href="#cb9-113"></a>results <span class="sc">|&gt;</span> </span>
+<span id="cb9-114"><a href="#cb9-114"></a>  <span class="fu">select</span>(SubjectID, event_no, duration)</span>
+<span id="cb9-115"><a href="#cb9-115"></a><span class="in">```</span></span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2023, AJ Smit</p>
+<p>© 2024, AJ Smit</p>
 </div>   
     <div class="nav-footer-center">
 
-<div class="cookie-consent-footer"><a href="#" id="open_preferences_center">Cookie Preferences</a></div></div>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/blog/2023-11-22-run-lengths/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div><div class="cookie-consent-footer"><a href="#" id="open_preferences_center">Cookie Preferences</a></div></div>
     <div class="nav-footer-right">
 <p>This page is built with <a href="https://quarto.org/">Quarto</a>.</p>
 </div>

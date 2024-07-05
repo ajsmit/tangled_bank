@@ -1,0 +1,236 @@
+---
+title: "Simple Linear Regression"
+subtitle: "Part 1"  
+author: 
+  - "AJ Smit"
+date: '2020/06/25 (updated: `r Sys.Date()`)'
+output:
+  xaringan::moon_reader:
+    css:
+      - default
+      - "default-fonts.css"
+      - ki
+      - "uwc_logo.css"
+    yolo: false
+    self_contained: TRUE  
+    lib_dir: libs
+    nature:
+      highlightStyle: idea
+      highlightLines: true
+      highlightLanguage: r
+      countIncrementalSlides: false
+      ratio: 16:9
+---
+
+```{r setup, include=FALSE, echo=FALSE} 
+library(tidyverse)
+library(ggpubr)
+knitr::opts_chunk$set(echo = TRUE,
+                      comment = "R>",
+                      message = FALSE,
+                      warning = FALSE,
+                      include = TRUE,
+                      fig.retina = 3,
+                      fig.width = 3,
+                      fig.height = 1,
+                      fig.align = "center")
+```
+
+## Simple Linear Regression
+
+For more details about a Simple Linear Regression, please visit <https://ajsmit.github.io/Basic_stats/simple-linear-regressions.html> !!!NB
+
+Other takes on linear regressions can be seen at:
+
+- <https://www.youtube.com/watch?v=66z_MRwtFJM> !!!NB
+- <https://rpubs.com/aaronsc32/simple-linear-regression> !!!NB
+- <https://rpubs.com/aaronsc32/regression-confidence-prediction-intervals>
+- <https://rpubs.com/aaronsc32/regression-through-the-origin>
+- <https://rpubs.com/aaronsc32/multiple-regression>
+
+Sometimes a Simple Linear Regression is called an Ordinary Least Squares (OLS) regression.
+
+---
+## What is a Simple Linear Regression for?
+
+For examining the *causal dependence* of one or several continuous variables on an independent continuous variable.
+
+The research question is, “Does Y *depend on* X?” or "Is a change in Y *caused by* a change in X?".
+
+---
+## What is the nature of the data?
+
+- **Independent variable:** a *nominal or continuous (numeric or double) variable*, e.g. time, age, mass, length, concentration, etc.
+- **Dependent variable:** also a *nominal or continuous variable*, e.g. mass, length, number of leaves, concentration, number of individuals, etc.
+
+---
+## The Simple Linear Regression equation
+
+$$y_{n}=\beta \cdot x_{n}+\alpha+\epsilon$$
+
+Where,
+
+- $y_{1..n}$: *dependent variable*, also called response or outcome variable
+- $x_{1..n}$: *independent variable*, also called the predictor
+- $\alpha$: *intercept* term, describes where the fitted line intercepts with the *y*-axis
+- $\beta$: *slope*, the 'inclination' or 'steepness' of the line
+- $\epsilon$: *residual variation*, the amount of variation not explained by a linear relationship of $y$ on $x$
+
+---
+## Minimising the Sum of Squares
+
+Parameters $\alpha$ and $\beta$ are determined by *minimising the sum of squares* of the error term, $\epsilon$:
+
+$$error~SS=\sum_{i=1}^{n}(y_{i}-\hat{y}_{i})^{2}$$
+
+Where,
+
+- $y_{i}$ is the $i$-th observed response, and
+- $\hat{y}_{i}$ is the predicted response after fitting the linear regression
+
+By minimising the error SS, a linear regression finds the optimal line (or the best fit line) that minimises the distance (squared distance, to be precise) between the fitted and observed values. See the animation provided at the link on the next slide.
+
+---
+## Animation of Minimising Error Sum of Squares
+
+To see an animation demonstrating the minimisation of the error sum of squares, click [here](https://raw.githubusercontent.com/ajsmit/Basic_stats/master/figures/lm_rotate.avi).
+
+The corresponding code for the animation may be found [here](https://github.com/ajsmit/Basic_stats/tree/master/data).
+
+---
+class: center, middle
+# Example: Lung Capacity Data
+
+---
+### What do the data look like?
+
+```{r, message=FALSE}
+library(tidyverse)
+lungs <- read_tsv("../data/LungCapData.csv") # read a tab separated value file
+head(lungs)
+```
+
+---
+### What is the relationship between age and lung capacity?
+
+- $x$: age, the independent variable
+- $y$: lung capacity, the dependent variable
+
+We do a visual examination of the data first:
+
+```{r}
+ggplot(data = lungs, aes(x = Age, y = LungCap)) +
+  geom_point(shape = 1, colour = "red3") +
+  labs(x = "Age", y = "Lung capacity") + theme_pubr()
+```
+
+---
+### FYI, what is the Pearson's Correlation Coefficient?
+
+```{r}
+cor(lungs$Age, lungs$LungCap)
+```
+
+---
+### What function do we use to fit the linear regression?
+
+We fit a linear regression (sometimes we say 'fit a linear model') using the **`lm()`** function.
+
+Let's find some help on the function first:
+```{r, eval=FALSE}
+?lm # or,
+help(lm)
+```
+
+---
+### How do we fit the model?
+
+```{r}
+mod <- lm(LungCap ~ Age, data = lungs)
+summary(mod)
+```
+
+---
+### What does the output mean?
+
+- **(Intercept):** estimate of the $y$-intercept, $\alpha$ 
+- **Age:** estimate of the slope, $\beta$ 
+
+### What do the *p*-values tell us?
+
+- for $\alpha$: H~0~, there is no difference between the estimate of the $y$-intercept and 0
+- for $\beta$: H~0~, there is no difference between the estimate of the slope and 0
+
+### What else in the output is of importance?
+
+- **Standard errors of estimates:**
+- **Adjusted $r^{2}$:** the coefficient of determination, which is the amount of variation that is explained by a straight line of given coefficient and intercept; it is a measure of how well the model fits the data
+- **F-statistic, d.f., and *p*-value:** overall model fit
+
+---
+### What are the attributes of the linear regression object, `mod`?
+
+```{r}
+attributes(mod)
+```
+
+We can extract some of the named attributes for further use, e.g.:
+```{r}
+mod$coef
+```
+
+---
+### How do we add the regression line to the plot we made earlier?
+
+```{r}
+ggplot(data = lungs, aes(x = Age, y = LungCap)) +
+  geom_point(shape = 1, colour = "red3") +
+  geom_line(aes(y = mod$fitted.values), colour = "blue3") +
+  labs(x = "Age", y = "Lung capacity") + theme_pubr()
+```
+
+---
+### How do we find confidence intervals (CIs) for the model fit?
+
+```{r}
+confint(mod)
+```
+
+```{r}
+confint(mod, level = 0.90)
+```
+
+CIs allow one to estimate the range of predicted values, $\hat{y}$, that can be taken with a certain level of confidence (usually 95% in biological sciences) to contain the true population parameter.
+
+We will return to CIs in Chapter 10.
+
+---
+A Simple Linear Regression is similar to an ANOVA (the latter looks at the dependence of a continue response variable as a function of a categorical influential variable); as such, we can create an ANOVA table for the linear model:
+```{r}
+anova(mod)
+```
+
+This output is similar to the F-test seen in the output of `summary(mod)`. It tests the significance of the overall model fit.
+
+---
+### How do we use the regression model to make predictions?
+
+Aside from determining if there is a causal dependence between two variables, Simple Linear Regressions may also be used to predict the response given some input. For example, for our linear model, `mod`, what does it predict the lung capacity will be for people aged 13, 15, and 17 years old?
+
+```{r}
+# create a df with a column called Age (as per the input data)
+pred <- data.frame(Age = c(13, 15, 17))
+pred
+```
+
+```{r}
+predict(mod, pred)
+```
+
+---
+.left-column[## Questions]
+
+.right-column[
+- What is the unit of $\alpha$?
+- What is the unit of $\beta$?
+]

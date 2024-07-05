@@ -2,7 +2,11 @@
 date: "2021-01-01"
 title: "8. Analysis of Variance (ANOVA)"
 subtitle: "Comparing the means of more than two groups"
+reference-location: margin
+number-sections: true
 ---
+
+![](../../images/fancy_stats.jpg){width=50%}   
 
 > *"He uses statistics as a drunken man uses lamp posts---for support rather than for illumination."*
 >
@@ -39,7 +43,10 @@ Find here a [Cheatsheet](../../docs/Methods_cheatsheet_v1.pdf) on statistical me
 
 # At a glance
 
-Analysis of variance (ANOVA) is used to *compare the means of three or more groups* to determine if there is a significant difference among them. The following expectations about your data should be met to conduct an ANOVA:
+Where the Student's and Welch's *t*-tests are used to test for the difference between the means of two groups, analysis of variance (ANOVA)[^1] is used to *compare the means of three or more groups*. The following expectations about your data should be met to conduct an ANOVA:
+
+[^1]: Variations of the basic ANOVA include an analysis of covariance (ANCOVA) when, in addition to the categorical variable, your data also contains a **continuous covariate** (e.g., age, mass) that you want to control. Or, if your study involves multiple dependent variables, you may need to consider using **multivariate analysis of variance (MANOVA)** instead. ANOVAs that have multiple independent variables are called **factorial ANOVAs** (e.g. 2-way ANOVA or 3-way ANOVA).
+
 
 -   **Continuous dependent variable** The dependent variable should be measured on a *continuous scale* (e.g., height, weight, test scores).
 
@@ -49,19 +56,14 @@ Analysis of variance (ANOVA) is used to *compare the means of three or more grou
 
 Other assumptions to be aware of with regards to the dependent variable:
 
--   **Normal distribution** The data in each group should follow a normal distribution or be approximately normally distributed. If the assumption of normality is not met, as, for example, determined with the `shapiro.test()`, you may consider using a non-parametric alternative such as Kruskal-Wallis rank sum test, `kruskal.test()`. This assumption can be relaxed for large sample sizes due to the [Central Limit Theorem](04-distributions.qmd#sec-normal).
-
--   **Homoscedasticity** The variances of the groups should be approximately equal. This assumption can be tested using Levene's test, `car::leveneTest()`, or Bartlett's test, `bartlett.test()`. When the variances are different but the data are normally distributed, consider the 'Welch ANOVA,' `one.way()`, instead of `aov()`.
-
--   **Random sampling** The data should be obtained through random sampling or random assignment, ensuring that each observation has an equal chance of being included in the sample.
-
--   **Independent observations** The observations within each group should be independent of each other.
-
-When these assumptions are met, you can perform an ANOVA to determine if there is a significant difference in the means of the groups. If your study involves multiple dependent variables, you may need to consider using multivariate analysis of variance (MANOVA) instead. ANOVAs can also accommodate multiple independent variables and are called factorial ANOVAs.
+-   Independence of data
+-   Normally distributed data
+-   Homogeneity of variances
+-   We also encourage that the data are balanced
 
 # Introduction to ANOVA
 
-Whole big books have been written about Analysis of Variance (ANOVA). Although there are many experimental designs that may be analysed with ANOVAs, biologists are taught to pay special attention to the design of experiments, and generally make sure that the experiments are fully *factorial* (in the case of two-way or higher ANOVAs) and balanced. For this reason we will focus in this Introductory Statistics course on one-way and factorial ANOVAs only.
+Whole big books have been written about analysis of variance (ANOVA). Although there are many experimental designs that may be analysed with ANOVAs, biologists are taught to pay special attention to the design of experiments, and generally make sure that the experiments are fully *factorial* (in the case of two-way or higher ANOVAs) and balanced. For this reason we will focus in this introductory statistics course on one-way and factorial ANOVAs only.
 
 ::: {.callout-note appearance="simple"}
 ## Factorial designs
@@ -69,24 +71,27 @@ A factorial experimental design involves studying the effects of two or more fac
 
 In a factorial design, the *main effects* of each factor and the *interaction effects* between factors can be analysed. When we have two factors, this is typically done by applying a 2-way ANOVA, but higher-order ANOVAs are also available. The main effect of a factor is its individual effect on the response variable (ignoring the effect due to the other(s)), while the interaction effect occurs when the effect of one factor depends on the level of another factor. 
 
-The simplest factorial design is the $2 \times 2$ design, which involves two factors, each with two levels. For example, if you are studying the effect of temperature (high vs. low) and fertiliser concentration (high vs. low) on the yield of a crop, a $2 \times 2$ factorial design would involve four experimental conditions:
+The simplest factorial design is the 2 $\times$ 2 design, which involves two factors, each with two levels. For example, if you are studying the effect of temperature (high vs. low) and fertiliser concentration (high vs. low) on the yield of a crop, a 2 $\times$ 2 factorial design would involve four experimental conditions:
 
 * high temperature and high fertiliser concentration
 * high temperature and low fertiliser concentration
 * low temperature and high fertiliser concentration
 * low temperature and low fertiliser concentration
 
-In the above example there are 4 possible combinations. Factorial designs can involve more than two factors and/or more than two levels per factor, leading to more complex experimental setups. For example, in a $3 \times 4$ there will be 12 combinations of the two factor levels, and in a $2 \times 3 \times 5$ factorial experiment the three factors with their respective levels will result in 30 combinations.     
+In the above example there are 4 possible combinations. Factorial designs can involve more than two factors and/or more than two levels per factor, leading to more complex experimental setups. For example, in a 3 $\times$ 4 there will be 12 combinations of the two factor levels, and in a 2 $\times$ 3 $\times$ 5 factorial experiment the three factors with their respective levels will result in 30 combinations.     
 :::
 
 As we have seen in [Chapter 7](07-t_tests.qmd) about *t*-tests, ANOVAs also require that some assumptions are met:
 
--   Independence of data
--   Normally distributed data
--   Homogeneity of variances
--   We also encourage that the data are balanced
+-   **Normal distribution** The data in each group should follow a normal distribution or be approximately normally distributed. If the assumption of normality is not met, as, for example, determined with the `shapiro.test()`, you may consider using a non-parametric alternative such as Kruskal-Wallis rank sum test, `kruskal.test()`. This assumption can be relaxed for large sample sizes due to the [Central Limit Theorem](04-distributions.qmd#sec-normal).
 
-If some of the above assumptions are violated, then your course of action is to either use a [non-parametric test](@sec-alt) (and [here](../../docs/Methods_cheatsheet_v1.pdf)), transform the data (as in [Chapter 6](06-assumptions.qmd)) or use a generalised linear model  if non-normal, or to use a linear mixed model when non-independence of data cannot be guaranteed. As I have already indicated, ANOVAs are also sensitive to the presence of outliers, so we need to ensure that outliers are not present. Outliers can be removed but if they are an important feature of the data, then a non-parametric test can be used.
+-   **Homoscedasticity** The variances of the groups should be approximately equal. This assumption can be tested using Levene's test, `car::leveneTest()`, or Bartlett's test, `bartlett.test()`. When the variances are different but the data are normally distributed, consider the 'Welch ANOVA,' `oneway.test()`, instead of `aov()`.
+
+-   **Random sampling** The data should be obtained through random sampling or random assignment, ensuring that each observation has an equal chance of being included in the sample.
+
+-   **Independent observations** The observations within each group should be independent of each other.
+
+If some of the above assumptions are violated, then your course of action is to either use a [non-parametric test](@sec-alt) (and [here](../../docs/Methods_cheatsheet_v1.pdf)), transform the data (as in [Chapter 6](06-assumptions.qmd)) or use a generalised linear model if non-normal, or to use a linear mixed model when non-independence of data cannot be guaranteed. As I have already indicated, ANOVAs are also sensitive to the presence of outliers, so we need to ensure that outliers are not present. Outliers can be removed but if they are an important feature of the data, then a non-parametric test can be used.
 
 Rather than talking about *t*-tests and ANOVAs as if they do different things, let us acknowledge that they ask a similar question. That question being, "are the means of these two or more things we want to compare different, or are they the same?" At this stage it is important to note that, as with *t*-tests, the independent variable is expected to be categorical (i.e. a factor denoting two or more different treatments or sampling conditions) and that the dependent variable must be continuous. You may perhaps be more familiar with this question when it is presented as a set of hypotheses as we saw in a *t*-test:
 
@@ -100,7 +105,7 @@ In an ANOVA, hypotheses willl be more similar to these:
 
 This is a scientific question in the simplest sense. Often, for basic inquiries such as that posed above, we need to see if one group differs significantly from another. The way in which we accomplish this is by looking at the mean and variance within a set of data compared against another similar set. 
 
-# Remember the *t*-test
+## Remember the *t*-test
 
 As you already know, a *t*-test is used when we want to compare two different sample sets against one another. This is also known as a two-factor or two level test. When one wants to compare multiple (more than two) sample sets against one another an ANOVA is required (I'll get there shortly). Remember how to perform a *t*-test in R: we will revisit this test using the `chicks` data, but only for Diets 1 and 2 from day 21.
 
@@ -113,34 +118,13 @@ chicks_sub <- chicks %>%
   filter(Diet %in% c(1, 2), Time == 21)
 ```
 
-Once we have filtered our data we may now perform the *t*-test. Traditionally this would be performed with `t.test()`, but recent developments in R have resulted in the `compare_means()` function which some of you might come to like. We may use only this one single function for many of the tests we will perform in this chapter as well as the Chapter on [*t*-tests](07-t_tests.qmd). To use `compare_means()` for a *t*-test we must simply specify this in the `method` argument, as seen below:
-
-```{r}
-compare_means(weight ~ Diet, data = chicks_sub, method = "t.test")
-```
-
-Unfortunately, the means are not provided as part of the outcome, but fret not! The means are:
-
-```{r}
-chicks_sub %>% 
-  group_by(Diet) %>% 
-  summarise(mean_mass = mean(weight))
-```
-
-Contrast the output with that of the standard *t*-test function, `t.test()`:
+Once we have filtered our data we may now perform the *t*-test. 
 
 ```{r}
 t.test(weight ~ Diet, data = chicks_sub)
 ```
 
-The choice of whether to use `compare_means()` or `t.test()` is yours.
-
-::: {.callout-note appearance="simple"}
-## Note
-If you do decide to use the `compare_means()` function, please make sure that you know exactly which test is being used! This is, *t*-test for two means, or ANOVA for more than two means. In your Methods and Results you will want to report the name of the test being used internally within `compare_means()`, i.e. `t.test()` or `aov()`. Do not say you used the `compare_means()` function---rather, know what it does!
-:::
-
-As one may recall from [Chapter 7](07-t_tests.qmd), whenever we want to give a formula to a function in R, we use the `~`. The formula used above, `weight ~ Diet`, reads in plain English as "weight as a function of diet". This is perhaps easier to understand as "*Y* as a function of *X*." This means that we are assuming whatever is to the left of the `~` is the dependant variable, and whatever is to the right is the independent variable. We then tell `compare_means()` to run a *t*-test on our `chicks_sub` dataframe and it does the rest. We see in the output above that this function gives us a rather tidy read-out of the information we require to test a potential hypothesis. Let's take a moment to look through the help file for this function and see what all of this means. Did the Diet 1 and 2 produce significantly fatter birds?
+As one may recall from [Chapter 7](07-t_tests.qmd), whenever we want to give a formula to a function in R, we use the `~`. The formula used above, `weight ~ Diet`, reads in plain English as "weight as a function of diet". This is perhaps easier to understand as "*Y* as a function of *X*." This means that we are assuming whatever is to the left of the `~` is the dependant variable, and whatever is to the right is the independent variable. Did the Diet 1 and 2 produce significantly fatter birds?
 
 One could also supplement the output by producing a graph (@fig-boxwhisker1).
 
@@ -184,7 +168,7 @@ That was a nice revision. But applied to the `chicks` data it seemed a bit silly
 1. Why should we not just apply *t*-tests once per each of the pairs of comparisons we want to make?
 :::
 
-# Why not do multiple *t*-tests?
+## Why not do multiple *t*-tests?
 
 In the `chicks` data we have four diets, not only two as in the *t*-test example just performed. Why not then simply do a *t*-test multiple times, once for each pair of diets given to the chickens? Multiple *t*-tests would be written as:
 
@@ -286,14 +270,22 @@ If this seems too easy to be true, it's because we aren't quite done yet. You co
 TukeyHSD(chicks.aov1)
 ```
 
-The output of `tukeyHSD()` shows us that pairwise comparisons of all of the groups we are comparing.
+The output of `tukeyHSD()` shows us that pairwise comparisons of all of the groups we are comparing. We can also display this as a very rough figure (@fig-tukeydiff):
 
-We may also produce a graphical summary (@fig-boxwhisker2):
+```{r}
+#| column: margin
+#| label: fig-tukeydiff
+#| fig-cap: "A plot of the Tukey-HSD test showing the differences in means between chicks reared to 21 days old and fed four diets."
+
+plot(TukeyHSD(chicks.aov1))
+```
+
+We may also produce a nicer looking graphical summary in the form of a box-and-whisker plot and/or a violin plot. Here I combine both (@fig-boxwhisker2):
 
 ```{r}
 #| column: margin
 #| label: fig-boxwhisker2
-#| fig-cap: "Box-and-whisker plot showing the differences in means between chicks reared to 21 days old and fed four diets."
+#| fig-cap: "Box-and-whisker plot showing the differences in means between chicks reared to 21 days old and fed four diets. Shown is a notched box plot where the extent of the notches is `1.58 * IQR / sqrt(n)`. This is approximately equivalent to a 95% confidence interval andf may be used for comparing medians."
 
 set.seed(666)
 
@@ -305,11 +297,12 @@ ggbetweenstats(
   xlab = "Diet",
   ylab = "Chick mass (g)",
   plot.type = "box",
+  boxplot.args = list(notch = TRUE),
   type = "parametric",
-  results.subtitle = TRUE,
+  results.subtitle = FALSE,
   pairwise.comparisons = TRUE,
-  p.adjust.method = "bonferroni",
   pairwise.display = "s",
+  p.adjust.method = "bonferroni",
   conf.level = 0.95,
   title = "ANOVA",
   ggtheme = ggthemes::theme_fivethirtyeight(),
@@ -320,9 +313,9 @@ ggbetweenstats(
 
 ::: callout-important
 ## Task F
-4. Look at the help file for this function to better understand what the output means.
+4. Look at the help file for the `TukeyHSD()` function to better understand what the output means.
 5. How does one interpret the results? What does this tell us about the effect that that different diets has on the chicken weights at Day 21?
-6. Figure out a way to plot the Tukey HSD outcomes.
+6. Figure out a way to plot the Tukey HSD outcomes in **ggplot**.
 7. Why does the ANOVA return a significant result, but the Tukey test shows that not all of the groups are significantly different from one another?
 :::
 
@@ -373,7 +366,8 @@ summary(chicks.aov2)
 
 ::: callout-important
 ## Task F
-12. What do you conclude from the above ANOVA?
+12. Write out the hypotheses for this ANOVA.
+13. What do you conclude from the above ANOVA?
 :::
 
 Or, to save ourselves a lot of time and reduce the coding effort, we may simply run a two-way ANOVA and look at the effects of `Diet` and `Time` simultaneously. To specify the different factors we put them in our formula and separate them with a `+`:
@@ -384,7 +378,7 @@ summary(aov(weight ~ Diet + as.factor(Time), data = filter(chicks, Time %in% c(0
 
 ::: callout-important
 ## Task F
-13. What question are we asking with the above line of code? What is the answer? Also, why did we wrap `Time` in `as.factor()`?
+14. What question are we asking with the above line of code? What is the answer? Also, why did we wrap `Time` in `as.factor()`?
 :::
 
 It is also possible to look at what the interaction effect between grouping variables (i.e. in this case the effect of time on diet---does the effect of time depend on which diet we are looking at?), and not just within the individual grouping variables. To do this we replace the `+` in our formula with `*`:
@@ -395,7 +389,7 @@ summary(aov(weight ~ Diet * as.factor(Time), data = filter(chicks, Time %in% c(4
 
 ::: callout-important
 ## Task F
-14. How do these results differ from the previous set?
+15. How do these results differ from the previous set?
 :::
 
 One may also run a post-hoc Tukey test on these results the same as for a single factor ANOVA:
@@ -406,7 +400,7 @@ TukeyHSD(aov(weight ~ Diet * as.factor(Time), data = filter(chicks, Time %in% c(
 
 ::: callout-important
 ## Task F
-15. Yikes! That's a massive amount of results. What does all of this mean, and why is it so verbose?
+16. Yikes! That's a massive amount of results. What does all of this mean, and why is it so verbose?
 :::
 
 <!--- #### About interaction terms --->
@@ -424,9 +418,92 @@ To summarise *t*-tests, single-factor (1-way) and multifactor (2- or 3-way, etc.
 3. Following on from there, a 2-way ANOVA compares the means of response variables belonging to all the levels within **two categorical independent variables** (e.g. Factor 1 might have three levels, and Factor 2 five levels). In the simplest formulaton, it does so by looking at the **main effects**, which is the group differences between the three levels of Factor 1 and disregarding the contribution due to the group membership to Factor 2, and also the group differences amongst the levels of Factor 2 but disregarding the group membership of Factor 1. In addition to looking at the main effects, a 2-way ANOVA can also consider the **interaction** (or combined effect) of Factors 1 and 2 in influencing the means.
 :::
 
-## Examples
+# Alternatives to ANOVA {#sec-alt}
 
-### Snakes!
+In the first main section of this chapter we learned how to test hypotheses based on the comparisons of means between sets of data when we were able to meet our two base assumptions. These parametric tests are preferred over non-parametric tests because they are more robust. However, when we simply aren't able to meet these assumptions we must not despair. Non-parametric tests are still useful. In this chapter we will learn how to run non-parametric tests for two sample and multiple sample datasets. To start, let's load our libraries and `chicks` data if we have not already.
+
+```{r}
+# First activate libraries
+library(tidyverse)
+library(ggpubr)
+
+# Then load data
+chicks <- as_tibble(ChickWeight)
+```
+
+With our libraries and data loaded, let's find a day in which at least one of our assumptions are violated.
+
+```{r}
+# Then check for failing assumptions
+chicks %>% 
+  filter(Time == 0) %>% 
+  group_by(Diet) %>% 
+  summarise(norm_wt = as.numeric(shapiro.test(weight)[2]),
+            var_wt = var(weight))
+```
+
+## Wilcoxon rank sum test
+
+The non-parametric version of a *t*-test is a Wilcox rank sum test. To perform this test in R we may again use `compare_means()` and specify the test we want:
+
+```{r}
+compare_means(weight ~ Diet, data = filter(chicks, Time == 0, Diet %in% c(1, 2)), method = "wilcox.test")
+```
+
+What do our results show?
+
+## Kruskall-Wallis rank sum test
+
+### Single factor
+
+The non-parametric version of an ANOVA is a Kruskall-Wallis rank sum test. As you may have by now surmised, this may be done with `compare_means()` as seen below:
+
+```{r}
+compare_means(weight ~ Diet, data = filter(chicks, Time == 0), method = "kruskal.test")
+```
+
+As with the ANOVA, this first step with the Kruskall-Wallis test is not the last. We must again run a post-hoc test on our results. This time we will need to use `pgirmess::kruskalmc()`, which means we will need to load a new library.
+
+```{r}
+library(pgirmess)
+
+kruskalmc(weight ~ Diet, data = filter(chicks, Time == 0))
+```
+
+Let's consult the help file for `kruskalmc()` to understand what this print-out means.
+
+### Multiple factors
+
+The water becomes murky quickly when one wants to perform multiple factor non-parametric comparison of means tests. To that end, we will not cover the few existing methods here. Rather, one should avoid the necessity for these types of tests when designing an experiment.
+
+## The SA time data
+
+```{r anova-plot7}
+#| fig-cap: "Time is not a limited resource in South Africa."
+#| label: fig-anova-plot6
+#| column: margin
+
+sa_time <- as_tibble(read_csv("../../data/snakes.csv",
+                              col_types = list(col_double(),
+                                               col_double(),
+                                               col_double())))
+sa_time_long <- sa_time %>% 
+  gather(key = "term", value = "minutes") %>% 
+  filter(minutes < 300) %>% 
+  mutate(term = as.factor(term))
+
+my_comparisons <- list( c("now", "now_now"),
+                        c("now_now", "just_now"),
+                        c("now", "just_now") )
+
+ggboxplot(sa_time_long, x = "term", y = "minutes",
+          color = "term", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          add = "jitter", shape = "term")
+```
+
+# Examples
+
+## Snakes!
 
 These data could be analysed by a two-way ANOVA without replication, or a repeated measures ANOVA. Here I will analyse it by using a two-way ANOVA without replication.
 
@@ -530,85 +607,4 @@ snakes.tukey <- TukeyHSD(snakes.aov, which = "day", conf.level = 0.90)
 plot(snakes.tukey, las = 1, col = "red")
 ```
 
-# Alternatives to ANOVA {#sec-alt}
 
-In the first main section of this chapter we learned how to test hypotheses based on the comparisons of means between sets of data when we were able to meet our two base assumptions. These parametric tests are preferred over non-parametric tests because they are more robust. However, when we simply aren't able to meet these assumptions we must not despair. Non-parametric tests are still useful. In this chapter we will learn how to run non-parametric tests for two sample and multiple sample datasets. To start, let's load our libraries and `chicks` data if we have not already.
-
-```{r}
-# First activate libraries
-library(tidyverse)
-library(ggpubr)
-
-# Then load data
-chicks <- as_tibble(ChickWeight)
-```
-
-With our libraries and data loaded, let's find a day in which at least one of our assumptions are violated.
-
-```{r}
-# Then check for failing assumptions
-chicks %>% 
-  filter(Time == 0) %>% 
-  group_by(Diet) %>% 
-  summarise(norm_wt = as.numeric(shapiro.test(weight)[2]),
-            var_wt = var(weight))
-```
-
-## Wilcoxon rank sum test
-
-The non-parametric version of a *t*-test is a Wilcox rank sum test. To perform this test in R we may again use `compare_means()` and specify the test we want:
-
-```{r}
-compare_means(weight ~ Diet, data = filter(chicks, Time == 0, Diet %in% c(1, 2)), method = "wilcox.test")
-```
-
-What do our results show?
-
-## Kruskall-Wallis rank sum test
-
-### Single factor
-
-The non-parametric version of an ANOVA is a Kruskall-Wallis rank sum test. As you may have by now surmised, this may be done with `compare_means()` as seen below:
-
-```{r}
-compare_means(weight ~ Diet, data = filter(chicks, Time == 0), method = "kruskal.test")
-```
-
-As with the ANOVA, this first step with the Kruskall-Wallis test is not the last. We must again run a post-hoc test on our results. This time we will need to use `pgirmess::kruskalmc()`, which means we will need to load a new library.
-
-```{r}
-library(pgirmess)
-
-kruskalmc(weight ~ Diet, data = filter(chicks, Time == 0))
-```
-
-Let's consult the help file for `kruskalmc()` to understand what this print-out means.
-
-### Multiple factors
-
-The water becomes murky quickly when one wants to perform multiple factor non-parametric comparison of means tests. To that end, we will not cover the few existing methods here. Rather, one should avoid the necessity for these types of tests when designing an experiment.
-
-## The SA time data
-
-```{r anova-plot7}
-#| fig-cap: "Time is not a limited resource in South Africa."
-#| label: fig-anova-plot6
-#| column: margin
-
-sa_time <- as_tibble(read_csv("../../data/snakes.csv",
-                              col_types = list(col_double(),
-                                               col_double(),
-                                               col_double())))
-sa_time_long <- sa_time %>% 
-  gather(key = "term", value = "minutes") %>% 
-  filter(minutes < 300) %>% 
-  mutate(term = as.factor(term))
-
-my_comparisons <- list( c("now", "now_now"),
-                        c("now_now", "just_now"),
-                        c("now", "just_now") )
-
-ggboxplot(sa_time_long, x = "term", y = "minutes",
-          color = "term", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
-          add = "jitter", shape = "term")
-```

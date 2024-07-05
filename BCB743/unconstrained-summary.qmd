@@ -1,0 +1,53 @@
+---
+date: "2024-06-24"
+title: "Summary: Unconstrained Ordinations"
+subtitle: ""
+---
+
+In all the ordination techniques we have seen thus far, the primary goal is to represent high-dimensional data in a lower-dimensional space (usually 2D or 3D) while preserving as much of the original structure as possible. Points that are close together in the ordination plot are generally more similar in the original high-dimensional space.
+
+## Principal Component Analysis (PCA)
+
+* **Data Type:** Continuous data (e.g., environmental variables)
+* **Interpretation:**  PCA identifies axes (principal components) that explain the maximum variation in the data. The axes represent linear combinations of the original variables that explain the most variance. The distance between points reflects their Euclidean dissimilarity. The loading values of variables on the axes indicate their contribution to the variation. Angles between variable arrows in the biplot represent correlations.
+* **In vegan:**  `rda()` without constraining variables is used for PCA. Biplots can be created using the `biplot()` function, showing both sample scores and variable loadings.
+* **Assumption:** PCA assumes linear relationships between variables.
+
+## Correspondence Analysis (CA)
+
+* **Data Type:** Categorical or count data (e.g., species abundance)
+* **Interpretation:** CA explores the relationship between rows (e.g., sites) and columns (e.g., species), i.e. the biplot shows the relationships between rows and columns; but pay attention to the scaling. The distances between points in the ordination space reflect their $\chi^2$ dissimilarity. Preserves original distances as well as possible in low-dimensional space. 
+* **In vegan:**  The `cca()` function with no constraining variables, specified with the `formula = ~.`, is used for CA. Similar to PCA, biplots can be created.
+* **Assumption:** Assumes unimodal species responses and weighted averaging.
+
+## Principal Coordinate Analysis (PCoA)
+
+* **Data Type:** Distance or dissimilarity matrices (any type of distance) in **vegan**'s `vegdist()`
+* **Interpretation:** PCoA aims to represent the distances between objects in a low-dimensional space while preserving the original dissimilarities as much as possible. Interpretation depends on the chosen distance measure.
+* **In vegan:**  The `capscale()` function with a distance matrix as input performs PCoA. Biplots are not directly applicable to PCoA but figures can be constructed in layers using `ordiplot()`, etc.
+* **Assumption:** PCoA does not assume linear relationships between variables.
+
+## Non-Metric Multidimensional Scaling (NMDS)
+
+* **Data Type:** Distance or dissimilarity matrices (any type of distance)
+* **Interpretation:** NMDS is an iterative method that tries to arrange objects in low-dimensional space so that the rank order of distances in the ordination matches the rank order of the original dissimilarities. The stress value indicates how well the ordination represents the original distances. Like PCoA, interpretation depends on the chosen distance measure. nMDS is considered more robust as it doesn't assume linearity, but it can be sensitive to outliers and tied ranks.
+* **In *vegan*:**  The `metaMDS()` function is used for NMDS.  You can use the `envfit()` function to add environmental variables or species scores to the plot, but it's an indirect fitting process.
+* **Assumption:** nMDS does not assume linear relationships between variables.
+
+## Considerations in **vegan**
+
+* **Standardisation:** Pay attention to data standardisation or transformation before analysis. This can affect the interpretation of results. **vegan** provides various options for standardisation, or use functions in base R.
+* **Ecological Interpretation:**  Use **vegan**'s `envfit()` and `ordistep()` to facilitate the interpretation of the relationship between community composition and environmental variables in ordination plots.
+* **Dimensionality:** Typically we visualise the relationships in 2D plots, but higher dimensions may be important. We can use **vegan**'s `screeplot()` function to help determine how many influential axes to retain.
+* **Scaling:** The scaling of PCA and CA biplots can affect interpretation. `scaling = 1` emphasises relationships among samples and `scaling = 2` emphasises relationships among variables.
+* **Proportion of Variance Explained:** The *vegan* functions provide information on the proportion of variation explained by the reduced axes for PCA, CA, and PCoA.
+* **Plotting:** The `ordiplot()` function provides a consistent interface for plotting different ordination results. There are also various ways to enhance ordination plots, such as `ordihull()`, `ordiellipse()` for grouping; `envfit()` for fitting environmental variables; `ordisurf()` for response surfaces. You can also access the various components of the ordination results (e.g., scores, loadings) for custom plotting with **ggplot2**.
+
+## Which Method to Choose?
+
+This depends on your data type, research question, and the type of dissimilarities you want to analyse:
+
+* **Data Type:** CA is more suitable for abundance data with many zeros, while PCA is better for continuous environmental variables. PCoA and NMDS for dissimilarities (use Gower distances for categorical, ordinal, or binary data types).
+* **Distance/Dissimilarity:** If you have a specific distance measure in mind (e.g., Bray-Curtis), use PCoA or NMDS.
+* **Linear vs. Non-linear:** PCA and CA assume linear relationships, while NMDS can capture non-linear patterns.
+* **Focus:** If you want to emphasise species composition, CA or NMDS might be suitable. If the focus is on the underlying gradients explaining the variation, PCA or PCoA could be preferred.
