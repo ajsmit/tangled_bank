@@ -1,0 +1,83 @@
+---
+title: "Model Building"
+date: "2024-07-06"
+---
+
+## Ecological Model Building
+
+Developing ecological models, such as multiple regression models or constrained ordinations with numerous environmental predictors, requires you to weigh up your knowledge of biological and ecological (i.e. your undergraduate degree content) theory and an application of defensible statistical analysis for a robust, integrated outcome.
+
+I will walk you through the process of selecting the most appropriate model to explain ecological outcomes. I'll use the dataset about seaweed species composition (beta-diversity) along the South African coastline as an example as you should be quite familiar with it by now. The principles discussed are also broadly applicable to various other regions and scales.
+
+## About the Seaweed Data
+
+In my examples ([Gradients Example](deep_dive.qmd), [Multiple Regression](https://tangledbank.netlify.app/docs/The-Biostatistics-Book-Ch-3-5.pdf) and [db-RDA](constrained_ordination.qmd)), I use environmental variables produced from a long daily time series of seawater temperature, which were then calculated into various statistics that describe components of the thermal regime along the South African coastline. These included:
+
+- the annual mean climatology ('annMean')
+- the climatological mean for the months of February (the warmest month) and August (the coldest month) ('febMean' and 'augMean')
+- the climatological SD for those months ('febSD' and 'augSD')
+- the range in temperature (from a daily climatology) for the months of February and August ('febRange' and 'augRange')
+
+All of the above were calculated as Euclidean distances between pairs of sites, thus forming a comparison for beta-diversity, which is the Sørensen dissimilarity between those pairs of sites. It is clear that, because all these summary statistics were calculated from the same initial dataset, there will be issues of non-independence of the data used as predictors such that multicollinearity will be almost a given (even in theoretical grounds, this is obvious). However, the data are still useful to better understand whether the seaweed flora composition responds to the mean annual temperature, the minimum, or the maximum. Or, it might also tell us if some aspects of the temperature variability along the coast are more influential in driving species composition.
+
+I also have the geographical distance (recalculated as Euclidean distance) between the pairs of sites along the coast, which therefore corresponds to the beta-diversity. Here is also a potential trap: is distance an actual predictor, or simply a convenient descriptor of the space across the landscape over which species gradients develop? The same argument can be made for 'bio', the bioregional classification of the seaweed flora by Professor John Bolton.
+
+## Theoretical Understanding of Environmental Drivers
+
+Start by examining how specific environmental variables (e.g., 'dist', 'bio', 'augMean', 'febRange', 'febSD', 'augSD', 'annMean') might influence seaweed community structure along the coast. Temperature is a very important factor, affecting biological processes and impacting species differently. Think about how temperature metrics (mean, fluctuations, and range) influence reproductive timing, growth rates, and physiological tolerances when selecting relevant predictor variables. Some might from a theoretical basis not be very important and could be removed on theoretical grounds before modelling even starts.
+
+### New Concepts {.unnumbered}
+
+-   Trait-Based Approaches: If such data are available, consider incorporating trait-based approaches into your analysis. Functional traits of seaweeds, such as thallus morphology, photosynthetic pigments, or reproductive strategies, may respond differently to environmental gradients. This may provide insights into the mechanisms driving community composition beyond simple species presence/absence data. I have not tried this yet, but I think it will do this as a research project in the future.
+-   Phylogentic Approaches: In addition to using environmental variables and spatial gradients to build ecological models, incorporating phylogenetic approaches can provide deeper insights into the factors influencing ecological outcomes. Phylogenetic approaches consider the evolutionary relationships among species, and this might show patterns and relationships compatible and complementary with the species composition and trait based approaches.
+
+## Identifying Spatial Gradients
+
+Assess whether your variables exhibit strong spatial gradients or differences. For example:
+
+1. Annual Mean Temperature (annMean): Integrates data from warm and cold seasons, serving as a integrated predictor of global ecosystems. Regionally, it may also be a significant driver due to coastal temperature gradients, though potentially collinear with other variables.
+2. Mean Temperature of the Warmest Month (febMean): Shows a clear gradient from the east coast to Cape Point, remaining relatively stable along the west coast, with variability captured by febSD.
+3. Temperature Range of the Warmest Month (febRange): Differentiates the Benguela Current from the Agulhas Current, exhibiting both east-west and north-south gradients.
+4. Temperature Variability: Variations in augSD and febSD have geographical explanations along the coast, potentially linked to upwelling intensity or current stability.
+5. Use unconstrained ordinations with environmental vectors (`envfit()`) to guide you in selecting the important structuring predictors.
+
+### New Concept {.unnumbered}
+
+-   Oceanographic Features: Consider incorporating specific oceanographic features into your analysis, such as upwelling intensity, current velocity, or nutrient availability. These factors can markedly influence seaweed distribution and may provide additional explanatory power to your models.
+
+## Assessing Environmental Gradients
+
+Environmental variables with strong spatial gradients likely exert the most significant impact on seaweeds, indicating the plausible presence of environmental filtering (niche mechanisms). To quantify these gradients:
+
+1. Multiple Linear Regression: Conduct multiple linear regressions (or a series of simple linear regressions) using the continuous predictor variables as functions of dist (distance between site pairs).
+2. Mapping Variables: Create thematic maps of temperature variables, varying symbol size or color intensity by magnitude. Consider using GIS tools to interpolate values between sampling points for a more comprehensive visualisation.
+3. Spatial Autocorrelation: Assess spatial autocorrelation in your variables using techniques like Moran's I or Geary's C. This can help identify the scale at which environmental factors operate and inform model structure.
+
+## Model Building and Selection
+
+Throughout the model-building process, make informed decisions about variable selection based on both theoretical knowledge and data-driven approaches:
+
+1. Theory-Based Decisions: Select variables based on ecological understanding of species' responses to environmental drivers, considering both direct and indirect effects.
+2. Environmental Gradients: Choose variables that reflect significant environmental gradients influenced by factors like ocean currents, coastal topography, and climate patterns.
+3. Data-Driven Decisions: Employ statistical methods such as Variance Inflation Factors (VIFs) or forward selection (e.g., `stepAIC()`) to address multicollinearity and refine model selection. Consider using modern techniques like elastic net regression or random forests for variable importance ranking.
+
+### New Concept {.unnumbered}
+
+-   Model Averaging: Explore model averaging techniques, such as Akaike weights or Bayesian Model Averaging, to account for model uncertainty. This approach can provide more robust predictions and insights into the relative importance of different environmental variables.
+
+## Reconciling Ecological and Statistical Knowledge
+
+Achieving a model with optimal explanatory power involves reconciling ecological and statistical knowledge:
+
+1. Integrating Theory and Data: Synthesise theoretical insights on environmental gradients and biological responses with statistical techniques to build robust models.
+2. Testing Hypotheses: Develop and test hypotheses using multiple regression models, considering both ecological relevance and statistical fit. Be open to unexpected results that may challenge existing theories.
+3. Exploring Multivariate Analysis: Extend analysis to multivariate methods, such as constrained ordinations (for gradient detection and attribution) and clustering (for group identification), to uncover more complex ecological patterns. Consider modern techniques like Joint Species Distribution Models (JSDMs) to simultaneously model multiple species and environmental factors.
+4. Also start looking for the most influential species using approaches such as multivariate abundance using Generalised Linear Models, which is a different approach to 'Model-based Multivariate Analyses'.
+
+## Practical Steps for Model Selection
+
+1. Identify Relevant Variables: Use ecological knowledge to select relevant environmental predictors, considering both direct and indirect effects on seaweed physiology and ecology.
+2. Assess Spatial Gradients: Evaluate the strength and pattern of spatial gradients using regression, mapping techniques, and spatial statistics.
+3. Refine Models: Address multicollinearity and other data issues using appropriate statistical methods. Consider interaction terms and non-linear relationships where ecologically justified.
+4. Validate and Interpret: Validate models using both ecological and statistical criteria, ensuring they are parsimonious and ecologically meaningful. Use techniques like cross-validation or bootstrapping to assess model robustness.
+5. Communicate Results: Present your findings in a way that is accessible to both ecologists and statisticians, emphasising the biological significance of your models alongside their statistical performance.

@@ -1,0 +1,173 @@
+---
+date: "2021-01-01"
+title: "non-Metric Multidimensional Scaling (nMDS)"
+subtitle: ""
+---
+
+<!--- # Topic 11: non-Metric multidimensional scaling (nMDS) --->
+
+::: callout-tip
+## **Material required for this chapter**
+
+| Type           | Name                                     | Link                                                                              |
+|----------------|------------------------------------------|-----------------------------------------------------------------------------------|
+| **Theory**     | Numerical Ecology in R                   | See pages 145-151                                                                 |
+| **Slides**     | nMDS lecture slides                      | [💾 `BCB743_11_nMDS.pdf`](../slides/BCB743_11_nMDS.pdf)                           |
+| **Data**       | The Doubs River data                     | [💾 `Doubs.RData`](../data/NEwR-2ed_code_data/NeWR2-Data/Doubs.RData)             |
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to complete in this Chapter
+
+* [Task F 1--5](assessments/Task_F.qmd)
+:::
+
+## Introduction to Non-Metric Multidimensional Scaling (nMDS)
+
+Non-Metric Multidimensional Scaling (nMDS) is a rank-based indirect gradient analysis that uses a distance or dissimilarity matrix as its input (either pre-calculated using `vegdist()` or constructed internal to the `metaMDS()` function via the `dist` argument). Should one supply a 'raw' species × site table, the default dissimilarity matrix is Bray-Curtis dissimilarity, but any other dissimilarity index in `vegdist()` can be specified. Unlike other ordination methods such as Principal Component Analysis (PCA) and Correspondence Analysis (CA), which aim to maximise variance or correspondence between sites, nMDS focuses on representing the pairwise dissimilarities between sites in an ordination space. It does not use the raw distances or dissimilarities directly; instead, these values are replaced with their ranks, which is why the method is termed "non-metric."
+
+nMDS is the non-metric equivalent of Principal Coordinates Analysis (PCoA); in fact, PCoA is sometimes referred to as metric multidimensional scaling. PCoA and nMDS can both produce ordinations of objects from any distance or dissimilarity matrix. However, nMDS does not preserve the exact distances among objects in an ordination plot. Instead, it tries to represent the ordering (rank) relationships among objects as accurately as possible on a specified number of axes. This nonlinear mapping of dissimilarities onto a low-dimensional ordination space means that the Euclidean distances of points in the ordination space are rank-order similar to the original community dissimilarities.
+
+The ordination space in nMDS is metric, but the regression used to fit the dissimilarities to this space is non-metric. This makes nMDS more robust than the eigen-value methods, especially when the data are not well-represented by a specific distribution as may sometimes be the case for ecological data. As with PCoA, it can handle quantitative, semi-quantitative, qualitative, or mixed variables, so we can flexibly apply it to many ecological problems.
+
+A new concept, not seen in the eigen-approaches, is the idea of 'stress.' Stress quantifies the discrepancy between the observed dissimilarities and the distances in the ordination space. Stress is visually presented as the scatter of observed dissimilarities against the expected monotone regression. Lower stress values indicate a better fit of the data to the ordination space. Because rank orders of dissimilarities cannot be exactly preserved by rank-orders of ordination distances in low-dimensional space, *some* stress cannot be avoided.
+
+nMDS does have some limitations. The rank-based approach means that information about the magnitude of differences between site pairs is lost and this can be a disadvantage when the actual distances are important for interpretation. Also, nMDS can be computationally intensive with large datasets or when trying to minimise stress through numerous iterations.
+
+After performing nMDS, environmental interpretation can be facilitated using **vegan**'s `envfit()` and `ordisurf()` functions, as we have already seen in PCA, CA, and PCoA. As before, they allow for the fitting of environmental variables onto the ordination. This aids in visualising and understanding how the environmental variables influence the species ordination. Again, I must emphasis that this is not the same as doing a formal constrained ordination, which will be discussed in the next section (RDA and CCA). Additionally, if we require a statistical framework to assess the influence of categorical factors on the observed dissimilarities, we can use PERMANOVA (Permutational Multivariate Analysis of Variance) to test for differences that might be attributed to group effects. These ideas will be demonstrated below.
+
+## Set-up the Analysis Environment
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(vegan)
+library(viridis)
+
+# setting up a 'root' file path so I don't have to keep doing it later...
+root <- "../data/"
+```
+
+## The Doubs River Data
+
+We continue to use the species data:
+
+```{r}
+load(paste0(root, "NEwR-2ed_code_data/NEwR2-Data/Doubs.RData"))
+spe <- dplyr::slice(spe, -8)
+```
+
+## Do the nMDS
+
+```{r}
+spe_nmds <- metaMDS(spe, distance = "bray", trace = 0) # <1>
+spe_nmds
+```
+1. I use `trace = 0` to suppress the output of the iterations.
+
+As always, reading the help file (accessible as `?vegan::metaMDS`) is invaluable, as it is for all other ordination techniques. 
+
+There's a summary method available, but it is not particularly useful and I don't display the output here:
+
+```{r}
+#| eval: false
+summary(spe_nmds)
+```
+Although `summary(spe_nmds)` does not return anything interesting, the species and site scores are nevertheless available directly through the `scores()` command, and they can be plotted as layer in **ggplot2** if need be:
+
+```{r}
+scores(spe_nmds)
+```
+
+See *Numerical Ecology in R* (pp. 145 to 149) for information about the interpretation of a nMDSand the ordination diagrams shown below.
+
+## Ordination Diagrams
+
+We create the ordination diagrammes as before, but new concepts introduced here are **stress**, **Shepard plots**, and **goodness of fit** (@fig-nmds-plots). The stress indicates the scatter of observed dissimilarities against an expected monotone regression, while a Shepard diagram plots ordination distances against original dissimilarities, and adds a monotone or linear fit line to highlight this relationship. The `stressplot()` function also produces two fit statistics. The goodness-of-fit of the ordination is measured as the $R^{2}$ of either a linear or a non-linear regression of the nMDS distances on the original ones.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 10.75 
+#| fig.align: center
+#| fig.cap: "nMDS ordination plots of the Doubs River species data showing a Shepard plot (top, left), the ordination diagram (top, right), and goodness of fit (bottom, right)."
+#| label: fig-nmds-plots
+
+opar <- par(no.readonly = TRUE)
+par(mfrow = c(2, 2))
+stressplot(spe_nmds, main = "Shepard plot")
+ordiplot(spe_nmds, type = "t", cex = 1.2,
+         main = paste0("nMDS stress = ", round(spe_nmds$stress, 2)))
+gof <- goodness(spe_nmds)
+plot(spe_nmds, type = "t", cex = 1.2, main = "Goodness of fit")
+points(spe_nmds, display = "sites", cex = gof * 200)
+# ...bigger bubbles indicate a worse fit
+par(opar)
+```
+
+A good rule of thumb: stress <0.05 provides an excellent representation in reduced dimensions, <0.1 is great, <0.2 is so-so, and stress <0.3 provides a poor representation.
+
+We can also build ordination plots from scratch to suit specific needs:
+
+```{r}
+#| fig-width: 5.625
+#| fig-height: 5.625 
+#| fig.align: center
+#| fig.cap: "nMDS ordination plot of the Doubs River species data assembled from scratch."
+#| label: fig-pca-ordiplot
+
+pl <- ordiplot(spe_nmds, type = "none", main = "nMDS fish abundances ")
+points(pl, "sites", pch = 21, cex = 1.75, col = "grey80", bg = "grey80")
+points(pl, "species", pch = 21, col = "turquoise", arrows = TRUE)
+text(pl, "species", col = "blue4", cex = 0.9)
+text(pl, "sites", col = "red4", cex = 0.9)
+```
+
+Or we can fit response surfaces using `ordisurf()` and project environmental drivers (@fig-nmds-ordisurf):
+
+```{r}
+#| fig-width: 10
+#| fig-height: 10
+#| fig.align: center
+#| fig.cap: "nMDS ordination plots with species response surfaces of the Doubs River species data emphasising four species of fish: A) Satr, B) Scer, C) Teso, and D) Cogo. D) additionally has the environmental vectors projected on the plot, with the significant vectors shown in red."
+#| label: fig-nmds-ordisurf
+
+palette(viridis(8))
+opar <- par(no.readonly = TRUE)
+par(mar = c(4, 4, 0.9, 0.5) + .1, mfrow = c(2, 2))
+
+invisible(ordisurf(spe_nmds ~ Satr, data = spe, bubble = 3,
+                   family = quasipoisson, knots = 2, col = 6,
+                   display = "sites", main = "Salmo trutta fario"))
+abline(h = 0, v = 0, lty = 3)
+
+invisible(ordisurf(spe_nmds ~ Scer, data = spe, bubble = 3,
+                   family = quasipoisson, knots = 2, col = 6,
+                   display = "sites", main = "Scardinius erythrophthalmus"))
+abline(h = 0, v = 0, lty = 3)
+
+invisible(ordisurf(spe_nmds ~ Teso, data = spe, bubble = 3,
+                   family = quasipoisson, knots = 2, col = 6,
+                   display = "sites", main = "Telestes souffia"))
+abline(h = 0, v = 0, lty = 3)
+
+invisible(ordisurf(spe_nmds ~ Cogo, data = spe, bubble = 3,
+                   family = quasipoisson, knots = 2, col = 6,
+                   display = "sites", main = "Cottus gobio"))
+abline(h = 0, v = 0, lty = 3)
+
+env <- env[-8, ] # because we removed the eighth site in the spp data
+
+# A posteriori projection of environmental variables in a CA
+# The last plot produced (CA scaling 2) must be active
+spe_nmds_env <- envfit(spe_nmds, env, scaling = 2) # Scaling 2 is default
+plot(spe_nmds_env)
+
+# Plot significant variables with a different colour
+plot(spe_nmds_env, p.max = 0.05, col = "red")
+par(opar)
+```
+
+## References
+
+::: {#refs}
+:::
+

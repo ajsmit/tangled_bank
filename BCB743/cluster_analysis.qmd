@@ -1,0 +1,199 @@
+---
+date: "2021-01-01"
+title: "Cluster Analysis"
+subtitle: ""
+title-block-banner: false
+format:
+  html:
+    toc-location: right
+  ipynb: default
+---
+
+<!-- # Topic 13: Cluster analysis -->
+
+> "*There are two types of people in the world: 1) those who extrapolate from incomplete data.*"
+> 
+> -- Anon.
+
+::: {.callout-important appearance="simple"}
+## Tasks to complete in this Chapter
+
+* [Task D 2--5](assessments/Task_D.qmd)
+:::
+
+## Introduction
+
+We have seen that the WHO/SDG data seem to form neat groupings of countries within their respective parent locations. In this exercise we will apply a cluster analysis called 'Partitioning Around Medoids' to these data. Whereas ordination attempts to display the presence and influence of gradients, clustering tries to place our samples into a certain number of discrete units or clusters. The goal of the clustering algorithms is to produce groups (clusters) such that dissimilarities between objects within these groups are smaller than those between them.
+
+My reading of the ecological literature suggests that cluster analysis is far less common than ordination, unless you're an ecologist with conservationist tendencies. If this is a true observation, why would it be? This is also the reason why I spend less time in this module on cluster analysis, but it is nevertheless a tool that you should be familiar with. Sometimes clustering techniques are combined with ordinations (particularly PCA), in which case they can be quite powerful and insightful.
+
+Broadly speaking, clustering algorithms can be divided into ['hierarchical agglomerative classification'](https://www.davidzeleny.net/anadat-r/doku.php/en:hier-agglom_r) and [non-hierarchical classification (e.g. K-means)](https://www.davidzeleny.net/anadat-r/doku.php/en:non-hier_r). Numerical Ecology in R provides more information about the various kinds of classifications and makes the following distinctions of classification methods: 'sequential or simultaneous,' 'agglomerative or divisive,' 'monothetic versus polythetic,' 'hierarchical versus non-hierarchical methods,' 'probabilistic versus non-probabilistic,' and 'fuzzy' methods. Regardless of how one classifies the classification algorithms, they are well-represented in R. The workhorse cluster analysis package in R is, strangely, called **cluster**. The function we will use in this example is called `pam()` but several other functions are also available, most notably 'Agglomerative Nesting (Hierarchical Clustering)' called by `agnes()`, 'DIvisive ANAlysis Clustering' by `diana()`, and 'Fuzzy Analysis Clustering' by `fanny()`. The `kmeans()` and `hclust()` functions in base R are also available and frequently used by ecologists. Of course, there is also the old faithful [TWINSPAN](https://github.com/jarioksa/twinspan) which has been ported to R that might be of interest still, and [IndVal](https://doi.org/10.1016/B978-0-12-384719-5.00430-5), which is a modern replacement for TWINSPAN. All of the cluster analyses functions come with their own plotting methods, and you should become familiar with them.
+
+The package **factoextra** provides useful helper functions for cluster analysis, and also provides clustering functions that can be used *in lieu* of the ones mentioned above.
+
+For examples of clustering, please refer to:
+
+1.  Numerical Ecology in R, pp. 53-62. Later pages in the Cluster Analysis chapter go deeper into clustering and you should read over it for a broad overview. For the purpose of this module, we will focus on 4.3 Hierarchical Clustering and 4.4 Agglomerative Clustering.
+2.  A [Kaggle challenge](https://www.kaggle.com/davimattar/help-international-clustering-using-r) with examples of both Hierarchical Clustering and K-means Clustering.
+3.  The `iris` dataset is an excellent dataset to practice cluster analysis on; in fact, cluster analysis examples of this dataset are common on the internet.
+
+Let's explore the WHO/SDG dataset using the `pam()` function.
+
+## Set-up the analysis environment
+
+```{r}
+library(tidyverse) 
+library(cluster)
+library(ggcorrplot)
+library(factoextra)
+library(vegan)
+library(ggpubr)
+
+# setting up a 'root' file path so I don't have to keep doing it later...
+root <- "../data/"
+```
+
+## Load the SDG data
+
+I load the combined dataset that already had their missing values imputed (as per the [PCA](PCA_SDG_example.qmd) example).
+
+```{r}
+SDGs <- read_csv(paste0(root, "WHO/SDG_complete.csv"))
+SDGs[1:5, 1:8]
+```
+
+The parent locations:
+
+```{r}
+unique(SDGs$ParentLocation)
+```
+
+The number of countries:
+
+```{r}
+length(SDGs$Location)
+```
+
+As is often the case with measured variables, we can start our exploration with a correlation analysis to see the extent to which correlation between variable pairs is present:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+# a correalation matrix
+corr <- round(cor(SDGs[3:ncol(SDGs)]), 1)
+ggcorrplot(corr, type = 'upper', outline.col = "white", 
+           colors = c("navy", "white", "#FC4E07"), 
+           lab = TRUE)
+```
+
+We might decide to remove collinear variables. A useful approach to use here might be to look at the strongest loadings along the significant reduced axes in a PCA and exclude the others, or find the ones most strongly correlated as seen in the biplots---how you do this can be rationalised on a case-by-case basis. I proceed with the full dataset, but this is not ideal.
+
+We need to standardise first to account for the different measurement scales of the variables. We can calculate Euclidian distances before running `pam()`, but it can also be specified within the function call. We do the latter:
+
+```{r}
+SDGs_std <- decostand(SDGs[3:ncol(SDGs)], method = "standardize")
+# SDGs_euc <- vegdist(SDGs_std, method = "euclidian")
+rownames(SDGs_std) <- SDGs$Location # carry location names into output
+```
+
+The frustrating thing with cluster analysis, which often confuses novice users, is that there is often an expectation that the clustering alorithm decides for the user how many clusters to use. However, this is a misconception that must be overcome. Although some numerical guidance can be obtained through 'silhouette,' 'within cluster sum of squares' or 'elbow' analysis, and 'gap statistic', in my experience they are no substitute for the power of human reasoning. Let us see what the **factoextra** package function `fviz_nbclust()` tell us about how many group to use:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+# using silhouette analysis
+plt1 <- fviz_nbclust(SDGs_std, cluster::pam, method = "silhouette") + 
+  theme_grey()
+
+# total within cluster sum of square / elbow analysis
+plt2 <- fviz_nbclust(SDGs_std, cluster::pam, method = "wss") + 
+  theme_grey()
+
+# gap statistics
+plt3 <- fviz_nbclust(SDGs_std, cluster::pam, method = "gap_stat") + 
+  theme_grey()
+
+ggarrange(plt1, plt2, plt3, nrow = 3)
+```
+
+Even with the supposedly objective assessment of what the optimal number of clusters should be, we see that each method still provides a different result. Much better to proceed with expert knowledge about the nature of the data and the intent of the study. Let us proceed with three clusters as I think two clusters are insufficient for our purpose.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+SDGs_pam <- pam(SDGs_std, metric = "euclidean", k = 3)
+
+fviz_cluster(SDGs_pam, geom = "point", ellipse.type = "convex",
+             palette = c("#FC4E07", "violetred3", "deepskyblue3"),
+             ellipse.alpha = 0.05) +
+  geom_text(aes(label = SDGs$Location), size = 2.5)
+```
+
+We cannot clearly see where SA is, so let's create a clearer plot:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+# scale SA bigger for plotting
+SDGs <- SDGs |> 
+  mutate(col_vec = ifelse(Location == "South Africa", "black", "grey50"),
+         scale_vec = ifelse(Location == "South Africa", 3.5, 2.5))
+
+fviz_cluster(SDGs_pam, geom = "point", ellipse.type = "convex",
+             palette = c("#FC4E07", "violetred3", "deepskyblue3"),
+             ellipse.alpha = 0.05, pointsize = 2.0) +
+  geom_text(aes(label = SDGs$Location), size = SDGs$scale_vec, col = SDGs$col_vec)
+```
+
+Note that `pam()`, unlike hierarchical or agglomerative clustering, does not produce a dendrogram and the usual way to graphically present the cluster arrangement is to create a scatter plot similar to an ordination diagramme (but it is NOT an ordination diagram).
+
+Same as above, but showing a star plot and numbers indicating the countries (their row numbers in `SDGs`):
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+fviz_cluster(SDGs_pam, palette = c("#FC4E07", "violetred3", "deepskyblue3"),
+             ellipse.type = "euclid", star.plot = TRUE, repel = TRUE,
+             pointsize = SDGs$scale_vec * 0.8) + # SA plotted slightly bigger
+  theme_grey()
+```
+
+Do a silhouette analysis to check cluster fidelity:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+fviz_silhouette(SDGs_pam, palette = c("#FC4E07", "violetred3", "deepskyblue3"),
+                ggtheme = theme_grey())
+```
+
+Once happy with the number of clusters, find the median value for each cluster:
+
+```{r}
+SDGs_centroids <- SDGs |> 
+  mutate(cluster = SDGs_pam$clustering) |> 
+  group_by(cluster) |> 
+  summarise_at(vars(other_1:SDG3.b_5), median, na.rm = TRUE)
+SDGs_centroids
+```
+
+`pam()` can also provide the most representative example countries of each cluster. Note that the values inside are very different from that produced when we calculated the medians because `medoids` report the standardised data:
+
+```{r}
+SDGs_pam$medoids
+```
+
+We can do a coloured pairwise scatterplot to check data details. I limit it here to the pairs of the first 7 columns because of the large number of possible combinations:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+pairs(SDGs[, 3:10],
+      col = c("#FC4E07", "violetred3", "deepskyblue3")[SDGs_pam$clustering])
+```
+
+## References
+
+::: {#refs}
+:::
+

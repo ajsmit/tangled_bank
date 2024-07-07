@@ -1,0 +1,369 @@
+---
+date: "2021-01-01"
+title: "nMDS: Mayombo's Diatom Data"
+subtitle: "Replicating the analysis of Serge Mayombo's 'Diatoms associated with two South African kelp species: *Ecklonia maxima* and *Laminaria pallida*'"
+---
+
+<!-- # Topic 11: nMDS of the diatom data in Mayombo et al. (2019) -->
+
+::: callout-tip
+## **Material required for this chapter**
+
+| Type           | Name                                     | Link                                                                              |
+|----------------|------------------------------------------|-----------------------------------------------------------------------------------|
+| **Reading**    | Serge Mayobo's diatom paper              | [💾 `Mayombo_et_al_2019.pdf`](../docs/Mayombo_et_al_2019.pdf)                     |
+| **Data**       | Abbreviated diatom data matrix           | [💾 `PB_data_matrix_abrev.csv`](../data/diatoms/PB_data_matrix_abrev.csv)         |
+|                | Diatoms data matrix                      | [💾 `PB_data_matrix.csv`](../data/diatoms/PB_data_matrix.csv)                     |
+|                | Diatom environmental data                | [💾 `PB_diat_env.csv`](../data/diatoms/PB_diat_env.csv)                           |
+:::
+
+Kelp forests are known to host a large biomass of epiphytic fauna and flora, including diatoms, which constitute the base of aquatic food webs and play an important role in the transfer of energy to higher trophic levels. Epiphytic diatom assemblages associated with two common species of South African kelps, *Ecklonia maxima* and *Laminaria pallida*, were investigated in this study. Primary blades of adult and juvenile thalli of both kelp species were sampled at False Bay in July 2017 and analysed using scanning electron microscopy. The diatom community data are here subjected to a suit of multivariate methods in order to show the structure of the diatom flora as a function of i) kelp species, and ii) kelp size. Read @mayombo2019diatoms for more details and the findings of the research.
+
+Some feedback was received by anonymous reviewers as part of the peer review process, and it together with my response is repeated below.
+
+**Reviewer 1**
+
+The design of the observational study includes 2 treatments - age (young versus old) and host species (*Laminaria* versus *Ecklonia*), 4 replicates (4 primary blades from each combination of host algae and age), and 3 subsamples from each blade (pseudoreplicates, if treated incorrectly as replicates). The experimental design is analogous to a 2-way ANOVA, but with community data instead of a single individual response variable. This design can evaluate interactive effects between the two treatments (age and species). The authors' experimental design is most suited to analyses using PERMANOVA, which is the community statistics version of the ANOVA.
+
+Please indicate for the readers why the data were transformed and standardised using the stated procedures. Definitely a good idea to transform data, but the readers need to understand why particular procedures were employed. Please describe the Wisconsin double standardisation:
+
+-   row/column standardised by row/column total to produce relative abundance to total and column/row standardised; vs.
+-   column/row max--to produce abundance relative to species max abundance.
+
+Why a double standardisation + square-root transformation, as opposed to a single row/column standardisation by row/column total + square-root transformation?
+
+**AJS: About ANOSIM and PERMANOVA**
+
+Overall, Analysis of Similarities (ANOSIM) and the Mantel test were very sensitive to heterogeneity in dispersions, with ANOSIM generally being more sensitive than the Mantel test. In contrast, PERMANOVA and Pillai's trace were largely unaffected by heterogeneity for balanced designs. [...]. PERMANOVA was also unaffected by differences in correlation structure. [...] PERMANOVA was generally, but not always, more powerful than the others to detect changes in community structure.
+
+**AJS: About data transformation**
+
+Useful when the range of data values is very large. Data are square root transformed, and then submitted to Wisconsin double standardisation, or species divided by their maxima, and stands standardised to equal totals. These two standardisations often improve the quality of ordinations.
+
+## Set-up the analysis environment
+
+```{r}
+library(tidyverse)
+library(vegan)
+library(plyr)
+# library(BiodiversityR)
+
+# setting up a 'root' file path so I don't have to keep doing it later...
+root <- "../data/diatoms/"
+```
+
+## Load and prepare the data
+
+### The species data
+
+The diatom species data include the following:
+
+-   columns: diatom genera
+-   rows: samples (samples taken from two species of kelp; equivalent to sites in other species x sites tables)
+-   row names correspond to combinations of the factors in the columns inside `PB_diat_env.csv`
+
+where `host_size` is `A` for adult kelp plant (host), `J` for juvenile kelp plant (host), `host_spp` is `Lp` for kelp species *Laminaria pallida* (host), `Em` for kelp plant *Ecklonia maxima* (host), `plant` is the unique number identifying a specific kelp plant, and `rep` is the replicate tissue sample from each kelp host plant from which the diatoms were extracted.
+
+```{r}
+# with shortened name to fix nMDS overplotting
+spp <- read.csv(paste0(root, "PB_data_matrix_abrev.csv"),
+                row.names = "Replicate", sep = ",", header = TRUE)
+spp[1:6, 1:6]
+
+# with full names
+spp2 <- read.csv(paste0(root, "PB_data_matrix.csv"),
+                 row.names = "Replicate", sep = ",", header = TRUE)
+spp2[1:6, 1:6]
+
+# remove ".spp" from column header name
+colnames(spp) <- str_replace(colnames(spp), "\\.spp", "")
+colnames(spp2) <- str_replace(colnames(spp2), "\\.spp", "")
+```
+
+Logarithmic transformation as suggested by @anderson2006distance: $log_{b}(x) + 1$ for $x > 0$, where $b$ is the base of the logarithm; zeros are left as zeros. Higher bases give less weight to quantities and more to presences.
+
+```{r}
+spp.log <- decostand(spp, method = "log")
+spp.log.dis <- vegdist(spp.log, method = "bray")
+```
+
+### The 'environmental' data
+
+The content is described above; these variables are categorical vars -- they are not actually 'environmental' data, but their purpose in the analysis is analogous to true environmental data; it's simply data that describe where the samples were taken from.
+
+```{r}
+env <- tibble(read.csv(paste0(root, "PB_diat_env.csv")),
+              sep = ",", header = TRUE)
+env$plant <- as.factor(env$plant)
+env$rep <- as.factor(env$rep)
+head(env)
+```
+
+With the environmental data (factors), the following analyses can be done:
+
+-   ✘ Discriminant Analysis (DA)
+-   ✘ Analysis of Similarities (ANOSIM)
+-   ✔︎ Permutational Analysis of Variance (PERMANOVA)
+-   ✘ Mantel test
+
+We will do an nMDS and PERMANOVA.
+
+## Multivariate homogeneity of group dispersions (variances)
+
+Before doing the PERMANOVA (testing differences between means), first check to see if the dispersion is the same. See `?adonis2` for more on this.
+
+**Homogeneity of groups** `betadisper()` evaluates the differences in group homogeneities. We can view it as being analogous to Levene's test of the equality of variances. The null hypothesis evaluated is that the population variances are equal. Unfortunately we can only use one factor as an independent variable so it is not yet possible to look for interactions (species × size).
+
+So, we test the $H_{0}$ that the dispersion (variance) in diatom community structure does not differ between the two host species:
+
+```{r}
+(mod.spp <- with(env, betadisper(spp.log.dis, host_spp)))
+anova(mod.spp)
+```
+
+There is no difference in dispersion between the diatom communities on the two host species. Apply the same procedure to see if host size has an effect:
+
+```{r}
+(mod.size <- with(env, betadisper(spp.log.dis, host_size)))
+anova(mod.size)
+```
+
+No, it does not have an effect either. Make some plots to visualise the patterns:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+par(mfrow = c(2, 2))
+plot(mod.spp, sub = NULL)
+boxplot(mod.spp)
+
+plot(mod.size)
+boxplot(mod.size)
+```
+
+Optionally, we can confirm the above analysis with the `permutest()` function. `permutest()` is a permutational ANOVA-like test that tests the $H_{0}$ that there is no difference in the multivariate dispersion of diatom community structure between *Ecklonia maxima* and *Laminaria pallida*, and between adult and juvenile plants:
+
+```{r}
+permutest(mod.spp) # there is in fact no difference
+
+permutest(mod.size) # nope...
+```
+
+It should be sufficient to do the `anova()`, above, though. You can safely ignore the `permutest()`.
+
+## PERMANOVA
+
+Permutational Multivariate Analysis of Variance (PERMANOVA; @anderson2013permanova) uses distance matrices (Bray-Curtis similarities by default), whereas ANOSIM uses only ranks of Bray-Curtis. The former therefore preserves more information and it is the recommended approach to test for differences between multivariate means. PERMANOVA also allows for variation partitioning and permits for more complex designs (multiple factors, nested factors, interactions, covariates, etc.). To this end, we use `adonis2()` to evaluate the differences in the group means, which makes it analogous to multivariate analysis of variance.
+
+Note that nestedness should be stated in the blocks (plants): "If you have a nested error structure, so that you do not want your data be shuffled over classes (blocks), you should define blocks in your permutation" -- Jari Oksannen
+
+```{r}
+# the permutational structure captures the nesting of replicates within plant
+perm <- how(nperm = 1000)
+setBlocks(perm) <- with(env, plant)
+
+(perm.1 <- adonis2(spp.log.dis ~ host_spp * host_size,
+                   method = p, data = env,
+                   permutations = perm))
+```
+
+There is no effect resulting from host species, host size, or interactions between the two.
+
+## nMDS
+
+Do the nMDS and assemble the figures:
+
+```{r}
+spp.nmds <- metaMDS(spp.log, k = 2,trymax = 100, trace = 0,
+                    distance = "bray", wascores = TRUE)
+
+# not printed as it is too long...
+# scores(spp.nmds, display = "species")
+# scores(spp.nmds, display = "sites")
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+col <- c("indianred3", "steelblue4")
+pch <- c(17, 19)
+opar <- par()
+plt1 <- layout(rbind(c(1, 1, 2, 2, 3, 3),
+                     c(4, 4, 4, 5, 5, 5)),
+               heights = c(2, 3),
+               respect = TRUE)
+
+# layout.show(plt1)
+
+par(mar = c(3,3,1,1))
+
+# plot 1
+plot(mod.spp, main = NULL,
+     tck = .05, mgp = c(1.8, 0.5, 0), col = col, pch = pch,
+     sub = NULL)
+
+# plot 2
+plot(mod.size, main = NULL,
+     tck = .05, mgp = c(1.8, 0.5, 0), col = col, pch = pch,
+     sub = NULL)
+
+# plot 3
+stressplot(spp.nmds, p.col = "steelblue4", l.col = "indianred3",
+           tck = .05, mgp = c(1.8, 0.5, 0))
+
+# plot 4
+par(mar = c(3,3,2,1))
+plot(spp.nmds, display = "sites", type = "n",
+     main = NULL,
+     tck = .05, mgp = c(1.8, 0.5, 0),
+     xlim = c(-2, 2), ylim = c(-1, 2))
+with(env,
+     points(spp.nmds, display = "sites", col = col[host_spp],
+            pch = pch[host_spp]))
+with(env,
+     ordispider(spp.nmds, groups = host_spp,
+                label = TRUE,
+                col = col))
+with(env, ordiellipse(spp.nmds, groups = host_spp,
+                      col = col, label = FALSE))
+points(spp.nmds, display = "species", pch = 1, col = "seagreen")
+orditorp(spp.nmds, display = "species", cex = 0.8,
+         col = "black", air = 0.01)
+
+# plot 5
+par(mar = c(3, 3, 2, 1))
+plot(spp.nmds, display = "sites", type = "n",
+     main = NULL,
+     tck = .05, mgp = c(1.8, 0.5, 0),
+     xlim = c(-2, 2), ylim = c(-1, 2))
+with(env,
+     points(spp.nmds, display = "sites", col = col[host_size],
+            pch = pch[host_size]))
+with(env,
+     ordispider(spp.nmds, groups = host_size,
+                label = TRUE,
+                col = col))
+with(env, ordiellipse(spp.nmds, groups = host_size,
+                      col = col, label = FALSE))
+points(spp.nmds, display = "species", pch = 1, col = "seagreen")
+orditorp(spp.nmds, display = "species", cex = 0.8,
+         col = "black", air = 0.01)
+# dev.off()
+par(opar)
+```
+
+## Multivariate abundance using Generalised Linear Models
+
+What follows is an example of 'Model-based Multivariate Analyses.' I'll not discuss this method here, but merely repeat the code as used in the Mayombo et al. (2019) paper. For background to the Multivariate abundance using Generalised Linear Models approach, refer to @wang2012mvabund and @wang2017mvabund.
+
+```{r}
+library(mvabund)
+diat_spp <- mvabund(spp2)
+```
+
+Look at the spread of the data using the boxplot function. The figure is not used in paper:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+par(mar = c(2, 10, 2, 2)) # adjusts the margins
+boxplot(spp, horizontal = TRUE, las = 2, main = "Abundance", col = "indianred")
+```
+
+Check the mean-variance relationship:
+
+```{r}
+#| fig-width: 8
+meanvar.plot(diat_spp)
+```
+
+The above plot shows that spp with a high mean also have a high variance.
+
+1.  Are there differences in the species composition of the diatom spp. sampled? *This has already been addressed above, but we can apply an lternative approach below*.
+2.  Do some of them specialise on particular spp of kelp, while others are more generalised? *Addressed below*.
+3.  Do some occur more on juveniles, while some are on adults, and which ones indiscriminately live across age classes? *Addressed below*.
+4.  Which species? *Addressed below*.
+
+Scale manually for `ggplot2()` custom plot. Create a scale function:
+
+```{r}
+log_fun <- function(x) {
+  min_x <- min(x[x != 0], na.rm = TRUE)
+  a <- log(x) / min_x
+  a[which(!is.finite(a))] <- 0
+  return(a)
+}
+```
+
+Make a plot that shows which diatoms species are responsible for differences between adult and juvenile kelps:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+spp2 %>%
+  mutate(host_size = env$host_size) %>%
+  gather(key = species, value = abund, -host_size) %>%
+  as_tibble() %>%
+  group_by(species) %>%
+  mutate(log.abund = log_fun(abund)) %>%
+  ungroup() %>%
+  ggplot(aes(x = fct_reorder(species, abund, .fun = mean), y = log.abund)) +
+  geom_boxplot(aes(colour = host_size), size = 0.4, outlier.size = 0,
+               fill = "grey90") +
+  geom_point(aes(colour = host_size, shape = host_size),
+             position = position_dodge2(width = 0.8),
+             alpha = 0.6, size = 2.5) +
+  scale_colour_manual(name = "Age", values = c("indianred3", "steelblue4")) +
+  scale_shape_manual(name = "Age", values = c(17, 19)) +
+  annotate("text", x = 15, y = 3, size = 4.5,
+           label = expression(paste(italic("p"), "=0.017"))) +
+  annotate("text", x = 14, y = 3, size = 4.5,
+           label = expression(paste(italic("p"), "=0.004"))) +
+  scale_y_continuous(name = "Log abundance") +
+  coord_flip() + theme_bw() +
+  theme(panel.grid.major = element_line(linetype = "dashed",
+                                        colour = "seagreen3", size = 0.2),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(size = 13, color = "black",
+                                   margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+        axis.text.y = element_text(size = 13, color = "black", face = "italic",
+                                   margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")),
+        axis.title.x = element_text(size = 14, vjust = 5.75, color = "black"),
+        axis.title.y = element_blank(),
+        axis.ticks.length = unit(-0.25, "cm"),
+        axis.ticks = element_line(color = "black", size = 0.5))
+```
+
+I settle on a negative binomial distribution for the species data. This will be provided to the `manyglm()` function:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+size_mod2 <- manyglm(diat_spp ~ (env$host_spp * env$host_size) / env$plant,
+                     family = "negative binomial")
+plot(size_mod2) # better residuals...
+```
+
+```{r}
+# anova(size_mod2, test = "wald")
+out <- anova(size_mod2, p.uni = "adjusted", test = "wald")
+out$table
+```
+
+What is the proportional contribution of some important species to juvenile and adult plants?
+
+```{r}
+prop.contrib <- data.frame(spp = colnames(out$uni.test),
+                           prop = out$uni.test[3, ],
+                           row.names = NULL)
+prop.contrib %>%
+  mutate(perc = round((prop / sum(prop)) * 100, 1)) %>%
+  arrange(desc(perc)) %>%
+  mutate(cum = cumsum(perc))
+```
+
+## References
+
+::: {#refs}
+:::
+
