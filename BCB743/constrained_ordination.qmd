@@ -33,7 +33,7 @@ We will consider three constrained ordination techniques:
 
 * **db-RDA** can be viewed as the extension of a PCoA with multiple regressions. As with a PCoA, we also benefit from being able to specify any dissimilarity matrix as input, and hence this approach is more versatile compared to RDA or CCA. I prefer the db-RDA implemented in **vegan**'s `capscale()`. The help file states: "Distance-based redundancy analysis (dbRDA) is an ordination method similar to Redundancy Analysis (rda), but it allows non-Euclidean dissimilarity indices, such as Manhattan or Bray--Curtis distance."
 
-## The seaweed dataset
+## The Seaweed Dataset
 
 For this example we will use the seaweed data of @smit2017seaweeds; please make sure that you read it! An additional file describing the background to the data is available at the link above (see **The_seaweed_data.pdf**).
 
@@ -41,7 +41,7 @@ I use two data sets. The first, $Y$ (in the file `seaweeds.csv`), comprises dist
 
 The second, $E$ (in `env.csv`), is a dataset of *in situ* coastal seawater temperatures (Smit et al. 2013) derived from daily measurements over up to 40 years.
 
-## Set-up the analysis environment
+## Set-Up the Analysis Environment
 
 ```{r}
 library(tidyverse)
@@ -60,7 +60,7 @@ spp <- dplyr::select(spp, -1)
 dim(spp)
 ```
 
-## Set-up the data
+## Set-Up the Data
 
 The first step involves the species table ($Y$). First I compute the Sørensen dissimilarity, which I then decompose into 'nestedness-resultant' ($\beta_\text{sne}$) and 'turnover' ($\beta_\text{sim}$) components using the `betapart.core()` and `betapart.pair()` functions of the **betapart** package [@baselga2018partitioning]. These are placed into the matrices $Y1$ and $Y2$. It is not necessary to decompose into $Y1$ and $Y2$, but I do so here because I want to focus on the turnover component without a nestedness-resultant influence. Optionally, I can apply a CA, PCoA, or nMDS on $Y$ to find the major patterns in the community data---to let the species data speak for themselves, so to speak. The formal in this chapter analysis will use the species data in a distance-based redundancy analyses (db-RDA as per **vegan**'s `capscale()` function) by coupling it with $E$.
 
@@ -174,7 +174,7 @@ What is the proportion of variation explained by the full set environmental vari
 round(sum(cap_full$CCA$eig) / cap_full$tot.chi * 100, 2) # this is 6.86398 / 7.52344 * 100 (%)
 ```
 
-## Assess multicollinearity {#sec-multicollinearity}
+## Assess Multicollinearity {#sec-multicollinearity}
 
 I check for collinearity using variance inflation factors (VIF), and retain a subset of non-collinear variables to include in the 'reduced' or 'final' model. A common rule is that values over 10 indicate redundant constraints. I run the VIF procedure iteratively, each time removing the highest VIF and examining the remaining ones until these are mostly below 10.
 
@@ -217,7 +217,7 @@ cap_final <- cap_sel3
 # cap_final <- capscale(spp ~ febRange + febSD + augMean + augRange + augSD + annRange + annSD, data = E3, distance = "jaccard")
 ```
 
-## Assess the model
+## Assess the Model
 
 I calculate the significance of the model, the variance explained by all the constraints (in $E4$) in the final model, as well as the $R^{2}$:
 
@@ -266,13 +266,11 @@ scores(cap_final, display = "bp", choices = c(1:2))
 
 These biplot scores will mark the position of the termini of the arrows that indicate the direction and strength of the constraining variables.
 
-## Ordination diagrams
+## Ordination Diagrams
 
 This code recreates Figure 2a in Smit et al. (2017):
 
-```{r}
-#| fig-width: 8
-#| fig-height: 6
+```{r fig.width=8, fig.height=6}
 # use scaling = 1 or scaling = 2 for site and species scaling, respectively
 cap_final_scrs <- scores(cap_final, display = c("sp", "wa", "lc", "bp"))
 # see ?plot.cca for insight into the use of lc vs wa scores
@@ -305,11 +303,9 @@ ggplot(data = site_scores, aes(x = CAP1, y = CAP2, colour = bioreg)) +
 
 Note that in Smit et al. (2017, Fig. 2a) I plot the linear constraints (lc scores) rather than the site scores (wa scores). The fact that the positioning of the site scores in ordination space in the figure, above, represents a crude map of South Africa corresponding with geographical coordinates (N-E-S-W) is coincidental (yet it can be logically explained). The coenoclines and gradients are clearly discernible, and the west to east numbering of sites and transitioning of one bioregon into the next are obvious. This map-like arrangement of sites disappears when lc scores are used, but the interpretation of how the thermal drivers structure seaweed biodiversity remains the same.
 
-## Dealing with factor variables
+## Factor Variables
 
-```{r}
-#| fig-width: 8
-#| fig-height: 6
+```{r fig.width=8, fig.height=6}
 # retain only significant variables as per `cap_final_sign_ax`
 E5 <- E4[, c(cap_final_sign_ax)]
 # append the bioregs after the thermal vars
@@ -321,9 +317,7 @@ plot(cap_cat)
 
 The default plot works okay and shows all necessary info, but the various pieces (site, species, and centroid scores) are not clearly discernible. Plot the class (factor) centroids in `ggplot()`:
 
-```{r}
-#| fig-width: 8
-#| fig-height: 6
+```{r fig.width=8, fig.height=6}
 # also extractthe factor centroids for the bioregions
 cap_cat_scrs <- scores(cap_cat, display = c("sp", "wa", "lc", "bp", "cn"))
 site_scores <- data.frame(cap_cat_scrs$site) # the wa scores
