@@ -1,0 +1,75 @@
+---
+date: "2024-08-01"
+title: "Detrended Correspondence Analysis (DCA)"
+---
+
+<!--- # Topic 9: Correspondence Analysis (CA) --->
+
+::: callout-tip
+## **Material required for this chapter**
+
+| Type           | Name                                     | Link                                                                              |
+|----------------|------------------------------------------|-----------------------------------------------------------------------------------|
+| **Theory**     | Numerical Ecology in R                   | See pages 139-140                                                                 |
+| **Slides**     | NA                                       |                                                                                   |
+| **Data**       | The Doubs River data                     | [💾 `Doubs.RData`](../data/NEwR-2ed_code_data/NeWR2-Data/Doubs.RData)             |
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to complete in this Chapter
+
+* None
+:::
+
+## About Detrended Correspondence Analysis (DCA) {.unnumbered}
+
+Environmental gradients often support a turnover of species due to their unimodal distributions in response to environmental factors. As one moves along the gradient, contiguous sites become increasingly dissimilar. In long gradients, this can result in sites at opposite ends having no species in common. Consequently, at maximum distances between sites, we typically find completely distinct species compositions.
+
+When plotted on a pair of Correspondence Analysis (CA) axes, this gradient is represented as an arch rather than a linear trend. This phenomenon leads to two major problems in CA:
+
+- The arch effect, caused by unimodal species response curves
+- The compression of the gradient ends
+
+Due to the arch effect, the second CA axis is often an artefact and difficult to interpret ecologically. The compression issue means that the spacing of samples and species along the first axis may not correctly reflect the amount of change ($\beta$-diversity) along the primary gradient. However, the arch effect in CA is less severe than the horseshoe effect in Principal Component Analysis (PCA), and the samples are still ordered correctly relative to each other.
+
+Detrended Correspondence Analysis (DCA) addresses these issues by removing the arch effect through a process called detrending. This helps ensure that the axes better represent the true ecological gradients and gives a more accurate interpretation of species distribution and diversity patterns along environmental gradients.
+
+```{r fig.height=4, fig.width=8 }
+#| fig.align: center
+#| fig.cap: "Comparison of CA and DCA ordinations applied to the dune data."
+#| label: fig-ca-dca
+
+# Load necessary libraries
+library(vegan)
+library(ggplot2)
+library(ggpubr)
+
+# Load example data
+data(dune)
+
+# Perform CA
+ca_result <- cca(dune)
+
+# Perform DCA
+dca_result <- decorana(dune)
+
+# Extract scores for sites
+ca_sites <- scores(ca_result, display = "sites")
+dca_sites <- scores(dca_result, display = "sites")
+
+# Create CA plot
+ca_plot <- ggplot(as.data.frame(ca_sites), aes(x = CA1, y = CA2)) +
+  geom_point(color = 'dodgerblue4', size = 1.8) +
+  labs(title = "CA Ordination Plot (Sites)", x = "CA1", y = "CA2") +
+  theme_linedraw()
+
+# Create DCA plot
+dca_plot <- ggplot(as.data.frame(dca_sites), aes(x = DCA1, y = DCA2)) +
+  geom_point(color = 'indianred4', size = 1.8) +
+  labs(title = "DCA Ordination Plot (Sites)", x = "DCA1", y = "DCA2") +
+  theme_linedraw()
+
+# Arrange plots side by side
+ggarrange(ca_plot, dca_plot, ncol = 2, labels = "AUTO")
+```
+
