@@ -4,14 +4,11 @@ title: "Lab 3. Quantifying Biodiversity"
 subtitle: "The Things we can do with Species Data"
 ---
 
-> ***Biodiversity** The variability among living organisms from all
-> sources including,* inter alia*, terrestrial, marine and other aquatic
-> ecosystems and the ecological complexes of which they are part; this
-> includes diversity within species, between species and of ecosystems.*
->
-> --- International Union for the Conservation of Nature (IUCN), Convention on Biological Diversity
+::: callout-tip
+## To Read Together With This Lab:
 
-The IUCN definition considers a diversity of diversity concepts. This module looks at diversity only at the species level (species diversity). However, we can also approach macroecological problems from phylogenetic and functional (and other) diversity concepts of view. Functional and phylogenetic diversity ideas will be introduced in the [BDC743 module Quantitative Ecology](../BCB743/BCB743_index.qmd).
+- [Lecture 2b: Metrics of Environmental and Species Diversity](L02b-biodiversity.qmd)
+:::
 
 ::: callout-note
 ## BCB743
@@ -20,18 +17,24 @@ The IUCN definition considers a diversity of diversity concepts. This module loo
 :::
 
 ::: callout-tip
-## Data for this Lab
+## Data For This Lab
 
 The seaweed [@smit2017seaweeds] and toy data are at the links below:
 
--   The seaweed species data -- [`SeaweedSpp.csv`](../data/seaweed/SeaweedSpp.csv)
-
--   The seaweed environmental data -- [`SeaweedEnv.csv`](../data/seaweed/SeaweedEnv.csv)
-
--   The seaweed coastal sections -- [`SeaweedSites.csv`](../data/seaweed/SeaweedSites.csv)
-
--   The fictitious light data [`light_levels.csv`](../data/light_levels.csv)
+- The seaweed species data -- [`SeaweedSpp.csv`](../data/seaweed/SeaweedSpp.csv)
+- The seaweed environmental data -- [`SeaweedEnv.csv`](../data/seaweed/SeaweedEnv.csv)
+- The seaweed coastal sections -- [`SeaweedSites.csv`](../data/seaweed/SeaweedSites.csv)
+- The fictitious light data [`light_levels.csv`](../data/light_levels.csv)
 :::
+
+> ***Biodiversity** The variability among living organisms from all
+> sources including,* inter alia*, terrestrial, marine and other aquatic
+> ecosystems and the ecological complexes of which they are part; this
+> includes diversity within species, between species and of ecosystems.*
+>
+> --- International Union for the Conservation of Nature (IUCN), Convention on Biological Diversity
+
+The IUCN definition considers a diversity of diversity concepts. This module looks at diversity only at the species level (species diversity). However, we can also approach macroecological problems from phylogenetic and functional (and other) diversity concepts of view. Functional and phylogenetic diversity ideas will be introduced in the [BDC743 module Quantitative Ecology](../BCB743/BCB743_index.qmd).
 
 ## Preparation
 
@@ -135,21 +138,21 @@ We will work through each in turn.
 
 #### Species Richness, $S$
 
-First, is species richness, which we denote by the symbol $S$. This is the simplest measure of alpha-diversity, counting the number of species (or other taxonomic level) present in a given community or sample. It doesn't consider the abundance of species.
+First, is species richness, which we denote by the symbol $S$. This is the simplest measure of $\alpha$-diversity, counting the number of species (or another taxonomic level) present in a given community or sample. It doesn't consider the abundance of species.
 
-In the seaweed biodiversity data---because we view each coastal section as the local scale (the smallest unit of sampling)---I count the number of species within each of the sections.
+In the seaweed biodiversity data, I count the number of species within each of the sections. This is because we view each coastal section as the local scale (the smallest unit of sampling).
 
 The preferred option for calculating species richness is the
 `specnumber()` function in **vegan**:
 
 ```{r}
-specnumber(spp, MARGIN = 1)
+specnumber(spp, MARGIN = 1) # <1>
 ```
+1. The `MARGIN = 1` argument tells R to calculate the number of species within each row (site).
 
 The data output is easier to understand if we display it as a `tibble()`:
 
 ```{r}
-# Use 'MARGIN = 1' to calculate the number of species within each row (site)
 spp_richness <- tibble(section = 1:58,
                        richness = specnumber(spp, MARGIN = 1))
 head(spp_richness)
@@ -158,12 +161,12 @@ head(spp_richness)
 The `diversityresult()` function in the **BiodiversityR** package can do
 the same (sometimes this package is difficult to install due to various
 software dependencies that might be required for the package to load
-properly--- do not be sad if this method does not work):
+properly---do not be sad if this method does not work):
 
 ```{r, eval=FALSE}
 spp_richness <- diversityresult(spp, index = 'richness',
                                 method = 'each site')
-# spp_richness
+head(spp_richness)
 ```
 
 Now we make a plot seen in @fig-species-richness:
@@ -178,26 +181,19 @@ ggplot(data = spp_richness, (aes(x = 1:58, y = richness))) +
   theme_linedraw()
 ```
 
-In other instances, it makes more sense to calculate the mean species
-richness of all the sampling units (e.g. quadrats) taken inside the
-ecosystem of interest. You will have to decide based on your data.
+In other instances, it makes more sense to calculate the mean species richness of all the sampling units (e.g. quadrats) taken inside the ecosystem of interest. How you calculate and present species richness depend on your research question and so you will have to decide based on your data and study.
 
-The mean species richness is:
+In the seaweed study, the mean ± SD species richness across all of the 58 coastal sections is:
 
 ```{r}
-round(mean(spp_richness$richness), 0)
+round(mean(spp_richness$richness), 2)
+round(sd(spp_richness$richness), 2)
 ```
 
 #### Univariate Diversity Indices
 
-The second way we can express $\alpha$-diversity is to use one of the univariate diversity indices. The choice of which indices to use should be informed by the extent to which one wants to emphasise richness or evenness. Species
+The second way we can express $\alpha$-diversity is to use one of the univariate diversity indices. The choice of which index to use should be informed by the extent to which one wants to emphasise richness or evenness. Species
 richness, $S$, does not consider evenness as it is all about richness (obviously). Simpson's $\lambda$ emphasises evenness a lot more. Shannon's $H'$ is somewhere in the middle.
-
-**Simpson's $\lambda$**, or simply the Simpson index, is a measure that represents the probability that two individuals randomly selected from a sample will belong to the same species. It is calculated as:
-
-$$\displaystyle \lambda = \sum_{i=1}^{S} p_{i}^{2}$$ where $S$ is the
-species richness and $p_{i}$ is the relative abundance of the $i$th
-species.
 
 **Shannon's $H'$** is sometimes called Shannon's diversity, the Shannon-Wiener index, the Shannon-Weaver index, or the Shannon entropy. This is a more nuanced measure that considers both species richness and evenness (how evenly individuals are distributed across different species).
 
@@ -205,16 +201,22 @@ It is calculated as:
 
 $$H' = -\sum_{i=1}^{S} p_{i} \ln p_{i}$$ where $p_{i}$ is the proportion of individuals belonging to the $i$th species, and $S$ is the species richness.
 
+**Simpson's $\lambda$**, or simply the Simpson index, is a measure that represents the probability that two individuals randomly selected from a sample will belong to the same species. It is calculated as:
+
+$$\displaystyle \lambda = \sum_{i=1}^{S} p_{i}^{2}$$ where $S$ is the
+species richness and $p_{i}$ is the relative abundance of the $i$th
+species.
+
 **Fisher's $\alpha$** estimates the $\alpha$ parameter of [Fisher's logarithmic series](03-04-biodiversity.html#species-abundance-distribution) (see functions `fisher.alpha()` and `fisherfit()`). The estimation is possible only for actual counts (i.e. integers) of individuals, so it will not work for per cent cover, biomass, and other measures that real numbers can express. It's especially useful for comparing the diversity of samples with different total abundances. We will get to this function later under [Fisher's logarithmic series](03-04-biodiversity.html#species-abundance-distribution).
 
-Except for Fisher's-$\alpha$, we cannot calculate these for the seaweed data because, in order to do so, we require abundance data---the seaweed data are presence-absence only. Let us load a fictitious dataset of the diversity of three different communities of plants, with each community corresponding to a different light environment (dim, mid, and high light):
+Except for Fisher's-$\alpha$, we cannot calculate these for the seaweed data, because, in order to do so, we require abundance data---the seaweed data are presence-absence only. Let us load a fictitious dataset of the diversity of three different communities of plants, with each community corresponding to a different light environment (dim, mid, and high light):
 
 ```{r}
 light <- read.csv("../data/light_levels.csv")
 light
 ```
 
-We can see above that instead of having data with 1s and 0s for presence-absence, here we have some values that indicate the relative amounts of each of the species in the three light environments. We calculate species richness (as before), and also the Shannon and Simpson indices using **vegan**'s `diversity()` function:
+We can see above that instead of having data with 1s and 0s for presence-absence, here we have some values that indicate the relative number of individuals belonging to each of the species in the three light environments. We calculate species richness (as before), and also the Shannon and Simpson indices using **vegan**'s `diversity()` function:
 
 ```{r}
 light_div <- tibble(
