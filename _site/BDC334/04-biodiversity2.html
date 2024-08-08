@@ -978,6 +978,7 @@ Reading Required For This Lab
 <div class="callout-body-container callout-body">
 <ul>
 <li><a href="../docs/Gotelli_and_Chao_2013.pdf">Gotelli and Chao (2013)</a></li>
+<li><a href="../docs/Matthews_and_Whittaker_2015.pdf">Matthews and Whittaker (2015)</a></li>
 <li><a href="../docs/Shade_et_al_2018.pdf">Shade et al.&nbsp;(2018)</a></li>
 </ul>
 </div>
@@ -1970,312 +1971,313 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb29-28"><a href="#cb29-28"></a><span class="fu">## Reading Required For This Lab</span></span>
 <span id="cb29-29"><a href="#cb29-29"></a></span>
 <span id="cb29-30"><a href="#cb29-30"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Gotelli and Chao (2013)</span><span class="co">](../docs/Gotelli_and_Chao_2013.pdf)</span></span>
-<span id="cb29-31"><a href="#cb29-31"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Shade et al. (2018)</span><span class="co">](../docs/Shade_et_al_2018.pdf)</span></span>
-<span id="cb29-32"><a href="#cb29-32"></a>:::</span>
-<span id="cb29-33"><a href="#cb29-33"></a></span>
+<span id="cb29-31"><a href="#cb29-31"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Matthews and Whittaker (2015)</span><span class="co">](../docs/Matthews_and_Whittaker_2015.pdf)</span></span>
+<span id="cb29-32"><a href="#cb29-32"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Shade et al. (2018)</span><span class="co">](../docs/Shade_et_al_2018.pdf)</span></span>
+<span id="cb29-33"><a href="#cb29-33"></a>:::</span>
 <span id="cb29-34"><a href="#cb29-34"></a></span>
-<span id="cb29-35"><a href="#cb29-35"></a>In this Lab, we will calculate the various species distribution patterns included in the paper by <span class="co">[</span><span class="ot">Shade et al. (2018)</span><span class="co">](../docs/Shade_et_al_2018.pdf)</span>.</span>
-<span id="cb29-36"><a href="#cb29-36"></a></span>
-<span id="cb29-37"><a href="#cb29-37"></a><span class="fu">## The Data</span></span>
-<span id="cb29-38"><a href="#cb29-38"></a></span>
-<span id="cb29-39"><a href="#cb29-39"></a>We will calculate each for the <span class="co">[</span><span class="ot">Barro Colorado Island Tree Counts data</span><span class="co">](https://repository.si.edu/handle/10088/20925)</span> that come with **vegan**. See <span class="in">`?vegan::BCI`</span> for a description of the data contained with the package, as well as a selection of publications relevant to the data and analyses. The primary publication of interest is @condit2002beta.</span>
-<span id="cb29-40"><a href="#cb29-40"></a></span>
-<span id="cb29-43"><a href="#cb29-43"></a><span class="in">```{r}</span></span>
-<span id="cb29-44"><a href="#cb29-44"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb29-45"><a href="#cb29-45"></a><span class="fu">library</span>(vegan)</span>
-<span id="cb29-46"><a href="#cb29-46"></a><span class="in">```</span></span>
-<span id="cb29-47"><a href="#cb29-47"></a></span>
-<span id="cb29-50"><a href="#cb29-50"></a><span class="in">```{r}</span></span>
-<span id="cb29-51"><a href="#cb29-51"></a><span class="co">#library(vegan) # already loaded</span></span>
-<span id="cb29-52"><a href="#cb29-52"></a><span class="co">#library(tidyverse) # already loaded</span></span>
-<span id="cb29-53"><a href="#cb29-53"></a><span class="fu">data</span>(BCI) <span class="co"># data contained within vegan</span></span>
-<span id="cb29-54"><a href="#cb29-54"></a></span>
-<span id="cb29-55"><a href="#cb29-55"></a><span class="co"># make a head-tail function</span></span>
-<span id="cb29-56"><a href="#cb29-56"></a>ht <span class="ot">&lt;-</span> <span class="cf">function</span>(d) <span class="fu">rbind</span>(<span class="fu">head</span>(d, <span class="dv">7</span>), <span class="fu">tail</span>(d, <span class="dv">7</span>))</span>
-<span id="cb29-57"><a href="#cb29-57"></a></span>
-<span id="cb29-58"><a href="#cb29-58"></a><span class="co"># Lets look at a portion of the data:</span></span>
-<span id="cb29-59"><a href="#cb29-59"></a><span class="fu">ht</span>(BCI)[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>]</span>
-<span id="cb29-60"><a href="#cb29-60"></a><span class="in">```</span></span>
-<span id="cb29-61"><a href="#cb29-61"></a></span>
-<span id="cb29-62"><a href="#cb29-62"></a><span class="fu">### Species-Abundance Distribution {#species-abundance-distribution}</span></span>
-<span id="cb29-63"><a href="#cb29-63"></a></span>
-<span id="cb29-64"><a href="#cb29-64"></a>The species abundance distribution (SAD) is a fundamental pattern in ecology. Typical communities have a few species that are very abundant, whereas most of them are quite rare; indeed---this is perhaps a universal law in ecology. SAD represents this relationship graphically by plotting the abundance rank on the $x$-axis and the number of species (or some other taxonomic level) along $y$, as was first done by @fisher1943relation. He then fitted the data by log series that ideally capture situations where most of the species are quite rare with only a few very abundant ones---called **Fisher's log series distribution**---and is implemented in **vegan** by the <span class="in">`fisherfit()`</span> function (@fig-fishers-log). The curve in Fisher's logarithmic series shows the expected number of species $f$ with $n$ observed individuals. In fact, the interpretation of the curve is the same for all species-abundance models shown below, and it is only the math and rationale that differ.</span>
-<span id="cb29-65"><a href="#cb29-65"></a></span>
-<span id="cb29-68"><a href="#cb29-68"></a><span class="in">```{r}</span></span>
-<span id="cb29-69"><a href="#cb29-69"></a><span class="co">#| fig-cap: "Fisher's log series distribution calculated for the Barro Colorado Island Tree Counts data."</span></span>
-<span id="cb29-70"><a href="#cb29-70"></a><span class="co">#| label: fig-fishers-log</span></span>
-<span id="cb29-71"><a href="#cb29-71"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-72"><a href="#cb29-72"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-73"><a href="#cb29-73"></a></span>
-<span id="cb29-74"><a href="#cb29-74"></a><span class="co"># take one random sample of a row (site):</span></span>
-<span id="cb29-75"><a href="#cb29-75"></a><span class="co"># for this website's purpose, this function ensure the same random</span></span>
-<span id="cb29-76"><a href="#cb29-76"></a><span class="co"># sample is drawn each time the web page is recreated</span></span>
-<span id="cb29-77"><a href="#cb29-77"></a><span class="fu">set.seed</span>(<span class="dv">13</span>) </span>
-<span id="cb29-78"><a href="#cb29-78"></a>k <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(BCI), <span class="dv">1</span>)</span>
-<span id="cb29-79"><a href="#cb29-79"></a>fish <span class="ot">&lt;-</span> <span class="fu">fisherfit</span>(BCI[k,])</span>
-<span id="cb29-80"><a href="#cb29-80"></a>fish</span>
-<span id="cb29-81"><a href="#cb29-81"></a><span class="fu">plot</span>(fish)</span>
-<span id="cb29-82"><a href="#cb29-82"></a><span class="in">```</span></span>
-<span id="cb29-83"><a href="#cb29-83"></a></span>
-<span id="cb29-84"><a href="#cb29-84"></a>@preston1948commonness showed that when data from a thoroughly sampled population are transformed into octaves along the $x$-axis (number of species binned into intervals of 1, 2, 4, 8, 16, 32 etc.), the SAD that results is approximated by a symmetric Gaussian distribution. This is because more thorough sampling makes species that occur with a high frequency more common and those that occur only once or are very rare become either less common will remain completely absent. This SAD is called **Preston's log-normal distribution**. In the **vegan** package there is an updated version of Preston's approach with a mathematical improvement to better handle ties. It is called <span class="in">`prestondistr()`</span> (@fig-preston):</span>
-<span id="cb29-85"><a href="#cb29-85"></a></span>
-<span id="cb29-88"><a href="#cb29-88"></a><span class="in">```{r}</span></span>
-<span id="cb29-89"><a href="#cb29-89"></a><span class="co">#| fig-cap: "Preston's log-normal distribution demonstrated for the BCI data."</span></span>
-<span id="cb29-90"><a href="#cb29-90"></a><span class="co">#| label: fig-preston</span></span>
-<span id="cb29-91"><a href="#cb29-91"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-92"><a href="#cb29-92"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-93"><a href="#cb29-93"></a></span>
-<span id="cb29-94"><a href="#cb29-94"></a>pres <span class="ot">&lt;-</span> <span class="fu">prestondistr</span>(BCI[k,])</span>
-<span id="cb29-95"><a href="#cb29-95"></a>pres</span>
-<span id="cb29-96"><a href="#cb29-96"></a><span class="fu">plot</span>(pres)</span>
-<span id="cb29-97"><a href="#cb29-97"></a><span class="in">```</span></span>
-<span id="cb29-98"><a href="#cb29-98"></a></span>
-<span id="cb29-99"><a href="#cb29-99"></a>@whittaker1965dominance introduced **rank abundance distribution curves** (RAD; sometimes called a dominance-diversity curve or Whittaker plots). Here the $x$-axis has species ranked according to their relative abundance, with the most abundant species at the left and rarest at the right. The $y$-axis represents relative species abundances (sometimes log-transformed). The shape of the profile as---influenced by the steepness and the length of the tail---indicates the relative proportion of abundant and scarce species in the community. In **vegan** we can accomplish fitting this type of SAD with the <span class="in">`radfit()`</span> function. The default plot is somewhat more complicated as it shows broken-stick, preemption, log-Normal, Zipf and Zipf-Mandelbrot models fitted to the ranked species abundance data (@fig-rad):</span>
-<span id="cb29-100"><a href="#cb29-100"></a></span>
-<span id="cb29-103"><a href="#cb29-103"></a><span class="in">```{r}</span></span>
-<span id="cb29-104"><a href="#cb29-104"></a><span class="co">#| fig-cap: "Whittaker's rank abundance distribution curves demonstrated for the BCI data."</span></span>
-<span id="cb29-105"><a href="#cb29-105"></a><span class="co">#| label: fig-rad</span></span>
-<span id="cb29-106"><a href="#cb29-106"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-107"><a href="#cb29-107"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-108"><a href="#cb29-108"></a></span>
-<span id="cb29-109"><a href="#cb29-109"></a>rad <span class="ot">&lt;-</span> <span class="fu">radfit</span>(BCI[k,])</span>
-<span id="cb29-110"><a href="#cb29-110"></a>rad</span>
-<span id="cb29-111"><a href="#cb29-111"></a><span class="fu">plot</span>(rad)</span>
-<span id="cb29-112"><a href="#cb29-112"></a><span class="in">```</span></span>
-<span id="cb29-113"><a href="#cb29-113"></a></span>
-<span id="cb29-114"><a href="#cb29-114"></a>We can also fit the rank abundance distribution curves to several sites at once (previously we have done so on only one site) (@fig-rad2):</span>
-<span id="cb29-115"><a href="#cb29-115"></a></span>
-<span id="cb29-118"><a href="#cb29-118"></a><span class="in">```{r}</span></span>
-<span id="cb29-119"><a href="#cb29-119"></a><span class="co">#| fig-cap: "Rank abundance distribution curves fitted to several sites."</span></span>
-<span id="cb29-120"><a href="#cb29-120"></a><span class="co">#| label: fig-rad2</span></span>
-<span id="cb29-121"><a href="#cb29-121"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-122"><a href="#cb29-122"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-123"><a href="#cb29-123"></a></span>
-<span id="cb29-124"><a href="#cb29-124"></a>m <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(BCI), <span class="dv">6</span>)</span>
-<span id="cb29-125"><a href="#cb29-125"></a>rad2 <span class="ot">&lt;-</span> <span class="fu">radfit</span>(BCI[m, ])</span>
-<span id="cb29-126"><a href="#cb29-126"></a>rad2</span>
-<span id="cb29-127"><a href="#cb29-127"></a><span class="fu">plot</span>(rad2)</span>
-<span id="cb29-128"><a href="#cb29-128"></a><span class="in">```</span></span>
-<span id="cb29-129"><a href="#cb29-129"></a></span>
-<span id="cb29-130"><a href="#cb29-130"></a>Above, we see that the model selected for capturing the shape of the SAD is the Mandelbrot, and it is plotted individually for each of the randomly selected sites. Model selection works through Akaike’s or Schwartz’s Bayesian information criteria (AIC or BIC; AIC is the default---select the model with the lowest AIC).</span>
-<span id="cb29-131"><a href="#cb29-131"></a></span>
-<span id="cb29-132"><a href="#cb29-132"></a><span class="co">[</span><span class="ot">**BiodiversityR**</span><span class="co">](https://github.com/cran/BiodiversityR)</span> (and <span class="co">[</span><span class="ot">here</span><span class="co">](http://apps.worldagroforestry.org/downloads/Publications/PDFS/b13695.pdf)</span> and <span class="co">[</span><span class="ot">here</span><span class="co">](https://rpubs.com/Roeland-KINDT)</span>) also offers options for rank abundance distribution curves; see <span class="in">`rankabundance()`</span> (@fig-rac):</span>
-<span id="cb29-133"><a href="#cb29-133"></a></span>
-<span id="cb29-136"><a href="#cb29-136"></a><span class="in">```{r}</span></span>
-<span id="cb29-137"><a href="#cb29-137"></a><span class="co">#| fig-cap: "Rank-abundance curves for the BCI data."</span></span>
-<span id="cb29-138"><a href="#cb29-138"></a><span class="co">#| label: fig-rac</span></span>
-<span id="cb29-139"><a href="#cb29-139"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-140"><a href="#cb29-140"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-141"><a href="#cb29-141"></a></span>
-<span id="cb29-142"><a href="#cb29-142"></a><span class="fu">library</span>(BiodiversityR)</span>
-<span id="cb29-143"><a href="#cb29-143"></a>rankabund <span class="ot">&lt;-</span> <span class="fu">rankabundance</span>(BCI)</span>
-<span id="cb29-144"><a href="#cb29-144"></a><span class="fu">rankabunplot</span>(rankabund, <span class="at">cex =</span> <span class="fl">0.8</span>, <span class="at">pch =</span> <span class="fl">0.8</span>, <span class="at">col =</span> <span class="st">"indianred4"</span>)</span>
-<span id="cb29-145"><a href="#cb29-145"></a><span class="in">```</span></span>
-<span id="cb29-146"><a href="#cb29-146"></a></span>
-<span id="cb29-147"><a href="#cb29-147"></a>Refer to the help files for the respective functions to see their differences.</span>
-<span id="cb29-148"><a href="#cb29-148"></a></span>
-<span id="cb29-149"><a href="#cb29-149"></a><span class="fu">### Occupancy-Abundance Curves</span></span>
-<span id="cb29-150"><a href="#cb29-150"></a></span>
-<span id="cb29-151"><a href="#cb29-151"></a>Occupancy refers to the number or proportion of sites in which a species is detected. Occupancy-abundance relationships are used to infer niche specialisation patterns in the sampling region. The hypothesis (almost a theory) is that species that tend to have high local abundance within one site also tend to occupy many other sites (@fig-occupancy).</span>
-<span id="cb29-152"><a href="#cb29-152"></a></span>
-<span id="cb29-155"><a href="#cb29-155"></a><span class="in">```{r}</span></span>
-<span id="cb29-156"><a href="#cb29-156"></a><span class="co">#| fig-cap: "Occupancy-abundance relationships seen in the BCI data."</span></span>
-<span id="cb29-157"><a href="#cb29-157"></a><span class="co">#| label: fig-occupancy</span></span>
-<span id="cb29-158"><a href="#cb29-158"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-159"><a href="#cb29-159"></a><span class="co">#| fig-height: 3</span></span>
-<span id="cb29-160"><a href="#cb29-160"></a></span>
-<span id="cb29-161"><a href="#cb29-161"></a><span class="fu">library</span>(ggpubr)</span>
-<span id="cb29-162"><a href="#cb29-162"></a></span>
-<span id="cb29-163"><a href="#cb29-163"></a><span class="co"># A function for counts:</span></span>
-<span id="cb29-164"><a href="#cb29-164"></a><span class="co"># count number of non-zero elements per column</span></span>
-<span id="cb29-165"><a href="#cb29-165"></a>count_fun <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb29-166"><a href="#cb29-166"></a>  <span class="fu">length</span>(x[x <span class="sc">&gt;</span> <span class="dv">0</span>])</span>
-<span id="cb29-167"><a href="#cb29-167"></a>}</span>
-<span id="cb29-168"><a href="#cb29-168"></a></span>
-<span id="cb29-169"><a href="#cb29-169"></a>BCI_OA <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">occ =</span> <span class="fu">apply</span>(BCI, <span class="at">MARGIN =</span> <span class="dv">2</span>, count_fun),</span>
-<span id="cb29-170"><a href="#cb29-170"></a>                     <span class="at">ab =</span> <span class="fu">apply</span>(BCI, <span class="at">MARGIN =</span> <span class="dv">2</span>, mean))</span>
-<span id="cb29-171"><a href="#cb29-171"></a></span>
-<span id="cb29-172"><a href="#cb29-172"></a><span class="fu">ggplot</span>(BCI_OA, <span class="fu">aes</span>(<span class="at">x =</span> ab, <span class="at">y =</span> occ<span class="sc">/</span><span class="fu">max</span>(occ))) <span class="sc">+</span></span>
-<span id="cb29-173"><a href="#cb29-173"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"indianred3"</span>) <span class="sc">+</span></span>
-<span id="cb29-174"><a href="#cb29-174"></a>  <span class="fu">scale_x_log10</span>() <span class="sc">+</span></span>
-<span id="cb29-175"><a href="#cb29-175"></a>  <span class="co"># scale_y_log10() +</span></span>
-<span id="cb29-176"><a href="#cb29-176"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Barro Colorado Island Tree Counts"</span>,</span>
-<span id="cb29-177"><a href="#cb29-177"></a>     <span class="at">x =</span> <span class="st">"Log (abundance)"</span>, <span class="at">y =</span> <span class="st">"Occupancy"</span>) <span class="sc">+</span></span>
-<span id="cb29-178"><a href="#cb29-178"></a>  <span class="fu">theme_linedraw</span>()</span>
-<span id="cb29-179"><a href="#cb29-179"></a><span class="in">```</span></span>
-<span id="cb29-180"><a href="#cb29-180"></a></span>
-<span id="cb29-181"><a href="#cb29-181"></a><span class="fu">### Species-Area (Accumulation)</span></span>
-<span id="cb29-182"><a href="#cb29-182"></a></span>
-<span id="cb29-183"><a href="#cb29-183"></a>Species accumulation curves (species area relationships, SAR) try and estimate the number of unseen species. These curves can be used to predict and compare changes in diversity over increasing spatial extent. Within an ecosystem type, one would expect that more and more species would be added (accumulates) as the number of sampled sites increases (i.e. extent increases). This continues to a point where no more new species are added as the number of sampled sites continues to increase (i.e. the curve plateaus). Species accumulation curves, as the name suggests, accomplishes this by adding (accumulation or collecting) more and more sites and counting the average number of species along $y$ each time a new site is added. See Roeland Kindt's description of <span class="co">[</span><span class="ot">how species accumulation curves work</span><span class="co">](http://apps.worldagroforestry.org/downloads/Publications/PDFS/b13695.pdf)</span> (on p. 41). In the community matrix (the sites × species table), we can do this by successively adding more rows to the curve (seen along the $x$-axis). The <span class="in">`specaccum()`</span> function has many different ways of adding the new sites to the curve, but the default 'exact' seems to be a sensible choice. **BiodiversityR** has the `accumresult()` function that does nearly the same. Let's demonstrate using **vegan**'s function (@fig-accum, @fig-accum2, and @fig-accum3):</span>
-<span id="cb29-184"><a href="#cb29-184"></a></span>
-<span id="cb29-187"><a href="#cb29-187"></a><span class="in">```{r}</span></span>
-<span id="cb29-188"><a href="#cb29-188"></a><span class="co">#| fig-cap: "Species-area accumulation curves seen in the BCI data."</span></span>
-<span id="cb29-189"><a href="#cb29-189"></a><span class="co">#| label: fig-accum</span></span>
-<span id="cb29-190"><a href="#cb29-190"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-191"><a href="#cb29-191"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-192"><a href="#cb29-192"></a></span>
-<span id="cb29-193"><a href="#cb29-193"></a>sp1 <span class="ot">&lt;-</span> <span class="fu">specaccum</span>(BCI)</span>
-<span id="cb29-194"><a href="#cb29-194"></a>sp2 <span class="ot">&lt;-</span> <span class="fu">specaccum</span>(BCI, <span class="st">"random"</span>)</span>
-<span id="cb29-195"><a href="#cb29-195"></a></span>
-<span id="cb29-196"><a href="#cb29-196"></a><span class="co"># par(mfrow = c(2,2), mar = c(4,2,2,1))</span></span>
-<span id="cb29-197"><a href="#cb29-197"></a><span class="co"># par(mfrow = c(1,2))</span></span>
-<span id="cb29-198"><a href="#cb29-198"></a><span class="fu">plot</span>(sp1, <span class="at">ci.type =</span> <span class="st">"polygon"</span>, <span class="at">col =</span> <span class="st">"indianred4"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">ci.lty =</span> <span class="dv">0</span>,</span>
-<span id="cb29-199"><a href="#cb29-199"></a>     <span class="at">ci.col =</span> <span class="st">"steelblue2"</span>, <span class="at">main =</span> <span class="st">"Default: exact"</span>,</span>
-<span id="cb29-200"><a href="#cb29-200"></a>     <span class="at">ylab =</span> <span class="st">"No. of species"</span>)</span>
-<span id="cb29-201"><a href="#cb29-201"></a><span class="in">```</span></span>
-<span id="cb29-202"><a href="#cb29-202"></a></span>
-<span id="cb29-205"><a href="#cb29-205"></a><span class="in">```{r}</span></span>
-<span id="cb29-206"><a href="#cb29-206"></a><span class="co">#| fig-cap: "Fit Arrhenius models to all random accumulations"</span></span>
-<span id="cb29-207"><a href="#cb29-207"></a><span class="co">#| label: fig-accum2</span></span>
-<span id="cb29-208"><a href="#cb29-208"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-209"><a href="#cb29-209"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-210"><a href="#cb29-210"></a></span>
-<span id="cb29-211"><a href="#cb29-211"></a>mods <span class="ot">&lt;-</span> <span class="fu">fitspecaccum</span>(sp2, <span class="st">"arrh"</span>)</span>
-<span id="cb29-212"><a href="#cb29-212"></a><span class="fu">plot</span>(mods, <span class="at">col =</span> <span class="st">"indianred"</span>, <span class="at">ylab =</span> <span class="st">"No. of species"</span>)</span>
-<span id="cb29-213"><a href="#cb29-213"></a><span class="fu">boxplot</span>(sp2, <span class="at">col =</span> <span class="st">"yellow"</span>, <span class="at">border =</span> <span class="st">"steelblue2"</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.3</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb29-214"><a href="#cb29-214"></a><span class="fu">sapply</span>(mods<span class="sc">$</span>models, AIC)</span>
-<span id="cb29-215"><a href="#cb29-215"></a><span class="in">```</span></span>
-<span id="cb29-216"><a href="#cb29-216"></a></span>
-<span id="cb29-219"><a href="#cb29-219"></a><span class="in">```{r}</span></span>
-<span id="cb29-220"><a href="#cb29-220"></a><span class="co">#| fig-cap: "A species accumulation curve."</span></span>
-<span id="cb29-221"><a href="#cb29-221"></a><span class="co">#| label: fig-accum3</span></span>
-<span id="cb29-222"><a href="#cb29-222"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-223"><a href="#cb29-223"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-224"><a href="#cb29-224"></a></span>
-<span id="cb29-225"><a href="#cb29-225"></a>accum <span class="ot">&lt;-</span> <span class="fu">accumresult</span>(BCI, <span class="at">method =</span> <span class="st">"exact"</span>, <span class="at">permutations =</span> <span class="dv">100</span>)</span>
-<span id="cb29-226"><a href="#cb29-226"></a><span class="fu">accumplot</span>(accum)</span>
-<span id="cb29-227"><a href="#cb29-227"></a><span class="in">```</span></span>
-<span id="cb29-228"><a href="#cb29-228"></a></span>
-<span id="cb29-229"><a href="#cb29-229"></a>Species accumulation curves can also be calculated with the <span class="in">`alpha.accum()`</span> function of the **BAT** package (@fig-accum4). In addition, the **BAT** package can also apply various diversity and species distribution assessments to **phylogenetic** and **functional** diversity. See the examples provided by @cardoso2015bat.</span>
-<span id="cb29-230"><a href="#cb29-230"></a></span>
-<span id="cb29-233"><a href="#cb29-233"></a><span class="in">```{r}</span></span>
-<span id="cb29-234"><a href="#cb29-234"></a><span class="co">#| fig-cap: "A species accumulation curve made with the `alpha.accum()` function of **BAT**."</span></span>
-<span id="cb29-235"><a href="#cb29-235"></a><span class="co">#| label: fig-accum4</span></span>
-<span id="cb29-236"><a href="#cb29-236"></a><span class="co">#| fig-width: 10</span></span>
-<span id="cb29-237"><a href="#cb29-237"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-238"><a href="#cb29-238"></a></span>
-<span id="cb29-239"><a href="#cb29-239"></a><span class="fu">library</span>(BAT)</span>
-<span id="cb29-240"><a href="#cb29-240"></a>BCI.acc <span class="ot">&lt;-</span> <span class="fu">alpha.accum</span>(BCI, <span class="at">prog =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb29-241"><a href="#cb29-241"></a></span>
-<span id="cb29-242"><a href="#cb29-242"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb29-243"><a href="#cb29-243"></a><span class="fu">plot</span>(BCI.acc[,<span class="dv">2</span>], BCI.acc[,<span class="dv">17</span>], <span class="at">col =</span> <span class="st">"indianred"</span>,</span>
-<span id="cb29-244"><a href="#cb29-244"></a>     <span class="at">xlab =</span> <span class="st">"Individuals"</span>, <span class="at">ylab =</span> <span class="st">"Chao1P"</span>)</span>
-<span id="cb29-245"><a href="#cb29-245"></a><span class="fu">plot</span>(BCI.acc[,<span class="dv">2</span>], <span class="fu">slope</span>(BCI.acc)[,<span class="dv">17</span>], <span class="at">col =</span> <span class="st">"indianred"</span>,</span>
-<span id="cb29-246"><a href="#cb29-246"></a>     <span class="at">xlab =</span> <span class="st">"Individuals"</span>, <span class="at">ylab =</span> <span class="st">"Slope"</span>)</span>
-<span id="cb29-247"><a href="#cb29-247"></a><span class="in">```</span></span>
-<span id="cb29-248"><a href="#cb29-248"></a></span>
-<span id="cb29-249"><a href="#cb29-249"></a><span class="fu">### Rarefaction Curves</span></span>
-<span id="cb29-250"><a href="#cb29-250"></a></span>
-<span id="cb29-251"><a href="#cb29-251"></a>Like species accumulation curves, rarefaction curves also try to estimate the number of unseen species. Rarefaction, meaning to scale down <span class="co">[</span><span class="ot">@heck1975explicit</span><span class="co">]</span>, is a statistical technique used by ecologists to assess species richness (represented as *S*, or diversity indices such as Shannon diversity, $H'$, or Simpson's diversity, $\lambda$) from data on species samples, such as that which we may find in site × species tables. Rarefaction can be used to determine whether a habitat, community, or ecosystem has been sufficiently sampled to fully capture the full complement of species present.</span>
-<span id="cb29-252"><a href="#cb29-252"></a></span>
-<span id="cb29-253"><a href="#cb29-253"></a>Rarefaction curves may seem similar to species accumulation curves, but there is a difference as I will note below. Species richness, *S*, accumulates with sample size *or* with the number of individuals sampled (across all species). The first way that rarefaction curves are presented is to show species richness as a function of number of individuals sampled. Here the principle demonstrated is that when only a few individuals are sampled, those individuals may belong to only a few species; however, when more individuals are present more species will be represented. The second approach to rarefaction is to plot the number of samples along $x$ and the species richness along the $y$-axis (as in SADs too). So, rarefaction shows how richness accumulates with the number of individuals counted or with the number of samples taken. Rarefaction curves rise rapidly at the start when few species have been sampled and the most common species have been found; the slope then decreases and eventually plateaus suggesting that the rarest species remain to be sampled.</span>
-<span id="cb29-254"><a href="#cb29-254"></a></span>
-<span id="cb29-255"><a href="#cb29-255"></a>But what really distinguishes rarefaction curves from SADs is that rarefaction randomly re-samples the pool of $N$ samples (that is equal or less than the total community size) a number of times, $n$, and plots the average number of species found in each resample (1,2, ..., $n$) as a function of individuals or samples. The <span class="in">`rarecurve()`</span> function draws a rarefaction curve for each row of the species data table. All these plots are made with base R graphics <span class="co">[</span><span class="ot">@fig-rarefy</span><span class="co">]</span>, but it will be a trivial exercise to reproduce them with **ggplot2**.</span>
-<span id="cb29-256"><a href="#cb29-256"></a></span>
-<span id="cb29-259"><a href="#cb29-259"></a><span class="in">```{r}</span></span>
-<span id="cb29-260"><a href="#cb29-260"></a><span class="co">#| fig-cap: "Rarefaction curves for the BCI data."</span></span>
-<span id="cb29-261"><a href="#cb29-261"></a><span class="co">#| label: fig-rarefy</span></span>
-<span id="cb29-262"><a href="#cb29-262"></a><span class="co">#| fig-width: 10</span></span>
-<span id="cb29-263"><a href="#cb29-263"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-264"><a href="#cb29-264"></a></span>
-<span id="cb29-265"><a href="#cb29-265"></a><span class="co"># Example provided in ?vegan::rarefy</span></span>
-<span id="cb29-266"><a href="#cb29-266"></a><span class="co"># observed number of species per row (site)</span></span>
-<span id="cb29-267"><a href="#cb29-267"></a>S <span class="ot">&lt;-</span> <span class="fu">specnumber</span>(BCI) </span>
-<span id="cb29-268"><a href="#cb29-268"></a></span>
-<span id="cb29-269"><a href="#cb29-269"></a><span class="co"># calculate total no. individuals sampled per row, and find the minimum</span></span>
-<span id="cb29-270"><a href="#cb29-270"></a>(raremax <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">rowSums</span>(BCI)))</span>
-<span id="cb29-271"><a href="#cb29-271"></a></span>
-<span id="cb29-272"><a href="#cb29-272"></a>Srare <span class="ot">&lt;-</span> <span class="fu">rarefy</span>(BCI, raremax, <span class="at">se =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb29-273"><a href="#cb29-273"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb29-274"><a href="#cb29-274"></a><span class="fu">plot</span>(S, Srare, <span class="at">col =</span> <span class="st">"indianred3"</span>,</span>
-<span id="cb29-275"><a href="#cb29-275"></a>     <span class="at">xlab =</span> <span class="st">"Sample size</span><span class="sc">\n</span><span class="st">(observed no. of individuals)"</span>, <span class="at">ylab =</span> <span class="st">"No. species found"</span>)</span>
-<span id="cb29-276"><a href="#cb29-276"></a><span class="fu">rarecurve</span>(BCI, <span class="at">step =</span> <span class="dv">20</span>, <span class="at">sample =</span> raremax, <span class="at">col =</span> <span class="st">"indianred3"</span>, <span class="at">cex =</span> <span class="fl">0.6</span>,</span>
-<span id="cb29-277"><a href="#cb29-277"></a>          <span class="at">xlab =</span> <span class="st">"Sample size</span><span class="sc">\n</span><span class="st">(observed no. of individuals)"</span>, <span class="at">ylab =</span> <span class="st">"No. species found"</span>)</span>
-<span id="cb29-278"><a href="#cb29-278"></a><span class="in">```</span></span>
-<span id="cb29-279"><a href="#cb29-279"></a></span>
+<span id="cb29-35"><a href="#cb29-35"></a></span>
+<span id="cb29-36"><a href="#cb29-36"></a>In this Lab, we will calculate the various species distribution patterns included in the paper by <span class="co">[</span><span class="ot">Shade et al. (2018)</span><span class="co">](../docs/Shade_et_al_2018.pdf)</span>.</span>
+<span id="cb29-37"><a href="#cb29-37"></a></span>
+<span id="cb29-38"><a href="#cb29-38"></a><span class="fu">## The Data</span></span>
+<span id="cb29-39"><a href="#cb29-39"></a></span>
+<span id="cb29-40"><a href="#cb29-40"></a>We will calculate each for the <span class="co">[</span><span class="ot">Barro Colorado Island Tree Counts data</span><span class="co">](https://repository.si.edu/handle/10088/20925)</span> that come with **vegan**. See <span class="in">`?vegan::BCI`</span> for a description of the data contained with the package, as well as a selection of publications relevant to the data and analyses. The primary publication of interest is @condit2002beta.</span>
+<span id="cb29-41"><a href="#cb29-41"></a></span>
+<span id="cb29-44"><a href="#cb29-44"></a><span class="in">```{r}</span></span>
+<span id="cb29-45"><a href="#cb29-45"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb29-46"><a href="#cb29-46"></a><span class="fu">library</span>(vegan)</span>
+<span id="cb29-47"><a href="#cb29-47"></a><span class="in">```</span></span>
+<span id="cb29-48"><a href="#cb29-48"></a></span>
+<span id="cb29-51"><a href="#cb29-51"></a><span class="in">```{r}</span></span>
+<span id="cb29-52"><a href="#cb29-52"></a><span class="co">#library(vegan) # already loaded</span></span>
+<span id="cb29-53"><a href="#cb29-53"></a><span class="co">#library(tidyverse) # already loaded</span></span>
+<span id="cb29-54"><a href="#cb29-54"></a><span class="fu">data</span>(BCI) <span class="co"># data contained within vegan</span></span>
+<span id="cb29-55"><a href="#cb29-55"></a></span>
+<span id="cb29-56"><a href="#cb29-56"></a><span class="co"># make a head-tail function</span></span>
+<span id="cb29-57"><a href="#cb29-57"></a>ht <span class="ot">&lt;-</span> <span class="cf">function</span>(d) <span class="fu">rbind</span>(<span class="fu">head</span>(d, <span class="dv">7</span>), <span class="fu">tail</span>(d, <span class="dv">7</span>))</span>
+<span id="cb29-58"><a href="#cb29-58"></a></span>
+<span id="cb29-59"><a href="#cb29-59"></a><span class="co"># Lets look at a portion of the data:</span></span>
+<span id="cb29-60"><a href="#cb29-60"></a><span class="fu">ht</span>(BCI)[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>]</span>
+<span id="cb29-61"><a href="#cb29-61"></a><span class="in">```</span></span>
+<span id="cb29-62"><a href="#cb29-62"></a></span>
+<span id="cb29-63"><a href="#cb29-63"></a><span class="fu">### Species-Abundance Distribution {#species-abundance-distribution}</span></span>
+<span id="cb29-64"><a href="#cb29-64"></a></span>
+<span id="cb29-65"><a href="#cb29-65"></a>The species abundance distribution (SAD) is a fundamental pattern in ecology. Typical communities have a few species that are very abundant, whereas most of them are quite rare; indeed---this is perhaps a universal law in ecology. SAD represents this relationship graphically by plotting the abundance rank on the $x$-axis and the number of species (or some other taxonomic level) along $y$, as was first done by @fisher1943relation. He then fitted the data by log series that ideally capture situations where most of the species are quite rare with only a few very abundant ones---called **Fisher's log series distribution**---and is implemented in **vegan** by the <span class="in">`fisherfit()`</span> function (@fig-fishers-log). The curve in Fisher's logarithmic series shows the expected number of species $f$ with $n$ observed individuals. In fact, the interpretation of the curve is the same for all species-abundance models shown below, and it is only the math and rationale that differ.</span>
+<span id="cb29-66"><a href="#cb29-66"></a></span>
+<span id="cb29-69"><a href="#cb29-69"></a><span class="in">```{r}</span></span>
+<span id="cb29-70"><a href="#cb29-70"></a><span class="co">#| fig-cap: "Fisher's log series distribution calculated for the Barro Colorado Island Tree Counts data."</span></span>
+<span id="cb29-71"><a href="#cb29-71"></a><span class="co">#| label: fig-fishers-log</span></span>
+<span id="cb29-72"><a href="#cb29-72"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-73"><a href="#cb29-73"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-74"><a href="#cb29-74"></a></span>
+<span id="cb29-75"><a href="#cb29-75"></a><span class="co"># take one random sample of a row (site):</span></span>
+<span id="cb29-76"><a href="#cb29-76"></a><span class="co"># for this website's purpose, this function ensure the same random</span></span>
+<span id="cb29-77"><a href="#cb29-77"></a><span class="co"># sample is drawn each time the web page is recreated</span></span>
+<span id="cb29-78"><a href="#cb29-78"></a><span class="fu">set.seed</span>(<span class="dv">13</span>) </span>
+<span id="cb29-79"><a href="#cb29-79"></a>k <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(BCI), <span class="dv">1</span>)</span>
+<span id="cb29-80"><a href="#cb29-80"></a>fish <span class="ot">&lt;-</span> <span class="fu">fisherfit</span>(BCI[k,])</span>
+<span id="cb29-81"><a href="#cb29-81"></a>fish</span>
+<span id="cb29-82"><a href="#cb29-82"></a><span class="fu">plot</span>(fish)</span>
+<span id="cb29-83"><a href="#cb29-83"></a><span class="in">```</span></span>
+<span id="cb29-84"><a href="#cb29-84"></a></span>
+<span id="cb29-85"><a href="#cb29-85"></a>@preston1948commonness showed that when data from a thoroughly sampled population are transformed into octaves along the $x$-axis (number of species binned into intervals of 1, 2, 4, 8, 16, 32 etc.), the SAD that results is approximated by a symmetric Gaussian distribution. This is because more thorough sampling makes species that occur with a high frequency more common and those that occur only once or are very rare become either less common will remain completely absent. This SAD is called **Preston's log-normal distribution**. In the **vegan** package there is an updated version of Preston's approach with a mathematical improvement to better handle ties. It is called <span class="in">`prestondistr()`</span> (@fig-preston):</span>
+<span id="cb29-86"><a href="#cb29-86"></a></span>
+<span id="cb29-89"><a href="#cb29-89"></a><span class="in">```{r}</span></span>
+<span id="cb29-90"><a href="#cb29-90"></a><span class="co">#| fig-cap: "Preston's log-normal distribution demonstrated for the BCI data."</span></span>
+<span id="cb29-91"><a href="#cb29-91"></a><span class="co">#| label: fig-preston</span></span>
+<span id="cb29-92"><a href="#cb29-92"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-93"><a href="#cb29-93"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-94"><a href="#cb29-94"></a></span>
+<span id="cb29-95"><a href="#cb29-95"></a>pres <span class="ot">&lt;-</span> <span class="fu">prestondistr</span>(BCI[k,])</span>
+<span id="cb29-96"><a href="#cb29-96"></a>pres</span>
+<span id="cb29-97"><a href="#cb29-97"></a><span class="fu">plot</span>(pres)</span>
+<span id="cb29-98"><a href="#cb29-98"></a><span class="in">```</span></span>
+<span id="cb29-99"><a href="#cb29-99"></a></span>
+<span id="cb29-100"><a href="#cb29-100"></a>@whittaker1965dominance introduced **rank abundance distribution curves** (RAD; sometimes called a dominance-diversity curve or Whittaker plots). Here the $x$-axis has species ranked according to their relative abundance, with the most abundant species at the left and rarest at the right. The $y$-axis represents relative species abundances (sometimes log-transformed). The shape of the profile as---influenced by the steepness and the length of the tail---indicates the relative proportion of abundant and scarce species in the community. In **vegan** we can accomplish fitting this type of SAD with the <span class="in">`radfit()`</span> function. The default plot is somewhat more complicated as it shows broken-stick, preemption, log-Normal, Zipf and Zipf-Mandelbrot models fitted to the ranked species abundance data (@fig-rad):</span>
+<span id="cb29-101"><a href="#cb29-101"></a></span>
+<span id="cb29-104"><a href="#cb29-104"></a><span class="in">```{r}</span></span>
+<span id="cb29-105"><a href="#cb29-105"></a><span class="co">#| fig-cap: "Whittaker's rank abundance distribution curves demonstrated for the BCI data."</span></span>
+<span id="cb29-106"><a href="#cb29-106"></a><span class="co">#| label: fig-rad</span></span>
+<span id="cb29-107"><a href="#cb29-107"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-108"><a href="#cb29-108"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-109"><a href="#cb29-109"></a></span>
+<span id="cb29-110"><a href="#cb29-110"></a>rad <span class="ot">&lt;-</span> <span class="fu">radfit</span>(BCI[k,])</span>
+<span id="cb29-111"><a href="#cb29-111"></a>rad</span>
+<span id="cb29-112"><a href="#cb29-112"></a><span class="fu">plot</span>(rad)</span>
+<span id="cb29-113"><a href="#cb29-113"></a><span class="in">```</span></span>
+<span id="cb29-114"><a href="#cb29-114"></a></span>
+<span id="cb29-115"><a href="#cb29-115"></a>We can also fit the rank abundance distribution curves to several sites at once (previously we have done so on only one site) (@fig-rad2):</span>
+<span id="cb29-116"><a href="#cb29-116"></a></span>
+<span id="cb29-119"><a href="#cb29-119"></a><span class="in">```{r}</span></span>
+<span id="cb29-120"><a href="#cb29-120"></a><span class="co">#| fig-cap: "Rank abundance distribution curves fitted to several sites."</span></span>
+<span id="cb29-121"><a href="#cb29-121"></a><span class="co">#| label: fig-rad2</span></span>
+<span id="cb29-122"><a href="#cb29-122"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-123"><a href="#cb29-123"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-124"><a href="#cb29-124"></a></span>
+<span id="cb29-125"><a href="#cb29-125"></a>m <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(BCI), <span class="dv">6</span>)</span>
+<span id="cb29-126"><a href="#cb29-126"></a>rad2 <span class="ot">&lt;-</span> <span class="fu">radfit</span>(BCI[m, ])</span>
+<span id="cb29-127"><a href="#cb29-127"></a>rad2</span>
+<span id="cb29-128"><a href="#cb29-128"></a><span class="fu">plot</span>(rad2)</span>
+<span id="cb29-129"><a href="#cb29-129"></a><span class="in">```</span></span>
+<span id="cb29-130"><a href="#cb29-130"></a></span>
+<span id="cb29-131"><a href="#cb29-131"></a>Above, we see that the model selected for capturing the shape of the SAD is the Mandelbrot, and it is plotted individually for each of the randomly selected sites. Model selection works through Akaike’s or Schwartz’s Bayesian information criteria (AIC or BIC; AIC is the default---select the model with the lowest AIC).</span>
+<span id="cb29-132"><a href="#cb29-132"></a></span>
+<span id="cb29-133"><a href="#cb29-133"></a><span class="co">[</span><span class="ot">**BiodiversityR**</span><span class="co">](https://github.com/cran/BiodiversityR)</span> (and <span class="co">[</span><span class="ot">here</span><span class="co">](http://apps.worldagroforestry.org/downloads/Publications/PDFS/b13695.pdf)</span> and <span class="co">[</span><span class="ot">here</span><span class="co">](https://rpubs.com/Roeland-KINDT)</span>) also offers options for rank abundance distribution curves; see <span class="in">`rankabundance()`</span> (@fig-rac):</span>
+<span id="cb29-134"><a href="#cb29-134"></a></span>
+<span id="cb29-137"><a href="#cb29-137"></a><span class="in">```{r}</span></span>
+<span id="cb29-138"><a href="#cb29-138"></a><span class="co">#| fig-cap: "Rank-abundance curves for the BCI data."</span></span>
+<span id="cb29-139"><a href="#cb29-139"></a><span class="co">#| label: fig-rac</span></span>
+<span id="cb29-140"><a href="#cb29-140"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-141"><a href="#cb29-141"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-142"><a href="#cb29-142"></a></span>
+<span id="cb29-143"><a href="#cb29-143"></a><span class="fu">library</span>(BiodiversityR)</span>
+<span id="cb29-144"><a href="#cb29-144"></a>rankabund <span class="ot">&lt;-</span> <span class="fu">rankabundance</span>(BCI)</span>
+<span id="cb29-145"><a href="#cb29-145"></a><span class="fu">rankabunplot</span>(rankabund, <span class="at">cex =</span> <span class="fl">0.8</span>, <span class="at">pch =</span> <span class="fl">0.8</span>, <span class="at">col =</span> <span class="st">"indianred4"</span>)</span>
+<span id="cb29-146"><a href="#cb29-146"></a><span class="in">```</span></span>
+<span id="cb29-147"><a href="#cb29-147"></a></span>
+<span id="cb29-148"><a href="#cb29-148"></a>Refer to the help files for the respective functions to see their differences.</span>
+<span id="cb29-149"><a href="#cb29-149"></a></span>
+<span id="cb29-150"><a href="#cb29-150"></a><span class="fu">### Occupancy-Abundance Curves</span></span>
+<span id="cb29-151"><a href="#cb29-151"></a></span>
+<span id="cb29-152"><a href="#cb29-152"></a>Occupancy refers to the number or proportion of sites in which a species is detected. Occupancy-abundance relationships are used to infer niche specialisation patterns in the sampling region. The hypothesis (almost a theory) is that species that tend to have high local abundance within one site also tend to occupy many other sites (@fig-occupancy).</span>
+<span id="cb29-153"><a href="#cb29-153"></a></span>
+<span id="cb29-156"><a href="#cb29-156"></a><span class="in">```{r}</span></span>
+<span id="cb29-157"><a href="#cb29-157"></a><span class="co">#| fig-cap: "Occupancy-abundance relationships seen in the BCI data."</span></span>
+<span id="cb29-158"><a href="#cb29-158"></a><span class="co">#| label: fig-occupancy</span></span>
+<span id="cb29-159"><a href="#cb29-159"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-160"><a href="#cb29-160"></a><span class="co">#| fig-height: 3</span></span>
+<span id="cb29-161"><a href="#cb29-161"></a></span>
+<span id="cb29-162"><a href="#cb29-162"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb29-163"><a href="#cb29-163"></a></span>
+<span id="cb29-164"><a href="#cb29-164"></a><span class="co"># A function for counts:</span></span>
+<span id="cb29-165"><a href="#cb29-165"></a><span class="co"># count number of non-zero elements per column</span></span>
+<span id="cb29-166"><a href="#cb29-166"></a>count_fun <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb29-167"><a href="#cb29-167"></a>  <span class="fu">length</span>(x[x <span class="sc">&gt;</span> <span class="dv">0</span>])</span>
+<span id="cb29-168"><a href="#cb29-168"></a>}</span>
+<span id="cb29-169"><a href="#cb29-169"></a></span>
+<span id="cb29-170"><a href="#cb29-170"></a>BCI_OA <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">occ =</span> <span class="fu">apply</span>(BCI, <span class="at">MARGIN =</span> <span class="dv">2</span>, count_fun),</span>
+<span id="cb29-171"><a href="#cb29-171"></a>                     <span class="at">ab =</span> <span class="fu">apply</span>(BCI, <span class="at">MARGIN =</span> <span class="dv">2</span>, mean))</span>
+<span id="cb29-172"><a href="#cb29-172"></a></span>
+<span id="cb29-173"><a href="#cb29-173"></a><span class="fu">ggplot</span>(BCI_OA, <span class="fu">aes</span>(<span class="at">x =</span> ab, <span class="at">y =</span> occ<span class="sc">/</span><span class="fu">max</span>(occ))) <span class="sc">+</span></span>
+<span id="cb29-174"><a href="#cb29-174"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"indianred3"</span>) <span class="sc">+</span></span>
+<span id="cb29-175"><a href="#cb29-175"></a>  <span class="fu">scale_x_log10</span>() <span class="sc">+</span></span>
+<span id="cb29-176"><a href="#cb29-176"></a>  <span class="co"># scale_y_log10() +</span></span>
+<span id="cb29-177"><a href="#cb29-177"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Barro Colorado Island Tree Counts"</span>,</span>
+<span id="cb29-178"><a href="#cb29-178"></a>     <span class="at">x =</span> <span class="st">"Log (abundance)"</span>, <span class="at">y =</span> <span class="st">"Occupancy"</span>) <span class="sc">+</span></span>
+<span id="cb29-179"><a href="#cb29-179"></a>  <span class="fu">theme_linedraw</span>()</span>
+<span id="cb29-180"><a href="#cb29-180"></a><span class="in">```</span></span>
+<span id="cb29-181"><a href="#cb29-181"></a></span>
+<span id="cb29-182"><a href="#cb29-182"></a><span class="fu">### Species-Area (Accumulation)</span></span>
+<span id="cb29-183"><a href="#cb29-183"></a></span>
+<span id="cb29-184"><a href="#cb29-184"></a>Species accumulation curves (species area relationships, SAR) try and estimate the number of unseen species. These curves can be used to predict and compare changes in diversity over increasing spatial extent. Within an ecosystem type, one would expect that more and more species would be added (accumulates) as the number of sampled sites increases (i.e. extent increases). This continues to a point where no more new species are added as the number of sampled sites continues to increase (i.e. the curve plateaus). Species accumulation curves, as the name suggests, accomplishes this by adding (accumulation or collecting) more and more sites and counting the average number of species along $y$ each time a new site is added. See Roeland Kindt's description of <span class="co">[</span><span class="ot">how species accumulation curves work</span><span class="co">](http://apps.worldagroforestry.org/downloads/Publications/PDFS/b13695.pdf)</span> (on p. 41). In the community matrix (the sites × species table), we can do this by successively adding more rows to the curve (seen along the $x$-axis). The <span class="in">`specaccum()`</span> function has many different ways of adding the new sites to the curve, but the default 'exact' seems to be a sensible choice. **BiodiversityR** has the `accumresult()` function that does nearly the same. Let's demonstrate using **vegan**'s function (@fig-accum, @fig-accum2, and @fig-accum3):</span>
+<span id="cb29-185"><a href="#cb29-185"></a></span>
+<span id="cb29-188"><a href="#cb29-188"></a><span class="in">```{r}</span></span>
+<span id="cb29-189"><a href="#cb29-189"></a><span class="co">#| fig-cap: "Species-area accumulation curves seen in the BCI data."</span></span>
+<span id="cb29-190"><a href="#cb29-190"></a><span class="co">#| label: fig-accum</span></span>
+<span id="cb29-191"><a href="#cb29-191"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-192"><a href="#cb29-192"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-193"><a href="#cb29-193"></a></span>
+<span id="cb29-194"><a href="#cb29-194"></a>sp1 <span class="ot">&lt;-</span> <span class="fu">specaccum</span>(BCI)</span>
+<span id="cb29-195"><a href="#cb29-195"></a>sp2 <span class="ot">&lt;-</span> <span class="fu">specaccum</span>(BCI, <span class="st">"random"</span>)</span>
+<span id="cb29-196"><a href="#cb29-196"></a></span>
+<span id="cb29-197"><a href="#cb29-197"></a><span class="co"># par(mfrow = c(2,2), mar = c(4,2,2,1))</span></span>
+<span id="cb29-198"><a href="#cb29-198"></a><span class="co"># par(mfrow = c(1,2))</span></span>
+<span id="cb29-199"><a href="#cb29-199"></a><span class="fu">plot</span>(sp1, <span class="at">ci.type =</span> <span class="st">"polygon"</span>, <span class="at">col =</span> <span class="st">"indianred4"</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">ci.lty =</span> <span class="dv">0</span>,</span>
+<span id="cb29-200"><a href="#cb29-200"></a>     <span class="at">ci.col =</span> <span class="st">"steelblue2"</span>, <span class="at">main =</span> <span class="st">"Default: exact"</span>,</span>
+<span id="cb29-201"><a href="#cb29-201"></a>     <span class="at">ylab =</span> <span class="st">"No. of species"</span>)</span>
+<span id="cb29-202"><a href="#cb29-202"></a><span class="in">```</span></span>
+<span id="cb29-203"><a href="#cb29-203"></a></span>
+<span id="cb29-206"><a href="#cb29-206"></a><span class="in">```{r}</span></span>
+<span id="cb29-207"><a href="#cb29-207"></a><span class="co">#| fig-cap: "Fit Arrhenius models to all random accumulations"</span></span>
+<span id="cb29-208"><a href="#cb29-208"></a><span class="co">#| label: fig-accum2</span></span>
+<span id="cb29-209"><a href="#cb29-209"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-210"><a href="#cb29-210"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-211"><a href="#cb29-211"></a></span>
+<span id="cb29-212"><a href="#cb29-212"></a>mods <span class="ot">&lt;-</span> <span class="fu">fitspecaccum</span>(sp2, <span class="st">"arrh"</span>)</span>
+<span id="cb29-213"><a href="#cb29-213"></a><span class="fu">plot</span>(mods, <span class="at">col =</span> <span class="st">"indianred"</span>, <span class="at">ylab =</span> <span class="st">"No. of species"</span>)</span>
+<span id="cb29-214"><a href="#cb29-214"></a><span class="fu">boxplot</span>(sp2, <span class="at">col =</span> <span class="st">"yellow"</span>, <span class="at">border =</span> <span class="st">"steelblue2"</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.3</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb29-215"><a href="#cb29-215"></a><span class="fu">sapply</span>(mods<span class="sc">$</span>models, AIC)</span>
+<span id="cb29-216"><a href="#cb29-216"></a><span class="in">```</span></span>
+<span id="cb29-217"><a href="#cb29-217"></a></span>
+<span id="cb29-220"><a href="#cb29-220"></a><span class="in">```{r}</span></span>
+<span id="cb29-221"><a href="#cb29-221"></a><span class="co">#| fig-cap: "A species accumulation curve."</span></span>
+<span id="cb29-222"><a href="#cb29-222"></a><span class="co">#| label: fig-accum3</span></span>
+<span id="cb29-223"><a href="#cb29-223"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-224"><a href="#cb29-224"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-225"><a href="#cb29-225"></a></span>
+<span id="cb29-226"><a href="#cb29-226"></a>accum <span class="ot">&lt;-</span> <span class="fu">accumresult</span>(BCI, <span class="at">method =</span> <span class="st">"exact"</span>, <span class="at">permutations =</span> <span class="dv">100</span>)</span>
+<span id="cb29-227"><a href="#cb29-227"></a><span class="fu">accumplot</span>(accum)</span>
+<span id="cb29-228"><a href="#cb29-228"></a><span class="in">```</span></span>
+<span id="cb29-229"><a href="#cb29-229"></a></span>
+<span id="cb29-230"><a href="#cb29-230"></a>Species accumulation curves can also be calculated with the <span class="in">`alpha.accum()`</span> function of the **BAT** package (@fig-accum4). In addition, the **BAT** package can also apply various diversity and species distribution assessments to **phylogenetic** and **functional** diversity. See the examples provided by @cardoso2015bat.</span>
+<span id="cb29-231"><a href="#cb29-231"></a></span>
+<span id="cb29-234"><a href="#cb29-234"></a><span class="in">```{r}</span></span>
+<span id="cb29-235"><a href="#cb29-235"></a><span class="co">#| fig-cap: "A species accumulation curve made with the `alpha.accum()` function of **BAT**."</span></span>
+<span id="cb29-236"><a href="#cb29-236"></a><span class="co">#| label: fig-accum4</span></span>
+<span id="cb29-237"><a href="#cb29-237"></a><span class="co">#| fig-width: 10</span></span>
+<span id="cb29-238"><a href="#cb29-238"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-239"><a href="#cb29-239"></a></span>
+<span id="cb29-240"><a href="#cb29-240"></a><span class="fu">library</span>(BAT)</span>
+<span id="cb29-241"><a href="#cb29-241"></a>BCI.acc <span class="ot">&lt;-</span> <span class="fu">alpha.accum</span>(BCI, <span class="at">prog =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb29-242"><a href="#cb29-242"></a></span>
+<span id="cb29-243"><a href="#cb29-243"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb29-244"><a href="#cb29-244"></a><span class="fu">plot</span>(BCI.acc[,<span class="dv">2</span>], BCI.acc[,<span class="dv">17</span>], <span class="at">col =</span> <span class="st">"indianred"</span>,</span>
+<span id="cb29-245"><a href="#cb29-245"></a>     <span class="at">xlab =</span> <span class="st">"Individuals"</span>, <span class="at">ylab =</span> <span class="st">"Chao1P"</span>)</span>
+<span id="cb29-246"><a href="#cb29-246"></a><span class="fu">plot</span>(BCI.acc[,<span class="dv">2</span>], <span class="fu">slope</span>(BCI.acc)[,<span class="dv">17</span>], <span class="at">col =</span> <span class="st">"indianred"</span>,</span>
+<span id="cb29-247"><a href="#cb29-247"></a>     <span class="at">xlab =</span> <span class="st">"Individuals"</span>, <span class="at">ylab =</span> <span class="st">"Slope"</span>)</span>
+<span id="cb29-248"><a href="#cb29-248"></a><span class="in">```</span></span>
+<span id="cb29-249"><a href="#cb29-249"></a></span>
+<span id="cb29-250"><a href="#cb29-250"></a><span class="fu">### Rarefaction Curves</span></span>
+<span id="cb29-251"><a href="#cb29-251"></a></span>
+<span id="cb29-252"><a href="#cb29-252"></a>Like species accumulation curves, rarefaction curves also try to estimate the number of unseen species. Rarefaction, meaning to scale down <span class="co">[</span><span class="ot">@heck1975explicit</span><span class="co">]</span>, is a statistical technique used by ecologists to assess species richness (represented as *S*, or diversity indices such as Shannon diversity, $H'$, or Simpson's diversity, $\lambda$) from data on species samples, such as that which we may find in site × species tables. Rarefaction can be used to determine whether a habitat, community, or ecosystem has been sufficiently sampled to fully capture the full complement of species present.</span>
+<span id="cb29-253"><a href="#cb29-253"></a></span>
+<span id="cb29-254"><a href="#cb29-254"></a>Rarefaction curves may seem similar to species accumulation curves, but there is a difference as I will note below. Species richness, *S*, accumulates with sample size *or* with the number of individuals sampled (across all species). The first way that rarefaction curves are presented is to show species richness as a function of number of individuals sampled. Here the principle demonstrated is that when only a few individuals are sampled, those individuals may belong to only a few species; however, when more individuals are present more species will be represented. The second approach to rarefaction is to plot the number of samples along $x$ and the species richness along the $y$-axis (as in SADs too). So, rarefaction shows how richness accumulates with the number of individuals counted or with the number of samples taken. Rarefaction curves rise rapidly at the start when few species have been sampled and the most common species have been found; the slope then decreases and eventually plateaus suggesting that the rarest species remain to be sampled.</span>
+<span id="cb29-255"><a href="#cb29-255"></a></span>
+<span id="cb29-256"><a href="#cb29-256"></a>But what really distinguishes rarefaction curves from SADs is that rarefaction randomly re-samples the pool of $N$ samples (that is equal or less than the total community size) a number of times, $n$, and plots the average number of species found in each resample (1,2, ..., $n$) as a function of individuals or samples. The <span class="in">`rarecurve()`</span> function draws a rarefaction curve for each row of the species data table. All these plots are made with base R graphics <span class="co">[</span><span class="ot">@fig-rarefy</span><span class="co">]</span>, but it will be a trivial exercise to reproduce them with **ggplot2**.</span>
+<span id="cb29-257"><a href="#cb29-257"></a></span>
+<span id="cb29-260"><a href="#cb29-260"></a><span class="in">```{r}</span></span>
+<span id="cb29-261"><a href="#cb29-261"></a><span class="co">#| fig-cap: "Rarefaction curves for the BCI data."</span></span>
+<span id="cb29-262"><a href="#cb29-262"></a><span class="co">#| label: fig-rarefy</span></span>
+<span id="cb29-263"><a href="#cb29-263"></a><span class="co">#| fig-width: 10</span></span>
+<span id="cb29-264"><a href="#cb29-264"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-265"><a href="#cb29-265"></a></span>
+<span id="cb29-266"><a href="#cb29-266"></a><span class="co"># Example provided in ?vegan::rarefy</span></span>
+<span id="cb29-267"><a href="#cb29-267"></a><span class="co"># observed number of species per row (site)</span></span>
+<span id="cb29-268"><a href="#cb29-268"></a>S <span class="ot">&lt;-</span> <span class="fu">specnumber</span>(BCI) </span>
+<span id="cb29-269"><a href="#cb29-269"></a></span>
+<span id="cb29-270"><a href="#cb29-270"></a><span class="co"># calculate total no. individuals sampled per row, and find the minimum</span></span>
+<span id="cb29-271"><a href="#cb29-271"></a>(raremax <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="fu">rowSums</span>(BCI)))</span>
+<span id="cb29-272"><a href="#cb29-272"></a></span>
+<span id="cb29-273"><a href="#cb29-273"></a>Srare <span class="ot">&lt;-</span> <span class="fu">rarefy</span>(BCI, raremax, <span class="at">se =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb29-274"><a href="#cb29-274"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb29-275"><a href="#cb29-275"></a><span class="fu">plot</span>(S, Srare, <span class="at">col =</span> <span class="st">"indianred3"</span>,</span>
+<span id="cb29-276"><a href="#cb29-276"></a>     <span class="at">xlab =</span> <span class="st">"Sample size</span><span class="sc">\n</span><span class="st">(observed no. of individuals)"</span>, <span class="at">ylab =</span> <span class="st">"No. species found"</span>)</span>
+<span id="cb29-277"><a href="#cb29-277"></a><span class="fu">rarecurve</span>(BCI, <span class="at">step =</span> <span class="dv">20</span>, <span class="at">sample =</span> raremax, <span class="at">col =</span> <span class="st">"indianred3"</span>, <span class="at">cex =</span> <span class="fl">0.6</span>,</span>
+<span id="cb29-278"><a href="#cb29-278"></a>          <span class="at">xlab =</span> <span class="st">"Sample size</span><span class="sc">\n</span><span class="st">(observed no. of individuals)"</span>, <span class="at">ylab =</span> <span class="st">"No. species found"</span>)</span>
+<span id="cb29-279"><a href="#cb29-279"></a><span class="in">```</span></span>
 <span id="cb29-280"><a href="#cb29-280"></a></span>
-<span id="cb29-281"><a href="#cb29-281"></a>:::{.callout-note}</span>
-<span id="cb29-282"><a href="#cb29-282"></a>**iNEXT**</span>
-<span id="cb29-283"><a href="#cb29-283"></a></span>
-<span id="cb29-284"><a href="#cb29-284"></a>We can also use the <span class="co">[</span><span class="ot">**iNEXT**</span><span class="co">](https://github.com/JohnsonHsieh/iNEXT)</span> package for rarefaction curves. From the package's <span class="co">[</span><span class="ot">Introduction Vignette</span><span class="co">](https://cran.r-project.org/web/packages/iNEXT/vignettes/Introduction.html)</span>:</span>
-<span id="cb29-285"><a href="#cb29-285"></a> </span>
-<span id="cb29-286"><a href="#cb29-286"></a>iNEXT focuses on three measures of Hill numbers of order q: species richness (q = 0), Shannon diversity (q = 1, the exponential of Shannon entropy) and Simpson diversity (q = 2, the inverse of Simpson concentration). For each diversity measure, iNEXT uses the observed sample of abundance or incidence data (called the “reference sample”) to compute diversity estimates and the associated 95% confidence intervals for the following two types of rarefaction and extrapolation (R/E):</span>
-<span id="cb29-287"><a href="#cb29-287"></a> </span>
-<span id="cb29-288"><a href="#cb29-288"></a><span class="ss">1. </span>Sample‐size‐based R/E sampling curves: iNEXT computes diversity estimates for rarefied and extrapolated samples up to an appropriate size. This type of sampling curve plots the diversity estimates with respect to sample size.</span>
-<span id="cb29-289"><a href="#cb29-289"></a></span>
-<span id="cb29-290"><a href="#cb29-290"></a><span class="ss">2. </span>Coverage‐based R/E sampling curves: iNEXT computes diversity estimates for rarefied and extrapolated samples with sample completeness (as measured by sample coverage) up to an appropriate coverage. This type of sampling curve plots the diversity estimates with respect to sample coverage.</span>
-<span id="cb29-291"><a href="#cb29-291"></a></span>
-<span id="cb29-292"><a href="#cb29-292"></a>iNEXT also plots the above two types of sampling curves and a sample completeness curve. The sample completeness curve provides a bridge between these two types of curves.</span>
-<span id="cb29-293"><a href="#cb29-293"></a></span>
-<span id="cb29-294"><a href="#cb29-294"></a>For information about Hill numbers see David Zelený's <span class="co">[</span><span class="ot">Analysis of community data in R</span><span class="co">](https://www.davidzeleny.net/anadat-r/doku.php/en:diversity_analysis)</span> and Jari Oksanen's coverage of <span class="co">[</span><span class="ot">diversity measures in **vegan**</span><span class="co">](https://cran.r-project.org/web/packages/vegan/vignettes/diversity-vegan.pdf)</span>.</span>
-<span id="cb29-295"><a href="#cb29-295"></a></span>
-<span id="cb29-296"><a href="#cb29-296"></a>There are four datasets distributed with iNEXT and numerous examples are provided in the <span class="co">[</span><span class="ot">Introduction Vignette</span><span class="co">](https://cran.r-project.org/web/packages/iNEXT/vignettes/Introduction.html)</span>. iNEXT has an 'odd' data format that might seem foreign to **vegan** users. To use iNEXT with dataset suitable for analysis in vegan, we first need to convert BCI data to a species × site matrix (@fig-iNEXT):</span>
-<span id="cb29-297"><a href="#cb29-297"></a></span>
-<span id="cb29-300"><a href="#cb29-300"></a><span class="in">```{r}</span></span>
-<span id="cb29-301"><a href="#cb29-301"></a><span class="co">#| fig-cap: "Demonstration of iNEXT capabilities."</span></span>
-<span id="cb29-302"><a href="#cb29-302"></a><span class="co">#| label: fig-iNEXT</span></span>
-<span id="cb29-303"><a href="#cb29-303"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb29-304"><a href="#cb29-304"></a><span class="co">#| fig-height: 4</span></span>
-<span id="cb29-305"><a href="#cb29-305"></a><span class="fu">library</span>(iNEXT)</span>
-<span id="cb29-306"><a href="#cb29-306"></a></span>
-<span id="cb29-307"><a href="#cb29-307"></a><span class="co"># transpose the BCI data: </span></span>
-<span id="cb29-308"><a href="#cb29-308"></a>BCI_t <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">BCI =</span> <span class="fu">t</span>(BCI))</span>
-<span id="cb29-309"><a href="#cb29-309"></a><span class="fu">str</span>(BCI_t)</span>
-<span id="cb29-310"><a href="#cb29-310"></a></span>
-<span id="cb29-311"><a href="#cb29-311"></a>BCI_out <span class="ot">&lt;-</span> <span class="fu">iNEXT</span>(BCI_t, <span class="at">q =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="at">datatype =</span> <span class="st">"incidence_raw"</span>)</span>
-<span id="cb29-312"><a href="#cb29-312"></a><span class="fu">ggiNEXT</span>(BCI_out, <span class="at">type =</span> <span class="dv">1</span>, <span class="at">color.var =</span> <span class="st">"Order.q"</span>)</span>
-<span id="cb29-313"><a href="#cb29-313"></a><span class="in">```</span></span>
-<span id="cb29-314"><a href="#cb29-314"></a></span>
-<span id="cb29-315"><a href="#cb29-315"></a>The warning is produced because the function expects incidence data (presence-absence), but I'm feeding it abundance (count) data. Nothing serious, as the function converts the abundance data to incidences.</span>
-<span id="cb29-316"><a href="#cb29-316"></a>:::</span>
-<span id="cb29-317"><a href="#cb29-317"></a></span>
-<span id="cb29-318"><a href="#cb29-318"></a><span class="fu">### Distance-Decay Curves</span></span>
-<span id="cb29-319"><a href="#cb29-319"></a></span>
-<span id="cb29-320"><a href="#cb29-320"></a>The principles of distance decay relationships are clearly captured in analyses of  <span class="co">[</span><span class="ot">$\beta$-diversity</span><span class="co">](04-biodiversity.html#contemporary-definitions-%CE%B2-diversity)</span>---see specifically **turnover**, $\beta_\text{sim}$. Distance decay is the primary explanation for the spatial pattern of $\beta$-diversity along the South African coast in @smit2017seaweeds. A deeper dive into distance decay calculation can be seen in <span class="co">[</span><span class="ot">Deep Dive into Gradients</span><span class="co">](../BCB743/deep_dive.qmd)</span>.</span>
-<span id="cb29-321"><a href="#cb29-321"></a></span>
-<span id="cb29-322"><a href="#cb29-322"></a><span class="fu">### Elevation and Other Gradients</span></span>
-<span id="cb29-323"><a href="#cb29-323"></a></span>
-<span id="cb29-324"><a href="#cb29-324"></a>In once sense, an elevation gradient can be seen as specific case of distance decay. The Doubs River dataset offer a nice example of data collected along an elevation gradient. Elevation gradients have many similarities with depth gradients (e.g. down the ocean depths) and latitudinal gradients.</span>
-<span id="cb29-325"><a href="#cb29-325"></a></span>
-<span id="cb29-326"><a href="#cb29-326"></a>::: callout-important</span>
-<span id="cb29-327"><a href="#cb29-327"></a><span class="fu">## Lab 4</span></span>
-<span id="cb29-328"><a href="#cb29-328"></a>(To be reviewed by BCB743 student but not for marks)</span>
-<span id="cb29-329"><a href="#cb29-329"></a></span>
-<span id="cb29-330"><a href="#cb29-330"></a><span class="ss">1. </span>Produce the following figures for the species data indicated in <span class="co">[</span><span class="ot">square brackets</span><span class="co">]</span>:</span>
-<span id="cb29-331"><a href="#cb29-331"></a>    a. species-abundance distribution <span class="co">[</span><span class="ot">mite</span><span class="co">]</span>;</span>
-<span id="cb29-332"><a href="#cb29-332"></a>    b. occupancy-abundance curves <span class="co">[</span><span class="ot">mite</span><span class="co">]</span>;</span>
-<span id="cb29-333"><a href="#cb29-333"></a>    c. species-area curves <span class="co">[</span><span class="ot">seaweed</span><span class="co">]</span>---note, do not use the **BAT** package's <span class="in">`alpha.accum()`</span> function as your computer might fall over;</span>
-<span id="cb29-334"><a href="#cb29-334"></a>    d. rarefaction curves <span class="co">[</span><span class="ot">mite</span><span class="co">]</span>.</span>
-<span id="cb29-335"><a href="#cb29-335"></a></span>
-<span id="cb29-336"><a href="#cb29-336"></a>    Answer each under its own heading. For each, also explain briefly what the purpose of the analysis is (i.e. what ecological insights might be provided), and describe the findings of your own analysis as well as any ecological implications that you might be able to detect.</span>
-<span id="cb29-337"><a href="#cb29-337"></a></span>
-<span id="cb29-338"><a href="#cb29-338"></a><span class="ss">2. </span>Using the **biodiversityR** package, find the most dominant species in the Doubs River dataset.</span>
-<span id="cb29-339"><a href="#cb29-339"></a></span>
-<span id="cb29-340"><a href="#cb29-340"></a><span class="ss">3. </span>Discuss how elevation, depth, or latitudinal gradients are similar in many aspects to distance decay relationships.</span>
-<span id="cb29-341"><a href="#cb29-341"></a>:::</span>
-<span id="cb29-342"><a href="#cb29-342"></a></span>
-<span id="cb29-343"><a href="#cb29-343"></a>:::{.callout-important}</span>
-<span id="cb29-344"><a href="#cb29-344"></a><span class="fu">## Submission Instructions</span></span>
-<span id="cb29-345"><a href="#cb29-345"></a></span>
-<span id="cb29-346"><a href="#cb29-346"></a>The Lab 4 assignment is due at **07:00 on Monday 19 August 2024**.</span>
-<span id="cb29-347"><a href="#cb29-347"></a></span>
-<span id="cb29-348"><a href="#cb29-348"></a>Provide a **neat and thoroughly annotated** R file which can recreate all the</span>
-<span id="cb29-349"><a href="#cb29-349"></a>graphs and all calculations. Written answers must be typed in the same file as comments.</span>
-<span id="cb29-350"><a href="#cb29-350"></a></span>
-<span id="cb29-351"><a href="#cb29-351"></a>Please label the R file as follows:</span>
-<span id="cb29-352"><a href="#cb29-352"></a></span>
-<span id="cb29-353"><a href="#cb29-353"></a><span class="ss">-   </span><span class="in">`BDC334_&lt;first_name&gt;_&lt;last_name&gt;_Lab_4.R`</span></span>
-<span id="cb29-354"><a href="#cb29-354"></a></span>
-<span id="cb29-355"><a href="#cb29-355"></a>(the <span class="in">`&lt;`</span> and <span class="in">`&gt;`</span> must be omitted as they are used in the example as</span>
-<span id="cb29-356"><a href="#cb29-356"></a>field indicators only).</span>
-<span id="cb29-357"><a href="#cb29-357"></a></span>
-<span id="cb29-358"><a href="#cb29-358"></a>Submit your appropriately named R documents on iKamva when ready.</span>
-<span id="cb29-359"><a href="#cb29-359"></a></span>
-<span id="cb29-360"><a href="#cb29-360"></a>Failing to follow these instructions carefully, precisely, and</span>
-<span id="cb29-361"><a href="#cb29-361"></a>thoroughly will cause you to lose marks, which could cause a significant</span>
-<span id="cb29-362"><a href="#cb29-362"></a>drop in your score as formatting counts for 15% of the final mark (out</span>
-<span id="cb29-363"><a href="#cb29-363"></a>of 100%).</span>
-<span id="cb29-364"><a href="#cb29-364"></a>:::</span>
+<span id="cb29-281"><a href="#cb29-281"></a></span>
+<span id="cb29-282"><a href="#cb29-282"></a>:::{.callout-note}</span>
+<span id="cb29-283"><a href="#cb29-283"></a>**iNEXT**</span>
+<span id="cb29-284"><a href="#cb29-284"></a></span>
+<span id="cb29-285"><a href="#cb29-285"></a>We can also use the <span class="co">[</span><span class="ot">**iNEXT**</span><span class="co">](https://github.com/JohnsonHsieh/iNEXT)</span> package for rarefaction curves. From the package's <span class="co">[</span><span class="ot">Introduction Vignette</span><span class="co">](https://cran.r-project.org/web/packages/iNEXT/vignettes/Introduction.html)</span>:</span>
+<span id="cb29-286"><a href="#cb29-286"></a> </span>
+<span id="cb29-287"><a href="#cb29-287"></a>iNEXT focuses on three measures of Hill numbers of order q: species richness (q = 0), Shannon diversity (q = 1, the exponential of Shannon entropy) and Simpson diversity (q = 2, the inverse of Simpson concentration). For each diversity measure, iNEXT uses the observed sample of abundance or incidence data (called the “reference sample”) to compute diversity estimates and the associated 95% confidence intervals for the following two types of rarefaction and extrapolation (R/E):</span>
+<span id="cb29-288"><a href="#cb29-288"></a> </span>
+<span id="cb29-289"><a href="#cb29-289"></a><span class="ss">1. </span>Sample‐size‐based R/E sampling curves: iNEXT computes diversity estimates for rarefied and extrapolated samples up to an appropriate size. This type of sampling curve plots the diversity estimates with respect to sample size.</span>
+<span id="cb29-290"><a href="#cb29-290"></a></span>
+<span id="cb29-291"><a href="#cb29-291"></a><span class="ss">2. </span>Coverage‐based R/E sampling curves: iNEXT computes diversity estimates for rarefied and extrapolated samples with sample completeness (as measured by sample coverage) up to an appropriate coverage. This type of sampling curve plots the diversity estimates with respect to sample coverage.</span>
+<span id="cb29-292"><a href="#cb29-292"></a></span>
+<span id="cb29-293"><a href="#cb29-293"></a>iNEXT also plots the above two types of sampling curves and a sample completeness curve. The sample completeness curve provides a bridge between these two types of curves.</span>
+<span id="cb29-294"><a href="#cb29-294"></a></span>
+<span id="cb29-295"><a href="#cb29-295"></a>For information about Hill numbers see David Zelený's <span class="co">[</span><span class="ot">Analysis of community data in R</span><span class="co">](https://www.davidzeleny.net/anadat-r/doku.php/en:diversity_analysis)</span> and Jari Oksanen's coverage of <span class="co">[</span><span class="ot">diversity measures in **vegan**</span><span class="co">](https://cran.r-project.org/web/packages/vegan/vignettes/diversity-vegan.pdf)</span>.</span>
+<span id="cb29-296"><a href="#cb29-296"></a></span>
+<span id="cb29-297"><a href="#cb29-297"></a>There are four datasets distributed with iNEXT and numerous examples are provided in the <span class="co">[</span><span class="ot">Introduction Vignette</span><span class="co">](https://cran.r-project.org/web/packages/iNEXT/vignettes/Introduction.html)</span>. iNEXT has an 'odd' data format that might seem foreign to **vegan** users. To use iNEXT with dataset suitable for analysis in vegan, we first need to convert BCI data to a species × site matrix (@fig-iNEXT):</span>
+<span id="cb29-298"><a href="#cb29-298"></a></span>
+<span id="cb29-301"><a href="#cb29-301"></a><span class="in">```{r}</span></span>
+<span id="cb29-302"><a href="#cb29-302"></a><span class="co">#| fig-cap: "Demonstration of iNEXT capabilities."</span></span>
+<span id="cb29-303"><a href="#cb29-303"></a><span class="co">#| label: fig-iNEXT</span></span>
+<span id="cb29-304"><a href="#cb29-304"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb29-305"><a href="#cb29-305"></a><span class="co">#| fig-height: 4</span></span>
+<span id="cb29-306"><a href="#cb29-306"></a><span class="fu">library</span>(iNEXT)</span>
+<span id="cb29-307"><a href="#cb29-307"></a></span>
+<span id="cb29-308"><a href="#cb29-308"></a><span class="co"># transpose the BCI data: </span></span>
+<span id="cb29-309"><a href="#cb29-309"></a>BCI_t <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">BCI =</span> <span class="fu">t</span>(BCI))</span>
+<span id="cb29-310"><a href="#cb29-310"></a><span class="fu">str</span>(BCI_t)</span>
+<span id="cb29-311"><a href="#cb29-311"></a></span>
+<span id="cb29-312"><a href="#cb29-312"></a>BCI_out <span class="ot">&lt;-</span> <span class="fu">iNEXT</span>(BCI_t, <span class="at">q =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="at">datatype =</span> <span class="st">"incidence_raw"</span>)</span>
+<span id="cb29-313"><a href="#cb29-313"></a><span class="fu">ggiNEXT</span>(BCI_out, <span class="at">type =</span> <span class="dv">1</span>, <span class="at">color.var =</span> <span class="st">"Order.q"</span>)</span>
+<span id="cb29-314"><a href="#cb29-314"></a><span class="in">```</span></span>
+<span id="cb29-315"><a href="#cb29-315"></a></span>
+<span id="cb29-316"><a href="#cb29-316"></a>The warning is produced because the function expects incidence data (presence-absence), but I'm feeding it abundance (count) data. Nothing serious, as the function converts the abundance data to incidences.</span>
+<span id="cb29-317"><a href="#cb29-317"></a>:::</span>
+<span id="cb29-318"><a href="#cb29-318"></a></span>
+<span id="cb29-319"><a href="#cb29-319"></a><span class="fu">### Distance-Decay Curves</span></span>
+<span id="cb29-320"><a href="#cb29-320"></a></span>
+<span id="cb29-321"><a href="#cb29-321"></a>The principles of distance decay relationships are clearly captured in analyses of  <span class="co">[</span><span class="ot">$\beta$-diversity</span><span class="co">](04-biodiversity.html#contemporary-definitions-%CE%B2-diversity)</span>---see specifically **turnover**, $\beta_\text{sim}$. Distance decay is the primary explanation for the spatial pattern of $\beta$-diversity along the South African coast in @smit2017seaweeds. A deeper dive into distance decay calculation can be seen in <span class="co">[</span><span class="ot">Deep Dive into Gradients</span><span class="co">](../BCB743/deep_dive.qmd)</span>.</span>
+<span id="cb29-322"><a href="#cb29-322"></a></span>
+<span id="cb29-323"><a href="#cb29-323"></a><span class="fu">### Elevation and Other Gradients</span></span>
+<span id="cb29-324"><a href="#cb29-324"></a></span>
+<span id="cb29-325"><a href="#cb29-325"></a>In once sense, an elevation gradient can be seen as specific case of distance decay. The Doubs River dataset offer a nice example of data collected along an elevation gradient. Elevation gradients have many similarities with depth gradients (e.g. down the ocean depths) and latitudinal gradients.</span>
+<span id="cb29-326"><a href="#cb29-326"></a></span>
+<span id="cb29-327"><a href="#cb29-327"></a>::: callout-important</span>
+<span id="cb29-328"><a href="#cb29-328"></a><span class="fu">## Lab 4</span></span>
+<span id="cb29-329"><a href="#cb29-329"></a>(To be reviewed by BCB743 student but not for marks)</span>
+<span id="cb29-330"><a href="#cb29-330"></a></span>
+<span id="cb29-331"><a href="#cb29-331"></a><span class="ss">1. </span>Produce the following figures for the species data indicated in <span class="co">[</span><span class="ot">square brackets</span><span class="co">]</span>:</span>
+<span id="cb29-332"><a href="#cb29-332"></a>    a. species-abundance distribution <span class="co">[</span><span class="ot">mite</span><span class="co">]</span>;</span>
+<span id="cb29-333"><a href="#cb29-333"></a>    b. occupancy-abundance curves <span class="co">[</span><span class="ot">mite</span><span class="co">]</span>;</span>
+<span id="cb29-334"><a href="#cb29-334"></a>    c. species-area curves <span class="co">[</span><span class="ot">seaweed</span><span class="co">]</span>---note, do not use the **BAT** package's <span class="in">`alpha.accum()`</span> function as your computer might fall over;</span>
+<span id="cb29-335"><a href="#cb29-335"></a>    d. rarefaction curves <span class="co">[</span><span class="ot">mite</span><span class="co">]</span>.</span>
+<span id="cb29-336"><a href="#cb29-336"></a></span>
+<span id="cb29-337"><a href="#cb29-337"></a>    Answer each under its own heading. For each, also explain briefly what the purpose of the analysis is (i.e. what ecological insights might be provided), and describe the findings of your own analysis as well as any ecological implications that you might be able to detect.</span>
+<span id="cb29-338"><a href="#cb29-338"></a></span>
+<span id="cb29-339"><a href="#cb29-339"></a><span class="ss">2. </span>Using the **biodiversityR** package, find the most dominant species in the Doubs River dataset.</span>
+<span id="cb29-340"><a href="#cb29-340"></a></span>
+<span id="cb29-341"><a href="#cb29-341"></a><span class="ss">3. </span>Discuss how elevation, depth, or latitudinal gradients are similar in many aspects to distance decay relationships.</span>
+<span id="cb29-342"><a href="#cb29-342"></a>:::</span>
+<span id="cb29-343"><a href="#cb29-343"></a></span>
+<span id="cb29-344"><a href="#cb29-344"></a>:::{.callout-important}</span>
+<span id="cb29-345"><a href="#cb29-345"></a><span class="fu">## Submission Instructions</span></span>
+<span id="cb29-346"><a href="#cb29-346"></a></span>
+<span id="cb29-347"><a href="#cb29-347"></a>The Lab 4 assignment is due at **07:00 on Monday 19 August 2024**.</span>
+<span id="cb29-348"><a href="#cb29-348"></a></span>
+<span id="cb29-349"><a href="#cb29-349"></a>Provide a **neat and thoroughly annotated** R file which can recreate all the</span>
+<span id="cb29-350"><a href="#cb29-350"></a>graphs and all calculations. Written answers must be typed in the same file as comments.</span>
+<span id="cb29-351"><a href="#cb29-351"></a></span>
+<span id="cb29-352"><a href="#cb29-352"></a>Please label the R file as follows:</span>
+<span id="cb29-353"><a href="#cb29-353"></a></span>
+<span id="cb29-354"><a href="#cb29-354"></a><span class="ss">-   </span><span class="in">`BDC334_&lt;first_name&gt;_&lt;last_name&gt;_Lab_4.R`</span></span>
+<span id="cb29-355"><a href="#cb29-355"></a></span>
+<span id="cb29-356"><a href="#cb29-356"></a>(the <span class="in">`&lt;`</span> and <span class="in">`&gt;`</span> must be omitted as they are used in the example as</span>
+<span id="cb29-357"><a href="#cb29-357"></a>field indicators only).</span>
+<span id="cb29-358"><a href="#cb29-358"></a></span>
+<span id="cb29-359"><a href="#cb29-359"></a>Submit your appropriately named R documents on iKamva when ready.</span>
+<span id="cb29-360"><a href="#cb29-360"></a></span>
+<span id="cb29-361"><a href="#cb29-361"></a>Failing to follow these instructions carefully, precisely, and</span>
+<span id="cb29-362"><a href="#cb29-362"></a>thoroughly will cause you to lose marks, which could cause a significant</span>
+<span id="cb29-363"><a href="#cb29-363"></a>drop in your score as formatting counts for 15% of the final mark (out</span>
+<span id="cb29-364"><a href="#cb29-364"></a>of 100%).</span>
+<span id="cb29-365"><a href="#cb29-365"></a>:::</span>
 </code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
