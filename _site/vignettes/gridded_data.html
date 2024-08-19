@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.6.4">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<meta name="author" content="AJ Smit and Robert W Schlegel">
+<meta name="author" content="Albertus J. Smit">
 <meta name="dcterms.date" content="2023-02-15">
 <meta name="description" content="This vignette demonstrates how to detect marine heatwaves (MHWs) in dataframes of gridded data in which each pixel is a separate time series.">
-<title>Detecting Events in Gridded Data – The Tangled Bank</title>
+<title>Detecting Events in Gridded Data | Albertus J. Smit – The Tangled Bank</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -73,7 +73,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
+<link href="../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
   "collapse-after": 3,
@@ -124,8 +126,8 @@ cookieconsent.run({
   window.document.addEventListener("DOMContentLoaded", function (_event) {
     document.body.classList.add('hypothesis-enabled');
   });
-</script>
-<meta property="og:title" content="Detecting Events in Gridded Data – The Tangled Bank">
+</script><link rel="stylesheet" href="../styles.css">
+<meta property="og:title" content="Detecting Events in Gridded Data | Albertus J. Smit">
 <meta property="og:description" content="This vignette demonstrates how to detect marine heatwaves (MHWs) in dataframes of gridded data in which each pixel is a separate time series.">
 <meta property="og:site_name" content="The Tangled Bank">
 </head>
@@ -146,10 +148,6 @@ cookieconsent.run({
 <li class="nav-item">
     <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../about.html"> 
-<span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-vignettes" role="link" data-bs-toggle="dropdown" aria-expanded="false">
@@ -231,7 +229,11 @@ cookieconsent.run({
   </li>  
 </ul>
 <ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item dropdown ">
+<li class="nav-item">
+    <a class="nav-link" href="../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-blogroll" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Blogroll</span>
     </a>
@@ -281,20 +283,20 @@ cookieconsent.run({
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a></li>
-  <li><a href="#loading-data" id="toc-loading-data" class="nav-link" data-scroll-target="#loading-data"><span class="header-section-number">2</span> Loading data</a></li>
+<li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#loading-data" id="toc-loading-data" class="nav-link" data-scroll-target="#loading-data">Loading data</a></li>
   <li>
-<a href="#event-detection" id="toc-event-detection" class="nav-link" data-scroll-target="#event-detection"><span class="header-section-number">3</span> Event detection</a>
+<a href="#event-detection" id="toc-event-detection" class="nav-link" data-scroll-target="#event-detection">Event detection</a>
   <ul class="collapse">
-<li><a href="#two-good-choices-dplyr-vs.-plyr" id="toc-two-good-choices-dplyr-vs.-plyr" class="nav-link" data-scroll-target="#two-good-choices-dplyr-vs.-plyr"><span class="header-section-number">3.1</span> Two good choices: <strong><code>dplyr</code></strong> vs.&nbsp;<strong><code>plyr</code></strong></a></li>
-  <li><a href="#a-harmonious-third-option" id="toc-a-harmonious-third-option" class="nav-link" data-scroll-target="#a-harmonious-third-option"><span class="header-section-number">3.2</span> A harmonious third option</a></li>
+<li><a href="#two-good-choices-dplyr-vs.-plyr" id="toc-two-good-choices-dplyr-vs.-plyr" class="nav-link" data-scroll-target="#two-good-choices-dplyr-vs.-plyr">Two good choices: <strong><code>dplyr</code></strong> vs.&nbsp;<strong><code>plyr</code></strong></a></li>
+  <li><a href="#a-harmonious-third-option" id="toc-a-harmonious-third-option" class="nav-link" data-scroll-target="#a-harmonious-third-option">A harmonious third option</a></li>
   </ul>
 </li>
   <li>
-<a href="#case-study" id="toc-case-study" class="nav-link" data-scroll-target="#case-study"><span class="header-section-number">4</span> Case study</a>
+<a href="#case-study" id="toc-case-study" class="nav-link" data-scroll-target="#case-study">Case study</a>
   <ul class="collapse">
-<li><a href="#trend-detection" id="toc-trend-detection" class="nav-link" data-scroll-target="#trend-detection"><span class="header-section-number">4.1</span> Trend detection</a></li>
-  <li><a href="#visualising-the-results" id="toc-visualising-the-results" class="nav-link" data-scroll-target="#visualising-the-results"><span class="header-section-number">4.2</span> Visualising the results</a></li>
+<li><a href="#trend-detection" id="toc-trend-detection" class="nav-link" data-scroll-target="#trend-detection">Trend detection</a></li>
+  <li><a href="#visualising-the-results" id="toc-visualising-the-results" class="nav-link" data-scroll-target="#visualising-the-results">Visualising the results</a></li>
   </ul>
 </li>
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/vignettes/gridded_data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
@@ -333,8 +335,7 @@ cookieconsent.run({
   
 
 
-</header><section id="overview" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="overview">
-<span class="header-section-number">1</span> Overview</h2>
+</header><section id="overview" class="level2"><h2 class="anchored" data-anchor-id="overview">Overview</h2>
 <p>This vignette uses the data we acquired earlier in <a href="../vignettes/prep_NOAA_OISST.html">Downloading and Preparing NOAA OISST Data: ERDDAP</a>. We will use these subsetted data for our example on how to detect MHWs in gridded data.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(dplyr) <span class="co"># For basic data manipulation</span></span>
@@ -343,16 +344,13 @@ cookieconsent.run({
 <span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(tidync) <span class="co"># For easily dealing with NetCDF data</span></span>
 <span id="cb1-5"><a href="#cb1-5"></a><span class="fu">library</span>(doParallel) <span class="co"># For parallel processing</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section><section id="loading-data" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="loading-data">
-<span class="header-section-number">2</span> Loading data</h2>
+</section><section id="loading-data" class="level2"><h2 class="anchored" data-anchor-id="loading-data">Loading data</h2>
 <p>Because we saved our data as an <code>.Rds</code> file, loading it into R is easy.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>OISST <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"~/Desktop/OISST_vignette.Rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section><section id="event-detection" class="level2" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="event-detection">
-<span class="header-section-number">3</span> Event detection</h2>
-<section id="two-good-choices-dplyr-vs.-plyr" class="level3" data-number="3.1"><h3 data-number="3.1" class="anchored" data-anchor-id="two-good-choices-dplyr-vs.-plyr">
-<span class="header-section-number">3.1</span> Two good choices: <strong><code>dplyr</code></strong> vs.&nbsp;<strong><code>plyr</code></strong>
+</section><section id="event-detection" class="level2"><h2 class="anchored" data-anchor-id="event-detection">Event detection</h2>
+<section id="two-good-choices-dplyr-vs.-plyr" class="level3"><h3 class="anchored" data-anchor-id="two-good-choices-dplyr-vs.-plyr">Two good choices: <strong><code>dplyr</code></strong> vs.&nbsp;<strong><code>plyr</code></strong>
 </h3>
 <p>When we want to make the same calculation across multiple groups of data within one dataframe we have two good options available to us. The first is to make use of the <code>map()</code> suite of functions found in the <strong><code>purrr</code></strong> package, and now implemented in <strong><code>dplyr</code></strong>. This is a very fast <strong><code>tidyverse</code></strong> friendly approach to splitting up tasks. The other good option is to go back in time a bit and use the <code>ddply()</code> function from the <strong><code>plyr</code></strong> package. This is arguably a better approach as it allows us to very easily use multiple cores to detect the MHWs. The problem with this approach is that one must <em>never</em> load the <strong><code>plyr</code></strong> library directly as it has some fundamental inconsistencies with the <strong><code>tidyverse</code></strong>. We will see below how to perform these two different techniques without causing ourselves any headaches.</p>
 <p>It is a little clumsy to use multiple functions at once with the two methods so we will combine the calculations we want to make into one wrapper function.</p>
@@ -366,8 +364,7 @@ cookieconsent.run({
 <span id="cb3-7"><a href="#cb3-7"></a>  <span class="fu">return</span>(event<span class="sc">$</span>event)</span>
 <span id="cb3-8"><a href="#cb3-8"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="the-dplyr-method" class="level4" data-number="3.1.1"><h4 data-number="3.1.1" class="anchored" data-anchor-id="the-dplyr-method">
-<span class="header-section-number">3.1.1</span> The <strong><code>dplyr</code></strong> method</h4>
+<section id="the-dplyr-method" class="level4"><h4 class="anchored" data-anchor-id="the-dplyr-method">The <strong><code>dplyr</code></strong> method</h4>
 <p>This method requires no special consideration and is performed just as any other friendly <strong><code>tidyverse</code></strong> code chunk would be.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">system.time</span>(</span>
@@ -380,8 +377,7 @@ cookieconsent.run({
 <span id="cb4-8"><a href="#cb4-8"></a>) <span class="co"># ~123 seconds</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Running the above calculations with only one of the 2.8 GHz cores on a modern laptop took ~123 seconds. It must be noted however that a recent update to the <strong><code>dplyr</code></strong> package now allows it to interrogate one’s computer to determine how many cores it has at it’s disposal. It then uses one core at full capacity and the other cores usually at half capacity.</p>
-</section><section id="the-plyr-technique" class="level4" data-number="3.1.2"><h4 data-number="3.1.2" class="anchored" data-anchor-id="the-plyr-technique">
-<span class="header-section-number">3.1.2</span> The <strong><code>plyr</code></strong> technique</h4>
+</section><section id="the-plyr-technique" class="level4"><h4 class="anchored" data-anchor-id="the-plyr-technique">The <strong><code>plyr</code></strong> technique</h4>
 <p>This method requires that we first tell our machine how many of its processor cores to give us for our calculation.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># NB: One should never use ALL available cores, save at least 1 for other essential tasks</span></span>
@@ -394,8 +390,7 @@ cookieconsent.run({
 <span id="cb5-8"><a href="#cb5-8"></a>) <span class="co"># 33 seconds</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The <strong><code>plyr</code></strong> technique took 33 seconds using seven cores. This technique is not seven times faster because when using multiple cores there is a certain amount of loss in efficiency due to the computer needing to remember which results are meant to go where so that it can stitch everything back together again for you. This takes very little memory, but over large jobs it can start to become problematic. Occasionally ‘slippage’ can occur as well where an entire task can be forgotten. This is very rare but does happen. This is partly what makes <strong><code>dplyr</code></strong> a viable option as it does not have this problem. The other reason is that <strong><code>dplyr</code></strong> performs more efficient calculations than <strong><code>plyr</code></strong>. But what if we could have the best of both worlds?</p>
-</section></section><section id="a-harmonious-third-option" class="level3" data-number="3.2"><h3 data-number="3.2" class="anchored" data-anchor-id="a-harmonious-third-option">
-<span class="header-section-number">3.2</span> A harmonious third option</h3>
+</section></section><section id="a-harmonious-third-option" class="level3"><h3 class="anchored" data-anchor-id="a-harmonious-third-option">A harmonious third option</h3>
 <p>As one may see above, running these calculations on a very large (or even global) gridded dataset can quickly become very heavy. While running these calculations myself on the global OISST dataset I have found that the fastest option is to combine the two options above. In my workflow I have saved each longitude segment of the global OISST dataset as separate files and use the <strong><code>dplyr</code></strong> method on each individual file, while using the <strong><code>plyr</code></strong> method to be running the multiple calculations on as many files as my core limit will allow. One may not do this the other way around and use <strong><code>dplyr</code></strong> to run multiple <strong><code>plyr</code></strong> calculations at once. This will confuse your computer and likely cause a stack overflow. Which sounds more fun than it actually is… as I have had to learn.</p>
 <p>In order to happily combine these two options into one we will need to convert the <strong><code>dplyr</code></strong> code we wrote above into it’s own wrapper function, which we will then call on a stack of files using the <strong><code>plyr</code></strong> technique. Before we do that we must first create the aforementioned stack of files.</p>
 <div class="cell" data-layout-align="center">
@@ -426,11 +421,9 @@ cookieconsent.run({
 </div>
 <p>Even though this technique is not much faster computationally, it is much lighter on our memory (RAM) as it only loads one longitude slice of our data at a time. To maximise efficiency even further I would recommend writing out this full workflow in a stand-alone script and then running it using <code><a href="https://rdrr.io/r/base/source.html">source()</a></code> directly from an R terminal. The gain in speed here appears nominal, but as one scales this up the speed boost becomes apparent.</p>
 <p>As mentioned above, recent changes to how <strong><code>dplyr</code></strong> interacts with one’s computer has perhaps slowed down the <strong><code>plyr</code></strong> + <strong><code>dplyr</code></strong> workflow shown here. It may be now that simply using <strong><code>plyr</code></strong> by itself is the better option. It depends on the number of cores and the amount of RAM that one has available.</p>
-</section></section><section id="case-study" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="case-study">
-<span class="header-section-number">4</span> Case study</h2>
+</section></section><section id="case-study" class="level2"><h2 class="anchored" data-anchor-id="case-study">Case study</h2>
 <p>Because of human-induced climate change, we anticipate that extreme events will occur more frequently and that they will become greater in intensity. Here we investigate this hypothesis by using gridded SST data, which is the only way that we can assess if this trend is unfolding across large ocean regions. Using the gridded 0.25 degree Reynolds OISST, we will detect marine heatwaves (MHWs) around South Africa by applying the <code>detect_event()</code> function pixel-by-pixel to the data we downloaded in <a href="https://robwschlegel.github.io/heatwaveR/articles/OISST_preparation.html">the previous vignette</a>. After detecting the events, we will fit a generalised linear model (GLM) to each pixel to calculate rates of change in some MHW metrics, and then plot the estimated trends.</p>
-<section id="trend-detection" class="level3" data-number="4.1"><h3 data-number="4.1" class="anchored" data-anchor-id="trend-detection">
-<span class="header-section-number">4.1</span> Trend detection</h3>
+<section id="trend-detection" class="level3"><h3 class="anchored" data-anchor-id="trend-detection">Trend detection</h3>
 <p>With our MHW detected we will now look at how to fit some GLMs to the results in order to determine long-term trends in MHW occurrence.</p>
 <p>Up first we see how to calculate the number of events that occurred per pixel.</p>
 <div class="cell" data-layout-align="center">
@@ -460,8 +453,7 @@ cookieconsent.run({
 <span id="cb10-2"><a href="#cb10-2"></a>OISST_nTrend<span class="sc">$</span>pval <span class="ot">&lt;-</span> <span class="fu">cut</span>(OISST_nTrend<span class="sc">$</span>p, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="dv">1</span>))</span>
 <span id="cb10-3"><a href="#cb10-3"></a><span class="fu">head</span>(OISST_nTrend)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section><section id="visualising-the-results" class="level3" data-number="4.2"><h3 data-number="4.2" class="anchored" data-anchor-id="visualising-the-results">
-<span class="header-section-number">4.2</span> Visualising the results</h3>
+</section><section id="visualising-the-results" class="level3"><h3 class="anchored" data-anchor-id="visualising-the-results">Visualising the results</h3>
 <p>Let’s finish this vignette by visualising the long-term trends in the annual occurrence of MHWs per pixel in the chosen study area. First we will grab the base global map from the <strong><code>maps</code></strong> package.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co"># The base map</span></span>
@@ -513,16 +505,16 @@ cookieconsent.run({
 
 <!-- -->
 
-</section></section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit,
-  author = {Smit, AJ and Smit and Robert W Schlegel, AJ},
+</section></section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{j._smit,
+  author = {J. Smit, Albertus and Smit and Robert W Schlegel, AJ},
   title = {Detecting {Events} in {Gridded} {Data}},
   date = {},
   url = {http://tangledbank.netlify.app/vignettes/gridded_data.html},
   langid = {en}
 }
-</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-smit" class="csl-entry quarto-appendix-citeas" role="listitem">
-Smit A, Smit and Robert W Schlegel A Detecting Events in Gridded Data.
-<a href="http://tangledbank.netlify.app/vignettes/gridded_data.html">http://tangledbank.netlify.app/vignettes/gridded_data.html.
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-j._smit" class="csl-entry quarto-appendix-citeas" role="listitem">
+J. Smit A, Smit and Robert W Schlegel A Detecting Events in Gridded
+Data. <a href="http://tangledbank.netlify.app/vignettes/gridded_data.html">http://tangledbank.netlify.app/vignettes/gridded_data.html.
 </a>
 </div></div></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -681,8 +673,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         if (link.dataset.originalHref !== undefined) {
           link.href = link.dataset.originalHref;
         }
-          // default icon
-          link.classList.add("external");
       }
     }
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
@@ -1238,7 +1228,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/vignettes/gridded_data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div><div class="cookie-consent-footer"><a href="#" id="open_preferences_center">Cookie Preferences</a></div></div>
     <div class="nav-footer-right">
-<p>This page is built with <a href="https://quarto.org/">Quarto</a>.</p>
+<p><span class="faux-block">Made with <i class="fa-brands fa-r-project" aria-label="r-project"></i> and <a href="https://quarto.org/">Quarto</a></span> <span class="faux-block"><a href="?var:github-url">View the source at <i class="fa-brands fa-github" aria-label="github"></i> GitHub</a></span></p>
 </div>
   </div>
 </footer>
