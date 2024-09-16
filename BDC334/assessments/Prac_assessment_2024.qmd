@@ -9,6 +9,8 @@ toc: false
 format:
   html:
     toc: false
+    embed-resources: true
+    self-contained-math: true
 ---
 
 You have been provided with three files:
@@ -31,6 +33,95 @@ b. List three pairs of sites that are closest together in terms of the **geograp
 
 Communicate the above output in a clear and concise manner, for example, using a table. The same applies to the rest of the questions.
 
+### Answer
+
+```{r}
+library(vegan)
+library(tidyverse)
+
+env <- read.csv("../../data//BarentsFish_env.csv")
+
+# a. List the three pairs of sites that are furthest apart in terms of the
+# geographical distance between them. For each pair, also provide the
+# temperature and depth associated with each member of the pair
+
+# extract the lon and lat
+geo_dat <- env[, c("Longitude", "Latitude")]
+
+# calculate the geographical distance or use Euclidean distance as a proxy
+# (use either function)
+# geo_dist <- dist(geo, upper = FALSE)
+# this step or the next one is possibly as far as you'll get with the 
+# code I gave you
+# you can proceed manually from here by examining the matrices and cross 
+# referencing with the data files for the environmental data
+geo_dist <- round(vegdist(geo_dat, method = "euclidean", upper = FALSE), 2)
+
+# convert the distance object to a full symmetric matrix
+geo_dist_matrix <- as.matrix(geo_dist)
+
+# scan the matrix for the three largest distances and
+# find the three pairs of sites that are furthest apart
+# it is a pain to do by eye, but it is possible
+
+# for my own convenience, I'll calculate it more efficiently:
+# set the diagonal and upper triangle to NA since we only need the
+# lower triangle
+geo_dist_matrix[upper.tri(geo_dist_matrix, diag = TRUE)] <- NA
+
+# find the indices of the three largest distances
+# get the order of the matrix values in decreasing order,
+# and select the first three
+largest_dist_indices <- order(geo_dist_matrix,
+                               decreasing = TRUE, na.last = NA)[1:3]
+
+# retrieve the row and column indices of these largest distances
+row_indices <- row(geo_dist_matrix)[largest_dist_indices]
+col_indices <- col(geo_dist_matrix)[largest_dist_indices]
+
+# combine the row and column indices into pairs
+# I add the site temperature and depth values automagically
+# but you can manually accomplish the same
+largest_dist_pairs <- data.frame(
+  Site1 = row_indices,
+  Site2 = col_indices,
+  Distance = geo_dist_matrix[largest_dist_indices],
+  Site1_temp = env$Temperature[row_indices],
+  Site2_temp = env$Temperature[col_indices],
+  Site1_depth = env$Depth[row_indices],
+  Site2_depth = env$Depth[col_indices]
+)
+
+largest_dist_pairs # this is what you get marked on
+
+# b. List three pairs of sites that are closest together in terms of the
+# **geographical distance** between them. For each pair, also provide the
+# temperature and depth associated with each member of the pair.
+
+# to do this, I'll adapt the code above to find the three smallest distances
+shortest_dist_indices <- order(geo_dist_matrix,
+                               decreasing = FALSE, na.last = NA)[1:3]
+
+# retrieve the row and column indices of these largest distances
+row_indices <- row(geo_dist_matrix)[shortest_dist_indices]
+col_indices <- col(geo_dist_matrix)[shortest_dist_indices]
+
+# combine the row and column indices into pairs
+# I add the site temperature and depth values automagically
+# but you can manually accomplish the same
+shortest_dist_pairs <- data.frame(
+  Site1 = row_indices,
+  Site2 = col_indices,
+  Distance = geo_dist_matrix[shortest_dist_indices],
+  Site1_temp = env$Temperature[row_indices],
+  Site2_temp = env$Temperature[col_indices],
+  Site1_depth = env$Depth[row_indices],
+  Site2_depth = env$Depth[col_indices]
+)
+
+shortest_dist_pairs # this is what you get marked on
+```
+
 **(/10)**
 
 ## Question 2
@@ -39,11 +130,125 @@ a. List the three pairs of sites that are furthest apart in terms of the **envir
 
 b. List three pairs of sites that are closest together in terms of the **environmental distance** between them. For each pair, also state the environmental distance between them.
 
+### Answer
+
+```{r}
+# a. List the three pairs of sites that are furthest apart in terms of the
+# **environmental distance** between them. For each pair, also state the
+# environmental distance between them.
+
+# Again, I adapt pre-existing code but you'll do this manually as far
+# as possible
+
+# extract the lon and lat
+env_dat <- env[, c("Depth", "Temperature")]
+
+# calculate the geographical distance or use Euclidean distance as a proxy
+# (use either function)
+# geo_dist <- dist(geo, upper = FALSE)
+env_dist <- round(vegdist(env_dat, method = "euclidean", upper = FALSE), 2)
+
+# your code will bring you to the above step, and from there you can
+# accomplish the rest manually to assemble the table by hand
+# I'll continue with more efficient code...
+
+# convert the distance object to a full symmetric matrix
+env_dist_matrix <- as.matrix(env_dist)
+
+# scan the matrix for the three largest distances and
+# find the three pairs of sites that are furthest apart
+# it is a pain to do by eye, but it is possible
+
+# for my own convenience, I'll calculate it more efficiently:
+# set the diagonal and upper triangle to NA since we only need the
+# lower triangle
+env_dist_matrix[upper.tri(env_dist_matrix, diag = TRUE)] <- NA
+
+# find the indices of the three largest distances
+# get the order of the matrix values in decreasing order,
+# and select the first three
+largest_dist_indices <- order(env_dist_matrix,
+                              decreasing = TRUE, na.last = NA)[1:3]
+
+# retrieve the row and column indices of these largest distances
+row_indices <- row(geo_dist_matrix)[largest_dist_indices]
+col_indices <- col(geo_dist_matrix)[largest_dist_indices]
+
+# combine the row and column indices into pairs
+# I add the site temperature and depth values automagically
+# but you can manually accomplish the same
+largest_dist_pairs <- data.frame(
+  Site1 = row_indices,
+  Site2 = col_indices,
+  Distance = geo_dist_matrix[largest_dist_indices],
+  Site1_temp = env$Temperature[row_indices],
+  Site2_temp = env$Temperature[col_indices],
+  Site1_depth = env$Depth[row_indices],
+  Site2_depth = env$Depth[col_indices]
+)
+
+largest_dist_pairs # this is what you get marked on
+
+# b. List three pairs of sites that are closest together in terms of the
+# **environmental distance** between them. For each pair, also state the
+# environmental distance between them.
+
+# scan the matrix (made in 2.a) for the three largest distances and
+# find the three pairs of sites that are furthest apart
+# it is a pain to do by eye, but it is possible
+
+# find the indices of the three largest distances
+# get the order of the matrix values in decreasing order,
+# and select the first three
+shortest_dist_indices <- order(env_dist_matrix,
+                              decreasing = FALSE, na.last = NA)[1:3]
+
+# retrieve the row and column indices of these shortest distances
+row_indices <- row(geo_dist_matrix)[shortest_dist_indices]
+col_indices <- col(geo_dist_matrix)[shortest_dist_indices]
+
+# combine the row and column indices into pairs
+# I add the site temperature and depth values automagically
+# but you can manually accomplish the same
+shortest_dist_pairs <- data.frame(
+  Site1 = row_indices,
+  Site2 = col_indices,
+  Distance = geo_dist_matrix[shortest_dist_indices],
+  Site1_temp = env$Temperature[row_indices],
+  Site2_temp = env$Temperature[col_indices],
+  Site1_depth = env$Depth[row_indices],
+  Site2_depth = env$Depth[col_indices]
+)
+
+shortest_dist_pairs # this is what you get marked on
+```
+
+
 **(/10)**
 
 ## Question 3
 
 Is there a relationship between the environmental variables? Produce the code for this analysis and the evidence (both graphical and statistical) for the nature of this relationship. If a relationship is present, describe it.
+
+### Answer
+
+```{r}
+# Is there a relationship between the environmental variables?
+
+cor(env_dat) # this is what you get marked on)
+
+ggplot(env, aes(x = Depth, y = Temperature)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Relationship between Depth and Temperature",
+       x = "Depth (m)",
+       y = "Temperature (°C)") +
+  theme_linedraw()
+
+# No, there is no relationship between the two variables. The correlation
+# coefficient shows a value of -0.02, which is very close to zero. This is
+# confirmed by the flat line in the correlation plot.
+```
 
 **(/10)**
 
@@ -53,11 +258,64 @@ a. List the three pairs of sites that are furthest apart in terms of **species c
 
 b. List three pairs of sites that are closest together in terms of **species composition** between them. For each pair, also state the species dissimilarity between them.
 
+### Answer
+
+```{r}
+# a. List the three pairs of sites that are furthest apart in terms of
+# **species composition** between them. For each pair, also state the
+# species dissimilarity between them.
+
+spp_dat <- read.csv("../../data/BarentsFish_spp.csv")
+
+# using Bray-Curtis for abundance data (could use something else)
+spp_diss <- round(vegdist(spp_dat, method = "bray", upper = FALSE), 2)
+
+spp_diss_matrix <- as.matrix(spp_diss)
+
+spp_diss_matrix[upper.tri(spp_diss_matrix, diag = TRUE)] <- NA
+
+largest_diss_indices <- order(spp_diss_matrix,
+                              decreasing = TRUE, na.last = NA)[1:3]
+
+row_indices <- row(spp_diss_matrix)[largest_diss_indices]
+col_indices <- col(spp_diss_matrix)[largest_diss_indices]
+
+largest_diss_pairs <- data.frame(
+  Site1 = row_indices,
+  Site2 = col_indices,
+  Dissimilarity = spp_diss_matrix[largest_diss_indices]
+)
+
+largest_diss_pairs # this is what you get marked on
+
+# b. List three pairs of sites that are closest together in terms of
+# **species composition** between them. For each pair, also state the
+# species dissimilarity between them.
+
+smallest_diss_indices <- order(spp_diss_matrix,
+                              decreasing = FALSE, na.last = NA)[1:3]
+
+row_indices <- row(spp_diss_matrix)[smallest_diss_indices]
+col_indices <- col(spp_diss_matrix)[smallest_diss_indices]
+
+smallest_diss_pairs <- data.frame(
+  Site1 = row_indices,
+  Site2 = col_indices,
+  Dissimilarity = spp_diss_matrix[smallest_diss_indices]
+)
+
+smallest_diss_pairs # this is what you get marked on
+```
+
 **(/10)**
 
 ## Question 5
 
 Using all the answers given above to support your reasoning, discuss the implications of these findings in the light of the theory covered in the BDC334 module.
+
+### Answer
+
+Anything that is not wrong, provide explanations for the patterns observed, relates the environmental similarities and differences to the species similarities and differences, and discusses the implications of these findings in the light of the theory covered in the BDC334 module.
 
 **(/10)**
 
