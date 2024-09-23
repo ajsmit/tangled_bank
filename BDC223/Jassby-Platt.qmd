@@ -134,7 +134,7 @@ ggplot(data_all, aes(x = Light, y = Photosynthesis,
         tanh(coef(fit_results[[1]])['alpha'] *
                x / coef(fit_results[[1]])['Pmax'])
     },
-    color = "red", size = 1, linetype = "dashed"
+    color = "black", size = 1, linetype = "dashed"
   ) +
   labs(
     title = "Photosynthesis-Irradiance Curves for Kelp (All Replicates)",
@@ -154,9 +154,9 @@ The average model fit values of the estimated parameters across all replicates a
 
 # Considering the Light Compenation Point
 
-The **light compensation point** is the irradiance level at which the rate of photosynthesis equals the rate of respiration, resulting in a net photosynthetic rate of zero. Below this point, the organism consumes more energy (via respiration) than it produces through photosynthesis, leading to a net loss of energy. Understanding the LCP is crucial for determining the minimum light conditions necessary for the survival of photosynthetic organisms like kelp.
+The **light compensation point** ($I_c$) is the irradiance level at which the rate of photosynthesis equals the rate of respiration, resulting in a net photosynthetic rate of zero. Below this point, the organism consumes more energy (via respiration) than it produces through photosynthesis, leading to a net loss of energy. Estimating $I_c$ is important for determining the minimum light intensity required for the survival of photosynthetic organisms, after compensation for the effect of cellular respiration.
 
-In the context of the **Jassby and Platt hyperbolic tangent model**, the LCP can be estimated by solving for the irradiance $I$ when the net photosynthetic rate $P(I)$ equals zero:
+In the context of the **Jassby and Platt hyperbolic tangent model**, $I_c$ can be estimated by solving for the irradiance $I$ when the net photosynthetic rate $P(I)$ equals zero:
 
 $$
 0 = P_{\text{max}} \times \tanh\left(\frac{\alpha I_{\text{LCP}}}{P_{\text{max}}}\right)
@@ -168,7 +168,7 @@ $$
 P(I) = P_{\text{max}} \times \tanh\left(\frac{\alpha I}{P_{\text{max}}}\right) - R
 $$
 
-Now, the LCP is the irradiance at which $P(I) = 0$:
+Now, $I_c$ is the irradiance at which $P(I) = 0$:
 
 $$
 0 = P_{\text{max}} \times \tanh\left(\frac{\alpha I_{\text{LCP}}}{P_{\text{max}}}\right) - R
@@ -326,7 +326,153 @@ The model fit to the data is in @fig-jassby_platt2. The average model fit values
 
 - **$P_{\text{max}}$:** `r round(mean(sapply(fit_results2, function(fit) coef(fit)['Pmax'])), 2)` mg C m⁻² h⁻¹
 - **$\alpha$:** `r round(mean(sapply(fit_results2, function(fit) coef(fit)['alpha'])), 2)` μmol photons m⁻² s⁻¹
-- **$LCP$:** `r round(mean(sapply(fit_results2, function(fit) fit$LCP)), 2)` μmol photons m⁻² s⁻¹
+- **$I_c$:** `r round(mean(sapply(fit_results2, function(fit) fit$LCP)), 2)` μmol photons m⁻² s⁻¹
+
+# Platt et al. (1980) Model with Photoinhibition
+
+Let's now look at the **Platt et al. (1980)** model, which incorporates photoinhibition into the photosynthesis-irradiance (P-I) relationship. This model extends the understanding of photosynthesis by accounting for the decrease in photosynthetic efficiency at high light intensities due to photoinhibition—a phenomenon where excessive light damages the photosynthetic apparatus, leading to reduced photosynthetic rates.
+
+The model is expressed mathematically as:
+
+$$
+P(I) = P_{\text{max}} \left(1 - \exp\left(-\frac{\alpha I}{P_{\text{max}}}\right)\right) \exp\left(-\frac{\beta I}{P_{\text{max}}}\right)
+$$
+
+Where:
+
+- $P_{\text{max}}$ is the maximum photosynthetic rate in the absence of photoinhibition.
+- $\beta$ is the photoinhibition parameter (rate of decrease in photosynthesis at high light).
+- $\exp$ denotes the exponential function.
+
+This model combines the positive effect of light on photosynthesis at low irradiance with the negative effect of photoinhibition at high irradiance, providing a comprehensive description of the photosynthetic response across a wide range of light intensities.
+
+```{r}
+#| echo: false
+#| messages: false
+#| warning: false
+
+set.seed(7)
+
+# Define parameters based on typical kelp conditions
+Pmax_true <- 13      # True maximum photosynthetic rate (e.g., mg C m^-2 h^-1)
+alpha_true <- 0.05   # True initial slope (photosynthetic efficiency)
+beta_true <- 0.0005  # True photoinhibition parameter
+R_true <- 2          # True respiration rate (mg C m^-2 h^-1)
+
+# Light intensities ranging to capture photoinhibition effects (μmol photons m^-2 s^-1)
+light_intensities <- seq(0, 1600, by = 100)
+
+# Number of replicates
+n_replicates <- 5
+
+# Generate data for each replicate
+data_list <- lapply(1:n_replicates, function(rep) {
+  # Simulate true net photosynthetic rates using the Platt et al. model
+  P_true <- Pmax_true * (1 - exp(-alpha_true * light_intensities / Pmax_true)) *
+            exp(-beta_true * light_intensities / Pmax_true) - R_true
+  
+  # Add random noise to simulate experimental variability
+  noise <- rnorm(length(P_true), mean = 0, sd = 0.5)  # Adjust sd for noise level
+  P_observed <- P_true + noise
+  
+  # Create a data frame for the replicate
+  data.frame(
+    Replicate = rep,
+    Light = light_intensities,
+    Photosynthesis = P_observed
+  )
+})
+
+# Combine all replicates into one data frame
+data_all <- do.call(rbind, data_list)
+
+# View 9 randomly selected rows from the data
+random_rows <- data_all[sample(nrow(data_all), 9), ]
+
+# Display the random rows in a nicely formatted table using kable
+kable(random_rows, format = "markdown", digits = 2,
+      col.names = c("Replicate", "Light (μmol photons m⁻² s⁻¹)", "Photosynthesis (mg C m⁻² h⁻¹)"))
+```
+
+
+```{r}
+#| echo: false
+#| messages: false
+#| warning: false
+
+# Fit the Platt et al. model to each replicate
+fit_results <- lapply(1:n_replicates, function(rep) {
+  # Subset data for the replicate
+  data_rep <- subset(data_all, Replicate == rep)
+  
+  # Define the model function including respiration
+  model_formula <- Photosynthesis ~ Pmax * (1 - exp(-alpha * Light / Pmax)) *
+                   exp(-beta * Light / Pmax) - R
+  
+  # Provide initial parameter estimates
+  start_params <- list(Pmax = 10, alpha = 0.03, beta = 0.0001, R = 1)
+  
+  # Fit the model using non-linear least squares
+  fit <- nlsLM(
+    formula = model_formula,
+    data = data_rep,
+    start = start_params,
+    lower = c(0, 0, 0, 0),  # Parameters should be non-negative
+    control = nls.lm.control(maxiter = 1000)
+  )
+  
+  # Return the fit object
+  return(fit)
+})
+```
+
+```{r}
+#| echo: false
+#| messages: false
+#| warning: false
+#| results: hide
+
+# Summarise fit results for each replicate
+for (i in 1:n_replicates) {
+  cat("\n--- Replicate", i, "Fit Summary ---\n")
+  fit <- fit_results[[i]]
+  print(summary(fit))
+}
+```
+
+```{r}
+#| echo: false
+#| messages: false
+#| warning: false
+#| label: fig-jassby
+#| fig.cap: "Nonlinear regression Platt et al. (1980) model fitted to simulated P-I data for a hypothetical kelp. This model includes the effect of photoinhibition."
+
+# Plot the data and fitted curves for all replicates
+ggplot(data_all, aes(x = Light, y = Photosynthesis, color = factor(Replicate))) +
+  geom_point() +
+  stat_function(
+    fun = function(x) {
+      Pmax <- coef(fit_results[[1]])['Pmax']
+      alpha <- coef(fit_results[[1]])['alpha']
+      beta <- coef(fit_results[[1]])['beta']
+      R <- coef(fit_results[[1]])['R']
+      Pmax * (1 - exp(-alpha * x / Pmax)) * exp(-beta * x / Pmax) - R
+    },
+    color = "black", size = 1, linetype = "dashed"
+  ) +
+  geom_hline(yintercept = 0,
+             color = "red", linetype = "dotted") +
+  labs(
+    title = "Photosynthesis-Irradiance Curves with Photoinhibition",
+    x = "Light Intensity (μmol photons m⁻² s⁻¹)",
+    y = "Net Photosynthetic Rate (mg C m⁻² h⁻¹)",
+    color = "Replicate"
+  ) +
+  theme_minimal()
+```
+
+
+
 
 ---
 
