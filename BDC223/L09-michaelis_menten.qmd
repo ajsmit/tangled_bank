@@ -40,7 +40,7 @@ We can measure algal nutrient uptake rates using two types of experiments: **mul
 
 # Multiple Flask Method
 
-The multiple flask method is a widely used experimental technique for measuring the nutrient uptake kinetics of macroalgae. This method is used to determine how macroalgae absorb nutrients (such as nitrogen or phosphorus) from their environment under different substrate concentrations. The goal is to generate a relationship between the rate of nutrient uptake and the nutrient concentration available to the macroalgae. The experimental data can then be used to characterize the nutrient uptake kinetics, such as maximum uptake rate ($V_{max}$) and half-saturation constant ($K_m$). These model parameters tell us about the mechanisms that algae use to remove nitrogen or other nutrients from their environmental to be incorporated into biomass.
+The multiple flask method is a widely used experimental technique for measuring the nutrient uptake kinetics of macroalgae. This method is used to determine how macroalgae absorb nutrients (such as nitrogen or phosphorus) from their environment under different substrate concentrations. The goal is to generate a relationship between the rate of nutrient uptake and the nutrient concentration available to the macroalgae. The experimental data can then be used to characterise the nutrient uptake kinetics, such as maximum uptake rate ($V_{max}$) and half-saturation constant ($K_m$). These model parameters tell us about the mechanisms that algae use to remove nitrogen or other nutrients from their environmental to be incorporated into biomass.
 
 ## Experimental Setup
 
@@ -132,7 +132,7 @@ $$
 
 ## Final Workflow for Calculating Nutrient Uptake Rate
 
-1. **Determine the change in nutrient concentration** between the start and end of the experiment for each flask: 
+1. **Determine the change in nutrient concentration** between the start and end of the experiment for each flask:
    $$
    \Delta [S] = [S_{\text{initial}}] - [S_{\text{final}}]
    $$
@@ -179,31 +179,31 @@ generate_data <- function(n_trt, n_rep, conc_vec, Km_vec,
                           Vmax_vec, Km_vec_sd, Vmax_vec_sd) {
   # Define the substrate concentrations
   concentrations <- conc_vec
-  
+
   # Create a dataframe with the specified structure
   data <- expand.grid(
     trt = paste("Treatment", 1:n_trt),
     S = concentrations,
     rep = 1:n_rep
-  ) |> 
+  ) |>
     arrange(trt, S, rep)
-  
+
   # Add Km and Vmax values
   set.seed(13)
-  data <- data |> 
-    group_by(trt)  |> 
+  data <- data |>
+    group_by(trt)  |>
     mutate(
-      Km = rnorm(n(), mean = Km_vec[as.numeric(str_extract(trt, "\\d+"))], 
+      Km = rnorm(n(), mean = Km_vec[as.numeric(str_extract(trt, "\\d+"))],
                  sd = Km_vec_sd[as.numeric(str_extract(trt, "\\d+"))]),
-      Vmax = rnorm(n(), mean = Vmax_vec[as.numeric(str_extract(trt, "\\d+"))], 
+      Vmax = rnorm(n(), mean = Vmax_vec[as.numeric(str_extract(trt, "\\d+"))],
                    sd = Vmax_vec_sd[as.numeric(str_extract(trt, "\\d+"))])
-    ) |> 
-    ungroup() |> 
+    ) |>
+    ungroup() |>
     mutate(V = mm_fun(S, Vmax, Km),
            rep = as.factor(rep),
-           trt = as.factor(trt)) |> 
+           trt = as.factor(trt)) |>
     select(-Km, -Vmax)
-  
+
   return(data)
 }
 
@@ -227,7 +227,7 @@ The perturbation method is an alternative approach for measuring nutrient uptake
 
 ## Experimental Setup
 
-In the perturbation method, a single flask is prepared with a high initial concentration of the nutrient (e.g., nitrogen), and a known amount of macroalgal biomass is introduced. The flask is incubated, and water samples are taken at regular intervals to track the decrease in nutrient concentration. The resultant data allow us to calculate the nutrient uptake rate for each time interval. 
+In the perturbation method, a single flask is prepared with a high initial concentration of the nutrient (e.g., nitrogen), and a known amount of macroalgal biomass is introduced. The flask is incubated, and water samples are taken at regular intervals to track the decrease in nutrient concentration. The resultant data allow us to calculate the nutrient uptake rate for each time interval.
 
 ### Steps of the Perturbation Experiment
 
@@ -376,6 +376,6 @@ The two parameters of the Michaelis-Menten model are rooted in theory and have e
 
 # Data Analysis: Curve Fitting With Nonlinear Regression
 
-I provide this information as a matter of interest to BDC223 students, as this is an advanced topic that will only be covered in your BSc (Hons) degrees. It is intended to provide a glimpse into the type of analysis that can be performed on nutrient uptake data. For the purpose of this course, you will not be required to perform this analysis and can instead rely on fitting the $V$ vs $[S]$ curve by hand.
+I provide this information only as a matter of interest to BDC223 students, as this is an advanced topic that will only be covered in your BSc (Hons) degrees. It is intended to provide a glimpse into the type of analysis that can be performed on nutrient uptake data. For the purpose of this course, you will not be required to perform this analysis and can instead rely on fitting the $V$ vs $[S]$ curve by hand.
 
-To formally fot the curve using non-linear regression, we use the `nls()` function to fit the Michaelis-Menten model to the data from multiple flask experiments. For the perturbation experiment, things are a bit more complicated. This method includes dependent data points because the measurements are taken from the same flask at different times, introducing a correlation between observations. This violates the independence assumption required for standard regression models. To accurately analyse these data, I recommend a *nonlinear mixed-effects model* implemented in the `nlme()` function. Mixed-effects models account for fixed effects (overall trends across all observations) and random effects (variations specific to individual experimental units, in this case, time points within the same flask). This helps handle the correlation between repeated measures and produces reliable estimates of the uptake dynamics within the flask. 
+To formally model the Michaelis-Menten relationship, we use the `nls()` function to apply a non-linear regression the data from multiple flask experiments. For the perturbation experiment, things are a bit more complicated. This method includes dependent data points because the measurements are taken from the same flask at different times, introducing a correlation between observations. This violates the independence assumption required for standard regression models. To accurately analyse these data, I recommend a *nonlinear mixed-effects model* implemented in the `nlme()` function. Mixed-effects models account for fixed effects (overall trends across all observations) and random effects (variations specific to individual experimental units, in this case, time points within the same flask). This helps handle the correlation between repeated measures and produces reliable estimates of the uptake dynamics within the flask.
