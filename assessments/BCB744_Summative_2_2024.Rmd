@@ -1,0 +1,549 @@
+---
+title: "BCB744 (BioStatistics): Summative Task 2, 12 April 2024"
+date: "`r Sys.Date()`"
+format: 
+  html:
+    number-sections: false
+---
+
+## Honesty Pledge
+
+**This assignment requires that you work as an individual and not share
+your code, results, or discussion with your peers. Penalties and
+disciplinary action will apply if you are found cheating.**
+
+::: callout-note
+## Acknowledgement of the Pledge
+
+Copy the statement, below, into your document and replace the
+underscores with your name acknowledging adherence to the UWC's Honesty
+Pledge.
+
+**I, \_\_\_\_\_\_\_\_\_\_\_\_, hereby state that I have not communicated
+with or gained information in any way from my peers and that all work is
+my own.**
+:::
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(ggpubr)
+```
+
+
+## Instructions
+
+Please note the following instructions. Failing to comply with them in full will result in a loss of marks.
+
+* **<u>QUARTO --> HTML</u>** Submit your assessment answers as an .html file compiled from your Quarto document. Produce *fully annotated reports*, including the meta-information at the top (name, date, purpose, etc.). Provide ample commentary explaining the purpose of the various tests/sections as necessary.
+
+* **<u>TESTING OF ASSUMPTIONS</u>** For all questions, make sure that when *formal inferential statistics are required, each is preceded by the appropriate tests for the assumptions*, i.e., state the assumptions, state the statistical procedure for testing the assumptions and mention their corresponding $H_{0}$. If a graphical approach is used to test assumptions, explain the principle behind the approach. Explain the findings emerging from the test of assumptions, and justify your selection of the appropriate inferential test (e.g. *t*-test, ANOVA, etc.) that you will use.
+
+* **<u>STATE HYPOTHESES</u>** When inferential statistics are required, please provide the full $H_{0}$ and $H_{A}$, and conclude the analysis with a statement of which is accepted or rejected.
+
+* **<u>GRAPHICAL SUPPORT</u>** All descriptive and inferential statistics must be supported by the appropriate figures of the results.
+
+* **<u>STATEMENT OF RESULTS</u>** Make sure that the textual statement of the final result is written exactly as required for it to be published in a journal article. Please consult a journal if you don't know how.
+
+* **<u>FORMATTING</u>** Pay attention to formatting. Some marks will be allocated to the appearance of the script, including considerations of aspects of the tidiness of the file, the use of the appropriate headings, and adherence to code conventions (e.g. spacing etc.).
+
+* **<u>MARK ALLOCATION</u>** Please see the [Introduction Page](https://tangledbank.netlify.app/bcb744/bcb744_index#summative-tasks) for an explanation of the assessment approach that will be applied to these questions.
+
+<b style='color:#CD5C5B;'>Submit the .html file wherein you provide answers to Questions 1–7 by no later than 19:00 today. Label the script as follows:
+
+<u>BCB744_\<Name\>_\<Surname\>_Summative_Task_2.html</u>, e.g.
+
+<u>BCB744_AJ_Smit_Summative_Task_2.html.</u></b>
+
+<b>Upload your .html files onto [Google Forms](https://docs.google.com/forms/d/e/1FAIpQLSfBO9a42ESrL3E3ytIFIqMGvnei19ynWisPpJHGU8P9DXvyow/viewform?usp=sf_link).</b>
+
+## Question 1
+
+### Chromosomal effects of mercury-contaminated fish consumption
+
+These data reside in package **coin**, dataset `mercuryfish`. The dataframe contains the mercury level in blood, the proportion of cells with abnormalities, and the proportion of cells with chromosome aberrations in consumers of mercury-contaminated fish and a control group. Please see the dataset's help file for more information.
+
+Analyse the dataset and answer the following questions:
+
+a. Does the presence of methyl-mercury in a diet containing fish result in a higher proportion of cellular abnormalities?
+
+b. Does the concentration of mercury in the blood influence the proportion of cells with abnormalities, and does this differ between the `control` and `exposed` groups?
+
+c. Is there a relationship between the variables `abnormal` and `ccells`? This will have to be for the `control` and `exposed` groups, noting that an interaction effect *might* be present.
+
+### Answers
+
+a. Does the presence of methyl-mercury in a diet containing fish result in a higher proportion of cellular abnormalities?
+
+```{r}
+library(coin)
+data(mercuryfish)
+head(mercuryfish)
+
+# EDA: do a boxplot
+ggplot(mercuryfish, aes(x = group, y = abnormal)) +
+  geom_boxplot(aes(colour = group), notch = TRUE)
+
+# Looking at the above figure, we see that there is a statistically
+# significant difference between the two groups. We will now test the
+# assumption.
+
+# Testing assumptions
+# 1. Normality
+
+# Shapiro-Wilk test
+# H0: The data are normally distributed
+# Ha: The data are not normally distributed
+
+shapiro.test(mercuryfish$abnormal[mercuryfish$group == "control"])
+shapiro.test(mercuryfish$abnormal[mercuryfish$group == "exposed"])
+
+# We see that the data are normally distributed.
+
+# Test homogeneity of variances
+
+# Levene's test
+
+# H0: The variances are equal
+# Ha: The variances are not equal
+
+car::leveneTest(abnormal ~ group, data = mercuryfish)
+
+# We can therefore go ahead and perform the test.
+# We select a Student's two sample t-test
+
+t.test(abnormal ~ group, var.equal = TRUE, data = mercuryfish)
+
+# We now have confirmation that the presence of methyl-mercury in a diet
+# will have a significant effect on the proportion of cellular abnormalities.
+```
+
+b. Does the concentration of mercury in the blood influence the proportion of cells with abnormalities, and does this differ between the `control` and `exposed` groups?
+
+```{r}
+  # EDA: Scatterplot of mercury concentration vs. proportion of abnormal
+  # cells
+  
+  ggplot(mercuryfish, aes(x = mercury, y = abnormal, color = group)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = TRUE) +
+    labs(title = "Mercury Concentration vs. Proportion of Abnormal Cells",
+         x = "Mercury Concentration",
+         y = "Proportion of Abnormal Cells")
+  
+  # Test normality of the data
+  
+  shapiro.test(mercuryfish$mercury[mercuryfish$group == "control"])
+  shapiro.test(mercuryfish$mercury[mercuryfish$group == "exposed"])
+  
+  # We see that the mercury concentrations are normally distributed for the 
+  # control group (we do not reject H0) but not for the exposed group
+  # (we reject H0); earlier we have seen that the response variable
+  # (abnormalities) is normal for both the control and the exposed groups
+  
+  # But since we want to model a linear relationship, now is not quite the
+  # right time to do the tests for normality -- we want to do this for the
+  # residuals of the model (that is, we fit the model first, and then test 
+  # the residuals for normality)
+  
+  # We also see from the scatterplot that the data might be approximately
+  # linear for the exposed group, but not for the control group where the
+  # data are more scattered around very low mercury concentrations near
+  # zero
+   
+  # We also see from the very wide confidence inrtervals that the model is
+  # not very good at predicting the proportion of abnormal cells from
+  # mercury concentration in the blood in the exposed group; my guess is
+  # that there will not be a linear relationship between mercury
+  # concentration and the proportion of abnormal cells in the control or
+  # exposed groups
+   
+  # We can proceed with a linear regression model to assess the
+  # relationship
+  
+  # Fit a linear regression model to assess the relationship between
+  # mercury concentration and the proportion of abnormal cells
+  # H0(1): There is no relationship between mercury concentration and the
+  # proportion of abnormal cells
+  # Ha(1): There is a relationship between mercury concentration and the
+  # proportion of abnormal cells
+  # H0(2): The relationship between mercury concentration and the
+  # proportion of abnormal cells does not differ between the control and
+  # exposed groups
+  # Ha(2): The relationship between mercury concentration and the
+  # proportion of abnormal cells differs between the control and exposed
+  # groups
+  
+  model.lm <- lm(abnormal ~ mercury + group, data = mercuryfish)
+  summary(model.lm)
+  
+  # We can now check the residuals for normality in the two groups
+  # which will confirm that the model is appropriate (or not)
+  
+  mercuryfish$residuals <- residuals(model.lm)
+  shapiro.test(mercuryfish$residuals[mercuryfish$group == "control"])
+  shapiro.test(mercuryfish$residuals[mercuryfish$group == "exposed"])
+  
+  # We see that the residuals are normally distributed for both groups
+  # and hence using a linear model was appropriate
+
+  # The p-value for the interaction term not less than 0.05, indicating
+  # that the relationship between mercury concentration and the proportion
+  # of abnormal cells does not differ between the control and exposed
+  # groups -- we can reject Ha(1) and Ha(2)
+  # If we wanted to (recommended), we could refit the model without the 
+  # interaction term
+  
+    
+  # What do we conclude?
+  # The proportion of abnormal cells differs significantly between the
+  # control and exposed groups, with the exposed group exhibiting a higher
+  # proportion of abnormal cells. However, the relationship between mercury
+  # concentration and the proportion of abnormal cells does not differ
+  # between the two groups.
+  # There is a good amount of scatter in the amount of cell abnormalities
+  # even in just the control group, which suggests that mercury
+  # concentration alone may not be a strong predictor of cellular
+  # abnormalities. Increasing the amount of mercury in the blood does not
+  # necessarily lead to a linear increase but it certainly does account
+  # for a few of the highest values seen in the exposed group.
+```
+
+c. **Relationship Between Variables**
+
+```{r}
+  # EDA: Scatterplot of mercury concentration vs. age
+  
+  ggplot(mercuryfish, aes(x = abnormal, y = ccells, color = group)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = TRUE) +
+    labs(title = "Mercury Concentration vs. Age",
+         x = "Proportion of Abnormal Cells",
+         y = "Proportion of Cu cells")
+  
+  # We see that there is a clear linear relationship between abnormal cell
+  # proportion and Cu cell proportion in both groups, and the confidence
+  # intervals are narrow(-ish), indicating that the model could be
+  # reasonably good at predicting Cu cell proportion from the proportion of
+  # abnormal cells
+  
+  # We know the relationship between continuous covariates is linear and
+  # may therefore proceed with a linear regression model; the remaining
+  # assumptions will be tested afterwards
+  
+  # Fit a linear regression model to assess the relationship between the 
+  # proportion of Cu cells and the proportion of abnormal cells
+  # H0(1): There is no relationship between the proportion of Cu cells and
+  # the proportion of abnormal cells
+  # Ha(1): There is a relationship between the proportion of Cu cells and
+  # the proportion of abnormal cells
+  # H0(2): The relationship between the proportion of Cu cells and the
+  # proportion of abnormal cells does not differ between the control and
+  # exposed groups
+  # Ha(2): The relationship between the proportion of Cu cells and the
+  # proportion of abnormal cells differs between the control and exposed
+  # groups
+  
+  model.lm2 <- lm(ccells ~ abnormal + group, data = mercuryfish)
+  summary(model.lm2)
+
+  # We can now check the residuals for normality in the two groups
+  # which will confirm that the model is appropriate (or not)
+  
+  mercuryfish$residuals2 <- residuals(model.lm2)
+  shapiro.test(mercuryfish$residuals2[mercuryfish$group == "control"])
+  shapiro.test(mercuryfish$residuals2[mercuryfish$group == "exposed"])
+  
+  # We see that the residuals are normally distributed for both groups
+  # and hence using a linear model was appropriate
+
+  # The p-value 'abnormal' term is less than 0.05, indicating that the
+  # relationship between the proportion of abnormal cells and the
+  # proportion of Cu cells is significant -- we accept Ha(1)
+  # The p-value for the interaction term is not less than 0.05, indicating
+  # that the relationship between the proportion of abnormal cells and the
+  # proportion of Cu cells does not differ between the control and exposed
+  # groups -- we do not reject H0(2)
+    
+  # What do we conclude?
+  # The proportion of Cu cells is significantly related to the proportion
+  # of abnormal cells, with a higher proportion of abnormal cells
+  # corresponding to a higher proportion of Cu cells. This relationship
+  # does not differ between the control and exposed groups. The model is
+  # appropriate for predicting the proportion of Cu cells from the
+  # proportion of abnormal cells, as the residuals are normally distributed
+  # for both groups.
+  
+  # Alternative approaches for assigning marks: Instead of doing a linear
+  # regression with interaction term, which I did not formally teach,
+  # equally justified are individual linear regressions for each group
+  # and using the confidence intervals to make inferences. This would
+  # involve fitting two linear regression models, one for each group, and
+  # comparing the confidence intervals of the coefficients to determine if
+  # the relationship between the proportion of Cu cells and the proportion
+  # of abnormal cells differs between the two groups. This would apply to
+  # all the other questions as well.
+  
+  # Or, in part (c), we could have done correlations for each group and
+  # compared the correlation coefficients to determine if the relationship
+  # between the proportion of abnormal cells and the proportion of Cu cells
+  # differs between the two groups.
+```
+
+## Question 2
+
+### Malignant glioma pilot study
+
+Package **coin**, dataset `glioma`: A non-randomized pilot study on malignant glioma patients with pretargeted adjuvant radioimmunotherapy using yttrium-90-biotin.
+
+a. Do `sex` and `group` interact to affect survival time (`time`)?
+
+b. Do `age` and `histology` interact to affect survival time (`time`)?
+
+c. Show a full graphical exploration of the data. Are there any other remaining patterns visible in the data that should be explored statistically? Study your results, select the most promising and insightful question that remains, and do the analysis.
+
+## Question 3
+
+### Risk factors associated with low infant birth weight
+
+Package **MASS**, dataset `birthwt`: A dataset about the risk factors associated with low infant birth mass collected at Baystate Medical Center, Springfield, Mass. during 1986.
+
+State three hypotheses and test them. Make sure one of the tests makes use of the 95% confidence interval approach rather than a formal inferential methodology.
+
+## Question 4
+
+### The [`LungCapData.csv`](https://github.com/ajsmit/R_courses/raw/main/static/data/LungCapData.csv) data
+
+a. Using the Lung Capacity data provided, please calculate the 95% CIs for the `LungCap` variable as a function of:
+
+    * `Gender`
+    
+    * `Smoke`
+    
+    * `Caesarean`
+
+<!-- ```{r} -->
+<!-- lungs <- read.csv("../data/LungCapData.csv", sep = "\t") -->
+
+<!-- library(rcompanion) -->
+
+<!-- (gender_ci <- groupwiseMean(LungCap ~ Gender, data = lungs, conf = 0.95, digits = 3)) -->
+<!-- (smoke_ci <- groupwiseMean(LungCap ~ Smoke, data = lungs, conf = 0.95, digits = 3)) -->
+<!-- (caesarean_ci <- groupwiseMean(LungCap ~ Caesarean, data = lungs, conf = 0.95, digits = 3)) -->
+<!-- ``` -->
+
+b. Create a graph of the mean ± 95% CIs and determine if there are statistical differences in `LungCap` between the levels of `Gender`, `Smoke`, and `Caesarean`. Do the same using inferential statistics. Are your findings the same using these two approaches?
+
+<!-- ```{r} -->
+<!-- plt1 <- ggplot(gender_ci, aes(x = Gender, y = Mean)) + -->
+<!--   geom_point() + -->
+<!--   geom_errorbar(aes(ymin = Trad.lower, ymax = Trad.upper), width = 0.2) + -->
+<!--   ylab("Mean lung capacity") -->
+
+<!-- plt2 <- ggplot(smoke_ci, aes(x = Smoke, y = Mean)) + -->
+<!--   geom_point() + -->
+<!--   geom_errorbar(aes(ymin = Trad.lower, ymax = Trad.upper), width = 0.2) + -->
+<!--   ylab("Mean lung capacity") -->
+
+<!-- plt3 <- ggplot(caesarean_ci, aes(x = Caesarean, y = Mean)) + -->
+<!--   geom_point() + -->
+<!--   geom_errorbar(aes(ymin = Trad.lower, ymax = Trad.upper), width = 0.2) + -->
+<!--   ylab("Mean lung capacity") -->
+
+<!-- ggarrange(plt1, plt2, plt3, ncol = 3, labels = "AUTO") -->
+<!-- ``` -->
+
+c. Produce all the associated tests for assumptions---i.e. the assumptions to be met when deciding whether to use your choice of inferential test or its non-parametric counterpart.
+
+<!-- ```{r} -->
+<!-- two_assum <- function(x) { -->
+<!--   x_var <- var(x) -->
+<!--   x_norm <- as.numeric(shapiro.test(x)[2]) -->
+<!--   result <- c(x_var, x_norm) -->
+<!--   return(result) -->
+<!-- } -->
+
+<!-- lungs %>%  -->
+<!--   group_by(Gender) %>%  -->
+<!--   summarise(LungCap_var = round(two_assum(LungCap)[1], 3), -->
+<!--             LungCap_norm = round(two_assum(LungCap)[2], 3)) -->
+
+<!-- lungs %>%  -->
+<!--   group_by(Smoke) %>%  -->
+<!--   summarise(LungCap_var = round(two_assum(LungCap)[1], 3), -->
+<!--             LungCap_norm = round(two_assum(LungCap)[2], 3)) -->
+
+<!-- lungs %>%  -->
+<!--   group_by(Caesarean) %>%  -->
+<!--   summarise(LungCap_var = round(two_assum(LungCap)[1], 3), -->
+<!--             LungCap_norm = round(two_assum(LungCap)[2], 3)) -->
+
+<!-- # It would be best to continue with a Wilcoxon test -->
+<!-- ``` -->
+
+d. Create a combined tidy dataframe (observe tidy principles) with the estimates for the 95% CI for the `LungCap` data (`LungCap` as a function of `Gender`), estimated using both the traditional and bootstrapping approaches. Create a plot comprising two panels (one for the traditional estimates, one for the bootstrapped estimates) of the mean, median, scatter of raw data points, and the upper and lower 95% CI.
+
+<!-- ```{r} -->
+<!-- groupwiseMean(LungCap ~ Gender, data = lungs, conf = 0.95, digits = 3, normal = TRUE) |>  -->
+<!--   pivot_longer(cols = Trad.lower:Normal.upper, -->
+<!--                names_to = "type", values_to = "CI") |>  -->
+<!--   separate(col = type, into = c("type", "direction")) |>  -->
+<!--   pivot_wider(names_from = direction, values_from = CI) |>  -->
+<!--   ggplot(aes(x = Gender, y = Mean)) + -->
+<!--     geom_jitter(data = lungs, aes(x = Gender, y = LungCap, colour = Smoke), -->
+<!--                 width = 0.1, alpha = 0.2) + -->
+<!--     geom_point(colour = "black") + -->
+<!--     geom_errorbar(aes(ymin = lower, ymax = upper), -->
+<!--                   width = 0.2, colour = "black") + -->
+<!--     geom_point(data = lungs, aes(x = Gender, y = median(LungCap)), -->
+<!--                colour = "red", shape = "X") + -->
+<!--     facet_wrap(~type) + -->
+<!--     ylab("Mean lung capacity") -->
+<!-- ``` -->
+
+e. Undertake a statistical analysis that incorporates both the effect of `Age` *and* one of the categorical variables on `LungCap`. What new insight does this provide?
+
+<!-- ```{r} -->
+<!-- # focus only on males -->
+<!-- lungs |>  -->
+<!--   filter(Gender == "male") |>  -->
+<!--   group_by(Smoke) |>  -->
+<!--   summarise(LungCap_var = round(two_assum(LungCap)[1], 3), -->
+<!--             LungCap_norm = round(two_assum(LungCap)[2], 3)) -->
+
+<!-- # above we see that within males, the subgroups based on whether or not -->
+<!-- # they smoke are normally distributed in both instances -->
+
+<!-- mod1 <- lm(LungCap ~ Smoke * Age, data = lungs[lungs$Gender == "male", ]) -->
+<!-- summary(mod1) -->
+
+<!-- # lung capacity of males is affected by age (disregarding effect of smoke), -->
+<!-- # lung capacity is not affected by smoke (disregarding effect of age), but -->
+<!-- # there is a significant interaction between them, i.e. the effect of age  -->
+<!-- # is more pronounced in non-smoker than it is in smokers... -->
+
+<!-- lungs[lungs$Gender == "male", ] |>  -->
+<!--   ggplot(aes(x = Age, y = LungCap)) + -->
+<!--     geom_point() + -->
+<!--     geom_smooth(method = "lm") + -->
+<!--     facet_wrap(~Smoke) -->
+
+<!-- # the figure shows the interaction effect: in non-smokers their lung capacity -->
+<!-- # increases more rapidly with age, whereas in smokers, the development of lung -->
+<!-- # capacity with age seems to be stunted. -->
+<!-- ``` -->
+
+
+## Question 5
+
+### The air quality data
+
+Package **datasets**, dataset `airquality`. These are daily air quality measurements in New York, May to September 1973. See the help file for details.
+
+a. Which two of the four response variables are best correlated with each other?
+
+## Question 6
+
+### The **[`shells.csv`](https://raw.githubusercontent.com/ajsmit/R_courses/main/static/data/shells.csv)** data
+
+This dataset contains measurements of shell widths and lengths of the left and right valves of two species of mussels, *Aulacomya* sp. and *Choromytilus* sp. Length and width measurements are presented in mm.
+
+Fully analyse this dataset.
+
+## Question 7
+
+### The [`fertiliser_crop_data.csv`](https://raw.githubusercontent.com/ajsmit/R_courses/main/static/data/fertiliser_crop_data.csv) data
+
+The data represent an experiment designed to test whether or not fertiliser type and the density of planting have an effect on the yield of wheat. The dataset contains the following variables:
+
+* Final yield (kg per acre)---make sure to convert this to the most suitable SI unit before continuing with your analysis
+* Type of fertiliser (fertiliser type A, B, or C)
+* Planting density (1 = low density, 2 = high density)
+* Block in the field (north, east, south, west)
+
+Fully analyse this dataset.
+
+<!-- ```{r} -->
+<!-- fert <- read.csv("../data/fertiliser_crop_data.csv") -->
+
+<!-- # convert to SI units -->
+<!-- fert <- fert |>  -->
+<!--   mutate(mass = mass / 0.40468564224) -->
+
+<!-- # are assumptions met? note that I also calculate the mean +/- SD here -->
+<!-- fert %>%  -->
+<!--   group_by(density) %>%  -->
+<!--   summarise(mean = mean(mass), -->
+<!--             SD = sd(mass), -->
+<!--             mass_var = round(two_assum(mass)[1], 3), -->
+<!--             mass_norm = round(two_assum(mass)[2], 3)) -->
+
+<!-- fert %>%  -->
+<!--   group_by(block) %>%  -->
+<!--   summarise(mean = mean(mass), -->
+<!--             SD = sd(mass), -->
+<!--             mass_var = round(two_assum(mass)[1], 3), -->
+<!--             mass_norm = round(two_assum(mass)[2], 3)) -->
+
+<!-- fert %>%  -->
+<!--   group_by(fertilizer) %>%  -->
+<!--   summarise(mean = mean(mass), -->
+<!--             SD = sd(mass), -->
+<!--             mass_var = round(two_assum(mass)[1], 3), -->
+<!--             mass_norm = round(two_assum(mass)[2], 3)) -->
+
+<!-- # yes, all assumptions check out, proceed with normal paramatric stats -->
+
+<!-- # do an ANOVA and look at main effects first -->
+<!-- aov1 <- aov(mass ~ density + block + fertilizer, data = fert) -->
+<!-- summary(aov1) -->
+
+<!-- # the block effect is not significant but density and fertilizer are -->
+
+<!-- # let's check if the fertilizer type interacts with density -->
+<!-- aov2 <- aov(mass ~ density * fertilizer, data = fert) -->
+<!-- summary(aov2) -->
+
+<!-- # no interaction effect is present, so the fertilizer has the same -->
+<!-- # effect regardless of at which planting density it is applied -->
+
+<!-- # lets see which planting fertilizer results in the greatest mass -->
+
+<!-- TukeyHSD(aov2, which = "fertilizer", ordered = TRUE) -->
+
+<!-- TukeyHSD(aov2, which = "fertilizer", ordered = TRUE) -->
+<!-- plot(TukeyHSD(aov2, which = "fertilizer", ordered = TRUE)) -->
+
+<!-- # here we can see that the mass of crop produced by fertilizer C is the -->
+<!-- # greatest, significantly more so compared to both A and B; the effect -->
+<!-- # of fertilizer B is no different than that of A -->
+<!-- #  -->
+<!-- # the second planting density also yields a greater mass per ha -->
+<!-- #  -->
+<!-- # make sure the results are written up as appropriate for a journal, -->
+<!-- # so indicate the d.f., S.S., and p-value -->
+<!-- ``` -->
+
+## Question 8
+
+Reflect on the project you intend doing during your Honours year. Specifically, focus on your experimental or sampling design (even though this might not be fully known at this stage), the nature of the data you anticipate obtaining, and the statistical analyses you will perform. Structure your response as follows:
+
+-   Provide a brief Aim and state the Objectives
+-   What are your predictions?
+-   Write down the hypotheses you will test
+-   Describe the experimental or sampling design that will support testing the hypotheses
+-   Describe the data you anticipate obtaining
+-   What statistical analyses will you perform on the data?
+
+For those of you who will not generate data suitable for statistical analysis, please reflect on
+
+## The end
+
+<b style='color:#CD5C5B;'>Submit the .html file wherein you provide answers to Questions 1–7 by no later than 19:00 today. Label the script as follows:
+
+<u>BCB744_\<Name\>_\<Surname\>_Summative_Task_2.html</u>, e.g.
+
+<u>BCB744_AJ_Smit_Summative_Task_2.html.</u></b>
+
+<b>Upload your .html files onto [Google Forms](https://docs.google.com/forms/d/e/1FAIpQLSfBO9a42ESrL3E3ytIFIqMGvnei19ynWisPpJHGU8P9DXvyow/viewform?usp=sf_link).</b>
+
