@@ -1,0 +1,374 @@
+---
+date: "2021-01-01"
+title: "14. Tidiest Data"
+---
+
+> "*Conducting data analysis is like drinking a fine wine. It is important to swirl and sniff the wine, to unpack the complex bouquet and to appreciate the experience. Gulping the wine doesn't work.*"
+> 
+> --- Daniel B. Wright
+  
+> "*If you torture the data long enough, it will confess to anything.*"
+>
+> --- Ronald Coase
+
+```{r tidiest-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "R>", 
+  warning = FALSE, 
+  message = FALSE
+)
+```
+
+In the previous session you covered the five main transformation functions you would use in a typical tidy workflow. But to really unlock their power you need to learn how to use them with `group_by()`. This is how you may calculate statistics based on the different grouping variables within your data, such as sites or species or soil types, for example. Let's begin by loading the **tidyverse** package and the SACTN data if you haven't already.
+
+```{r tidiest-load}
+# Load libraries
+library(tidyverse)
+library(lubridate)
+
+# load the data from a .RData file
+load("../../data/SACTNmonthly_v4.0.RData")
+
+# Copy the data as a dataframe with a shorter name
+SACTN <- SACTNmonthly_v4.0
+
+# Remove the original
+rm(SACTNmonthly_v4.0)
+```
+
+# Group observations (rows) by variables (columns) with `group_by()`  
+
+With the SACTN dataset loaded you will now look at the effect that `group_by` has on other `tidyverse` functions. First you will create a new object called `SACTN_depth`. If you look at this object in the RStudio GUI it will not appear to be any different from `SACTN`. You may think of `group_by()` as working behind the scenes in order to better support the five main functions. You will see that `group_by()` is working as intended when you create summaries from the `SACTN_depth` dataframe. Remember that you do not need to put the last bracket own it's own line. I like to do so in order to reduce the chances that I will forget to type it after the final argument within the last function in the code chunk.
+
+```{r tidiest-group-1}
+# Group by depth
+SACTN_depth <- SACTN %>% 
+  group_by(depth)
+
+# Calculate mean temperature by depth
+SACTN_depth_mean <- SACTN_depth %>% 
+  summarise(mean_temp = mean(temp, na.rm = TRUE),
+  count = n()
+)
+
+# Visualise the results
+SACTN_depth_mean
+```
+
+Let's visualise the newly created summary dataframe and see what' we get's there.
+
+```{r tidiest-group-2, fig.cap="Relationship between depth and mean temperature."}
+# Why does the relationship between depth and temperature look so odd?
+ggplot(data = SACTN_depth_mean, mapping = aes(x = depth, y = mean_temp)) +
+  geom_point(aes(size = count), alpha = 1/3) +
+  geom_smooth(se = FALSE)
+```
+
+## Grouping by multiple variables
+
+As you may have guessed by now, grouping is not confined to a single column. One may use any number of columns to perform elaborate grouping measures. Let's look at some ways of doing this with the SACTN data.
+
+```{r tidiest-group-3, eval=FALSE}
+# Create groupings based on temperatures and depth
+SACTN_temp_group <- SACTN %>% 
+  group_by(round(temp), depth)
+
+# Create groupings based on source and date
+SACTN_src_group <- SACTN %>% 
+  group_by(src, date)
+
+# Create groupings based on date and depth
+SACTN_date_group <- SACTN %>% 
+  group_by(date, depth)
+```
+
+Now that you've created some grouped dataframes, let's think of some ways to summarise these data.
+
+## Ungrouping
+
+Once you level up our **tidyverse** skills you will routinely be grouping variables while calculating statistics. This then poses the problem of losing track of which dataframes are grouped and which aren't. Happily, to remove any grouping we just use `ungroup()`. No arguments required, just the empty function by itself. Too easy. 
+
+```{r tidiest-group-4, eval=FALSE}
+SACTN_ungroup <- SACTN_date_group %>% 
+  ungroup()
+```
+
+# Chain functions with the pipe (`%>%`)
+
+This now brings you to the last major concept you need to become confident with for this workshop. Everything you have learned thus far builds on everything else in a modular way, with most concepts and steps therein being interchangeable. The pipe takes all of the things we have learned and takes them to the next level. And the best part about it is that it requires us to learn nothing new. You've been doing it all along, perhaps without even realising it. Let's see what I mean. The following chunk does in one command what the first chunk in the previous section took two steps. This is not only faster, but saves you from having to create intermediate dataframes that only slow down our computer and clog up your environment.
+
+```{r tidiest-group-5, eval=FALSE}
+SACTN_depth_mean_2 <- SACTN %>% # Choose a base dataframe
+  group_by(depth) %>% # Group by thedepth column
+  summarise(mean_temp = mean(temp, na.rm = TRUE), # Calculate means
+  count = n() # Count observations
+) # Safety measure
+```
+
+Take a moment and compare the `SACTN_depth_mean_2` object that you've just created against the `SACTN_depth_mean` object you created at the beginning of this session. Same same.
+
+Not only does this keep your workflow tidier, it also makes it easier to read for yourselves, your colleagues, and most importantly, your future selves. When you look at the previous code chunk you can think of it as a paragraph in a research report, with each line a sentence. If I were to interpret this chunk of code in plain English I think it would sound something like this: 
+  
+::: {.callout-note}
+## Note
+In order to create the `SACTN_depth_mean_2` dataframe I first started by taking the original SACTN data. I then grouped the data into different depth categories. After this I calculated the mean temperature for each depth category, as well as counting the number of observations within each depth group.
+:::
+
+Just like paragraphs in a human language may vary in length, so too may code chunks. There really is no limit. This is not to say that it is encouraged to attempt to reproduce a code chunk of comparable length to anything Marcel Proust would have written. It is helpful to break things up into pieces of a certain size. What that size is though is open to the discretion of the person writing the code. It is up to you to find out for yourself what works best for you.
+
+# Group all the functions!
+
+You've played around quite a bit with grouping and summarising, but that's not all you can do. You can use `group_by()` very nicely with `filter()` and `mutate()` as well. 
+
+You can do some rather imaginative things when you combine all of these tools together. In fact, you should be able to accomplish almost any task you can think of. For example, what if you wanted to create a new object that is a subset of only the sites in the `SACTN` that had at least 30 years (360 months) of data?
+
+```{r tidiest-group-6, eval=FALSE}
+SACTN_30_years <- SACTN %>%
+  group_by(site, src) %>%
+  filter(n() > 360)
+```
+
+Or what if we wanted to calculate anomaly data for each site?
+
+```{r tidiest-group-7, eval=FALSE}
+SACTN_anom <- SACTN %>%
+  group_by(site, src) %>% 
+  mutate(anom = temp - mean(temp, na.rm = T)) %>% 
+  select(site:date, anom, depth, type) %>% 
+  ungroup()
+```
+
+Now, let's select only two sites and calculate their mean and standard deviations. Note how whichever columns you give to `group_by()` will be carried over into the new dataframe created by `summarise()`.
+
+```{r tidiest-group-8}
+SACTN %>% 
+  filter(site == "Paternoster" | site == "Oudekraal") %>%
+  group_by(site, src) %>% 
+  summarise(mean_temp = mean(temp, na.rm = TRUE), 
+            sd_temp = sd(temp, na.rm = TRUE))
+```
+
+# Going deeper
+
+You learned in the previous session that you should avoid using comparison operators to compare logical arguments as this tends to not produce the results you would expect. Below you will see what happens when you try to repeat the code chunk above, but using a logical operator within a comparison operator.
+
+```{r tidiest-logic-1, error=TRUE}
+#| eval: false
+SACTN %>% 
+  filter(site == "Paternoster" | "Oudekraal") %>% # This line has been changed/shortened
+  group_by(site, src) %>% 
+  summarise(mean_temp = mean(temp, na.rm = TRUE), 
+            sd_temp = sd(temp, na.rm = TRUE))
+```
+
+Oh no, you broke it! This is a common error while learning to write code so do try to keep this rule in mind as it can cause a lot of headaches. An easy way to spot this problem is if your line of code has more logical operators than comparison operators you're probably going to have a bad time. This is doubly unfortunate as you would need to write less code if this were not so. Happily, there is a shortcut for just this problem, `%in%`. Whenever you want to use operators to filter by more than two things, it is most convenient to create an object that contains the names or numbers that you want to filter by. You then replace your comparison and logical operators with that one simple symbol (`%in%`). 
+
+```{r tidiest-logic-2}
+# First create a character vector containing the desired sites
+selected_sites <- c("Paternoster", "Oudekraal", "Muizenberg", "Humewood")
+
+# Then calculate the statistics
+SACTN %>% 
+  filter(site %in% selected_sites) %>%
+  group_by(site, src) %>% 
+  summarise(mean_temp = mean(temp, na.rm = TRUE), 
+            sd_temp = sd(temp, na.rm = TRUE))
+```
+
+The `%in%` operator can be a very useful shortcut, but sometimes you cannot avoid the comparison and logical operator dance. For example, if you wanted to find temperatures at Port Nolloth that were over 10°C but under 15°C you could use either of the following two filters. Remember that whenever you see a `,` in the filter function it is the same as the `&` logical operator. Of the two different techniques shown below, I would be more inclined to use the first one. The fewer symbols you use to write your code the better. Both for readability and error reduction.
+
+```{r, eval = FALSE}
+SACTN %>% 
+  filter(site == "Port Nolloth", temp > 10, temp < 15)
+
+SACTN %>% 
+  filter(site == "Port Nolloth", !(temp <= 10 | temp  >= 15))
+```
+
+As you may imagine, performing intricate logical arguments like this may get out of hand rather quickly. It is advisable to save intermediate steps in a complex workflow to avoid too much heartache. Where exactly these 'fire breaks' should be made is up to the person writing the code.
+
+# Pipe into **ggplot2**
+
+It is also possible to combine piped code chunks and **ggplot2** chunks into one 'combi-chunk'. I prefer not to do this as I like saving the new dataframe I have created as an object in my environment before visualising it so that if anything has gone wrong (as things tend to do) I can more easily find the problem.
+
+Regardless of what you may or may not prefer to do, the one thing that must be mentioned about piping into **ggplot2** is that when you start with the `ggplot()` function you switch over from the pipe (`%>%`) to the plus sign (`+`). There are currently efforts to address this inconvenience, but are not yet ready for public consumption.
+
+```{r tidyiest-ggplot, fig.cap="Line and ribbon plots for the climatologies of several sites."}
+SACTN %>%
+  filter(site %in% c("Bordjies", "Tsitsikamma", "Humewood", "Durban")) %>%
+  select(-depth, -type) %>%
+  mutate(month = month(date),
+         index = paste(site, src, sep = "/ ")) %>%
+  group_by(index, month) %>%
+  summarise(mean_temp = mean(temp, na.rm = TRUE),
+            sd_temp = sd(temp, na.rm = TRUE)) %>%
+  ggplot(aes(x = month, y = mean_temp)) +
+  geom_ribbon(aes(ymin = mean_temp - sd_temp, ymax = mean_temp + sd_temp), 
+              fill = "black", alpha = 0.4) +
+  geom_line(col = "navy", size = 0.3) +
+  facet_wrap(~index) +
+  scale_x_continuous(breaks = seq(2, 12, 4)) +
+  labs(x = "Month", y = "Temperature (°C)")
+```
+
+# Additional useful functions
+
+There is an avalanche of useful functions to be found within the **tidyverse**. In truth, you have only looked at functions from three packages: **ggplot2**, **dplyr**, and **tidyr**. There are far, far too many functions even within these three packages to cover within a week. But that does not mean that the functions in other packages, such as **`purrr`** are not also massively useful for our work. For now we will see how the inclusion of a handful of choice extra functions may help to make our workflow even tidier.
+
+## Rename variables (columns) with `rename()`
+
+You have seen that you select columns in a dataframe with `select()`, but if you want to rename columns you have to use, you guessed it, `rename()`. This functions works by first telling R the new name you would like, and then the existing name of the column to be changed. This is perhaps a bit back to front, but such is life on occasion.
+
+```{r tidiest-rename, eval=FALSE}
+SACTN %>% 
+  rename(source = src)
+```
+```{r tidiest-rename-ghost, echo=FALSE}
+rename(SACTN, source = src)[1:10,]
+```
+
+## Create a new dataframe for a newly created variable (column) with `transmute()`
+
+If for whatever reason you wanted to create a new variable (column), as you would do with `mutate()`, but you do not want to keep the dataframe from which the new column was created, the function to use is `transmute()`.
+
+```{r tidiest-transmute-1, eval=FALSE}
+SACTN %>% 
+  transmute(kelvin = temp + 273.15)
+```
+
+```{r tidiest-transmute-1-ghost, echo=FALSE}
+transmute(SACTN, kelvin = temp + 273.15)[1:10,]
+```
+
+This makes a bit more sense when paired with `group_by()` as it will pull over the grouping variables into the new dataframe. Note that when it does this for you automatically it will provide a message in the console.
+
+```{r tidiest-transmute-2, eval=FALSE}
+SACTN %>% 
+  group_by(site, src) %>% 
+  transmute(kelvin = temp + 273.15)
+```
+
+```{r tidiest-transmute-2-ghost, echo=FALSE}
+SACTN_trans <- SACTN %>% 
+  group_by(site, src) %>% 
+  transmute(kelvin = temp + 273.15)
+SACTN_trans[1:10,]
+```
+
+## Count observations (rows) with `n()`
+
+You have already seen this function sneak it's way into a few of the code chunks in the previous session. You use `n()` to count any grouped variable automatically. It is not able to be given any arguments, so you must organise our dataframe in order to satisfy it's needs. It is the diva function of the **tidyverse**; however, it is terribly useful as you usually want to know how many observations your summary stats are based. First you will run some stats and create a figure without documenting `n`. Then you will include `n` and see how that changes your conclusions.
+
+```{r tidiest-n-1, fig.cap="Dot plot showing range of mean temperatures for the time series in the SACTN dataset."}
+ SACTN_n <- SACTN %>% 
+  group_by(site, src) %>% 
+  summarise(mean_temp = round(mean(temp, na.rm = T))) %>% 
+  arrange(mean_temp) %>% 
+  ungroup() %>% 
+  select(mean_temp) %>% 
+  unique()
+
+ggplot(data = SACTN_n, aes(x = 1:nrow(SACTN_n), y = mean_temp)) +
+  geom_point() +
+  labs(x = "", y = "Temperature (°C)") +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank())
+```
+
+This looks like a pretty linear distribution of temperatures within the SACTN dataset. But now let's change the size of the dots to show how frequently each of these mean temperatures is occurring.
+
+```{r tidiest-n-2, fig.cap="Dot plot showing range of mean temperatures for the time series in the SACTN dataset with the size of each dote showing the number of occurences of each mean."}
+ SACTN_n <- SACTN %>% 
+  group_by(site, src) %>% 
+  summarise(mean_temp = round(mean(temp, na.rm = T))) %>% 
+  ungroup() %>% 
+  select(mean_temp) %>% 
+  group_by(mean_temp) %>% 
+  summarise(count = n())
+
+ggplot(data = SACTN_n, aes(x = 1:nrow(SACTN_n), y = mean_temp)) +
+  geom_point(aes(size = count)) +
+  labs(x = "", y = "Temperature (°C)") +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank())
+```
+
+You see now when you include the count (`n`) of the different mean temperatures that this distribution is not so even. There appear to be humps around 17°C and 22°C. Of course, you've created dot plots here just to illustrate this point. In reality if you were interested in a distribution like this one would use a histogram, or better yet, a density polygon.
+
+
+```{r  tidiest-n-3, fig.cap="Frequency distribution of mean temperature for each time series in the SACTN dataset."}
+SACTN %>% 
+  group_by(site, src) %>% 
+  summarise(mean_temp = round(mean(temp, na.rm = T))
+            ) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = mean_temp)) +
+  geom_density(fill = "seagreen", alpha = 0.6) +
+  labs(x = "Temperature (°C)")
+```
+
+## Select observations (rows) by number with `slice()`
+
+If you want to select only specific rows of a dataframe, rather than using some variable like you do for `filter()`, you use `slice()`. The function expects us to provide it with a series of integers as seen in the following code chunk. Try playing around with these values and see what happens
+
+```{r tidiest-slice-1, eval=FALSE}
+# Slice a seqeunce of rows
+SACTN %>% 
+  slice(10010:10020)
+
+# Slice specific rows
+SACTN %>%
+  slice(c(1,8,19,24,3,400))
+
+# Slice all rows except these
+SACTN %>% 
+  slice(-(c(1,8,4)))
+
+# Slice all rows except a sequence
+SACTN %>% 
+  slice(-(1:1000))
+```
+
+It is discouraged to use slice to remove or select specific rows of data as this does not discriminate against any possible future changes in ones data. Meaning that if at some point in the future new data are added to a dataset, re-running this code will likely no longer be selecting the correct rows. This is why `filter()` is a main function, and `slice()` is not. This auxiliary function can however still be quite useful when combined with arrange.
+
+```{r tidiest-slice-2}
+# The top 5 variable sites as measured by SD
+SACTN %>% 
+  group_by(site, src) %>% 
+  summarise(sd_temp = sd(temp, na.rm = T)) %>% 
+  ungroup() %>% 
+  arrange(desc(sd_temp)) %>% 
+  slice(1:5)
+```
+
+## Summary functions
+
+There is a near endless sea of possibilities when one starts to become comfortable with writing R code. You have seen several summary functions used thus far. Mostly in straightforward ways. But that is one of the fun things about R, the only limits to what you may create are within your mind, not the program. Here is just one example of a creative way to answer a straightforward question: 'What is the proportion of recordings above 15°C per source?'. Note how you may refer to columns you have created within the same chunk. There is no need to save the intermediate dataframes if we choose not to.
+    
+```{r tidiest-summary}
+SACTN %>% 
+  na.omit() %>% 
+  group_by(src) %>%
+  summarise(count = n(), 
+            count_15 = sum(temp > 15)) %>% 
+  mutate(prop_15 = count_15/count) %>% 
+  arrange(prop_15)
+```
+
+# The new age *redux*
+
+Remember the spreadsheet example from the first day of the R workshop? Here it is repeated in a more efficient way. Now with bonus ribbons! In this chunk you see how to load, transform, and visualise the data all in one go. You would not normally do this, but it sure is snappy!
+
+```{r tidiest-new-age}
+read_csv("../../data/SACTN_data.csv") %>%
+  mutate(month = month(date)) %>%
+  group_by(site, month) %>%
+  summarise(mean_temp = mean(temp, na.rm = TRUE),
+            sd_temp = sd(temp, na.rm = TRUE)) %>%
+  ggplot(aes(x = month, y = mean_temp)) +
+  geom_ribbon(aes(ymin = mean_temp - sd_temp, ymax = mean_temp + sd_temp), 
+              fill = "black", alpha = 0.4) +
+  geom_point(aes(colour = site)) +
+  geom_line(aes(colour = site, group = site)) +
+  labs(x = "", y = "Temperature (°C)", colour = "Site")
+```
