@@ -1,0 +1,191 @@
+---
+title: "BCB744 Bonus Task"
+format: 
+  html:
+    fig-format: svg
+    fig_retina: 2
+    fig-dpi: 400
+params: 
+  hide_answers: true
+---
+
+# 11. The Fiji Earthquake Data
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE,fig.width=6,fig.asp=0.65,out.width="80%",fig.align='center'}
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+world <- ne_countries(returnclass = 'sf',
+  scale = 10, type = "countries") |> 
+  select(continent, sovereignt, iso_a3)  
+
+NE_proj <- "+proj=natearth +lon_0=170 "
+
+world_1 <- ne_countries(returnclass = 'sf',
+  scale = 10, type = "countries") |> 
+  select(continent, sovereignt, iso_a3) |> 
+  st_break_antimeridian(lon_0 = 170) |> 
+  st_transform(NE_proj)
+
+library(countrycode)
+
+world_1$region <- countrycode(world_1$iso_a3, origin = "iso3c",
+  destination = "un.regionsub.name")
+
+sw_pacific <- world_1 |> 
+  filter(region %in% c("Australia and New Zealand", "Melanesia", "Micronesia",
+    "Indonesia", "Polynesia", "South-eastern Asia")) |> 
+  group_by(continent) |>
+  summarise()
+
+quakes <- as_tibble(datasets::quakes)
+margin <- 15.0
+xmin <- min(quakes$long) - margin; xmax <- max(quakes$long) + margin
+ymin <- min(quakes$lat) - margin; ymax <- max(quakes$lat) + margin
+
+WGS84_proj <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+
+bbox <- st_sfc(st_point(c(xmin, ymin)), st_point(c(xmax, ymax)),
+                         crs = WGS84_proj)
+bbox_trans <- st_transform(bbox, NE_proj)
+
+sw_pacific_cropped <- sw_pacific |> 
+  st_crop(bbox_trans)
+
+quakes_sf <- quakes |> 
+  st_as_sf(coords = c("long", "lat"),
+    crs = WGS84_proj)
+quakes_sf_trans <- st_transform(quakes_sf, NE_proj)
+
+quakes_sf_trans_sub <- quakes_sf_trans |> 
+  filter(mag > quantile(mag, 0.75))
+
+ggplot() +
+  geom_sf(data = sw_pacific_cropped, colour = "black", fill = "grey70") +
+  geom_sf(data = quakes_sf_trans, aes(colour = mag, size = mag),
+    stat = "sf_coordinates",
+    shape = "*", alpha = 0.4) +
+  scale_colour_continuous(type = "viridis") +
+  guides(size = "none") +
+  coord_sf(expand = FALSE) +
+  labs(x = NULL, y = NULL,
+    title = "The Fiji Earthquake Data",
+    subtitle = "All data")
+```
+
+The questions concern the above figure.
+
+## Question
+
+Please recreate the figure, above. You are welcome to reuse the code found on the website. Using this figure as starting point, do the following:
+
+When plotting the earthquakes, include **only** the earthquake data for earthquakes of magnitude greater than the 75th percentile. Add a point for five of your favourite South Pacific island nations. Ensure the point is correctly associated with the island name and that the map is correctly labelled, has a title, and it is as close to publication quality as you can make it. Your script needs to show all the steps (thoroughly annotated) leading to the final figure.
+
+Marks will also be assigned for the overall aethetic appearance of the map. Feel free to be creative, but ensure the final product remains publication quality. **(\30)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+This is the 'base' map, which you will modify:
+
+```{r, echo=TRUE,warning=FALSE,message=FALSE,fig.width=6,fig.asp=0.65,out.width="80%",fig.align='center'}
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+world <- ne_countries(returnclass = 'sf', 
+  scale = 10, type = "countries") |> 
+  select(continent, sovereignt, iso_a3)  
+
+NE_proj <- "+proj=natearth +lon_0=170 "
+
+world_1 <- ne_countries(returnclass = 'sf',
+  scale = 10, type = "countries") |> 
+  select(continent, sovereignt, iso_a3) |> 
+  st_break_antimeridian(lon_0 = 170) |> 
+  st_transform(NE_proj)
+
+library(countrycode)
+
+world_1$region <- countrycode(world_1$iso_a3, origin = "iso3c",
+  destination = "un.regionsub.name")
+
+sw_pacific <- world_1 |> 
+  filter(region %in% c("Australia and New Zealand", "Melanesia", "Micronesia",
+    "Indonesia", "Polynesia", "South-eastern Asia")) |> 
+  group_by(continent) |>
+  summarise()
+
+quakes <- as_tibble(datasets::quakes)
+margin <- 15.0
+xmin <- min(quakes$long) - margin; xmax <- max(quakes$long) + margin
+ymin <- min(quakes$lat) - margin; ymax <- max(quakes$lat) + margin
+
+WGS84_proj <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+
+bbox <- st_sfc(st_point(c(xmin, ymin)), st_point(c(xmax, ymax)),
+                         crs = WGS84_proj)
+bbox_trans <- st_transform(bbox, NE_proj)
+
+sw_pacific_cropped <- sw_pacific |> 
+  st_crop(bbox_trans)
+
+quakes_sf <- quakes |> 
+  st_as_sf(coords = c("long", "lat"),
+    crs = WGS84_proj)
+quakes_sf_trans <- st_transform(quakes_sf, NE_proj)
+
+# Save to reuse later
+quake1 <- ggplot() +
+  geom_sf(data = sw_pacific_cropped, colour = "black", fill = "grey70") +
+  scale_colour_continuous(type = "viridis") +
+  guides(size = "none") +
+  coord_sf(expand = FALSE) +
+  labs(x = NULL, y = NULL,
+    title = "The Fiji Earthquake Data",
+    subtitle = "All data")
+
+# Add the earthquakes
+quake1 +
+  geom_sf(data = quakes_sf_trans, aes(colour = mag, size = mag),
+    stat = "sf_coordinates",
+    shape = "*", alpha = 0.4)
+```
+
+This is the final map you will have produced: 
+
+```{r, echo=TRUE,warning=FALSE,message=FALSE,fig.width=6,fig.asp=0.65,out.width="80%",fig.align='center'}
+# Filter the data
+quakes_sf_trans_sub <- quakes_sf_trans |> # ✓
+  filter(mag > quantile(mag, 0.75))
+
+# Add the points
+islands <- read.csv("../data/pacific_nations.csv") # ✓
+
+# Convert to sf
+islands_sf <- islands |> # ✓
+  st_as_sf(coords = c("Longitude", "Latitude"),
+    crs = WGS84_proj)
+
+# Transform to the new projection
+islands_sf_trans <- st_transform(islands_sf, NE_proj) # ✓
+
+quake1 +
+  geom_sf(data = quakes_sf_trans_sub, aes(colour = mag, size = mag),
+    stat = "sf_coordinates",
+    shape = "*", alpha = 0.4) +
+  geom_sf(data = islands_sf_trans, size = 1.2, colour = "red") + # ✓ 
+  geom_sf_text(data = islands_sf_trans, aes(label = Country), 
+             nudge_x = 500000, nudge_y = 200000, size = 3) + # ✓
+  scale_colour_viridis_c(name = "Magni-\ntude") + # ✓
+  labs(title = "The Fiji Earthquake Data", # ✓
+       subtitle = "Quakes > 75 percentile",
+       x = "Lon (°E)", y = "Lat (°S)")
+```
+
+`r if (params$hide_answers) ":::"`
+

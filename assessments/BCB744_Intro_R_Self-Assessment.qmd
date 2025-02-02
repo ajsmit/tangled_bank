@@ -10,113 +10,184 @@ Here is a self-assessment worksheet for the *Introduction to R* portion of the B
 
 * Complete the practice exercises to test your skills.
 * Submit your answers to each task's questions no later than 8:30 on the day after the corresponding lectures (e.g. Monday's lecture material is covered by Task A, and must be submitted on Tuesday morning no later than 8:30).
-* You do not need to submit anything for the "Practice Exercises" -- those are for your own benefit.
+* You do not need to submit anything for the practice exercises -- those are for your own benefit.
+* You MUST submit your answers to the questions for each task.
 * Immediately after we have gone over the task answers in the class (e.g. on Tuesday morning for Task A), rate your performance according to the [assessment sheet](BCB744_self_assessment_scoring.pdf). Fill your name in on the PDF and submit it on iKamva where it will be kept on record. Each day I'll randomly select five of the submitted tasks to check the honesty of your assessments. 
 * Review the relevant course material if you find you are struggling with a section. Ask for help before it is too late! It is best to admit in class if you are falling behind so that others might benefit as well.
 
-# [Task A](BCB744_Task_A.html)
+[**To reiterate:** You don't need to submit the practice exercises, but you MUST submit the questions for each task.]{.my-highlight}
 
-# [Task B](BCB744_Task_B.html)
+# [[Task A Questions]{.my-highlight}](BCB744_Task_A.html)
 
-# [Task C](BCB744_Task_C.html)
-
-# Bonus Task {#sec-bonus}
-
-## 11. The Fiji Earthquake Data
+## 1. R and RStudio
 
 **Understanding Level:** Beginner / Intermediate / Advanced
 
 ### Key Concepts
 
-1. Working with real-world datasets.
-2. Applying mapping skills to specific data.
+1. Installation of R and RStudio
+2. Understanding the RStudio IDE
+3. Navigating the RStudio interface
+4. Basic R syntax
 
 ### Practice Exercises
 
-- Import the Fiji Earthquake data.
-- Use a suitable map to represent the data, with size and colour varying with the magnitude and depth of earthquakes.
+- Open RStudio. Create a new R script.
+- Execute basic arithmetic operations (e.g., `2 + 2, 5 * 3`) in the console.
+- Explore the different panes in the RStudio interface (Source, Console, Environment, History, Files, Plots, Packages, Help).
 
-::: {.panel-tabset}
+## 2. Working With Data and Code
 
-## Questions
+**Understanding Level:** Beginner / Intermediate / Advanced
 
-```{r, echo = FALSE, output = TRUE}
-library(tidyverse)
-library(sf)
-library(rnaturalearth)
-library(rnaturalearthdata)
+### Key Concepts
 
-world <- ne_countries(returnclass = 'sf',
-  scale = 10, type = "countries") |> 
-  select(continent, sovereignt, iso_a3)  
+1. Importing data into R.
+2. Understanding different types of data files.
+2. Understanding data structures (vectors, lists, data frames).
+3. Basic coding practices.
 
-NE_proj <- "+proj=natearth +lon_0=170 "
+## 3. Data Classes and Structures in R
 
-world_1 <- ne_countries(returnclass = 'sf',
-  scale = 10, type = "countries") |> 
-  select(continent, sovereignt, iso_a3) |> 
-  st_break_antimeridian(lon_0 = 170) |> 
-  st_transform(NE_proj)
+**Understanding Level:** Beginner / Intermediate / Advanced
 
-library(countrycode)
+### Key Concepts
 
-world_1$region <- countrycode(world_1$iso_a3, origin = "iso3c",
-  destination = "un.regionsub.name")
+1. Understanding data classes in R.
+2. Working with vectors, matrices, and data frames.
+3. Using indexing and subsetting.
 
-sw_pacific <- world_1 |> 
-  filter(region %in% c("Australia and New Zealand", "Melanesia", "Micronesia",
-    "Indonesia", "Polynesia", "South-eastern Asia")) |> 
-  group_by(continent) |>
-  summarise()
+### Practice Exercises
 
-quakes <- as_tibble(datasets::quakes)
-margin <- 15.0
-xmin <- min(quakes$long) - margin; xmax <- max(quakes$long) + margin
-ymin <- min(quakes$lat) - margin; ymax <- max(quakes$lat) + margin
+- Create a vector of numbers and a vector of characters and assign them to the variables `numbs` and `letts`, respectively.
+- Place these two variables (`numbs` and `letts`) into a data frame called `numbsletts`.
+- Create a matrix with the following data:
 
-WGS84_proj <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-
-bbox <- st_sfc(st_point(c(xmin, ymin)), st_point(c(xmax, ymax)),
-                         crs = WGS84_proj)
-bbox_trans <- st_transform(bbox, NE_proj)
-
-sw_pacific_cropped <- sw_pacific |> 
-  st_crop(bbox_trans)
-
-quakes_sf <- quakes |> 
-  st_as_sf(coords = c("long", "lat"),
-    crs = WGS84_proj)
-quakes_sf_trans <- st_transform(quakes_sf, NE_proj)
-
-quakes_sf_trans_sub <- quakes_sf_trans |> 
-  filter(mag > quantile(mag, 0.75))
-
-ggplot() +
-  geom_sf(data = sw_pacific_cropped, colour = "black", fill = "grey70") +
-  geom_sf(data = quakes_sf_trans, aes(colour = mag, size = mag),
-    stat = "sf_coordinates",
-    shape = "*", alpha = 0.4) +
-  scale_colour_continuous(type = "viridis") +
-  guides(size = "none") +
-  coord_sf(expand = FALSE) +
-  labs(x = NULL, y = NULL,
-    title = "The Fiji Earthquake Data",
-    subtitle = "Natural Earth")
+```{r}
+matrix_data <- matrix(1:12, nrow = 3, ncol = 4)
 ```
 
-1. Please recreate the figure, above. You are welcome to reuse the code found on the website. 
-2. When plotting the earthquakes, include **only** the earthquake data for earthquakes of magnitude greater than the 75th percentile.
-3. Add a point for each of the main island nations in the South Pacific region. Ensure the point is correctly associated with the island name.
-4. Ensure the map is correctly labelled and has a title, and is as close to publication quality as you can make it.
+- Assign the row names `c("row1", "row2", "row3")` and column names `c("col1", "col2", "col3", "col4")` to the matrix.
+- Extract the number in the second row and in the third column.
+- Create a new matrix with the same data but with the rows and columns transposed.
+- Find five datasets that you like the look and content of. They may be some of the datasets built into R (and the various packages you downloaded), or they may be ones you found somewhere else. For each:
+  - describe the data types (statistical view) of the variables contained within,
+  - using the functions shown in the Chapter, describe their R data classes of each variable, and
+  - using the functions shown in the Chapter, describe their data structures.
 
-Your code needs to show all the steps (thoroughly annotated) leading to the final figure in point 4.
+## 4. R Workflows
 
-## Answers
+**Understanding Level:** Beginner / Intermediate / Advanced
 
-Nothing here yet.
-:::
+### Key Concepts
 
-# Task D {#sec-task_D}
+1. Creating reproducible workflows
+2. Using R scripts
+3. Commenting code
+4. Using packages
+
+### Practice Exercises
+
+- Create a vector of numbers and a vector of characters and assign them to the variables `numbs` and `letts`, respectively.
+- Place these two variables (`numbs` and `letts`) into a data frame called `numbsletts`.
+- Import the built-in dataset `ChickWeight` using `data(ChickWeight)` and view it.
+- Use `head()` and `tail()` to view the first and last rows.
+- Use `str()` to see the structure of the data frame.
+- Create an R script that imports the `ChickWeight` dataset and assigns it to the object `kfc`.
+- Add comments to your script explaining what each line of code does.
+
+Use `?datasets :: ChickWeight` to find help for the dataset ChickWeight.
+The course website has links to download additional datasets.
+
+# [[Task B Questions]{.my-highlight}](BCB744_Task_B.html)
+
+## 5. Graphics With **ggplot2**
+
+**Understanding Level:** Beginner / Intermediate / Advanced
+
+### Key Concepts
+
+1. Creating basic plots with **ggplot2**.
+2. Understanding the grammar of graphics.
+3. Using layers, aesthetics, and geoms.
+
+### Practice Exercises
+
+- Create a scatter plot using **ggplot2** with the `ChickWeight` dataset, plotting `weight` against `Time`.
+- Create separate figures for each `Diet` group (i.e. you will have four plots, one for each diet group).
+- Add appropriate titles and axes labels to the plots.
+- Experiment with different geoms like `geom_line()` or `geom_point()`.
+
+## 6. Faceting Figures
+
+**Understanding Level:** Beginner / Intermediate / Advanced
+
+### Key Concepts
+
+1. Using `facet_wrap()` and `facet_grid()` to create subplots.
+2. Displaying data across multiple dimensions.
+
+### Practice Exercises
+
+- Create a scatter plot with **ggplot2** using the `ChickWeight` dataset and use `facet_wrap()` to create subplots for each `Diet`.
+- Experiment with different `facet_wrap()` and `facet_grid()` arguments.
+
+## 7. Brewing Colours
+
+**Understanding Level:** Beginner / Intermediate / Advanced
+
+### Key Concepts
+
+1. Customising colours in plots.
+2. Using colour palettes effectively.
+
+### Practice Exercises
+
+- Recreate the plots from previous exercises and experiment with different colour scales (e.g., using `scale_color_brewer()`, `scale_fill_viridis_c()`).
+- Choose colours that are appropriate and informative for the data you are displaying.
+
+# [[Task C Questions]{.my-highlight}](BCB744_Task_C.html)
+
+## 8. Mapping With **ggplot2**
+
+**Understanding Level:** Beginner / Intermediate / Advanced
+
+### Key Concepts
+
+1. Creating basic maps using **ggplot2**.
+2. Using spatial data.
+
+### Practice Exercises
+
+- Staying with the figure you created above, change various aspcects of the theme, line types and thickness, colour fills and other colours, etc. Create some variations for the map and save them as separate figures.
+- Think about which aethetic choices make the most pleasing maps.
+
+## 9. Mapping With Style
+
+**Understanding Level:** Beginner / Intermediate / Advanced
+
+### Key Concepts
+
+1. Customising map aesthetics.
+2. Adding themes to maps.
+
+## 10. Mapping With Natural Earth and the **sf** Package
+
+**Understanding Level:** Beginner / Intermediate / Advanced
+
+### Key Concepts
+
+1. Using the **sf** package for spatial data.
+2. Working with Natural Earth data.
+
+### Practice Exercises
+
+- Use the **rnaturalearth** package to download a Natural Earth map of a country of your choice, then plot it using the **sf** package.
+- Explore other spatial datasets available with the **rnaturalearth** package.
+
+# [[Bonus Task Questions]{.my-highlight}](BCB744_Task_Bonus.html)
+
+# [[Task D Questions]{.my-highlight}](BCB744_Task_D.html)
 
 ## 12, 13 & 14. Tidy Data
 
@@ -133,22 +204,7 @@ Nothing here yet.
 - Import a messy dataset and practice reshaping using `tidyr::pivot_longer()` and `tidyr::pivot_wider()`.
 - Use **dplyr** to clean and manipulate data in the tidy format.
 
-::: {.panel-tabset}
-
-## Questions
-
-1. What are the key principles of tidy data?
-2. What are the differences between wide and long format data?
-3. Using the tidy data (`SACTN2_tidy`) and untidy data (`SACTN2`), create line graphs, one for each of DEA, SAWS, and KZNSB, showing a time series of temperature. Ensure you have a column of three figures (`ncol = 1`). Use the fewest number of lines of code possible.
-
-You should end up with two graphs, each with three panels.
-
-## Answers
-
-Nothing here yet.
-:::
-
-## Lecture 15: Recap
+## Lecture 15. Recap
 
 **Understanding Level:** Beginner / Intermediate / Advanced
 
