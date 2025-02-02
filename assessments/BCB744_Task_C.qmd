@@ -1,0 +1,262 @@
+---
+title: "BCB744 Task C"
+format: 
+  html:
+    fig-format: svg
+    fig_retina: 2
+    fig-dpi: 400
+params: 
+  hide_answers: true
+---
+
+# 9. Mapping with Style
+
+## Question 1
+
+```{r, fig.width=5,fig.asp=0.65,out.width="60%",fig.align='center',echo=FALSE,warning=FALSE,message=FALSE}
+# Load libraries
+library(tidyverse) # ✓
+library(scales) # ✓
+library(ggsn) # replace this with ggspatial ✓
+
+# Load Africa map
+load("../data/africa_map.RData") # ✓
+
+my_map <-ggplot() +
+  borders(size = 0.2, fill = "cornsilk", colour = "black") + # ✓
+  coord_equal(xlim = c(12, 37), ylim = c(-38, -22.1), expand = 0) + # ✓
+  annotate("text", label = "Atlantic\nOcean", # ✓
+           x = 15.1, y = -32.0, 
+           size = 5.0, 
+           angle = 30, 
+           colour = "navy") +
+  annotate("text", label = "Indian\nOcean", # ✓
+           x = 33.2, y = -34.2, 
+           size = 5.0, 
+           angle = 330, 
+           colour = "red4") +
+  scalebar(x.min = 22, x.max = 26, y.min = -36, y.max = -35, # Set location of bar
+           dist = 100, dist_unit = "km", height = 0.3, st.dist = 0.8, st.size = 4, # Set particulars
+           transform = TRUE, border.size = 0.2, model = "WGS84") + # Set appearance
+  north(x.min = 22.5, x.max = 25.5, y.min = -33, y.max = -31, # Set location of symbol
+        scale = 1.2, symbol = 16)
+my_map
+```
+
+
+
+Aethetically improve the map you created in this lecture (above example) and add a title and subtitle. Also adjust it to show appropriately labelled axes. **(/15)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r, fig.width=5,fig.asp=0.65,out.width="60%",fig.align='center',echo=TRUE,warning=FALSE,message=FALSE}
+# Load libraries
+library(tidyverse) # ✓
+library(scales) # ✓
+library(ggsn) # replace this with ggspatial ✓
+
+# Load Africa map
+load("../data/africa_map.RData") # ✓
+
+my_map <-ggplot() +
+  borders(size = 0.2, fill = "cornsilk", colour = "black") + # ✓
+  coord_equal(xlim = c(12, 37), ylim = c(-38, -22.1), expand = 0) + # ✓
+  annotate("text", label = "Atlantic\nOcean", # ✓
+           x = 15.1, y = -32.0, 
+           size = 5.0, 
+           angle = 30, 
+           colour = "navy") +
+  annotate("text", label = "Indian\nOcean", # ✓
+           x = 33.2, y = -34.2, 
+           size = 5.0, 
+           angle = 330, 
+           colour = "red4") +
+  scalebar(x.min = 15, x.max = 26, y.min = -36, y.max = -35, # ✓
+           dist = 400, dist_unit = "km", height = 0.3, st.dist = 0.8, st.size = 4,
+           transform = TRUE, border.size = 0.2, model = "WGS84") +
+  north(x.min = 12.5, x.max = 15.5, y.min = -37, y.max = -35, # ✓
+        scale = 1.2, symbol = 16) +
+  theme_minimal() + # ✓
+  labs(title = "Southern Africa", # ✓
+       subtitle = "An interesting subtitle", # ✓
+       x = "Lon (°E)", y = "Lat (°S)") # ✓
+my_map
+```
+
+
+`r if (params$hide_answers) ":::"`
+
+## Question 2
+
+Add a the capital city/town of each province to the map using `geom_point()` and ensure the place name is correctly associated with its point. **(/5)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r, fig.width=5,fig.asp=0.65,out.width="60%",fig.align='center',echo=TRUE,warning=FALSE,message=FALSE}
+# Load the data
+caps <- read.csv("../data/south_africa_capitals.csv") # ✓ 
+
+my_map +
+  geom_point(data = caps, aes(x = Longitude, y = Latitude), size = 2, colour = "red") + # ✓ 
+  geom_text(data = caps, aes(x = Longitude, y = Latitude, label = City), # ✓ 
+            nudge_x = 1, nudge_y = 0.5, size = 2.4)
+```
+
+
+`r if (params$hide_answers) ":::"`
+
+# 10. Mapping with Natural Earth and the **sf** Package
+
+```{r, echo=FALSE,message=FALSE}
+# install.packages("rnaturalearth", "rnaturalearthdata", "sf")
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# for the buffer to work as I expect, swith off
+# the functions for spherical geometry:
+sf_use_s2(FALSE)
+
+# the full map extent:
+xmin <- 12; ymin <- -36.5; xmax <- 40.5; ymax <- -10
+xlim <- c(xmin, xmax); ylim <- c(ymin, ymax)
+
+# make a bounding box for cropping:
+bbox <- st_bbox(c(xmin = xmin, ymin = ymin,
+  xmax = xmax, ymax = ymax))
+
+# might be useful for zooming into a smaller region (False Bay and 
+# the Cape Peninsula):
+xlim_zoom <- c(17.8, 19); ylim_zoom <- c(-34.5, -33.2)
+
+# load the countries:
+safrica_countries <- ne_countries(returnclass = 'sf',
+  continent = "Africa",
+  country = c("South Africa", "Mozambique",
+    "Namibia", "Zimbabwe", "Botswana",
+    "Lesotho", "Eswatini"),
+  scale = "large")
+
+safrica_countries_new <- safrica_countries |> 
+  group_by(continent) |> 
+  summarise() |> 
+  st_crop(bbox) |>
+  st_combine()
+```
+
+```{r, fig.width=5,fig.asp=0.65,out.width="60%",fig.align='center',echo=FALSE,warning=FALSE,message=FALSE}
+buffer <- safrica_countries_new %>%
+  st_buffer(0.4)
+
+ggplot() +
+  geom_sf(data = buffer, fill = "lightblue", col = "transparent") +
+  geom_sf(data = safrica_countries, colour = "indianred", fill = "beige") +
+  theme_minimal()
+```
+
+Questions 3--6 refer to the map above.
+
+## Question 3
+
+Why does the map region extend so far south of the southern tip of Africa when we requested only the countries South Africa, Mozambique, Namibia, Zimbabwe, Botswana, Lesotho, and Eswatini? **(/1)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+- ✓ The map extends so far south because included in the map domain for which we downloaded the data is Prince Edward Island, a territory of South Africa located in the Southern Ocean.
+
+`r if (params$hide_answers) ":::"`
+
+## Question 4
+
+How do we fix this to plot a more sensible map of the region? **(/1)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+- ✓ To exclude this island, we need to crop the map to the region of interest.
+
+`r if (params$hide_answers) ":::"`
+
+## Question 5
+
+What does `st_buffer(0.4)` do? **(/1)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+- ✓ The `st_buffer(0.4)` function creates a buffer around the countries in the map. The buffer is 0.4 units wide.
+
+`r if (params$hide_answers) ":::"`
+
+## Question 6
+
+With the map that we created in the lecture with Natural Earth and **sf** (i.e., you can start with the script in the lecture), zoom into False Bay and the Cape Peninsula. Add the location of the Cape Town city centre to the map using `geom_point()`. Ensure the point is correctly associated with the city name. Ensure the map is correctly labelled and has a title, and is as close to publication quality as you can make it. Pay close attention to the axes (breaks and limits) and the map extent. Some marks are allocated to a pleasing and sensible aesthetic appearance. **(/20)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r, fig.width=5,fig.asp=0.65,out.width="60%",fig.align='center',echo=FALSE,warning=FALSE,message=FALSE}
+# Load the packages
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# for the buffer to work as I expect, swith off
+# the functions for spherical geometry:
+sf_use_s2(FALSE)
+
+# the full map extent:
+xmin <- 12; ymin <- -36.5; xmax <- 40.5; ymax <- -10  # ✓
+xlim <- c(xmin, xmax); ylim <- c(ymin, ymax)
+
+# make a bounding box for cropping:
+bbox <- st_bbox(c(xmin = xmin, ymin = ymin,  # ✓
+  xmax = xmax, ymax = ymax))
+
+
+# load the countries:
+safrica_countries <- ne_countries(returnclass = 'sf',  # ✓
+  continent = "Africa",
+  country = c("South Africa", "Mozambique",
+    "Namibia", "Zimbabwe", "Botswana",
+    "Lesotho", "Eswatini"),
+  scale = "large")
+
+safrica_countries_new <- safrica_countries |> # ✓
+  group_by(continent) |> 
+  summarise() |> 
+  st_crop(bbox) |>
+  st_combine()
+
+# For zooming into a smaller region (False Bay and 
+# the Cape Peninsula):
+xlim_zoom <- c(17.8, 19); ylim_zoom <- c(-34.5, -33.2) # ✓
+
+# Cape Town lon and lat
+ctown <- c(18.4241, -33.9249) # ✓
+
+ggplot() +
+  geom_sf(data = safrica_countries, colour = "indianred", fill = "beige") + # ✓
+  geom_point(aes(x = ctown[1], y = ctown[2]), size = 3, colour = "blue") + # ✓
+  geom_text(aes(x = ctown[1], y = ctown[2], label = "Cape Town"), # ✓
+            nudge_x = 0.1, nudge_y = 0.08, size = 3) +
+  coord_sf(xlim = xlim_zoom, ylim = ylim_zoom, expand = 0) + # ✓
+  labs(title = "Cape Town", # ✓
+       x = "Lon (°E)", y = "Lat (°S)") +
+  scale_x_continuous(breaks = c(18, 19)) + # ✓
+  scale_y_continuous(breaks = c(-34.2, -33.4)) # ✓
+```
+
+
+`r if (params$hide_answers) ":::"`
