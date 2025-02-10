@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BCB744 Assessment Form</title>
+    
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Your React component -->
+    <script type="text/babel">
+        const AssessmentForm = () => {
+            const [formData, setFormData] = React.useState({
+                name: '',
+                surname: '',
+                studentNumber: '',
+                task: '',
+                component: '',
+                yourMarks: Array(10).fill(''),
+                maxMarks: Array(10).fill(''),
+                contentMark: '',
+                codeFormattingMark: '',
+            });
+
+            const [calculatedValues, setCalculatedValues] = React.useState({
+                totalYourMark: 0,
+                totalMaxMark: 0,
+                correctAnswers: 0,
+                finalScore: 0
+            });
+
+            const [submitStatus, setSubmitStatus] = React.useState({
+                status: '',
+                message: ''
+            });
+
+            const [isSubmitting, setIsSubmitting] = React.useState(false);
+            const [currentTime, setCurrentTime] = React.useState(new Date().toLocaleString());
+            const [submissionTime, setSubmissionTime] = React.useState(null);
+
+            // Add timer for updating current time
+            React.useEffect(() => {
+                const timer = setInterval(() => {
+                    setCurrentTime(new Date().toLocaleString());
+                }, 1000);
+
+                return () => clearInterval(timer);
+            }, []);
+
+            const handleInputChange = (field, value) => {
+                setFormData(prev => ({
+                    ...prev,
+                    [field]: value
+                }));
+            };
+
+            const handleMarkChange = (index, value, type) => {
+                setFormData(prev => ({
+                    ...prev,
+                    [type === 'your' ? 'yourMarks' : 'maxMarks']: prev[type === 'your' ? 'yourMarks' : 'maxMarks'].map(
+                        (mark, i) => i === index ? value : mark
+                    )
+                }));
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setIsSubmitting(true);
+                setSubmitStatus({ status: '', message: '' });
+                const submitTime = new Date().toLocaleString();
+                setSubmissionTime(submitTime);
+
+                // Replace with your Google Apps Script URL
+                const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxpEjfqdDqI--AXu1cYhOmmHjpSi_q3zFODiWejtmC50dHj6FfTySa3ip3CYGovs66lw/exec';
+
+                try {
+                    const response = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            ...formData,
+                            ...calculatedValues,
+                            formOpenTime: currentTime,
+                            submissionTime: submitTime,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        setSubmitStatus({
+                            status: 'success',
+                            message: 'Assessment submitted successfully!'
+                        });
+                    } else {
+                        throw new Error(result.message || 'Submission failed');
+                    }
+                } catch (error) {
+                    setSubmitStatus({
+                        status: 'error',
+                        message: `Error submitting assessment: ${error.message}`
+                    });
+                } finally {
+                    setIsSubmitting(false);
+                }
+            };
+
+            React.useEffect(() => {
+                const totalYour = formData.yourMarks.reduce((sum, mark) => sum + (parseFloat(mark) || 0), 0);
+                const totalMax = formData.maxMarks.reduce((sum, mark) => sum + (parseFloat(mark) || 0), 0);
+                const correctAnswers = totalMax > 0 ? (totalYour / totalMax * 100) : 0;
+                
+                const contentMarkNum = parseFloat(formData.contentMark) || 0;
+                const codeFormattingNum = parseFloat(formData.codeFormattingMark) || 0;
+                
+                const finalScore = ((correctAnswers * 0.5) + (contentMarkNum * 0.1) + (codeFormattingNum * 0.4));
+
+                setCalculatedValues({
+                    totalYourMark: totalYour,
+                    totalMaxMark: totalMax,
+                    correctAnswers: correctAnswers.toFixed(1),
+                    finalScore: finalScore.toFixed(1)
+                });
+            }, [formData]);
+
+            return (
+                <div className="min-h-screen bg-gray-100 py-8">
+                    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto">
+                        <div className="bg-white shadow-lg">
+                            {/* Status Alert */}
+                            {submitStatus.status && (
+                                <div className={`p-4 mb-4 ${
+                                    submitStatus.status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                                }`}>
+                                    {submitStatus.message}
+                                </div>
+                            )}
+
+                            {/* Form Header */}
+                            <div className="p-6 border-b border-gray-200">
+                                <div className="text-center">
+                                    <h1 className="text-2xl font-bold mb-2">BCB744 Intro R, and Biostatistics </h1>
+                                    <p className="text-gray-600">Self-Assessment Form</p>
+                                </div>
+                            </div>
+
+                            {/* Student Details */}
+                            <div className="p-6 space-y-6">
+                                <div className="bg-gray-50 p-4 rounded">
+                                    <h2 className="text-lg font-semibold mb-4">Student Information</h2>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                            <input
+                                                type="text"
+                                                className="w-full p-2 border rounded bg-white"
+                                                value={formData.name}
+                                                onChange={(e) => handleInputChange('name', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Surname</label>
+                                            <input
+                                                type="text"
+                                                className="w-full p-2 border rounded bg-white"
+                                                value={formData.surname}
+                                                onChange={(e) => handleInputChange('surname', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Student Number</label>
+                                            <input
+                                                type="text"
+                                                className="w-full p-2 border rounded bg-white"
+                                                value={formData.studentNumber}
+                                                onChange={(e) => handleInputChange('studentNumber', e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Task Selection */}
+                                <div className="bg-gray-50 p-4 rounded">
+                                    <h2 className="text-lg font-semibold mb-4">Task Selection</h2>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Component</label>
+                                            <select
+                                                className="w-48 p-2 border rounded bg-white"
+                                                value={formData.component}
+                                                onChange={(e) => handleInputChange('component', e.target.value)}
+                                                required
+                                            >
+                                                <option value="">Select Component</option>
+                                                {['Intro R', 'Biostatistics'].map(component => (
+                                                    <option key={component} value={component}>{component}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Task</label>
+                                            <select
+                                                className="w-48 p-2 border rounded bg-white"
+                                                value={formData.task}
+                                                onChange={(e) => handleInputChange('task', e.target.value)}
+                                                required
+                                            >
+                                                <option value="">Select Task</option>
+                                                {['A', 'B', 'C', 'D', 'E'].map(task => (
+                                                    <option key={task} value={task}>Task {task}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Form Start Time</label>
+                                            <input
+                                                type="text"
+                                                className="w-48 p-2 border rounded bg-gray-100"
+                                                value={currentTime}
+                                                readOnly
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Assessment Marks and Final Assessment Container */}
+                                <div className="grid grid-cols-12 gap-4">
+                                    {/* Assessment Marks */}
+                                    <div className="col-span-8 bg-gray-50 p-4 rounded">
+                                        <h2 className="text-lg font-semibold mb-4">Assessment Marks</h2>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full border-collapse bg-white">
+                                                <thead className="bg-gray-100">
+                                                    <tr>
+                                                        <th className="border border-gray-300 p-2 text-left">Question</th>
+                                                        <th className="border border-gray-300 p-2 text-left">Your Mark</th>
+                                                        <th className="border border-gray-300 p-2 text-left">Max Per Question</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {formData.yourMarks.map((_, index) => (
+                                                        <tr key={index}>
+                                                            <td className="border border-gray-300 p-2">Question {index + 1}</td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <input
+                                                                    type="number"
+                                                                    className="w-full p-1 bg-white"
+                                                                    value={formData.yourMarks[index]}
+                                                                    onChange={(e) => handleMarkChange(index, e.target.value, 'your')}
+                                                                />
+                                                            </td>
+                                                            <td className="border border-gray-300 p-2">
+                                                                <input
+                                                                    type="number"
+                                                                    className="w-full p-1 bg-white"
+                                                                    value={formData.maxMarks[index]}
+                                                                    onChange={(e) => handleMarkChange(index, e.target.value, 'max')}
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    <tr className="bg-gray-100">
+                                                        <td className="border border-gray-300 p-2 font-bold">Total</td>
+                                                        <td className="border border-gray-300 p-2 font-bold">{calculatedValues.totalYourMark}</td>
+                                                        <td className="border border-gray-300 p-2 font-bold">{calculatedValues.totalMaxMark}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {/* Final Assessment & Submit */}
+                                    <div className="col-span-4 bg-gray-50 p-4 rounded h-full">
+                                        <div className="flex flex-col h-full">
+                                            <h2 className="text-lg font-semibold mb-4">Final Assessment</h2>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Content (%) <p className="inline"> (0.1) </p>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        className="w-full p-2 border rounded bg-white"
+                                                        value={formData.contentMark}
+                                                        onChange={(e) => handleInputChange('contentMark', e.target.value)}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Code Formatting & Presentation (%) <p className="inline"> (0.4) </p>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        className="w-full p-2 border rounded bg-white"
+                                                        value={formData.codeFormattingMark}
+                                                        onChange={(e) => handleInputChange('codeFormattingMark', e.target.value)}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Correct Answers (%) <p className="inline"> (0.5) </p>
+                                                    </label>
+                                                    <div className="w-full p-2 border rounded bg-gray-100">
+                                                        {calculatedValues.correctAnswers}%
+                                                    </div>
+                                                </div>
+                                                <div className="bg-gray-800 text-white p-6 rounded">
+                                                    <h3 className="text-xl font-bold text-center">
+                                                        FINAL SCORE: {calculatedValues.finalScore}%
+                                                    </h3>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-center items-center mt-auto pt-4">
+                                                <button
+                                                    type="submit"
+                                                    disabled={isSubmitting}
+                                                    className={`px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
+                                                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                                                        ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                >
+                                                    {isSubmitting ? 'Submitting...' : 'Submit Assessment'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Form Footer */}
+                            <div className="p-6 border-t border-gray-200 text-center text-sm text-gray-600">
+                                BCB744 Assessment Form - Page 1 of 1
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            );
+        };
+
+        // Render the component
+        ReactDOM.render(
+            <AssessmentForm />,
+            document.getElementById('root')
+        );
+    </script>
+</body>
+</html>
