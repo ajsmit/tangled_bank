@@ -74,49 +74,62 @@
                 }));
             };
 
-            const handleSubmit = async (e) => {
+            // Modify the form element to be a native HTML form
+            const handleSubmit = (e) => {
                 e.preventDefault();
                 setIsSubmitting(true);
-                setSubmitStatus({ status: '', message: '' });
-                const submitTime = new Date().toLocaleString();
-                setSubmissionTime(submitTime);
+                
+                // Create the form data
+                const formEl = document.createElement('form');
+                formEl.setAttribute('method', 'POST');
+                formEl.setAttribute('action', 'https://script.google.com/macros/s/AKfycbxN_CMB6xZCD-yb8exmiCoqa3TmuXJH48LXg0YhV428/dev');
+                
+                // Helper function to create hidden input
+                const createHiddenInput = (name, value) => {
+                    const input = document.createElement('input');
+                    input.setAttribute('type', 'hidden');
+                    input.setAttribute('name', name);
+                    input.setAttribute('value', typeof value === 'object' ? JSON.stringify(value) : value);
+                    return input;
+                };
 
-                // Replace with your Google Apps Script URL
-                const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkGVDCBB2KC4vJjohA-cxOoI7fYM8Tp1MIBYmPzCVAG0NO1UdXGCd_ehXjK8yYyxC9Hg/exec';
+                // Add all form fields
+                formEl.appendChild(createHiddenInput('name', formData.name));
+                formEl.appendChild(createHiddenInput('surname', formData.surname));
+                formEl.appendChild(createHiddenInput('studentNumber', formData.studentNumber));
+                formEl.appendChild(createHiddenInput('task', formData.task));
+                formEl.appendChild(createHiddenInput('component', formData.component));
+                formEl.appendChild(createHiddenInput('yourMarks', formData.yourMarks));
+                formEl.appendChild(createHiddenInput('maxMarks', formData.maxMarks));
+                formEl.appendChild(createHiddenInput('contentMark', formData.contentMark));
+                formEl.appendChild(createHiddenInput('codeFormattingMark', formData.codeFormattingMark));
+                formEl.appendChild(createHiddenInput('totalYourMark', calculatedValues.totalYourMark));
+                formEl.appendChild(createHiddenInput('totalMaxMark', calculatedValues.totalMaxMark));
+                formEl.appendChild(createHiddenInput('correctAnswers', calculatedValues.correctAnswers));
+                formEl.appendChild(createHiddenInput('finalScore', calculatedValues.finalScore));
+                formEl.appendChild(createHiddenInput('formOpenTime', currentTime));
+                formEl.appendChild(createHiddenInput('submissionTime', new Date().toLocaleString()));
 
-                try {
-                    const response = await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            ...formData,
-                            ...calculatedValues,
-                            formOpenTime: currentTime,
-                            submissionTime: submitTime,
-                            timestamp: new Date().toISOString()
-                        })
-                    });
+                // Submit in an iframe to avoid page reload
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                // Add form to the iframe and submit
+                iframe.contentWindow.document.body.appendChild(formEl);
+                formEl.submit();
 
-                    const result = await response.json();
-
-                    if (result.status === 'success') {
-                        setSubmitStatus({
-                            status: 'success',
-                            message: 'Assessment submitted successfully!'
-                        });
-                    } else {
-                        throw new Error(result.message || 'Submission failed');
-                    }
-                } catch (error) {
-                    setSubmitStatus({
-                        status: 'error',
-                        message: `Error submitting assessment: ${error.message}`
-                    });
-                } finally {
+                // Show success message
+                setSubmitStatus({
+                    status: 'success',
+                    message: 'Assessment submitted successfully!'
+                });
+                
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
                     setIsSubmitting(false);
-                }
+                }, 2000);
             };
 
             React.useEffect(() => {

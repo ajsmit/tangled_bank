@@ -1,0 +1,129 @@
+---
+title: "BCB744 Intro R Example 1"
+format: html
+---
+
+Below is an example of a test or exam question similar to those you may encounter in the BCB744 Intro R course.
+
+This is a practice exercise. While I will not assess your script, I will provide a rubric to guide your self-evaluation. You are expected to complete the task within the allocated time and submit your script to iKamva by the deadline. This allows me to track participation, and I have reason to believe that engagement with these practice tasks correlates with improved performance in the final exam—a hypothesis supported by prior observations.
+
+For your own benefit, I strongly encourage you to work independently. Doing so will ensure that you develop the problem-solving skills necessary for success in the final assessment.
+
+[**Due date:** Monday, 17 February 2025, 17:00.]{.my-highlight}
+
+# Part A
+
+The following is an example of a theory-based question. Your task is to provide a written response in paragraph form, explaining the purpose and functionality of the given R script.
+
+You are permitted to use only the R help system to complete this task. Collaboration with others is strictly prohibited.
+
+Your response should include:
+
+1. A concise yet thorough explanation of what the script accomplishes as a whole.
+2. A detailed, line-by-line breakdown of the code, including an explanation of each function used, its arguments, and how they contribute to the script’s overall purpose.
+
+```{r, echo=TRUE, eval=FALSE}
+library(tidyverse)
+
+coughs <- as_tibble(read_csv("AJS_cough_cold_and_flu.csv"))
+
+sales <- coughs %>%
+  pivot_longer(2:ncol(coughs), names_to = "province", values_to = "sales") %>% 
+  mutate(date = as.Date(date),
+         sales = as.numeric(sales),
+         year = year(date),
+         month = month(date),
+         week = week(date))
+
+sales_monthly <- sales %>% 
+  dplyr::mutate(date = floor_date(date, unit = "month")) %>% 
+  dplyr::group_by(province, date) %>% 
+  dplyr::summarise(sales = mean(sales, na.rm = TRUE)) %>% 
+  dplyr::group_by(province) %>% 
+  dplyr::mutate(anomaly = sales - mean(sales, na.rm = TRUE),
+                counter = 1:n()) %>%
+  dplyr::group_by(month(date)) %>% 
+  dplyr::mutate(clim = mean(anomaly)) %>% 
+  dplyr::ungroup()
+
+ggplot(sales_monthly, aes(x = date, y = anomaly)) +
+  geom_line(aes(y = clim), colour = "black", size = 0.9) +
+  scale_color_npg() +
+  geom_line(aes(colour = province)) +
+  theme_linedraw() +
+  labs(x = "Date", y = "Sales")
+```
+
+
+
+# Part B
+
+This task requires you to generate a summary table of the class’s task submissions and self-assessments for the BCB744 Intro R course. The workflow has been partially completed—Steps 1 and 2 have been provided, and your task is to write an R script to execute Step 3.
+
+This is an open-book assessment, meaning you are free to use any resources at your disposal. However, collaboration with others is strictly prohibited. If you choose to use an AI tool, you must document the prompts you used to generate the code. These prompts should be included as comments within your script.
+
+Your submission should:
+
+1. Ensure that the summary table is structured correctly and clearly presents the required information (see Figure 3).
+2. Follow best practices in R programming, including clear and well-commented code.
+3. Be submitted in a format that allows for easy execution and verification of results.
+
+Failure to adhere to these requirements, particularly the documentation of AI-generated assistance, will be taken into account during assessment.
+
+## Step 1
+
+I downloaded the submissions from iKamva, and for each task, the directory structure is as follows:
+
+::: {#fig-directory layout-ncol=2}
+
+![Tasks](../../images/BCB744_Intro_R_Example_1.1.png){#fig-tasks}
+
+![Self-Assessments](../../images/BCB744_Intro_R_Example_1.2.png){#fig-assessments}
+
+Directory structure of iKamva submissions for BCB744 Intro R course. a) Task A, b) Task A assessments.
+:::
+
+## Step 2
+
+Using some Python wizardry, I renamed the files to a standardised format:
+
+1. `BCB744_Task_D_Samuels.xlsx` → `SAMUELS, KEZIA(4583635).xlsx`
+2. `BCB744_Samuels_TaskD.R` → `SAMUELS, KEZIA(4583635).R`
+
+The new filenames were derived from the names of the subdirectories within the `Task D` and `Task D Self-Assessment` base directories. These names replaced the original basenames (`BCB744_Task_D_Samuels` and `BCB744_Samuels_TaskD`), while preserving the file extensions.
+
+Once renamed, my Python script further refined the directory structure by:
+
+-	Discarding all subdirectories
+-	Removing `timestamp.txt` files
+-	Consolidating all renamed files into a single directory named `Task_D` (with equivalent directories for Tasks A–C)
+
+This step is important because the script you will write must extract student names and student numbers directly from the filenames. A consistent naming convention simplifies this process and eliminates unnecessary complexity. This is why I emphasise the importance of structured file-naming practices -- adhering to clear conventions minimises errors and streamlines downstream analysis. Fortunately, iKamva enforces a standardised internal naming convention, ensuring that student submissions follow a predictable format. Thus, even if user-assigned filenames vary, they can be corrected by replacing them with the systematically structured subdirectory names.
+
+After applying this renaming workflow, the resulting directory structure appears as follows:
+
+![Renamed files in the Task D directory](../../images/BCB744_Intro_R_Example_1.3.png){#fig-tasks width=48%}
+
+To facilitate the next step, I saved the directory contents as text files:
+
+- Task_A.txt
+- Task_B.txt
+- Task_C.txt
+- Task_D.txt
+
+Each of these .txt files lists both .R and .xlsx files within their respective task directories.
+
+**Next Steps**
+
+You will not have access to the original files -- only the .txt listings. These text files can be downloaded [here](../../data/Tasks_A-D.zip), and you will use them to complete Step 3.
+
+## Step 3
+
+<!-- See `_private/Task_proc.R` for the script that accomplishes this step. -->
+
+Using R, you will process the provided .txt files as input and generate a summary table (Figure 3) detailing all student submissions for each task. Your script should systematically extract relevant information from the filenames, organise the data, and compile a structured summary.
+
+Once complete, save the resulting table as a .csv file to ensure easy review and further analysis.
+
+![Summary of all tasks and self-assessments received from BCB744 students](../../images/BCB744_Intro_R_Example_1.4.png){#fig-tasks width=80%}
+

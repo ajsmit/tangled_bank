@@ -1,62 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BCB744 Assessment Form</title>
-    
+
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
     <!-- React and ReactDOM -->
     <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    
+
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body>
     <div id="root"></div>
 
     <!-- Your React component -->
     <script type="text/babel">
+        // Initialize Supabase
+        const supabaseUrl = 'https://iggfyaigqoslhkovsrnv.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnZ2Z5YWlncW9zbGhrb3Zzcm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNTA2MTUsImV4cCI6MjA1NDgyNjYxNX0.7v6M0iaty3r4O3QFc1WzOlkqHU0LhN3Etk-8TShbi1Y'
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
         const AssessmentForm = () => {
+            // Initialize all state variables
             const [formData, setFormData] = React.useState({
                 name: '',
                 surname: '',
                 studentNumber: '',
                 task: '',
                 component: '',
-                yourMarks: Array(10).fill(''),
+                yourMarks: Array(10).fill(''), // Assuming 10 questions
                 maxMarks: Array(10).fill(''),
                 contentMark: '',
-                codeFormattingMark: '',
+                codeFormattingMark: ''
             });
 
             const [calculatedValues, setCalculatedValues] = React.useState({
                 totalYourMark: 0,
                 totalMaxMark: 0,
-                correctAnswers: 0,
-                finalScore: 0
-            });
-
-            const [submitStatus, setSubmitStatus] = React.useState({
-                status: '',
-                message: ''
+                correctAnswers: '0.0',
+                finalScore: '0.0'
             });
 
             const [isSubmitting, setIsSubmitting] = React.useState(false);
             const [currentTime, setCurrentTime] = React.useState(new Date().toLocaleString());
             const [submissionTime, setSubmissionTime] = React.useState(null);
+            const [submitStatus, setSubmitStatus] = React.useState({ status: '', message: '' });
+            const [isSubmitted, setIsSubmitted] = React.useState(false);
 
-            // Add timer for updating current time
+            // Timer effect
             React.useEffect(() => {
                 const timer = setInterval(() => {
                     setCurrentTime(new Date().toLocaleString());
                 }, 1000);
-
                 return () => clearInterval(timer);
             }, []);
+
+            // Calculation effect
+            React.useEffect(() => {
+                const totalYour = formData.yourMarks.reduce((sum, mark) => sum + (parseFloat(mark) || 0), 0);
+                const totalMax = formData.maxMarks.reduce((sum, mark) => sum + (parseFloat(mark) || 0), 0);
+                const correctAnswers = totalMax > 0 ? (totalYour / totalMax * 100) : 0;
+
+                const contentMarkNum = parseFloat(formData.contentMark) || 0;
+                const codeFormattingNum = parseFloat(formData.codeFormattingMark) || 0;
+
+                const finalScore = ((correctAnswers * 0.5) + (contentMarkNum * 0.1) + (codeFormattingNum * 0.4));
+
+                setCalculatedValues({
+                    totalYourMark: totalYour,
+                    totalMaxMark: totalMax,
+                    correctAnswers: correctAnswers.toFixed(1),
+                    finalScore: finalScore.toFixed(1)
+                });
+            }, [formData]);
 
             const handleInputChange = (field, value) => {
                 setFormData(prev => ({
@@ -81,34 +108,34 @@
                 const submitTime = new Date().toLocaleString();
                 setSubmissionTime(submitTime);
 
-                // Replace with your Google Apps Script URL
-                const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkGVDCBB2KC4vJjohA-cxOoI7fYM8Tp1MIBYmPzCVAG0NO1UdXGCd_ehXjK8yYyxC9Hg/exec';
-
                 try {
-                    const response = await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            ...formData,
-                            ...calculatedValues,
-                            formOpenTime: currentTime,
-                            submissionTime: submitTime,
-                            timestamp: new Date().toISOString()
-                        })
+                    const { error } = await supabaseClient
+                        .from('assessments')
+                        .insert([{
+                            name: formData.name,
+                            surname: formData.surname,
+                            student_number: formData.studentNumber,
+                            task: formData.task,
+                            component: formData.component,
+                            your_marks: formData.yourMarks,
+                            max_marks: formData.maxMarks,
+                            content_mark: parseFloat(formData.contentMark),
+                            code_formatting_mark: parseFloat(formData.codeFormattingMark),
+                            total_your_mark: parseFloat(calculatedValues.totalYourMark),
+                            total_max_mark: parseFloat(calculatedValues.totalMaxMark),
+                            correct_answers: parseFloat(calculatedValues.correctAnswers),
+                            final_score: parseFloat(calculatedValues.finalScore),
+                            form_open_time: currentTime,
+                            submission_time: new Date().toISOString()
+                        }]);
+
+                    if (error) throw error;
+
+                    setSubmitStatus({
+                        status: 'success',
+                        message: 'Assessment submitted successfully!'
                     });
-
-                    const result = await response.json();
-
-                    if (result.status === 'success') {
-                        setSubmitStatus({
-                            status: 'success',
-                            message: 'Assessment submitted successfully!'
-                        });
-                    } else {
-                        throw new Error(result.message || 'Submission failed');
-                    }
+                    setIsSubmitted(true); // Line added
                 } catch (error) {
                     setSubmitStatus({
                         status: 'error',
@@ -119,33 +146,33 @@
                 }
             };
 
-            React.useEffect(() => {
-                const totalYour = formData.yourMarks.reduce((sum, mark) => sum + (parseFloat(mark) || 0), 0);
-                const totalMax = formData.maxMarks.reduce((sum, mark) => sum + (parseFloat(mark) || 0), 0);
-                const correctAnswers = totalMax > 0 ? (totalYour / totalMax * 100) : 0;
-                
-                const contentMarkNum = parseFloat(formData.contentMark) || 0;
-                const codeFormattingNum = parseFloat(formData.codeFormattingMark) || 0;
-                
-                const finalScore = ((correctAnswers * 0.5) + (contentMarkNum * 0.1) + (codeFormattingNum * 0.4));
-
-                setCalculatedValues({
-                    totalYourMark: totalYour,
-                    totalMaxMark: totalMax,
-                    correctAnswers: correctAnswers.toFixed(1),
-                    finalScore: finalScore.toFixed(1)
-                });
-            }, [formData]);
-
-            return (
+            return isSubmitted ? (
+                <div className="min-h-screen bg-gray-100 py-8 flex items-center justify-center">
+                    <div className="bg-white shadow-lg rounded-lg p-8 max-w-2xl w-full">
+                        <div className="text-center">
+                            <div className="mb-4 text-green-600">
+                                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <h2 className="text-3xl font-bold mb-4">Thank You!</h2>
+                            <p className="text-xl text-gray-700 mb-6">
+                                Your Final Score of {calculatedValues.finalScore}% has successfully been submitted.
+                            </p>
+                            <div className="text-gray-500">
+                                {currentTime}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
                 <div className="min-h-screen bg-gray-100 py-8">
                     <form onSubmit={handleSubmit} className="max-w-7xl mx-auto">
                         <div className="bg-white shadow-lg">
                             {/* Status Alert */}
                             {submitStatus.status && (
-                                <div className={`p-4 mb-4 ${
-                                    submitStatus.status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-                                }`}>
+                                <div className={`p-4 mb-4 ${submitStatus.status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                                    }`}>
                                     {submitStatus.message}
                                 </div>
                             )}
@@ -332,8 +359,8 @@
                                                     type="submit"
                                                     disabled={isSubmitting}
                                                     className={`px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
-                                                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                                                        ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                                                            ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 >
                                                     {isSubmitting ? 'Submitting...' : 'Submit Assessment'}
                                                 </button>
@@ -360,4 +387,5 @@
         );
     </script>
 </body>
+
 </html>
