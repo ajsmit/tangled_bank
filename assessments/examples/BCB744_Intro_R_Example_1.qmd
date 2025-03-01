@@ -1,6 +1,8 @@
 ---
 title: "BCB744 Intro R Example 1"
 format: html
+params: 
+  hide_answers: false
 ---
 
 Below is an example of a test or exam question similar to those you may encounter in the BCB744 Intro R course.
@@ -54,7 +56,69 @@ ggplot(sales_monthly, aes(x = date, y = anomaly)) +
   labs(x = "Date", y = "Sales")
 ```
 
+`r if (params$hide_answers) "::: {.content-hidden}"`
 
+**Answer**
+
+The provided R script analyses and visualises sales data related to cough, cold, and flu medication across different provinces. It processes raw data, reshapes it into a tidy, long format for better manipulation, calculates monthly sales means, identifies anomalies, and finally generates a time series plot displaying sales anomalies across provinces.
+
+The script uses the **tidyverse** system of functions, which includes packages such as **dplyr**, **tidyr**, and **ggplot2**, to perform data manipulation and visualisation efficiently.
+
+```{r, echo=TRUE, eval=FALSE}
+library(tidyverse)  # <1>
+
+coughs <- as_tibble(read_csv("AJS_cough_cold_and_flu.csv"))  # <2>
+
+sales <- coughs %>%
+  pivot_longer(2:ncol(coughs), names_to = "province", values_to = "sales") %>%  # <3>
+  mutate(
+    date = as.Date(date),   # <4>
+    sales = as.numeric(sales),  # <5>
+    year = year(date),      # <6>
+    month = month(date),    # <6>
+    week = week(date)       # <6>
+  )
+
+sales_monthly <- sales %>%
+  dplyr::mutate(date = floor_date(date, unit = "month")) %>%  # <7>
+  dplyr::group_by(province, date) %>%
+  dplyr::summarise(sales = mean(sales, na.rm = TRUE)) %>%  # <8>
+  dplyr::group_by(province) %>%
+  dplyr::mutate(
+    anomaly = sales - mean(sales, na.rm = TRUE),  # <9>
+    counter = 1:n()  # <10>
+  ) %>%
+  dplyr::group_by(month(date)) %>%
+  dplyr::mutate(clim = mean(anomaly)) %>%  # <11>
+  dplyr::ungroup()
+
+ggplot(sales_monthly, aes(x = date, y = anomaly)) +  # <12>
+  geom_line(aes(y = clim), colour = "black", size = 0.9) +  # <13>
+  scale_color_npg() +  # <14>
+  geom_line(aes(colour = province)) +  # <15>
+  theme_linedraw() +  # <16>
+  labs(x = "Date", y = "Sales")  # <17>
+```
+
+1. Load the **tidyverse** package, which includes functions for data manipulation and visualisation.
+2. Read the CSV file `AJS_cough_cold_and_flu.csv` and convert it into a tibble (dataframe) for better handling.
+3. Transform the data from wide to long format, creating `province` and `sales` columns (variables).
+4. Convert the `date` column to the correct Date format.
+5. Ensure the `sales` column is numeric.
+6. Create `year`, `month`, and `week` columns from the `date` for further analysis.
+7. Round down dates to the first day of their respective months.
+8. Group data by `province` and `month`, then calculate the mean `sales` for each group.
+9. Compute anomalies (`anomaly`) by subtracting the mean `sales` of each `province` from its monthly `sales`.
+10. Add a `counter` variable within each province group.
+11. Calculate the climatology (`clim`) baseline by averaging anomalies for each `month` across all `provinces`.
+12. Create a ggplot object with `date` on the x-axis and `anomaly` on the y-axis.
+13. Add a black line representing the climatology baseline to the plot.
+14. Apply the Nature Publishing Group (NPG) color palette to the plot.
+15. Add lines representing the `anomaly` values for each `province`. 
+16. Use a minimalistic black-and-white theme for the plot.
+17. Label the x-axis as “Date” and the y-axis as “Sales”.
+
+`r if (params$hide_answers) ":::"`
 
 # Part B
 
@@ -127,3 +191,66 @@ Once complete, save the resulting table as a .csv file to ensure easy review and
 
 ![Summary of all tasks and self-assessments received from BCB744 students](../../images/BCB744_Intro_R_Example_1.4.png){#fig-tasks width=80%}
 
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r, eval=FALSE}
+library(tidyverse)
+
+base_dir <- "/Users/ajsmit/Library/CloudStorage/Dropbox/BCB744"
+
+Task_A <- read_csv(paste0(base_dir, "/Task_A.txt"),
+                   show_col_types = FALSE, col_names = FALSE)
+Task_B <- read_csv(paste0(base_dir, "/Task_B.txt"),
+                   show_col_types = FALSE, col_names = FALSE)
+Task_C <- read_csv(paste0(base_dir, "/Task_C.txt"),
+                   show_col_types = FALSE, col_names = FALSE)
+Task_D <- read_csv(paste0(base_dir, "/Task_D.txt"),
+                   show_col_types = FALSE, col_names = FALSE)
+
+# Create a list of the tasks
+Task_list <- list(Task_A = Task_A,
+                  Task_B = Task_B,
+                  Task_C = Task_C,
+                  Task_D = Task_D)
+
+# Create a long dataframe
+Task_long <- bind_rows(Task_list, .id = "Task")
+
+# Rename columns 2 and 3 as 'Surname' and 'Name', respectively
+Task_long <- Task_long %>%
+  rename(Surname = X1, Name = X2)
+
+# Split the content of the 'Name' column into three parts:
+# 1. 'Names' before the opening brace '('
+# 2. 'Student_no' between the opening and closing braces
+# 3. 'File_ext' after the period '.'
+Task_long <- Task_long %>%
+  separate(Name, into = c("Names", "Student_no", "File_ext"),
+           sep = "[\\(\\)]")
+
+# For the 'File_ext' column, remove the period '.'
+Task_long$File_ext <- gsub("\\.", "", Task_long$File_ext)
+
+# For each 'Sstudent_no' (which corresponds to a student):
+# 1. Create four new columns ('Task_A', "task_B', etc.) based on the
+# content of the 'Task' column
+# 2. Populate the new columns with a concatenation of the file extensions
+# named in the 'File_ext' column
+# (e.g. 'R', 'xlsx', etc., with each file extension separated by a comma)
+Task_wide <- Task_long %>%
+  pivot_wider(names_from = Task, values_from = File_ext)
+
+# List of columns to process
+cols_to_process <- c("Task_A", "Task_B", "Task_C", "Task_D")
+
+# Apply function to each column and replace its content
+Task_wide[cols_to_process] <- lapply(Task_wide[cols_to_process],
+                                     function(col)
+                                       sapply(col, function(x)
+                                         paste(x, collapse = ", ")))
+```
+
+
+`r if (params$hide_answers) ":::"`
