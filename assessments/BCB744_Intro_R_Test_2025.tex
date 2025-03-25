@@ -1458,6 +1458,238 @@ yield. Provide a detailed explanation of your findings.
 
 \textbf{Answer}
 
+First, ensure the data are converted to SI units (e.g., kg per hectare)
+for consistency. I'd examine the tops and bottoms of the data with
+\texttt{head()} and \texttt{tail()} to see what we are dealing with, and
+it's also useful to do a \texttt{summary()}. I'd also print a table to
+see how the various measurements are distributed across the predictor
+variables.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{library}\NormalTok{(ggpubr)}
+\NormalTok{fert }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"../data/fertiliser\_crop\_data.csv"}\NormalTok{)}
+
+\CommentTok{\# Convert to SI units}
+\NormalTok{fert }\OtherTok{\textless{}{-}}\NormalTok{ fert }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{mass =}\NormalTok{ mass }\SpecialCharTok{/} \FloatTok{0.40468564224}\NormalTok{)}
+
+\CommentTok{\# Convert acre to ha}
+\NormalTok{fert }\OtherTok{\textless{}{-}}\NormalTok{ fert }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{mass =}\NormalTok{ mass }\SpecialCharTok{*} \FloatTok{2.47105}\NormalTok{)}
+
+\CommentTok{\# Check the data}
+\FunctionTok{head}\NormalTok{(fert)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  density block fertilizer     mass
+1       1 north          A 29451.95
+2       2  east          A 29505.35
+3       1 south          A 29315.65
+4       2  west          A 29530.88
+5       1 north          A 29434.80
+6       2  east          A 29377.11
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{tail}\NormalTok{(fert)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+   density block fertilizer     mass
+91       1 south          C 29445.18
+92       2  west          C 29481.30
+93       1 north          C 29603.67
+94       2  east          C 29532.04
+95       1 south          C 29528.16
+96       2  west          C 29433.59
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(fert)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+    density       block            fertilizer             mass      
+ Min.   :1.0   Length:96          Length:96          Min.   :29142  
+ 1st Qu.:1.0   Class :character   Class :character   1st Qu.:29326  
+ Median :1.5   Mode  :character   Mode  :character   Median :29424  
+ Mean   :1.5                                         Mean   :29417  
+ 3rd Qu.:2.0                                         3rd Qu.:29480  
+ Max.   :2.0                                         Max.   :29756  
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create a table showing the grouping structure of block, density, and fertiliser}
+\NormalTok{fert }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(block, density, fertilizer) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{n =} \FunctionTok{n}\NormalTok{()) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{head}\NormalTok{(}\DecValTok{12}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 12 x 4
+# Groups:   block, density [4]
+   block density fertilizer     n
+   <chr>   <int> <chr>      <int>
+ 1 east        2 A              8
+ 2 east        2 B              8
+ 3 east        2 C              8
+ 4 north       1 A              8
+ 5 north       1 B              8
+ 6 north       1 C              8
+ 7 south       1 A              8
+ 8 south       1 B              8
+ 9 south       1 C              8
+10 west        2 A              8
+11 west        2 B              8
+12 west        2 C              8
+\end{verbatim}
+
+Then, I'd calculate the mean and standard deviation of the outcome
+variable for each level of the independent variables. This will give me
+a sense of the central tendency and spread of the data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Let\textquotesingle{}s see group differences}
+\CommentTok{\# I also calculate the mean +/{-} SD here}
+\NormalTok{fert }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{group\_by}\NormalTok{(density) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{mean =} \FunctionTok{mean}\NormalTok{(mass),}
+            \AttributeTok{SD =} \FunctionTok{sd}\NormalTok{(mass))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 2 x 3
+  density   mean    SD
+    <int>  <dbl> <dbl>
+1       1 29378.  101.
+2       2 29455.  107.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fert }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{group\_by}\NormalTok{(block) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{mean =} \FunctionTok{mean}\NormalTok{(mass),}
+            \AttributeTok{SD =} \FunctionTok{sd}\NormalTok{(mass))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 4 x 3
+  block   mean    SD
+  <chr>  <dbl> <dbl>
+1 east  29467. 107. 
+2 north 29390. 104. 
+3 south 29366.  98.2
+4 west  29443. 108. 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fert }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{group\_by}\NormalTok{(fertilizer) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{mean =} \FunctionTok{mean}\NormalTok{(mass),}
+            \AttributeTok{SD =} \FunctionTok{sd}\NormalTok{(mass))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 3 x 3
+  fertilizer   mean    SD
+  <chr>       <dbl> <dbl>
+1 A          29374. 114. 
+2 B          29403.  95.4
+3 C          29473.  99.6
+\end{verbatim}
+
+Next, I'd create plots of the data showing each level of independent
+variables that the outcome can vary over. Boxplots and barplots are the
+most appropriate, together with some form of variance indication (SE,
+SD, or CI).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Visual assessment}
+\CommentTok{\# Create a boxplot of mass by density, fertiliser type, and density}
+\CommentTok{\# ... by fertiliser}
+\NormalTok{plt1 }\OtherTok{\textless{}{-}}\NormalTok{ fert }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ block, }\AttributeTok{y =}\NormalTok{ mass, }\AttributeTok{fill =} \FunctionTok{as.factor}\NormalTok{(density))) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{(}\AttributeTok{notch =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Fertiliser type"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Crop yield (kg/ha)"}\NormalTok{,}
+       \AttributeTok{fill =} \StringTok{"Planting density"}\NormalTok{)}
+
+\CommentTok{\# ... by density()}
+\NormalTok{plt2 }\OtherTok{\textless{}{-}}\NormalTok{ fert }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ block, }\AttributeTok{y =}\NormalTok{ mass, }\AttributeTok{fill =}\NormalTok{ fertilizer)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{(}\AttributeTok{notch =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Block"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Crop yield (kg/ha)"}\NormalTok{,}
+       \AttributeTok{fill =} \StringTok{"Fertiliser type"}\NormalTok{)}
+
+\NormalTok{plt3 }\OtherTok{\textless{}{-}}\NormalTok{ fert }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \FunctionTok{as.factor}\NormalTok{(density), }\AttributeTok{y =}\NormalTok{ mass, }\AttributeTok{fill =}\NormalTok{ fertilizer)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{(}\AttributeTok{notch =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Planting density"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Crop yield (kg/ha)"}\NormalTok{,}
+       \AttributeTok{fill =} \StringTok{"Fertiliser type"}\NormalTok{)}
+
+\CommentTok{\# Arrange the plots}
+\FunctionTok{ggarrange}\NormalTok{(plt1, plt2, plt3, }\AttributeTok{ncol =} \DecValTok{2}\NormalTok{, }\AttributeTok{nrow =} \DecValTok{2}\NormalTok{, }\AttributeTok{labels =} \StringTok{"AUTO"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-19-1.pdf}}
+
+I'd then interpret these results, considering on the inferences I can
+make from visual assessments of the mean (or median) and the figures.
+The analyses must take into account all the influential variables:
+density, block, and fertiliser. Since this is Intro R and not
+Biostatistics, inferential stats tests aren't expected.
+
+\begin{itemize}
+\tightlist
+\item
+  I'd note that the mass of crop produced by fertiliser C is the
+  greatest compared to both A and B; the effect of fertiliser B is no
+  different (at least not consistently) than that of A. This response is
+  seen if viewed across the different blocks and densities.
+\item
+  The second planting density also yields a greater mass per ha, but it
+  is also confounded with the block, so I'd need to consider this in my
+  interpretation\ldots{} East and west blocks have the highest yield,
+  but they also were planted at a higher density to start with.
+\item
+  These interpretations can be reached from examining the boxplots (or
+  barplots) and the mean (or median) ± some measure of variance.
+\end{itemize}
+
+For some bonus marks, I'd also consider the limitations of the study and
+potential confounding variables that may have influenced the results.
+
+\begin{itemize}
+\tightlist
+\item
+  I mentioned the confounding of block with density, but I'd also
+  consider other factors that could have influenced the results, such as
+  soil quality, weather conditions, or other unmeasured variables. None
+  of these are mentioned, so the student can draw attention to this as
+  unknowns that could affect the outcome.
+\end{itemize}
+
 \subsection{Question 2}\label{question-2-1}
 
 The Bullfrog Occupancy and Common Reed Invasion data are here:
@@ -1470,6 +1702,97 @@ Create a tidy dataframe from the bullfrog data.
 \textbf{{[}10 marks{]}}
 
 \textbf{Answer}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(AICcmodavg)}
+\FunctionTok{data}\NormalTok{(bullfrog)}
+
+\CommentTok{\# View the first/last few rows of the dataset}
+\FunctionTok{head}\NormalTok{(bullfrog)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+                       Location Reed.presence V1 V2 V3 V4 V5 V6 V7    Effort1
+1                  Arbo_Mc_gill             0  0  0  0  0  0  0  0  1.3342857
+2            Beauharnois_bassin             1  0  0  0  0  0  0  0 -0.6657143
+3            Beauharnois_chemin             1  0  0  0  0  0  0  0 -0.6657143
+4           Bois_de_liesse_elec             1  0 NA NA  0 NA NA  0 -4.6657143
+5          Bois_de_liesse_grand             0  0  0  0  0  0  0  0  2.3342857
+6 IBoucherville_chenal_a_pinard             1  0  0  0  1  0  0  0  0.3342857
+     Effort2    Effort3    Effort4    Effort5    Effort6    Effort7 Type1 Type2
+1  1.3342857  1.3342857  1.3342857  0.3342857  0.3342857  1.3342857     0     1
+2 -0.6657143 -0.6657143 -0.6657143 -0.6657143 -0.6657143 -0.6657143     0     1
+3 -0.6657143 -0.6657143 -0.6657143 -0.6657143 -0.6657143 -0.6657143     0     1
+4 -8.6657143 -8.6657143 -4.6657143 -8.6657143 -8.6657143 -4.6657143     0     1
+5  2.3342857  2.3342857  2.3342857  2.3342857  2.3342857  2.3342857     0     1
+6  0.3342857  0.3342857  0.3342857  0.3342857  0.3342857  0.3342857     0     1
+  Type3 Type4 Type5 Type6 Type7
+1     1     0     1     1     0
+2     1     0     1     1     0
+3     1     0     1     1     0
+4     1     0     1     1     0
+5     1     0     1     1     0
+6     1     0     1     1     0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Convert the data to a tidy dataframe}
+\CommentTok{\# place all of the variables \textasciigrave{}V1\textasciigrave{} through \textasciigrave{}V7\textasciigrave{} under a single column}
+\CommentTok{\# that represents the survey occasion}
+\CommentTok{\# place all the variables \textasciigrave{}Effort1\textasciigrave{} through \textasciigrave{}Effort7\textasciigrave{} under a single}
+\CommentTok{\# column that represents the sampling effort}
+\CommentTok{\# place all the variables \textasciigrave{}Type1\textasciigrave{} through \textasciigrave{}Type7\textasciigrave{} under a single}
+\CommentTok{\# column that represents the survey type}
+
+\CommentTok{\# Reshape the data}
+\NormalTok{tidy\_bullfrog }\OtherTok{\textless{}{-}}\NormalTok{ bullfrog }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{pivot\_longer}\NormalTok{(}\AttributeTok{cols =} \FunctionTok{starts\_with}\NormalTok{(}\StringTok{"V"}\NormalTok{),}
+               \AttributeTok{names\_to =} \StringTok{"Occasion"}\NormalTok{,}
+               \AttributeTok{values\_to =} \StringTok{"Occasion.val"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{pivot\_longer}\NormalTok{(}\AttributeTok{cols =} \FunctionTok{starts\_with}\NormalTok{(}\StringTok{"Effort"}\NormalTok{),}
+               \AttributeTok{names\_to =} \StringTok{"Effort"}\NormalTok{,}
+               \AttributeTok{values\_to =} \StringTok{"Effort.val"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{pivot\_longer}\NormalTok{(}\AttributeTok{cols =} \FunctionTok{starts\_with}\NormalTok{(}\StringTok{"Type"}\NormalTok{),}
+               \AttributeTok{names\_to =} \StringTok{"Type"}\NormalTok{,}
+               \AttributeTok{values\_to =} \StringTok{"Type.val"}\NormalTok{)}
+
+\CommentTok{\# View the first/last few rows of the tidy dataframe}
+\FunctionTok{head}\NormalTok{(tidy\_bullfrog)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 6 x 8
+  Location  Reed.presence Occasion Occasion.val Effort Effort.val Type  Type.val
+  <fct>             <int> <chr>           <int> <chr>       <dbl> <chr>    <int>
+1 Arbo_Mc_~             0 V1                  0 Effor~       1.33 Type1        0
+2 Arbo_Mc_~             0 V1                  0 Effor~       1.33 Type2        1
+3 Arbo_Mc_~             0 V1                  0 Effor~       1.33 Type3        1
+4 Arbo_Mc_~             0 V1                  0 Effor~       1.33 Type4        0
+5 Arbo_Mc_~             0 V1                  0 Effor~       1.33 Type5        1
+6 Arbo_Mc_~             0 V1                  0 Effor~       1.33 Type6        1
+\end{verbatim}
+
+To consider in marking the answer:
+
+\begin{itemize}
+\tightlist
+\item
+  The student should have reshaped the data into a tidy format, with
+  each row representing a unique observation.
+\item
+  The student should have correctly identified the variables to be
+  reshaped and the new column names.
+\item
+  The student should have demonstrated an understanding of the
+  \texttt{pivot\_longer()} (or equivalent) function and its arguments.
+\item
+  They should have applied an consistent naming convention for the new
+  columns.
+\end{itemize}
 
 \subsection{Question 3}\label{question-3-1}
 
@@ -1488,6 +1811,87 @@ Explain your findings.
 \textbf{{[}20 marks{]}}
 
 \textbf{Answer}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# load data}
+\NormalTok{sitka }\OtherTok{\textless{}{-}}\NormalTok{ MASS}\SpecialCharTok{::}\NormalTok{Sitka}
+\NormalTok{sitka89 }\OtherTok{\textless{}{-}}\NormalTok{ MASS}\SpecialCharTok{::}\NormalTok{Sitka89}
+
+\CommentTok{\# Look at them}
+\FunctionTok{head}\NormalTok{(sitka)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  size Time tree treat
+1 4.51  152    1 ozone
+2 4.98  174    1 ozone
+3 5.41  201    1 ozone
+4 5.90  227    1 ozone
+5 6.15  258    1 ozone
+6 4.24  152    2 ozone
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(sitka89)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  size Time tree treat
+1 6.16  469    1 ozone
+2 6.18  496    1 ozone
+3 6.48  528    1 ozone
+4 6.65  556    1 ozone
+5 6.87  579    1 ozone
+6 6.95  613    1 ozone
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Combine the two datasets}
+\CommentTok{\# rbind them, and create a new column for the year (1988 for \textasciigrave{}Sitka\textasciigrave{} and}
+\CommentTok{\# 1989 for \textasciigrave{}Sitka89\textasciigrave{})}
+\NormalTok{sitka}\SpecialCharTok{$}\NormalTok{year }\OtherTok{\textless{}{-}} \DecValTok{1988}
+\NormalTok{sitka89}\SpecialCharTok{$}\NormalTok{year }\OtherTok{\textless{}{-}} \DecValTok{1989}
+
+\CommentTok{\# Combine the datasets}
+\NormalTok{sitka\_combined }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(sitka, sitka89)}
+
+\CommentTok{\# Make some plots}
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data =}\NormalTok{ sitka\_combined, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Time, }\AttributeTok{y =}\NormalTok{ size)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{group =}\NormalTok{ tree),}
+              \AttributeTok{color =} \StringTok{"pink"}\NormalTok{,  }\CommentTok{\# among{-}tree variability lines}
+              \AttributeTok{linewidth =} \FloatTok{0.2}\NormalTok{,}
+              \AttributeTok{se =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{color =}\NormalTok{ treat),  }\CommentTok{\# overall lines mapped to treatment}
+              \AttributeTok{linewidth =} \DecValTok{1}\NormalTok{,}
+              \AttributeTok{se =} \ConstantTok{TRUE}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"control"} \OtherTok{=} \StringTok{"white"}\NormalTok{, }\StringTok{"ozone"} \OtherTok{=} \StringTok{"black"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Time (Days)"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Size (m)"}\NormalTok{,}
+       \AttributeTok{title =} \StringTok{"Size change over time in 1988 and 1989"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{facet\_wrap}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{ year, }\AttributeTok{scales =} \StringTok{"free\_x"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-22-1.pdf}}
+
+The figure shows the growth curves for Sitka spruce trees in 1988 and
+1989. The pink lines represent the growth curves for individual trees,
+while the red and blie lines represent the average growth curves for the
+control and ozone-treated trees, respectively. The growth curves for the
+ozone-treated trees appear to be lower than those for the control trees,
+indicating that ozone affects the growth of Sitka spruce trees.
+Additionally, although the trees are all taller in 1989, the growth
+curves for 1989 are generally lower (i.e.~their rate of change over
+time) than those for 1988, suggesting that the growth of Sitka spruce
+trees is affected by the year of measurement. This suggests the trees
+are maturing and their growth rates are slowing down. The variability
+among trees is also visible and very substantial, with some trees being
+bigger in 1988 compared to some in 1989.
 
 \subsection{Question 4}\label{question-4-1}
 
@@ -1515,7 +1919,7 @@ accessed here: \texttt{AICcmodavg::dry.frog}.
   \end{itemize}
 \item
   Provide the R code that would have resulted in the data in the
-  variables \texttt{cent\_initial\_mass} and \texttt{cent\_Air}.
+  variables \texttt{cent\_Initial\_mass} and \texttt{cent\_Air}.
 \item
   An analysis of the factors responsible for dehydration rates in frogs.
   In your analysis, consider the effects substrate type, initial mass,
@@ -1527,6 +1931,166 @@ accessed here: \texttt{AICcmodavg::dry.frog}.
 \textbf{{[}25 marks{]}}
 
 \textbf{Answer}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\item
+  The investigators sought to determine whether anthropogenic
+  disturbances that remove ground cover or alter substrate moisture
+  impede the dispersal and homing capacities of frog populations. They
+  hypothesised that desiccation risks, heightened predation exposure,
+  and substrate temperature extremes could collectively inhibit anuran
+  relocations across open landscapes. By scrutinising individual
+  orientation behaviour and homing success, they hoped to elucidate
+  whether frogs could detect distant patches of suitable habitat and
+  whether traversing hostile terrain diminished the likelihood of
+  reaching them. They also questioned if contrasting body sizes,
+  reflecting differing surface-to-volume ratios, influenced dehydration
+  and survival patterns during overland migrations. Seeking mechanistic
+  clarity rather than mere distributional data, they devised a series of
+  field-based translocation tests, effectively isolating frogs on
+  disturbed or undisturbed surfaces to compare path selection, movement
+  propensity, and ultimate reunion with their original ponds.
+  Additionally, by examining dehydration rates and postural adaptations
+  on varied substrates -- ranging from vegetation-rich bogs to dry peat
+  fields -- they aimed to quantify physiological constraints that shape
+  dispersal outcomes. Through these interconnected experiments, they
+  intended to shed further light on the dynamic interplay between
+  environmental structure, amphibian behaviour, and survival to inform
+  predictive models of habitat connectivity and population resilience in
+  areas undergoing increasingly disruptive land-use transformations.
+\item
+  To calculate the final mass, percent mass lost, and percent mass lost
+  as a function of the initial mass of each frog, we can use the
+  following code:
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(AICcmodavg)}
+\FunctionTok{data}\NormalTok{(dry.frog)}
+
+\CommentTok{\# Looking the data}
+\FunctionTok{head}\NormalTok{(dry.frog)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  Individual Species Shade  SVL Substrate Initial_mass Mass_lost Airtemp
+1          1   Racla     0 7.27      SOIL         38.5       8.3      31
+2          2   Racla     0 7.00  SPHAGNUM         31.0       3.6      31
+3          3   Racla     0 6.83      PEAT         23.6       4.7      31
+4          4   Racla     0 7.26      PEAT         37.4       7.0      22
+5          5   Racla     0 7.43      SOIL         44.4       7.7      22
+6          6   Racla     0 5.75  SPHAGNUM         16.4       1.6      22
+  Wind_cat Cloud cent_Initial_mass Initial_mass2 cent_Air Perc.cloud Wind
+1        3    20         20.361157    414.576715  2.64876       0.20    1
+2        3    20         12.861157    165.409360  2.64876       0.20    1
+3        3    20          5.461157     29.824236  2.64876       0.20    1
+4        2     5         19.261157    370.992170 -6.35124       0.05    1
+5        2     5         26.261157    689.648368 -6.35124       0.05    1
+6        2     5         -1.738843      3.023575 -6.35124       0.05    1
+  log_Mass_lost
+1      3.217231
+2      2.201634
+3      2.510962
+4      3.000000
+5      3.121015
+6      1.378512
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create new columns}
+\NormalTok{frog }\OtherTok{\textless{}{-}}\NormalTok{ dry.frog }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Final\_mass =}\NormalTok{ (Initial\_mass }\SpecialCharTok{{-}}\NormalTok{ Mass\_lost)) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Perc\_mass\_loss =}\NormalTok{ (Initial\_mass }\SpecialCharTok{/}\NormalTok{ Final\_mass) }\SpecialCharTok{*} \DecValTok{100}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Perc\_mass\_loss\_initial =}\NormalTok{ Perc\_mass\_loss) }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Here, `centered' means to subtract the overall mean from each value.
+  The R code that would have resulted in the data in the variables
+  \texttt{cent\_Initial\_mass} and \texttt{cent\_Air} is as follows:
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create the cent\_Initial\_mass and cent\_Air columns}
+\NormalTok{frog }\OtherTok{\textless{}{-}}\NormalTok{ frog }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{cent\_Initial\_mass\_new =}\NormalTok{ (Initial\_mass }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(Initial\_mass))) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{cent\_Air\_new =}\NormalTok{ (Airtemp }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(Airtemp)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  To create a purely visual analysis of the factors responsible for
+  dehydration rates in frogs, we can trend lines, scatter plots,
+  boxplots, etc. examine the effects of substrate type, initial mass,
+  air temperature, and wind on the percent mass lost. The code would
+  look something like this:
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create graphs of all the influential variables and their effects}
+\CommentTok{\# on the mass loss:}
+\CommentTok{\# ... the effect of substrate}
+\NormalTok{plt1 }\OtherTok{\textless{}{-}}\NormalTok{ frog }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Substrate, }\AttributeTok{y =}\NormalTok{ Perc\_mass\_loss)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Substrate type"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Percent mass lost"}\NormalTok{)}
+
+\CommentTok{\# ... the effect of initial mass}
+\NormalTok{plt2 }\OtherTok{\textless{}{-}}\NormalTok{ frog }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Initial\_mass, }\AttributeTok{y =}\NormalTok{ Perc\_mass\_loss)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"lm"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Initial mass"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Percent mass lost"}\NormalTok{)}
+
+\CommentTok{\# ... the effect of air temperature}
+\NormalTok{plt3 }\OtherTok{\textless{}{-}}\NormalTok{ frog }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Airtemp, }\AttributeTok{y =}\NormalTok{ Perc\_mass\_loss)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"lm"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Air temperature"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Percent mass lost"}\NormalTok{)}
+
+\CommentTok{\# ... the effect of the wind category}
+\NormalTok{plt4 }\OtherTok{\textless{}{-}}\NormalTok{ frog }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \FunctionTok{as.factor}\NormalTok{(Wind\_cat), }\AttributeTok{y =}\NormalTok{ Perc\_mass\_loss)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Wind category"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Percent mass lost"}\NormalTok{)}
+
+\FunctionTok{ggarrange}\NormalTok{(plt1, plt2, plt3, plt4, }\AttributeTok{ncol =} \DecValTok{2}\NormalTok{, }\AttributeTok{nrow =} \DecValTok{2}\NormalTok{, }\AttributeTok{labels =} \StringTok{"AUTO"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-25-1.pdf}}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
+\item
+  Frogs on soil showed the largest overall percent‐mass losses, while
+  sphagnum moss minimised losses. Larger individuals tended to lose a
+  lower fraction of their mass than smaller ones. Temperature had a weak
+  negative (or no effect, statistically) trend, whereas stronger wind
+  categories tended to correspond to elevated mass‐loss percentages.
+\end{enumerate}
 
 \subsection{Question 5}\label{question-5-1}
 
@@ -1561,6 +2125,66 @@ Consider this script:
 \textbf{{[}10 marks{]}}
 
 \textbf{Answer}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\tightlist
+\item
+  Generate the data:
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Generate some fictitious data}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{)  }\CommentTok{\# For reproducibility}
+
+\NormalTok{points }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{group =} \FunctionTok{rep}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\StringTok{"A"}\NormalTok{, }\StringTok{"B"}\NormalTok{, }\StringTok{"C"}\NormalTok{), }\AttributeTok{each =} \DecValTok{30}\NormalTok{),}
+  \AttributeTok{count =} \FunctionTok{c}\NormalTok{(}
+    \FunctionTok{rnorm}\NormalTok{(}\DecValTok{30}\NormalTok{, }\AttributeTok{mean =} \DecValTok{10}\NormalTok{, }\AttributeTok{sd =} \DecValTok{3}\NormalTok{),}
+    \FunctionTok{rnorm}\NormalTok{(}\DecValTok{30}\NormalTok{, }\AttributeTok{mean =} \DecValTok{20}\NormalTok{, }\AttributeTok{sd =} \DecValTok{4}\NormalTok{),}
+    \FunctionTok{rnorm}\NormalTok{(}\DecValTok{30}\NormalTok{, }\AttributeTok{mean =} \DecValTok{15}\NormalTok{, }\AttributeTok{sd =} \DecValTok{2}\NormalTok{)}
+\NormalTok{  )}
+\NormalTok{)}
+
+\CommentTok{\# Quick check}
+\FunctionTok{head}\NormalTok{(points)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  group     count
+1     A  8.318573
+2     A  9.309468
+3     A 14.676125
+4     A 10.211525
+5     A 10.387863
+6     A 15.145195
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{\alph{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Apply the script to the data:
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Plot the data}
+\FunctionTok{ggplot}\NormalTok{(points, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ group, }\AttributeTok{y =}\NormalTok{ count)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{colour =}\NormalTok{ group), }\AttributeTok{size =} \DecValTok{1}\NormalTok{, }\AttributeTok{outlier.colour =} \ConstantTok{NA}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{position =} \FunctionTok{position\_jitter}\NormalTok{(}\AttributeTok{width =} \FloatTok{0.2}\NormalTok{), }\AttributeTok{alpha =} \FloatTok{0.3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{facet\_grid}\NormalTok{(group }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{scales =} \StringTok{"free"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{""}\NormalTok{, }\AttributeTok{y =} \StringTok{"Number of data points"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{,}
+    \AttributeTok{strip.background =} \FunctionTok{element\_blank}\NormalTok{(),}
+    \AttributeTok{strip.text =} \FunctionTok{element\_blank}\NormalTok{())}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-28-1.pdf}}
 
 \subsection{Question 6}\label{question-6-1}
 
@@ -1612,6 +2236,115 @@ correlations with societal factors.
 
 \textbf{Answer}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Load the dataset}
+\FunctionTok{data}\NormalTok{(}\StringTok{"UKDriverDeaths"}\NormalTok{, }\AttributeTok{package =} \StringTok{"datasets"}\NormalTok{)}
+
+\CommentTok{\# Examine the structure}
+\FunctionTok{str}\NormalTok{(UKDriverDeaths)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+ Time-Series [1:192] from 1969 to 1985: 1687 1508 1507 1385 1632 ...
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Convert the time series data into a standard data frame format}
+\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Year =} \FunctionTok{floor}\NormalTok{(}\FunctionTok{time}\NormalTok{(UKDriverDeaths)),}
+  \AttributeTok{Month =}\NormalTok{ month.abb[}\FunctionTok{cycle}\NormalTok{(UKDriverDeaths)], }
+  \AttributeTok{Deaths =} \FunctionTok{as.numeric}\NormalTok{(UKDriverDeaths)}
+\NormalTok{)}
+
+\FunctionTok{head}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  Year Month Deaths
+1 1969   Jan   1687
+2 1969   Feb   1508
+3 1969   Mar   1507
+4 1969   Apr   1385
+5 1969   May   1632
+6 1969   Jun   1511
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create a new variable for seasons}
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Season =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{    Month }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Dec"}\NormalTok{, }\StringTok{"Jan"}\NormalTok{, }\StringTok{"Feb"}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"Winter"}\NormalTok{,}
+\NormalTok{    Month }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Mar"}\NormalTok{, }\StringTok{"Apr"}\NormalTok{, }\StringTok{"May"}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"Spring"}\NormalTok{,}
+\NormalTok{    Month }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Jun"}\NormalTok{, }\StringTok{"Jul"}\NormalTok{, }\StringTok{"Aug"}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"Summer"}\NormalTok{,}
+\NormalTok{    Month }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Sep"}\NormalTok{, }\StringTok{"Oct"}\NormalTok{, }\StringTok{"Nov"}\NormalTok{) }\SpecialCharTok{\textasciitilde{}} \StringTok{"Autumn"}
+\NormalTok{  ))}
+
+\CommentTok{\# Create a variable for major energy crisis periods}
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Energy\_Crisis =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{    Year }\SpecialCharTok{\%in\%} \DecValTok{1973}\SpecialCharTok{:}\DecValTok{1974} \SpecialCharTok{|}\NormalTok{ Year }\SpecialCharTok{\%in\%} \DecValTok{1979}\SpecialCharTok{:}\DecValTok{1980} \SpecialCharTok{\textasciitilde{}} \StringTok{"Yes"}\NormalTok{,}
+    \ConstantTok{TRUE} \SpecialCharTok{\textasciitilde{}} \StringTok{"No"}
+\NormalTok{  ))}
+
+\CommentTok{\# Check for inconsistencies}
+\FunctionTok{head}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  Year Month Deaths Season Energy_Crisis
+1 1969   Jan   1687 Winter            No
+2 1969   Feb   1508 Winter            No
+3 1969   Mar   1507 Spring            No
+4 1969   Apr   1385 Spring            No
+5 1969   May   1632 Spring            No
+6 1969   Jun   1511 Summer            No
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{tail}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+    Year Month Deaths Season Energy_Crisis
+187 1984   Jul   1222 Summer            No
+188 1984   Aug   1284 Summer            No
+189 1984   Sep   1444 Autumn            No
+190 1984   Oct   1575 Autumn            No
+191 1984   Nov   1737 Autumn            No
+192 1984   Dec   1763 Winter            No
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+      Year         Month               Deaths        Season         
+ Min.   :1969   Length:192         Min.   :1057   Length:192        
+ 1st Qu.:1973   Class :character   1st Qu.:1462   Class :character  
+ Median :1976   Mode  :character   Median :1631   Mode  :character  
+ Mean   :1976                      Mean   :1670                     
+ 3rd Qu.:1980                      3rd Qu.:1851                     
+ Max.   :1984                      Max.   :2654                     
+ Energy_Crisis     
+ Length:192        
+ Class :character  
+ Mode  :character  
+                   
+                   
+                   
+\end{verbatim}
+
 \begin{enumerate}
 \def\labelenumi{\alph{enumi}.}
 \setcounter{enumi}{1}
@@ -1656,6 +2389,89 @@ correlations with societal factors.
 
 \textbf{Answer}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# i. Full time series visualisation}
+\FunctionTok{ggplot}\NormalTok{(df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \FunctionTok{as.Date}\NormalTok{(}\FunctionTok{paste}\NormalTok{(Year, Month, }\StringTok{"01"}\NormalTok{, }\AttributeTok{sep =} \StringTok{"{-}"}\NormalTok{),}
+                           \AttributeTok{format =} \StringTok{"\%Y{-}\%b{-}\%d"}\NormalTok{), }\AttributeTok{y =}\NormalTok{ Deaths)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"loess"}\NormalTok{, }\AttributeTok{se =} \ConstantTok{FALSE}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \FunctionTok{as.Date}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\StringTok{"1983{-}01{-}01"}\NormalTok{)), }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{annotate}\NormalTok{(}\StringTok{"text"}\NormalTok{, }\AttributeTok{x =} \FunctionTok{as.Date}\NormalTok{(}\StringTok{"1983{-}01{-}01"}\NormalTok{), }\AttributeTok{y =} \DecValTok{200}\NormalTok{, }\AttributeTok{label =} \StringTok{"Seat belt law"}\NormalTok{, }\AttributeTok{vjust =} \SpecialCharTok{{-}}\DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Year"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Deaths"}\NormalTok{, }\AttributeTok{title =} \StringTok{"UK Driver Deaths 1969{-}1984"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-30-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# ii. Monthly fatality averages}
+\CommentTok{\# ensure the months are ordered correctly and include also}
+\CommentTok{\# SD for each month (as determined across the years)}
+\NormalTok{df}\SpecialCharTok{$}\NormalTok{Month }\OtherTok{\textless{}{-}} \FunctionTok{factor}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{Month, }\AttributeTok{levels =}\NormalTok{ month.abb)}
+
+\FunctionTok{ggplot}\NormalTok{(df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Month, }\AttributeTok{y =}\NormalTok{ Deaths, }\AttributeTok{fill =}\NormalTok{ Season)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"summary"}\NormalTok{, }\AttributeTok{fun =} \StringTok{"mean"}\NormalTok{, }\AttributeTok{position =} \StringTok{"dodge"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_errorbar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"summary"}\NormalTok{, }\AttributeTok{fun.data =} \StringTok{"mean\_se"}\NormalTok{, }\AttributeTok{position =} \StringTok{"dodge"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Month"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Average Deaths"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"Season"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-31-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# iii. Annual patterns comparison}
+\CommentTok{\# ensure the years are ordered correctly and that the SDs are presented}
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Half =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{    Year }\SpecialCharTok{\%in\%} \DecValTok{1969}\SpecialCharTok{:}\DecValTok{1976} \SpecialCharTok{\textasciitilde{}} \StringTok{"First Half"}\NormalTok{,}
+\NormalTok{    Year }\SpecialCharTok{\%in\%} \DecValTok{1977}\SpecialCharTok{:}\DecValTok{1984} \SpecialCharTok{\textasciitilde{}} \StringTok{"Second Half"}
+\NormalTok{  ))}
+
+\FunctionTok{ggplot}\NormalTok{(df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Month, }\AttributeTok{y =}\NormalTok{ Deaths, }\AttributeTok{fill =}\NormalTok{ Half)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"summary"}\NormalTok{, }\AttributeTok{fun =} \StringTok{"mean"}\NormalTok{, }\AttributeTok{position =} \StringTok{"dodge"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_errorbar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"summary"}\NormalTok{, }\AttributeTok{fun.data =} \StringTok{"mean\_se"}\NormalTok{, }\AttributeTok{position =} \StringTok{"dodge"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Month"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Average Deaths"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"Period"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-32-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# iv. Year{-}over{-}year percent change}
+\NormalTok{df\_yoy }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(Year, Month) }\SpecialCharTok{\%\textgreater{}\%}           \CommentTok{\# ensure rows are in ascending time order}
+  \FunctionTok{group\_by}\NormalTok{(Month) }\SpecialCharTok{\%\textgreater{}\%}               \CommentTok{\# group so that we compare same months}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{Deaths\_Pct\_Change =}        \CommentTok{\# (current {-} previous) / previous * 100}
+    \DecValTok{100} \SpecialCharTok{*}\NormalTok{ (Deaths }\SpecialCharTok{{-}} \FunctionTok{lag}\NormalTok{(Deaths)) }\SpecialCharTok{/} \FunctionTok{lag}\NormalTok{(Deaths)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ungroup}\NormalTok{()}
+
+\CommentTok{\# Plot year{-}over{-}year \% changes in a facetted bar chart}
+\FunctionTok{ggplot}\NormalTok{(df\_yoy, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Year, }\AttributeTok{y =}\NormalTok{ Deaths\_Pct\_Change)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{(}\AttributeTok{fill =} \StringTok{"steelblue"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{facet\_wrap}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{ Month, }\AttributeTok{nrow =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{x =} \StringTok{"Year"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Year{-}over{-}year \% change in Deaths"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{axis.text.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{angle =} \DecValTok{90}\NormalTok{, }\AttributeTok{vjust =} \FloatTok{0.5}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{scale\_x\_discrete}\NormalTok{(}
+    \AttributeTok{breaks =} \FunctionTok{c}\NormalTok{(}\StringTok{"1969"}\NormalTok{, }\StringTok{"1974"}\NormalTok{, }\StringTok{"1979"}\NormalTok{, }\StringTok{"1984"}\NormalTok{)  }\CommentTok{\# Adjust as you wish}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-33-1.pdf}}
+
 \begin{enumerate}
 \def\labelenumi{\alph{enumi}.}
 \setcounter{enumi}{2}
@@ -1688,6 +2504,69 @@ available to you to solve the problem.
 
 \textbf{Answer}
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# i. Average fatalities by season: mean with SD}
+\NormalTok{df\_season }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(Season) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}
+    \AttributeTok{Avg\_Deaths =} \FunctionTok{mean}\NormalTok{(Deaths),}
+    \AttributeTok{SD\_Deaths  =} \FunctionTok{sd}\NormalTok{(Deaths)}
+\NormalTok{  )}
+
+\FunctionTok{ggplot}\NormalTok{(df\_season, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Season, }\AttributeTok{y =}\NormalTok{ Avg\_Deaths)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{(}\AttributeTok{fill =} \StringTok{"steelblue"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_errorbar}\NormalTok{(}
+    \FunctionTok{aes}\NormalTok{(}
+      \AttributeTok{ymin =}\NormalTok{ Avg\_Deaths }\SpecialCharTok{{-}}\NormalTok{ SD\_Deaths,}
+      \AttributeTok{ymax =}\NormalTok{ Avg\_Deaths }\SpecialCharTok{+}\NormalTok{ SD\_Deaths}
+\NormalTok{    ),}
+    \AttributeTok{width =} \FloatTok{0.2}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{x =} \StringTok{"Season"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Average Deaths"}\NormalTok{,}
+    \AttributeTok{title =} \StringTok{"Average Deaths by Season"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-34-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# ii. Heatmap of fatalities by month and year}
+\FunctionTok{ggplot}\NormalTok{(df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Month, }\AttributeTok{y =}\NormalTok{ Year, }\AttributeTok{fill =}\NormalTok{ Deaths)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_tile}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_viridis\_c}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{x =} \StringTok{"Month"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Year"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"Deaths"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-35-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# iii. Time series decomposition}
+\CommentTok{\# Decompose the time series into trend, seasonal, and remainder components}
+\CommentTok{\# First, convert df to a time{-}series (ts) object in chronological order}
+\NormalTok{df\_ts }\OtherTok{\textless{}{-}}\NormalTok{ df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(Year, Month) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{pull}\NormalTok{(Deaths) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ts}\NormalTok{(}\AttributeTok{start =} \FunctionTok{c}\NormalTok{(}\DecValTok{1969}\NormalTok{, }\DecValTok{1}\NormalTok{), }\AttributeTok{frequency =} \DecValTok{12}\NormalTok{)  }
+
+\CommentTok{\# Then, decompose using classical decomposition}
+\NormalTok{ts\_decomposed }\OtherTok{\textless{}{-}} \FunctionTok{decompose}\NormalTok{(df\_ts, }\AttributeTok{type =} \StringTok{"additive"}\NormalTok{)}
+
+\CommentTok{\# iv. Plot the results}
+\FunctionTok{plot}\NormalTok{(ts\_decomposed)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{BCB744_Intro_R_Test_2025_files/figure-pdf/unnamed-chunk-36-1.pdf}}
+
 \begin{enumerate}
 \def\labelenumi{\alph{enumi}.}
 \setcounter{enumi}{3}
@@ -1703,6 +2582,80 @@ dataset.
 \textbf{{[}5 marks{]}}
 
 \textbf{Answer}
+
+The two datasets differ substantially in structure and content.
+\texttt{Seatbelts} has columns for drivers, front passengers, rear
+passengers, \# (etc.), while \texttt{UKDriverDeaths} only has a
+measurement variable for the total number of drivers regardless of
+whether or not they were killed or where in the vehicle they were,
+etc\ldots{} So, we cannot perfectly recreate the \texttt{Seatbelts}
+dataset from the \texttt{UKDriverDeaths} dataset. However, we can create
+a column with the total drivers only\ldots{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Look at the original \textasciigrave{}Seatbelts\textasciigrave{} dataset}
+\FunctionTok{data}\NormalTok{(}\StringTok{"Seatbelts"}\NormalTok{, }\AttributeTok{package =} \StringTok{"datasets"}\NormalTok{)}
+\FunctionTok{head}\NormalTok{(Seatbelts)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+     DriversKilled drivers front rear   kms PetrolPrice VanKilled law
+[1,]           107    1687   867  269  9059   0.1029718        12   0
+[2,]            97    1508   825  265  7685   0.1023630         6   0
+[3,]           102    1507   806  319  9963   0.1020625        12   0
+[4,]            87    1385   814  407 10955   0.1008733         8   0
+[5,]           119    1632   991  454 11823   0.1010197        10   0
+[6,]           106    1511   945  427 12391   0.1005812        13   0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{data}\NormalTok{(}\StringTok{"UKDriverDeaths"}\NormalTok{, }\AttributeTok{package =} \StringTok{"datasets"}\NormalTok{)}
+\NormalTok{UKDriverDeaths}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+      Jan  Feb  Mar  Apr  May  Jun  Jul  Aug  Sep  Oct  Nov  Dec
+1969 1687 1508 1507 1385 1632 1511 1559 1630 1579 1653 2152 2148
+1970 1752 1765 1717 1558 1575 1520 1805 1800 1719 2008 2242 2478
+1971 2030 1655 1693 1623 1805 1746 1795 1926 1619 1992 2233 2192
+1972 2080 1768 1835 1569 1976 1853 1965 1689 1778 1976 2397 2654
+1973 2097 1963 1677 1941 2003 1813 2012 1912 2084 2080 2118 2150
+1974 1608 1503 1548 1382 1731 1798 1779 1887 2004 2077 2092 2051
+1975 1577 1356 1652 1382 1519 1421 1442 1543 1656 1561 1905 2199
+1976 1473 1655 1407 1395 1530 1309 1526 1327 1627 1748 1958 2274
+1977 1648 1401 1411 1403 1394 1520 1528 1643 1515 1685 2000 2215
+1978 1956 1462 1563 1459 1446 1622 1657 1638 1643 1683 2050 2262
+1979 1813 1445 1762 1461 1556 1431 1427 1554 1645 1653 2016 2207
+1980 1665 1361 1506 1360 1453 1522 1460 1552 1548 1827 1737 1941
+1981 1474 1458 1542 1404 1522 1385 1641 1510 1681 1938 1868 1726
+1982 1456 1445 1456 1365 1487 1558 1488 1684 1594 1850 1998 2079
+1983 1494 1057 1218 1168 1236 1076 1174 1139 1427 1487 1483 1513
+1984 1357 1165 1282 1110 1297 1185 1222 1284 1444 1575 1737 1763
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create a new dataframe identical to the Seatbelts dataset}
+\NormalTok{Seatbelts\_v2 }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{drivers =}\NormalTok{ UKDriverDeaths}
+\NormalTok{)}
+\FunctionTok{head}\NormalTok{(Seatbelts\_v2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  drivers
+1    1687
+2    1508
+3    1507
+4    1385
+5    1632
+6    1511
+\end{verbatim}
 
 \textbf{TOTAL MARKS: 160}
 
