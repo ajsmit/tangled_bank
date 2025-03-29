@@ -125,45 +125,4 @@ iris_Tukey <- TukeyHSD(iris_aov)
 plot(iris_Tukey)
 ```
 
-> **Task 1:** Judging from the figure above, which species have significantly different sepal lengths?
 
-# Harrell plots
-
-The most complete use of CI that we have seen to date is the Harrell plot. This type of figure shows the distributions of each sample set in the data as boxplots in a lower panel. In the panel above those boxplots it then lays out the results of a post-hoc Tukey test. This very cleanly shows both the raw data as well as high level statistical results of the comparisons of those data. Thanks to the magic of the Internet we may create these figures with a single line of code. This does however require that we load several new libraries.
-
-```{r, fig.cap="Harrell plot showing the distributions of stipe lengths (cm) of the kelp _Ecklonia maxima_ at two different sites in the bottom panel. The top panel shows the confidence interval of the effect of the difference between these two sample sets based on a post-hoc Tukey test."}
-# The easy creation of these figures has quite a few dependencies
-library(lsmeans)
-library(Hmisc)
-library(broom)
-library(car)
-library(data.table)
-library(cowplot)
-source("../../R/fit_model.R")
-source("../../R/make_formula_str.R")
-source("../../R/HarrellPlot.R")
-
-# Load data
-ecklonia <- read.csv("../../data/ecklonia.csv")
-
-# Create Harrell Plot
-HarrellPlot(x = "site", y = "stipe_length", data = ecklonia, short = T)[1]
-```
-
-> **Task 2:** There are a lot of settings for `HarrellPlot()`, what do some of them do?
-
-The above figure shows that the CI of the difference between stipe lengths (cm) at the two sites does not cross 0. This means that there is a significant difference between these two sample sets. But let's run a statistical test anyway to check the results.
-
-```{r}
-# assumptions
-ecklonia %>% 
-  group_by(site) %>% 
-  summarise(stipe_length_var = var(stipe_length),
-            stipe_length_Norm = as.numeric(shapiro.test(stipe_length)[2]))
-# We fail both assumptions...
-
-# non-parametric test
-wilcox.test(stipe_length ~ site, data = ecklonia)
-```
-
-The results of our Wilcox rank sum test, unsurprisingly, support the output of `HarrelPlot()`.
