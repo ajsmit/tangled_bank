@@ -6,7 +6,7 @@ format:
     fig_retina: 2
     fig-dpi: 400
 params: 
-  hide_answers: true
+  hide_answers: false
 ---
 
 ```{r, echo=FALSE}
@@ -42,27 +42,80 @@ Please report back on Task F.1 presented in the lecture. Write up formal Methods
 ```
 
 - ✓ 
-- ✓ 
-- ✓ 
 
 `r if (params$hide_answers) ":::"`
 
 ## Question 2
 
-Please refer to the [two-sided two-sample *t*-test in the lecture.](https://tangledbank.netlify.app/BCB744/basic_stats/07-t_tests.html#two-sided-two-sample-t-test).
+Please refer to the [two-sided two-sample *t*-test in the lecture.](https://tangledbank.netlify.app/BCB744/basic_stats/07-t_tests.html#two-sided-two-sample-t-test). It is recreated here:
 
-a. Repeat the analyses using the Welch's `t.test()`. **(/5)**
+```{r}
+# random normal data
+set.seed(666)
+r_two <- data.frame(dat = c(rnorm(n = 20, mean = 4, sd = 1),
+                            rnorm(n = 20, mean = 5, sd = 1)),
+                    sample = c(rep("A", 20), rep("B", 20)))
+
+# perform t-test
+# note how we set the `var.equal` argument to TRUE because we know 
+# our data has the same SD (they are simulated as such!)
+t.test(dat ~ sample, data = r_two, var.equal = TRUE)
+```
+
+a. Repeat this analyses using the Welch's `t.test()`. **(/5)**
 b. Repeat your analysis, above, using the even more old-fashioned Equation 4 in the lecture. Show the code and talk us through the step you followed to read the *p*-values off the table of *t*-statistics. **(/10)**
 
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
 **Answer**
 
-```{r}
+a. We simply change the argument `var.equal` to `FALSE` in the `t.test()` function. This is because we are using a Welch's *t*-test, which does not assume equal variances between the two groups.
 
+```{r}
+# random normal data
+set.seed(666)
+r_two <- data.frame(dat = c(rnorm(n = 20, mean = 4, sd = 1),
+                            rnorm(n = 20, mean = 5, sd = 1)),
+                    sample = c(rep("A", 20), rep("B", 20)))
+
+# perform t-test
+# note how we set the `var.equal` argument to FALSE because we want
+# to do a Welch's t-test
+t.test(dat ~ sample, data = r_two, var.equal = FALSE)
 ```
 
-- ✓
+- ✓ (x 5) for this simple calculation.
+
+b. To do the Welch's *t*-test manually (as one would do 30 years ago with a hand-held calculator), we need to calculate the *t*-statistic and the degrees of freedom. The *t*-statistic is calculated by:
+
+$$t=\frac{\bar{A}-\bar{B}}{\sqrt{\frac{S^{2}_{A}}{n}+\frac{S^{2}_{B}}{m}}}$$
+
+Here, $S_{A}$ and $S_{B}$ are the variances of groups $A$ and $B$, respectively (see Section X). The *d.f.* to use with Welch's *t*-test is obtained using the Welch--Satterthwaite equation:
+
+$$d.f. = \frac{\left( \frac{S^{2}_{A}}{n}+\frac{S^{2}_{B}}{m} \right)^{2}}{\left( \frac{S^{4}_{A}}{n-1} + \frac{S^{4}_{B}}{m-1} \right)}$$
+
+where $n$ and $m$ are the sample sizes of groups $A$ and $B$, respectively. The *p*-value is then obtained from the *t*-distribution with the degrees of freedom calculated above (see below).
+
+```{r}
+# calculate the t-statistic
+t_stat <- (mean(r_two$dat[r_two$sample == "A"]) - mean(r_two$dat[r_two$sample == "B"])) / 
+  sqrt((var(r_two$dat[r_two$sample == "A"]) / length(r_two$dat[r_two$sample == "A"])) +
+       (var(r_two$dat[r_two$sample == "B"]) / length(r_two$dat[r_two$sample == "B"])))
+
+# calculate the degrees of freedom
+df <- ((var(r_two$dat[r_two$sample == "A"]) / length(r_two$dat[r_two$sample == "A"])) +
+        (var(r_two$dat[r_two$sample == "B"]) / length(r_two$dat[r_two$sample == "B"])))^2 /
+  (((var(r_two$dat[r_two$sample == "A"]) / length(r_two$dat[r_two$sample == "A"]))^2 /
+    (length(r_two$dat[r_two$sample == "A"]) - 1)) +
+   ((var(r_two$dat[r_two$sample == "B"]) / length(r_two$dat[r_two$sample == "B"]))^2 /
+    (length(r_two$dat[r_two$sample == "B"]) - 1)))
+
+print(t_stat)
+print(df)
+```
+
+
+- ✓ (x 10) What do we do with the d.f. and the *t*-statistic? We look them up in the *t*-distribution table (find one!) to find the critical value of *t* for a given significance level (e.g., 0.05). If our calculated *t*-statistic (take the absolute) is greater than the critical value at the d.f. we are using, we reject the null hypothesis. If it is less than the critical value, we fail to reject the null hypothesis.
 
 `r if (params$hide_answers) ":::"`
 
