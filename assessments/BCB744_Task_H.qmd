@@ -40,11 +40,68 @@ d. Similarly, fit a linear regression through the the fitted values. Explain. **
 
 **Answer**
 
-```{r}
+a. **Examining the fitted model**
 
+```{r}
+# Load the sparrows dataset
+sparrows <- tibble(age = c(3, 4, 5, 6, 8, 9, 10, 11, 12, 14, 15, 16, 17),
+                   wing = c(1.4, 1.5, 2.2, 2.4, 3.1, 3.2, 3.2, 3.9, 4.1, 4.7, 4.5, 5.2, 5.0))
+
+sparrows.lm <- lm(wing ~ age, data = sparrows)
+str(sparrows.lm)
+summary(sparrows.lm)
 ```
 
-- ✓
+- ✓ (x 5) The content of the fitted model is revealed by the `str(sparrows.lm)` function, and the summary of the fitted model is obtained by `summary(sparrows.lm)`. `str(sparrows.lm)` provides a compact display of the structure of the fitted model object, including the coefficients, residuals, and other components. These are of various data classes contained within the list, and include, for example, a numeric vector of model coefficients, a numeric vector of residuals or fitted values, and many other things that may be of interest from time to time. `summary(sparrows.lm)` provides a more detailed overview of the most important model fit diagnostics and statistics, including the coefficients, standard errors, *t*-values, *p*-values, and *R*-squared values, which we can use to assess how well the model fits the data. The `summary()` function also provides an analysis of variance table, which can be used to assess the significance of the model and its components.
+
+b. **Reconstructing the observed values**
+
+```{r}
+# Reconstruct wing lengths from model
+fitted(sparrows.lm) + resid(sparrows.lm)
+
+# This is the same as accessing the component of the model object with str()
+sparrows.lm$fitted.values + sparrows.lm$residuals
+```
+- ✓ (x 5) The observed values of the dependent variable can be reconstructed from the fitted values and the residuals. The fitted values are the predicted values of the dependent variable based on the model, and the residuals are the differences between the observed values and the fitted values. So, by adding the fitted values and the residuals together, we can reconstruct the observed values of the dependent variable.
+
+c. **Fitting a linear regression through the model residuals**
+
+```{r}
+# Fit a linear regression through the model residuals
+residuals.lm <- lm(resid(sparrows.lm) ~ age, data = sparrows)
+summary(residuals.lm)
+
+# Plot the residuals
+ggplot(sparrows, aes(x = age, y = resid(sparrows.lm))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Residuals vs Age",
+       x = "Age",
+       y = "Residuals") +
+  theme_minimal()
+```
+
+- ✓ (x 5) The fitted model through the residuals shows that there is no significant relationship between the residuals and the age of the sparrows, i.e., the coefficients will be (very close to) zero, and the *p*-value will be large (close to one). This is expected. Residuals, by construction, are orthogonal (uncorrelated) to the predictor used in the original model (age). Fitting a regression on residuals should reveal no linear trend (a flat line), since any such trend would have been captured by the model already and so it is no longer present in the residuals. As such, the residuals are randomly distributed around zero.
+
+d. **Fitting a linear regression through the fitted values**
+
+```{r}
+# Fit a linear regression through the fitted values
+fitted.lm <- lm(fitted(sparrows.lm) ~ age, data = sparrows)
+summary(fitted.lm)
+
+# Plot the fitted values
+ggplot(sparrows, aes(x = age, y = fitted(sparrows.lm))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Fitted Values vs Age",
+       x = "Age",
+       y = "Fitted Values") +
+  theme_minimal()
+```
+
+- ✓ (x 5) The fitted model through the fitted values shows that there is a significant relationship between the fitted values and the age of the sparrows, i.e., the coefficients will be (very close to) one, and the *p*-value will be small (close to zero). The fitted values are the predicted values of the dependent variable based on the model, and so they should be perfectly linearly related to the predictor used in the original model (age). Fitting a regression on fitted values should reveal a linear trend (a slope of one), since any such trend would have been fully captured by the model already.
 
 `r if (params$hide_answers) ":::"`
 
@@ -52,17 +109,20 @@ d. Similarly, fit a linear regression through the the fitted values. Explain. **
 
 Find your own **two datasets** and do a full regression analysis on it. Briefly describe the data and the reason for their existence. Start with setting the appropriate hypotheses. Follow with an EDA, make some exploratory figures, fit the linear model, make a figure with the fitted linear model, provide diagnostic plots to test assumptions, and present the output in a Results section suitable for publication. **(/20)**
 
-`r if (params$hide_answers) "::: {.content-hidden}"`
+### Rubric
 
-**Answer**
+| **Criterion** | **Excellent (Full Marks)** | **Partial Credit** | **Absent / Poor** | **Marks** |
+|---------------|-----------------------------|---------------------|--------------------|-----------|
+| **1. Dataset Choice and Justification (/2)** | Two datasets are clearly described, relevant, and non-trivial; rationale for use is coherent and shows critical thought. | Datasets are described but may be simplistic or rationale is weakly justified. | Datasets are vague, trivial, or arbitrarily chosen; little to no justification. | /2 |
+| **2. Hypothesis Framing (/2)** | Null and alternative hypotheses are clearly stated in statistical terms and contextualised to the data. | Hypotheses are present but somewhat vague or generic. | Hypotheses are missing, poorly framed, or irrelevant. | /2 |
+| **3. Exploratory Data Analysis (/3)** | EDA is systematic and insightful, summarising variable distributions, identifying patterns, and flagging potential issues (e.g., collinearity, missingness). | Some descriptive statistics or plots are provided, but interpretation is limited or scattered. | Minimal or no EDA; data analysed without exploration. | /3 |
+| **4. Exploratory Figures (/2)** | Visuals (e.g., scatterplots, histograms) are well-chosen, clearly labelled, and aid interpretation. | Plots are included but may be unclear, redundant, or poorly formatted. | Plots are missing or irrelevant. | /2 |
+| **5. Model Specification and Fitting (/3)** | Linear model is appropriate for the data and research question; code and output are clearly reported. | Model is mostly appropriate but poorly justified or inconsistently executed. | Model is ill-suited, poorly fitted, or lacks documentation. | /3 |
+| **6. Visualisation of Fitted Model (/2)** | Plot with fitted regression line is clear, with aesthetic attention to axis labels, units, and legends; enhances interpretation. | A fitted model is plotted but poorly presented or not fully interpretable. | No fitted model plot, or plot is meaningless. | /2 |
+| **7. Diagnostic Checks (/3)** | At least two appropriate diagnostic plots (e.g., residuals vs fitted, QQ-plot) are shown and interpreted in light of linear model assumptions (normality, etc.). | Diagnostics shown but with weak interpretation or partially inappropriate diagnostics. | Diagnostics missing, or plots are included without explanation. | /3 |
+| **8. Written Results Section (/3)** | Results are reported in a concise, publication-ready format with appropriate terminology (e.g., coefficient estimates, *p*-values, R²) and clear narrative flow. | Results are understandable but lack polish, completeness, or clarity; some technical terms used inaccurately. | Results are disorganised, incorrectly interpreted, or copied without synthesis. | /3 |
 
-```{r}
-
-```
-
-- ✓
-
-`r if (params$hide_answers) ":::"`
+**Total: /20**
 
 # 10. Correlations
 
@@ -70,14 +130,17 @@ Find your own **two datasets** and do a full regression analysis on it. Briefly 
 
 Find your own **two datasets** and do a full correlation analysis on it. Briefly describe the data and the reason for their existence. Start with setting the appropriate hypotheses. Follow with an EDA, make some exploratory figures, fit the correlation, make figures with the fitted correlation line, provide diagnostic plots to test assumptions, and present the output in a Results section suitable for publication. **(/20)**
 
-`r if (params$hide_answers) "::: {.content-hidden}"`
+### Rubric
 
-**Answer**
+| **Criterion** | **Excellent (Full Marks)** | **Partial Credit** | **Absent / Poor** | **Marks** |
+|---------------|-----------------------------|---------------------|--------------------|-----------|
+| **1. Dataset Choice and Justification (/2)** | Two variables (from one or more datasets) are clearly described and justified as candidates for correlation analysis; rationale is thoughtful and contextually informed. | Variables are chosen and described but rationale is vague or unconvincing. | Variable selection appears arbitrary or trivial; little or no justification given. | /2 |
+| **2. Hypothesis Framing (/2)** | Null and alternative hypotheses are explicitly stated and aligned with the correlation analysis (e.g., *H₀*: ρ = 0). Contextual meaning is clearly explained. | Hypotheses are present but poorly articulated or lacking in contextual relevance. | Hypotheses are missing, incorrect, or misaligned with the analysis. | /2 |
+| **3. Exploratory Data Analysis (/3)** | EDA includes summary statistics, variable distribution inspection, and consideration of linearity or monotonicity. Potential issues (e.g., outliers) are noted. | EDA is attempted but lacks depth or overlooks important features such as skewness or linearity. | No meaningful EDA is performed before conducting correlation. | /3 |
+| **4. Exploratory Figures (/2)** | Appropriate visualisation (e.g., scatterplot with smoothing line or marginal histograms) is clear, labelled, and supports interpretation. | Plot is included but unclear, poorly formatted, or not well interpreted. | No plot provided, or plot is irrelevant or uninformative. | /2 |
+| **5. Correlation Method and Calculation (/3)** | Correlation method is appropriate to data characteristics (Pearson/Spearman chosen with justification). Code and output are correct and clearly reported. | Method is used correctly but without justification or with some reporting issues. | Correlation is applied blindly or incorrectly; code or output is missing. | /3 |
+| **6. Significance and Effect Size (/2)** | *p*-value and correlation coefficient (r or ρ) are reported with interpretation of both statistical and practical significance. | Results are reported but not clearly interpreted or contextualised. | Misinterpretation of *p*-value or correlation coefficient; missing output. | /2 |
+| **7. Assumption Checking and Discussion (/3)** | Addresses assumptions of correlation method (e.g., normality, linearity, absence of outliers), supported by appropriate plots or discussion. | Some assumptions discussed or partially checked; reasoning may be unclear. | No discussion or evidence of assumption checking. | /3 |
+| **8. Written Results Section (/3)** | Results are presented in a clear, concise, publication-ready format, with technical correctness and logical flow from EDA to conclusion. | Results are readable but disorganised or use imprecise language; conclusions may not follow cleanly from evidence. | Results are unclear, incorrect, or unstructured; poor communication of findings. | /3 |
 
-```{r}
-
-```
-
-- ✓
-
-`r if (params$hide_answers) ":::"`
+**Total: /20**
