@@ -2,6 +2,8 @@
 date: "2021-01-01"
 title: "4. Data Distributions"
 subtitle: "Getting familiar with data handling in R"
+execute:
+  cache: FALSE
 ---
 
 ```{r, echo=FALSE}
@@ -21,32 +23,74 @@ library(ggpubr)
 ```
 
 ::: {.callout-note appearance="simple"}
-## In this Chapter
+## In this chapter
 
 -   The concept of data distributions
 :::
 
 ::: {.callout-important appearance="simple"}
-## Tasks to complete in this Chapter
+## Tasks to complete in this chapter
 
 -   None
 :::
 
 ![](/images/wahlberg_distribution.jpeg){fig-align="center" width="600"}
 
+::: {.callout-important appearance="simple"}
+## Software used in this chapter
+
+-   [All distribution generation and visualisations functions in this chapter are done using `library(TidyDensity)` and `library(tidyverse)`.]{.my-highlight}
+:::
+
 # Introduction
 
-A good grasp of data distributions is a prerequisite of any statistical analysis. It enables us to describe and summarise the underlying patterns, trends, and variations in our data. In doing so, it allows for more robust predictions and inferences about natural processes, such as outcomes of experiments or the structure of biodiversity. By understanding the distribution of our data, we can select the most appropriate statistical techniques and ensure the validity of our conclusions. Only through the application of the correct inferential statistics can we facilitate the development of robust and defensible insights about our research. In this Chapter we will learn about the most common data distributions encountered in ecological research, and how this knowledge will empower us to effectively apply statistical methods to analyse and interpret them.
+A good grasp of data distributions is a prerequisite of any statistical analysis. It enables us to describe and summarise the underlying patterns, trends, and variations in our data. This allows for more robust predictions and inferences about natural processes, such as outcomes of experiments or the structure of biodiversity. Conclusions stemming from our application of inferential statistics are defensible only if we understand and can justify the distribution of our data. In this chapter we will learn about the most common data distributions encountered in ecological research, and how this knowledge will help us to effectively apply statistical methods to analyse and interpret them.
+
+# What are data distributions?
+
+Data distributions are fundamental views through which we understand how values disperse across datasets. They are a mathematical underpinning that transforms our basic numerical observations (which we obtain as *samples* taken at random to represent a *population*) into interpretable patterns of *frequency*, *probability*, and *structural regularity*. Distributions show us the underlying "shape" of variation itself and reveal how values are clustered symmetrically (or not) around a central tendency, are skewed toward the extremes, or exhibit multiple peaks that could suggest distinct groupings within the broader dataset.
+
+We need to understand distributions because any collection of measurements (e.g. heights of individuals, rates of nutrient uptake, or counts of animals moving past a point) exhibits characteristic shapes when we plot their frequency against their value. These shapes may be normal, exponential, uniform, bimodal, etc., and are specific to the processes that generated the data. As such, distributions are a statistical link between the the empirical observations and our claims about the underlying mechanisms. Our understanding of the data distribution and the process under scrutiny will therefore inform us of the statistical approaches most suited to extracting meaningful inference from them.
 
 # Discrete distributions
 
-A discrete random variable has a finite or countable number of possible values. As the name suggests, it models integer data. Below we provide options to generate and visualise data belonging to several classes of discrete distributions. In [Chapter 6](06-assumptions.qmd) we will learn how to transform these data prior to performing the appropriate statistical analysis.
+Discrete distributions form one of two fundamental branches in probability theory; the other is continuous distributions. This division rests on the nature of the sample space: discrete distributions assign probabilities to countable outcomes (integers, finite sets), while continuous distributions apply to uncountable intervals where individual point probabilities equal zero.
 
-## Bernoulli and binomial distributions
+*Discrete random variables* have a finite or countable number of possible values and are the foundation of discrete probability distributions. Two core mathematical constraints govern mapping these probability distributions to their discrete random values:
+
+- First, each probability value must fall within the closed interval [0,1]; no outcome can possess negative probability or exceed certainty.
+- Second, the sum of all probabilities across the complete sample space must equal exactly 1.0; this ensures that the distribution accounts for all possible outcomes without omission or duplication.
+
+In practice, these constraints give us access to practical verification steps: 
+
+- When constructing or validating a discrete distribution, sum all probability values to confirm they equal unity (1).
+- Inspect each individual probability to ensure none violates the boundary conditions ([0,1]).
+
+Violations point to computational errors or incomplete specification of the sample space.
+
+The expected value $E(X)$ of a discrete random variable $X$ represents the probability-weighted average of all possible outcomes: $E(X) = \sum[x \cdot P(X=x)]$. Let's use a standard, unbiased die as an example. For each possible value $x$, multiply that value by its probability, then sum across all possibilities. If $X$ can take values $\{1,2,3,4,5,6\}$ each with probability $1/6$, then:
+
+$$E(X) = 1(1/6) + 2(1/6) + 3(1/6) + 4(1/6) + 5(1/6) + 6(1/6) = 3.5$$
+
+Variance calculation follows a two-step process. First, compute the expected value of the squared outcomes:
+
+$$E(X^2) = \sum[x^2 \cdot P(X=x)]$$
+
+Then apply the computational formula:
+
+$$\text{Var}(X) = E(X^2) - [E(X)]^2$$
+
+For the die example: $E(X^2) = 1^2(1/6) + 2^2(1/6) + ... + 6^2(1/6) = 91/6 \approx 15.17$, so $\text{Var}(X) = 15.17 - (3.5)^2 = 15.17 - 12.25 = 2.92$.
+
+Below I provide options to generate and visualise data belonging to several classes of discrete distributions. In [Chapter 6](06-assumptions.qmd) we will learn how to transform these data prior to performing the appropriate statistical analysis.
+
+## Bernoulli and Binomial distributions
+
+The Bernoulli and Binomial distributions belong to what might be termed the "trial-based" subfamily of discrete distributions: they directly model outcomes of repeated experiments. Trial-based distributions require specifying both the number of trials and success probability.
 
 Bernoulli and Binomial distributions are both discrete probability distributions that describe the *outcomes of binary events*. They are similar but there are also some key differences between the two. In real life examples encountered in ecology and biology we will probably mostly encounter the Binomial distributions. Let us consider each is more detail.
 
-**Bernoulli distribution** The Bernoulli distribution represents a single binary trial or experiment with only two possible outcomes---'success' (usually represented as `1`) and 'failure' (usually represented as `0`). The probability of success is denoted by $p$, while the probability of failure is $1 - p$. A Bernoulli distribution is characterised by only one parameter, $p$, which represents the probability of success for the single trial (@eq-bernoulli) (@fig-bernoulli1, @fig-bernoulli2).
+**Bernoulli distribution** The Bernoulli distribution represents a single binary trial or experiment with only two possible outcomes: 'success' (usually represented as `1`) and 'failure' (usually represented as `0`). The probability of success is denoted by $p$, while the probability of failure is $1 - p$. A Bernoulli distribution is characterised by only one parameter, $p$, which represents the probability of success for the single trial (@eq-bernoulli) (@fig-bernoulli1, @fig-bernoulli2).
 
 ::: {.column-margin}
 **The Bernoulli distribution:**
@@ -63,10 +107,10 @@ where $X$ is a random variable, $k$ is the outcome (1 for success and 0 for fail
 ```{r}
 #| echo: false
 #| fig.align: center
-#| fig.cap: "Bernoulli distribution with 50 trials and 20 simulations set at a probability of p = 0.2. This could be a heavily loaded coin that has a 20% chance of landing heads."
+#| fig.cap: "Bernoulli distribution with 10 trials and 20 simulations set at a probability of p = 0.2. This could be a heavily loaded coin that has a 20% chance of landing heads."
 #| label: fig-bernoulli1
 
-bern <- tidy_bernoulli(.n = 50, .prob = 0.2, .num_sims = 20)
+bern <- tidy_bernoulli(.n = 10, .prob = 0.2, .num_sims = 20)
 
 ggarrange(
   tidy_autoplot(bern, .plot_type = "density"),
@@ -80,7 +124,7 @@ ggarrange(
 ```{r}
 #| echo: false
 #| fig.align: center
-#| fig.cap: "Bernoulli distribution with 50 trials and 20 simulations set at a probability of p = 0.5. This represents an unbiased coin that has an equal chance of landing on head or tail."
+#| fig.cap: "Bernoulli distribution with 10 trials and 20 simulations set at a probability of p = 0.5. This represents an unbiased coin that has an equal chance of landing on head or tail."
 #| label: fig-bernoulli2
 
 bern <- tidy_bernoulli(.n = 50, .prob = 0.5, .num_sims = 20)
@@ -94,13 +138,15 @@ ggarrange(
 )
 ```
 
-**Binomial distribution** The Binomial distribution represents the sum of outcomes in a fixed number of independent Bernoulli trials with the same probability of success, $p$. It is characterised by two parameters---$n$ (the number of trials) and $p$ (the probability of success in each trial). The Binomial distribution describes the probability of obtaining a specific number of successes ($k$) in $n$ trials (@eq-binomial) (@fig-binomial2).
+**Binomial distribution** The Binomial distribution represents the sum of outcomes in a fixed number of independent Bernoulli trials with the same probability of success, $p$. It is characterised by two parameters, $n$ (the number of trials) and $p$ (the probability of success in each trial). The Binomial distribution describes the probability of obtaining a specific number of successes ($k$) in $n$ trials (@eq-binomial) (@fig-binomial2).
 
 ::: {.column-margin}
 **The Binomial distribution:**
-$$P(X=k) = \binom{n}{k} p^k (1-p)^{n-k}$$ {#eq-binomial}
+$$P(X=k) = C(n,k) \cdot p^k \cdot (1-p)^{(n-k)}$$ {#eq-binomial}
 
-where $X$ is a random variable, $k$ is the number of successes, $n$ is the total number of trials, and $p$ is the probability of success in each trial.
+where $X$ is a random variable, $k$ is the number of successes, $n$ is the total number of trials, $p$ is the probability of success in each trial, and $C(n,k)$ represents combinations.
+
+In practice, determine $n$ (number of trials), $p$ (success probability), and $k$ (desired number of successes). Calculate the binomial coefficient $C(n,k) = \frac{n!}{k!(n-k)!}$, then apply @eq-binomial. If flipping a coin 10 times ($n=10$, $p=0.5$) and seeking exactly 3 heads ($k=3$): $C(10,3) = 120$, so $P(X=3) = 120 \cdot (0.5)^3 \cdot (0.5)^7 = 120 \cdot (0.5)^{10} = 0.117$.
 :::
 
 <!-- ```{r} -->
@@ -124,10 +170,10 @@ where $X$ is a random variable, $k$ is the number of successes, $n$ is the total
 ```{r}
 #| echo: false
 #| fig.align: center
-#| fig.cap: "Binomial distribution with 40 trials and 10 simulations at an *a priori* set probability of p = 0.5."
+#| fig.cap: "Ten simulations of a binomial distribution with 40 randomly generated points for each of 100 trials at an *a priori* set probability of p = 0.75."
 #| label: fig-binomial2
 
-binom2 <- tidy_binomial(.n = 40, .num_sims = 10, .prob = 0.5)
+binom2 <- tidy_binomial(.n = 40, .num_sims = 10, .prob = 0.75, .size = 100)
 
 ggarrange(
   tidy_autoplot(binom2, .plot_type = "density"),
@@ -150,9 +196,11 @@ There are several examples of Binomial distributions in ecological and biologica
 
 Note that in these examples we assume a fixed probability and independence between trials and this is not always be true in real-world situations.
 
-## Negative Binomial distribution
+## Negative Binomial and Geometric distributions
 
-A Negative Binomial random variable, $X$, counts the number of successes in a sequence of independent Bernoulli trials with probability $p$ before $r$ failures occur. This distribution could for example be used to predict the number of heads that result from a series of coin tosses before three tails are observed (@eq-negbinomial) (@fig-negbinomial).
+The Geometric and Negative Binomial distributions form a "waiting time" subfamily, focusing on the number of trials preceding specified success patterns. These waiting-time distributions focus on success probability and target achievement levels.
+
+**Negative Binomial distribution** A Negative Binomial random variable, $X$, counts the number of successes in a sequence of independent Bernoulli trials with probability $p$ before $r$ failures occur. This distribution could for example be used to predict the number of heads that result from a series of coin tosses before three tails are observed (@eq-negbinomial) (@fig-negbinomial).
 
 ::: {.column-margin}
 **The Negative Binomial distribution:**
@@ -179,9 +227,7 @@ ggarrange(
 ```
 
 
-## Geometric distribution
-
-A geometric random variable, $X$, represents the number of trials that are required to observe a single success. Each trial is independent and has success probability $p$. As an example, the geometric distribution is useful to model the number of times a die must be tossed in order for a six to be observed (@eq-geometric) (@fig-geomet).
+**Geometric distribution** A geometric random variable, $X$, represents the number of trials that are required to observe a single success. Each trial is independent and has success probability $p$. As an example, the geometric distribution is useful to model the number of times a die must be tossed in order for a six to be observed (@eq-geometric) (@fig-geomet).
 
 ::: {.column-margin}
 **The Geometric distribution:**
@@ -209,14 +255,19 @@ ggarrange(
 
 ## Poisson distribution
 
-A Poisson random variable, $X$, tallies the number of events occurring in a fixed interval of time or space, given that these events occur with an average rate $\lambda$. Poisson distributions can be used to model events such as meteor showers and or number of people entering a shopping mall (@eq-poisson) (@fig-poisson).
-
 ::: {.column-margin}
 **The Poisson distribution:**
 $$P(X=k) = \frac{e^{-\lambda} \lambda^k}{k!}$$ {#eq-poisson}
 
 The function represents the PMF of a Poisson distribution, where $X$ is a random variable, $k$ is the number of events or occurrences, and $\lambda$ (lambda) is the average rate of occurrences (events per unit of time or space). The constant $e$ is the base of the natural logarithm, and $k!$ is the factorial of $k$. The Poisson distribution is commonly used to model the number of events occurring within a fixed interval of time or space when events occur independently and at a constant average rate.
+
+For practical application, identify $\lambda$ (average rate) and $k$ (observed count). If a gerbil enters a nest 4 times per hour ($\lambda=4$) and you want the probability of exactly 2 entries in one hour ($k=2$): $P(X=2) = \frac{4^2 \cdot e^{-4}}{2!} = \frac{16 \cdot 0.0183}{2} = 0.147$.
 :::
+
+The Poisson distribution represents a "rate-based" subfamily, which is used to model count phenomena without explicit trial structure. They involve the average occurrence rates over specified intervals.
+
+A Poisson random variable, $X$, tallies the number of events occurring in a fixed interval of time or space, given that these events occur with an average rate $\lambda$. Poisson distributions can be used to model events such as meteor showers and or number of people entering a shopping mall (@eq-poisson) (@fig-poisson).
+
 
 ```{r}
 #| echo: false
@@ -235,15 +286,26 @@ ggarrange(
 )
 ```
 
+## Hypergeometric distribution
+
+::: {.column-margin}
+**The Hypergeometricd distribution:**
+$$P(X=k) = \frac{C(K,k) \cdot C(N-K,n-k)}{C(N,n)}$$ {#eq-hypergeometric}
+In the probability mass function, above, $N$ is population size, $K$ is number of success items in population, $n$ is sample size, and $k$ is observed successes in sample.
+
+Consider drawing 5 cards from a deck without replacement, seeking exactly 2 hearts. Here $N=52$, $K=13$ (hearts), $n=5$, $k=2$: $P(X=2) = \frac{C(13,2) \cdot C(39,3)}{C(52,5)} = \frac{78 \cdot 9139}{2,598,960} = 0.274$.
+:::
+
+The hypergeometric distribution occupies a distinct position within the discrete distribution taxonomy: we might term the "finite population sampling" subfamily.
+
+The hypergeometric distribution models sampling without replacement from finite populations containing two types of items. Unlike binomial sampling, each draw changes the composition of remaining items.
+
+
+**To do:** insert figures.
+
 # Continuous distributions
 
 ## Normal distribution {#sec-normal}
-
-::: {.column-margin}
-![The idealised Normal distribution showing the proportion of data within 1, 2, and 3SD from the mean.](../../images/Standard_deviation_diagram.svg){#fig-expectednormal}
-:::
-
-Another name for this kind of distribution is a Gaussian distribution. A random sample with a Gaussian distribution is normally distributed. These values are *independent and identically distributed* random variables (i.i.d.), and they have an expected mean given by $\mu$ (or $\hat{x}$ in Chapter 3.2.1) and a finite variance given by $\sigma^{2}$ (or $S^{2}$ in Chapter 3.3.1); if the number of samples drawn from a population is sufficiently large, the estimated mean and SD will be indistinguishable from the population (as per the central limit theorem). It is represented by @eq-normal (@fig-normal).
 
 ::: {.column-margin}
 **The Normal distribution:**
@@ -252,6 +314,12 @@ $$ {#eq-normal}
 
 where $x$ is a continuous random variable, $\mu$ (mu) is the mean, and $\sigma$ (sigma) is the standard deviation. The constant factor $\frac{1}{\sigma\sqrt{2\pi}}$ ensures that the Probability Density Function (PDF) integrates to 1, and the exponential term is responsible for the characteristic bell-shaped curve of the Normal distribution.
 :::
+
+::: {.column-margin}
+![The idealised Normal distribution showing the proportion of data within 1, 2, and 3SD from the mean.](../../images/Standard_deviation_diagram.svg){#fig-expectednormal}
+:::
+
+Another name for this kind of distribution is a Gaussian distribution. A random sample with a Gaussian distribution is normally distributed. These values are *independent and identically distributed* random variables (i.i.d.), and they have an expected mean given by $\mu$ (or $\hat{x}$ in Chapter 3.2.1) and a finite variance given by $\sigma^{2}$ (or $S^{2}$ in Chapter 3.3.1); if the number of samples drawn from a population is sufficiently large, the estimated mean and SD will be indistinguishable from the population (as per the central limit theorem). It is represented by @eq-normal (@fig-normal).
 
 ```{r}
 #| echo: false
