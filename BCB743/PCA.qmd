@@ -189,20 +189,57 @@ We can show the same information as part of a more verbose summary. Here we see 
 summary(env_pca)
 ```
 
+Newer versions of the ordinations' `summary()` method no longer shows the species and site scores. To access these scores, we use the `scores()` function:
+
+The species scores can be extracted from the ordination object by:
+
+```{r}
+# extract species scores for first three PCA axes:
+scores(env_pca, display = "species", choices = 1:3)
+```
+Similarly, for the site scores, do:
+
+```{r}
+# extract the site scores for axes 1 and 2
+scores(env_pca, display = "site", choices = 1:3) |> 
+  head() # truncate to save space in this example
+```
+
+The `scores()` method also applies to other ordination methods.
+
+::: {.callout-important appearance="simple"}
+## Question
+
+We are dealing with environmental variables here, so why do we call 
+:::
+
 ## Terminology
 
-**Eigenvectors:** Eigenvectors are the directions in the original variable space along which the variance in the data is maximised. In **vegan**'s PCA, they are represented by `env_pca$CA$u`. Each eigenvector points in the direction of a principal component and defines its orientation in the multidimensional space. Eigenvectors define the principal component axes, and the species scores (see below) reveal how the original variables relate to those axes.
+Ordination methods in vegan such as `rda()` for a PCA/RDA or `cca(`) for a CA/CCA is performed with a singular-value decomposition (SVD). Once the data matrix $X$ has been centred (and, where necessary, scaled or $\chi^2$-transformed), the SVD computes
 
-**Principal components:** Principal components are the new axes derived from the original data in PCA. They are linear combinations of the original variables that maximise the variance in the data. The number of principal components is equal to the number of original variables, and they are orthogonal (uncorrelated) to each other. The first principal component captures the most variance, with each subsequent component capturing progressively less. The principal components are represented in PCA by `env_pca$CA$v`.
+$$X = U \,\Sigma \,V^{\mathsf T},$$
 
-**Species scores (loadings):** While eigenvectors are the directions of maximum variance, the species scores indicate the coordinates of the original variables on those directions. So, species scores, also known as loadings, represent the contributions of the original variables to the principal components. They indicate the strength and direction of the correlation between the original variables and the new principal components. Species scores are obtained with `scores(env_pca, display = "species")`. Larger positive values indicate a stronger positive correlation, while larger negative values indicate a stronger negative correlation. Even though the term "species scores" is used in the software, it refers to the loadings of the original variables (environmental variables in this case).
+with orthonormal *left-singular vectors* $U$, orthonormal *right-singular vectors* $V$, and positive singular values on the diagonal of $\Sigma$. From here, all the components of our ordination can be extracted. How do these relate to our data?
 
-**Eigenvalues:** Eigenvalues represent the amount of variance explained by each corresponding eigenvector (or principal component), represented in PCA by `env_pca$CA$eig`. Higher eigenvalues indicate that the corresponding principal component explains a larger portion of the total variance in the data. The sum of all eigenvalues is equal to the total variance in the data.
+- **Eigenvectors** are the directions in the original variable space along which the variance in the data is maximised. They relate to our original data in two ways:
+  - $V$ is the matrix of right singular vectors; they are the *eigenvectors of the columns* (species or variables). The quantities can be accessed by `env_pca$CA$v`.
+  - $U$ is the matrix of left singular vectors; *i.e.*, the *eigenvectors of the rows* (sites). The left singular vectors can be accessed by `env_pca$CA$u`
+- $\Sigma$ is a diagonal matrix of singular values $d$, and the **eigenvalues** are the square of these singular values, $eig=d^ 2$. Eigenvalues represent the amount of variance explained by each corresponding eigenvector (or principal component), represented in PCA (and other unconstrained ordinations such as CA) by `env_pca$CA$eig`. Higher eigenvalues indicate that the corresponding principal component explains a larger portion of the total variance in the data. The sum of all eigenvalues is equal to the total variance in the data.
 
-**Projection:** 'Projection' is the process of mapping the original data points onto the new reduced axes (principal components). This aids in visualising the data and identifying patterns or clusters.
+Let's map these directly to our `env_pca` object, which I'll assume was created with the `rda()` function. Looking inside the `env_pca` object, we'll see a structure with a component named $CA$ or $CCA$. This holds the results for the constrained/canonical analysis. For a simple PCA, all the results are in $CA$. The eigenvectors (`env_pca$CA$eig`) define the direction of the new axes, they aren't the final coordinates for ordination plots. *Projection* is the process of mapping the original data points onto the new reduced axes (principal components). What we plot are actually these *scores*.
 
+- **Scores** are the coordinates of the original sites and species projected onto the new ordination axes. They are calculated by scaling the eigenvectors. These scores are what we actually plot to create a biplot or triplot.
+  - The **Site Scores** tell us where each site (sample) is located along the new ordination axes. Sites that are close together in the ordination plot have similar variable (or species) compositions. We obtain the site scores as `scores(env_pca, display = "site", ...)`.
+  - The **Species Scores (or Variable Scores)** inform us about how the original variables (whatever is in the columns, *i.e.*, species or environmental variables) relate to the ordination axes. Sometimes we call the species scores *loadings*. In a PCA biplot, these are represented by arrows (but in CA not, as that reduced space is no longer linear). An arrow pointing strongly towards PCA1 means that species or variable is a major contributor to that axis of variation. So, species scores represent the contributions of the original variables to the principal components. They indicate the strength and direction of the correlation between the original variables and the new principal components. Species scores are obtained with `scores(env_pca, display = "species", ...)`. Larger positive values indicate a stronger positive correlation, while larger negative values indicate a stronger negative correlation. Even though the term "species scores" is used in the software, it refers to the loadings of the original variables (environmental variables in this case).
 
-**Site scores:** Site scores represent the coordinates of the sites (or samples) in the reduced-dimensional space defined by the principal components. They are obtained by `scores(env_pca, display = "sites")` and are used to plot the positions of the sites in 2D or 3D ordination space. Sites that are further apart in this space differ more in terms of the environmental conditions, as determined by the major environmental gradients indicated by the species scores (loadings).
+Here's the direct mapping:
+
+| Mathematical Concept | `vegan` Term | Where to Find It in the `rda` Object | Description |
+| :--- | :--- | :--- | :--- |
+| **Eigenvalues** | Eigenvalues | `env_pca$CA$eig` | The amount of variance explained by each axis (component). `summary(env_pca)` shows this clearly. |
+| **Eigenvectors of Variables** | Species Scores | `env_pca$CA$v` | The raw eigenvectors for the columns of the data (the variables). These are scaled to become the "species scores" that you plot as arrows. |
+| **Eigenvectors of Sites** | Site Scores | `env_pca$CA$u` | The raw eigenvectors for the rows of the data (the sites). These are scaled to become the "site scores" that you plot as points. |
+| **Plottable Coordinates** | Scores | `scores(env_pca)` | The function `scores()` extracts and properly scales the raw eigenvectors (`$u` and `$v`) to give the coordinates ready for plotting. |
 
 When interpreting a PCA biplot (see below), the species scores (loadings) indicate the contributions of the original variables to the principal components, while the site scores represent the positions of the sites in the reduced-dimensional space defined by those principal components. The direction and length of the species score vectors (arrows) provide information about the relationships between the original variables and the principal components, while the positions of the site points reflect the similarities or differences between sites based on the environmental gradients represented by the principal components.
 
