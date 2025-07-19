@@ -1,0 +1,367 @@
+---
+date: "2021-01-01"
+title: "Lab 2b. Environmental Distance"
+---
+
+::: callout-note
+## BCB743
+
+**This material must be reviewed by BCB743 students in Week 1 of Quantitative Ecology.**
+:::
+
+::: callout-tip
+## This Lab Accompanies the Following Lecture
+
+- [Lecture 4: Biodiversity Concepts](Lec-04-biodiversity.qmd)
+:::
+
+::: callout-tip
+## Data For This Lab
+
+-   Example xyz data -- [`Euclidean_distance_demo_data_xyz.csv`](../data/Euclidean_distance_demo_data_xyz.csv)
+-   Example env data -- [`Euclidean_distance_demo_data_env.csv`](../data/Euclidean_distance_demo_data_env.csv)
+-   The seaweed environmental data [@smit2017seaweeds] -- [`SeaweedEnv.RData`](../data/seaweed/SeaweedEnv.RData)
+-   The seaweed coastal sections (sites) -- [`SeaweedSites.csv`](../data/seaweed/SeaweedSites.csv)
+-   The Doubs River environmental data -- [`DoubsEnv.csv`](../data/DoubsEnv.csv)
+:::
+
+> "It's not that I'm so smart, it's just that I stay with problems longer."
+>
+> --- Albert Einstein
+
+
+
+## Set Up the Analysis Environment
+
+```{r message=FALSE, warning=FALSE}
+library(vegan)
+library(ggplot2)
+library(geodist) # to calculate geographic distances between lats/lons
+library(ggpubr) # to arrange the multipanel graphs
+```
+
+## Revisiting Euclidean Distance
+
+The toy data have arbitrary columns to demonstrate the Euclidean
+distance calculation:
+
+$$ d(a,b) = \sqrt{(a_x - b_x)^2 + (a_y - b_y)^2 + (a_z - b_z)^2} $$
+
+The distance is found between every pair of sites named ***a*** to
+***g*** whose locations are marked by the 'coordinates' $x$, $y$, and
+$z$---i.e. this is an example of 3-dimensional data (a space or volume,
+as opposed to 2D data situated on a $x$, $y$ place). We might also call
+each coordinate a 'variable' (sometimes called a 'dimension') and hence
+we have multivariate or multidimensional data.
+
+Let's load the dataset and find the size of the dataframe:
+
+```{r}
+xyz <- read.csv("../data/Euclidean_distance_demo_data_xyz.csv")
+dim(xyz)
+```
+
+There are seven rows and four columns.
+
+The data look like:
+
+```{r}
+xyz
+```
+
+The first column contains the site names and it must be excluded from
+subsequent calculations. The remaining three columns will be used below.
+
+Calculate the Euclidean distance using **vegan**'s `vegdist()` function
+and view the lower triangle with the diagonal:
+
+```{r}
+xyz_euc <- round(vegdist(xyz[, 2:4], method = "euclidian",
+                         upper = FALSE, diag = TRUE), 4)
+# selected only cols 2, 3 and 4
+xyz_euc
+```
+
+Convert to a dataframe and view it:
+
+```{r}
+xyz_df <- as.data.frame(as.matrix(xyz_euc))
+xyz_df
+```
+
+Distance matrices have the same properties as dissimilarity matrices,
+i.e.:
+
+i.  The distance matrix is square (number rows = number columns).
+
+ii. The diagonal is filled with 0.
+
+iii. The matrix is symmetrical---it is comprised of symmetrical upper
+     and lower triangles.
+
+In terms of the meaning of the cell values, their interpretation is also
+analogous with that of the species dissimilarities. A value of 0 means
+the properties of the sites (or sections, plots, transects, quadrats,
+etc.) in terms of their environmental conditions are identical (this is
+always the case the the diagonal). The larger the number (which may be
+\>1) the more different sites are in terms of their environmental
+conditions.
+
+Since each column, $x$, $y$, and $z$, is a variable, we can substitute
+them for *actual* variables or properties of the environment within
+which species are present. Let's load such data (again fictitious):
+
+```{r}
+env_fict <- read.csv("../data/Euclidean_distance_demo_data_env.csv")
+head(env_fict, 2) # print first two rows only
+```
+
+These are the same data as in `Euclidean_distance_demo_data_xyz.csv` but
+I simply renamed the columns to names of the variables temperature,
+depth, and light intensity. I won't repeat the analysis here as the
+output remains the same.
+
+Now apply `vegdist()` as before. The resultant distances are called
+'environmental distances'.
+
+Let us now use some real data.
+
+## A Look at the Seaweed Environmental Data
+
+These data accompany the analysis of the South African seaweed flora
+[@smit2017seaweeds].
+
+```{r}
+load("../data/seaweed/SeaweedEnv.RData")
+
+# lets look at the data
+dim(env)
+```
+
+We see that the data have 58 rows and 18 columns... the same number of
+rows as the `seaweed.csv` data. What is in the first five rows?
+
+```{r}
+round(env[1:5, 1:5], 4)
+```
+
+And the last five rows?
+
+```{r}
+round(env[(nrow(env) - 5):nrow(env), (ncol(env) - 5):ncol(env)], 4)
+```
+
+So, each of the rows corresponds to a site (i.e. each of the coastal
+sections), and the columns each contains an environmental variable. The
+names of the environmental variables are:
+
+```{r}
+colnames(env)
+```
+
+As we have seen, there are 18 variables (or dimensions). These data are
+truly multidimensional in a way that far exceeds our brains' limited
+ability to spatially visualise. For mathematicians these data define an
+18-dimensional space, but all we can do is visualise 3-dimensions.
+
+We select only some of the thermal variables; the rest are collinear
+with some of the ones I import:
+
+```{r}
+  env1 <- dplyr::select(env, febMean, febRange, febSD, augMean,
+                    augRange, augSD, annMean, annRange, annSD)
+```
+
+Let us make a quick graph of `annMean` as a function of distance along
+the coast (@fig-seawater-temp). 
+
+```{r}
+#| fig-cap: "Line plot showing the trend in the mean annual seawater temperature along the coast from the west at Section 1 to Section 58 in the East."
+#| label: fig-seawater-temp
+ggplot(env1, aes(x = 1:58, y = annMean)) +
+  geom_line(colour = "indianred", size = 1.2) +
+  labs(x = "Coastal section (west to east)",
+       y = "Temperature (°C)") +
+  theme_linedraw()
+```
+
+## *z*-Scores
+
+Here we need to do something new that was not necessary with the toy
+data. We calculate *z*-scores, and the process is called
+'standardisation'. Standardisation is necessary when the variables are
+measured in different units---e.g. the unit for temperature is °C
+whereas Ch-*a* is measured in mg Chl-*a*/m^3^.
+
+```{r}
+E1 <- round(decostand(env1, method = "standardize"), 4)
+E1[1:5, 1:5]
+```
+
+For comparison with the previous plot showing the raw data, let us now
+plot the standardised `annMean` data (@fig-std-ann-mean).
+
+```{r}
+#| fig-cap: "Line plot showing the trend in the standardised mean annual seawater temperature along the coast from the west at Section 1 to Section 58 in the East."
+#| label: fig-std-ann-mean
+ggplot(E1, aes(x = 1:58, y = annMean)) +
+  geom_line(colour = "indianred", size = 1.2) +
+  labs(x = "Coastal section (west to east)",
+       y = "Standardised temperature")+
+  theme_linedraw()
+```
+
+## Euclidean Distance
+
+```{r}
+E1_euc <- round(vegdist(E1, method = "euclidian", upper = TRUE), 4)
+E1_df <- as.data.frame(as.matrix(E1_euc))
+E1_df[1:10, 1:10]
+```
+
+We already know how to read this matrix. Let's plot it as a function of
+the coastal section's number (@fig-env-dist).
+
+```{r}
+#| fig-cap: "Line plot showing the trend in environmental distance along the coast from the west at Section 1 to Section 58 in the East."
+#| label: fig-env-dist
+ggplot(data = E1_df, (aes(x = 1:58, y = `1`))) +
+  geom_line(colour = "indianred", size = 1.2) +
+  xlab("Coastal section, west to east") +
+  ylab("Environmental distance")+
+  theme_linedraw()
+```
+
+::: callout-important
+## Lab 2
+(To be reviewed by BCB743 student but not for marks)
+
+Use the Doubs River environmental data for this exercise.
+
+1. Standardise these data using R and display a portion of the resultant standardised data file.
+2. Discuss why standardisation was necessary for these data. Use the content of the actual 'raw' data file in your discussion.
+3. Using R, calculate the Euclidean distances for these data and display a portion of the resultant distance matrix.
+4. Discuss the ecological conclusions you are able to draw from these Euclidean distances. Provide a few graphs to substantiate your answer.
+:::
+
+We will explore distance and dissimilarity matrices in more detail in
+later sections.
+
+## Pairwise Correlations
+
+It is easy to calculate pairwise correlation matrices for the above
+data:
+
+```{r}
+env1_cor <- round(cor(env1), 2)
+env1_cor
+```
+
+::: callout-important
+## Lab 2 (continue)
+(To be reviewed by BCB743 student but not for marks)
+
+5.  Explain in s short (1/3 page paragraph) what is meant by
+    'environmental distance'.
+6.  Describe to your grandmother how to interpret the above correlation
+    matrix, and also mention what the major conclusions are that can be
+    drawn from studying the matrix. Add a mechanistic explanation to
+    demonstrate to her what your thought processes are for reaching your
+    conclusion.
+7.  Explain why the same general trend is seen in the raw or
+    standardised environmental data for `annMean` (Figure 1 and 2) and
+    that of environmental distance (Figure 3).
+:::
+
+## Euclidean Distance of Geographical Data
+
+When we calculate Euclidean distances between geographic lat/lon
+coordinate, the relationship between sections will be the same (but
+scaled) as actual geographic distances.
+
+```{r}
+geo <- read.csv("../data/seaweed/SeaweedSites.csv")
+dim(geo)
+```
+
+```{r}
+head(geo)
+```
+
+<!--- The first column contains nonsense and must be removed: --->
+
+Calculate geographic distances (in meters) between coordinate pairs (@fig-geodist).
+
+```{r}
+dists <- geodist(geo, paired = TRUE, measure = "geodesic")
+dists_df <- as.data.frame(as.matrix(dists))
+colnames(dists_df) <- seq(1:58)
+dists_df[1:5, 1:5]
+```
+
+```{r}
+plt1 <- ggplot(data = dists_df, (aes(x = 1:58, y = `1`/1000))) +
+  geom_line(colour = "indianred", size = 1.2) +
+  xlab("Coastal section, west to east") +
+  ylab("Distance (km)") +
+  ggtitle("Actual geographic distance")+
+  theme_linedraw()
+```
+
+```{r}
+dists_euc <- vegdist(geo, method = "euclidian")
+dists_euc_df <- round(as.data.frame(as.matrix(dists_euc)), 4)
+dists_euc_df[1:5, 1:5]
+```
+
+```{r}
+#| fig-cap: "Line plots showing the relationship between Euclidean and geographical distance."
+#| label: fig-geodist
+#| fig-align: center
+#| fig-width: 8
+#| fig-height: 2.75
+
+plt2 <- ggplot(data = dists_euc_df, (aes(x = 1:58, y = `1`))) +
+  geom_line(colour = "indianred", size = 1.2) +
+  xlab("Coastal section, west to east") +
+  ylab("Euclidean distance") +
+  ggtitle("Euclidean distance")+
+  theme_linedraw()
+
+ggarrange(plt1, plt2, ncol = 2)
+```
+
+::: callout-important
+## Lab 2 (continue)
+(To be reviewed by BCB743 student but not for marks)
+
+8.  Do a full analysis of the Doubs River environmental data using
+    Euclidean distances and correlations. Demonstrate graphically any
+    clear spatial patterns that you might find, and offer a full suite of
+    mechanistic explanations for the patterns you see. It is sufficient
+    to submit a fully annotated R script (not a MS Word or Excel file).
+:::
+
+::: callout-important
+## Submission Instructions
+
+The Lab 2 assignment on Ecological Data was discussed on Monday 8 August
+and is due at **07:00 on Monday 5 August 2024**.\|
+
+Provide a **neat and thoroughly annotated** R file which can recreate all the
+graphs and all calculations. Written answers must be typed in the same file as comments.
+
+Please label the R file as follows:
+
+-   `BDC334_<first_name>_<last_name>_Lab_2.R`
+
+(the `<` and `>` must be omitted as they are used in the example as
+field indicators only).
+
+Submit your appropriately named R documents on iKamva when ready.
+
+Failing to follow these instructions carefully, precisely, and
+thoroughly will cause you to lose marks, which could cause a significant
+drop in your score as formatting counts for 15% of the final mark (out
+of 100%).
+:::
