@@ -174,7 +174,7 @@ b. Does the concentration of mercury in the blood influence the proportion of ce
   # proportion of abnormal cells differs between the control and exposed
   # groups
   
-  model.lm <- lm(abnormal ~ mercury + group, data = mercuryfish)
+  model.lm <- lm(abnormal ~ mercury * group, data = mercuryfish)
   summary(model.lm)
   
   # We can now check the residuals for normality in the two groups
@@ -298,7 +298,170 @@ Package **coin**, dataset `glioma`: A non-randomized pilot study on malignant gl
 
 a. Do `sex` and `group` interact to affect survival time (`time`)?
 
+```{r}
+  # Load the glioma dataset
+  data(glioma, package = "coin")
+  
+  # Check the structure of the dataset
+  str(glioma)
+  
+  # Summary statistics
+  summary(glioma)
+  
+  # EDA: Boxplot of survival
+  ggplot(glioma, aes(x = group, y = time)) +
+    geom_boxplot(notch = FALSE, aes(colour = sex)) +
+    labs(title = "Survival Time by Group",
+       x = "Group",
+       y = "Months")
+  
+  # There does seem to be an effect of group on survival time, with the 
+  # radioimmunotherapy group having a higher median survival time
+  # than the control group
+  # A sex-related effect does not seem present
+  
+  # Looking at the box and whisker plot, there seems to be an issue with 
+  # the assumption of normality. Let's test the normality of the data
+  # using the Shapiro-Wilk test:
+  
+  # Shapiro-Wilk test for normality
+  # H0: The data are normally distributed
+  # Ha: The data are not normally distributed
+  # (seperate hypotheses for sex and group))
+  
+  shapiro.test(glioma$tim[glioma$group == "Control"])
+  shapiro.test(glioma$tim[glioma$group == "RIT"])
+  shapiro.test(glioma$tim[glioma$sex == "Female"])
+  shapiro.test(glioma$tim[glioma$sex == "Male"])
+  
+  # The p-values are less than 0.05 for the control group and for both
+  # sexes, indicating that the data are not normally distributed. We will
+  # use non-parametric tests to compare the survival times between the
+  # two groups within the factors.
+  
+  # We must also check the homogeneity of variances using Levene's test:
+  # H0: The variances are equal
+  # Ha: The variances are not equal
+  
+  car::leveneTest(time ~ group, data = glioma)
+  car::leveneTest(time ~ sex, data = glioma)
+  
+  # Variances are the same everywhere; nevertheless, due to the 
+  # non-normal data, we will have to use a non-parametric test.
+  
+  # We will check for differences between groups formally using the
+  # Kruskal-Wallis test:
+  
+  # Kruskal-Wallis test
+  # H0: The medians of the groups are equal
+  # Ha: At least one median is different
+  # (to be stated separately for group and sex)
+  
+  kruskal.test(time ~ group, data = glioma)
+  kruskal.test(time ~ sex, data = glioma)
+
+  # The p-value is less than 0.05, indicating that there is a significant
+  # difference in survival time between the two groups. We reject the null
+  # hypothesis and conclude that the medians of the groups are not equal,
+  # but we do not reject the H0 for sex differences.
+  
+  # We cannot do a formal stats test to look for significant interaction 
+  # terms between sex and group due to the non-normality of the data (i.e.
+  # there is not non-parametric equivalent for a two-way ANOVA); However, we
+  # can simply look at the box-and-whisker plot: there does not seem to be
+  # a significant interaction as the response is the same regardless of
+  # sex within each group.
+```
+
 b. Do `age` and `histology` interact to affect survival time (`time`)?
+
+```{r}
+  # EDA: Line/scatterplot of survival by histology and age
+  ggplot(glioma, aes(x = age, y = time)) +
+    geom_point(aes(colour = histology)) +
+    geom_smooth(method = "lm", se = TRUE, aes(colour = histology)) +
+    labs(title = "Survival Time by Histology and Age",
+       x = "Age (Years)",
+       y = "Survival time (Months)")
+  
+  # There does not seem to be a clear effect of age on survival time
+  # within each histology group. Notice the wide confidence intervals
+  # at the starts and ends of the age range for each histology group:
+  # the starts and ends overlap within each group suggesting a statistically
+  # insignificant effect of age
+  
+  # We can test formally with a linear model:
+   
+  # Linear model
+  # H0: There is no interaction between age and histology
+  # Ha: There is an interaction between age and histology
+  
+  model.lm <- lm(time ~ age * histology, data = glioma)
+  summary(model.lm)
+  
+  # Before we can interpret the linear model fit, we must check that the lm
+  # is indeed suited to the data. We can do this by checking the residuals:
+  
+  # Residuals vs Fitted plot
+  plot(model.lm, which = 1)
+  
+  # Or you could check normality of residuals with a QQ plot:
+  
+  # Normal Q-Q plot
+  
+  qqnorm(model.lm$residuals)
+  
+  # Or you could check for homogeneity of variances with a residuals vs
+  # fitted plot:
+  
+  # Residuals vs Fitted plot
+  
+  plot(model.lm, which = 3)
+   
+  # Or simply assess the normality of the residuals with a Shapiro-Wilk test:
+  
+  # Shapiro-Wilk test for normality
+  
+  glioma$residuals <- model.lm$residuals
+  
+  shapiro.test(glioma$residuals[glioma$group == "RIT"])
+  shapiro.test(glioma$residuals[glioma$group == "Control"])
+  
+  # Okay, residuals are normal according to most tests above.
+  
+  # The interaction term is not significant, indicating that there is no
+  # interaction between age and histology on survival time.
+  
+  # We will use the Kruskal-Wallis test to compare survival times between
+  # the different histology groups:
+  
+  # Kruskal-Wallis test
+  # H0: The medians of the histology groups are equal
+  # Ha: At least one median is different
+  
+  kruskal.test(time ~ histology, data = glioma)
+  
+  # The p-value is less than 0.05, indicating that there is a significant
+  # difference in survival time between the histology groups. We reject the
+  # null hypothesis and conclude that the medians of the histology groups
+  # are not equal.
+  
+  # We cannot do a formal stats test to look for significant interaction
+  # terms between age and histology due to the non-normality of the data;
+  # However, we can simply look at the box-and-whisker plot: there does not
+  # seem to be a significant interaction as the response is the same
+  # regardless of age within each histology group.
+  
+  # Or we can test with an ANCOVA instead of the linear model above
+  # (start first with the assumption of normality and variances
+  # within the histology groups -- Levene's test and Shapiro-Wilk's test)
+  
+  model.aov1 <- aov(time ~ histology * age, data = glioma)
+  summary(model.aov1)
+  
+  # The outcome is the same as the linear model above: there is no
+  # interaction between age and histology on survival time.
+```
 
 c. Show a full graphical exploration of the data. Are there any other remaining patterns visible in the data that should be explored statistically? Study your results, select the most promising and insightful question that remains, and do the analysis.
 
@@ -309,6 +472,15 @@ c. Show a full graphical exploration of the data. Are there any other remaining 
 Package **MASS**, dataset `birthwt`: A dataset about the risk factors associated with low infant birth mass collected at Baystate Medical Center, Springfield, Mass. during 1986.
 
 State three hypotheses and test them. Make sure one of the tests makes use of the 95% confidence interval approach rather than a formal inferential methodology.
+
+```{r}
+# Load the birthwt dataset
+library(MASS)
+data(birthwt)
+
+# Check the structure of the dataset
+str(birthwt)
+```
 
 ## Question 4
 
@@ -322,116 +494,116 @@ a. Using the Lung Capacity data provided, please calculate the 95% CIs for the `
     
     * `Caesarean`
 
-<!-- ```{r} -->
-<!-- lungs <- read.csv("../data/LungCapData.csv", sep = "\t") -->
+```{r}
+lungs <- read.csv("../data/LungCapData.csv", sep = "\t")
 
-<!-- library(rcompanion) -->
+library(rcompanion)
 
-<!-- (gender_ci <- groupwiseMean(LungCap ~ Gender, data = lungs, conf = 0.95, digits = 3)) -->
-<!-- (smoke_ci <- groupwiseMean(LungCap ~ Smoke, data = lungs, conf = 0.95, digits = 3)) -->
-<!-- (caesarean_ci <- groupwiseMean(LungCap ~ Caesarean, data = lungs, conf = 0.95, digits = 3)) -->
-<!-- ``` -->
+(gender_ci <- groupwiseMean(LungCap ~ Gender, data = lungs, conf = 0.95, digits = 3))
+(smoke_ci <- groupwiseMean(LungCap ~ Smoke, data = lungs, conf = 0.95, digits = 3))
+(caesarean_ci <- groupwiseMean(LungCap ~ Caesarean, data = lungs, conf = 0.95, digits = 3))
+```
 
 b. Create a graph of the mean ± 95% CIs and determine if there are statistical differences in `LungCap` between the levels of `Gender`, `Smoke`, and `Caesarean`. Do the same using inferential statistics. Are your findings the same using these two approaches?
 
-<!-- ```{r} -->
-<!-- plt1 <- ggplot(gender_ci, aes(x = Gender, y = Mean)) + -->
-<!--   geom_point() + -->
-<!--   geom_errorbar(aes(ymin = Trad.lower, ymax = Trad.upper), width = 0.2) + -->
-<!--   ylab("Mean lung capacity") -->
+```{r}
+plt1 <- ggplot(gender_ci, aes(x = Gender, y = Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Trad.lower, ymax = Trad.upper), width = 0.2) +
+  ylab("Mean lung capacity")
 
-<!-- plt2 <- ggplot(smoke_ci, aes(x = Smoke, y = Mean)) + -->
-<!--   geom_point() + -->
-<!--   geom_errorbar(aes(ymin = Trad.lower, ymax = Trad.upper), width = 0.2) + -->
-<!--   ylab("Mean lung capacity") -->
+plt2 <- ggplot(smoke_ci, aes(x = Smoke, y = Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Trad.lower, ymax = Trad.upper), width = 0.2) +
+  ylab("Mean lung capacity")
 
-<!-- plt3 <- ggplot(caesarean_ci, aes(x = Caesarean, y = Mean)) + -->
-<!--   geom_point() + -->
-<!--   geom_errorbar(aes(ymin = Trad.lower, ymax = Trad.upper), width = 0.2) + -->
-<!--   ylab("Mean lung capacity") -->
+plt3 <- ggplot(caesarean_ci, aes(x = Caesarean, y = Mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Trad.lower, ymax = Trad.upper), width = 0.2) +
+  ylab("Mean lung capacity")
 
-<!-- ggarrange(plt1, plt2, plt3, ncol = 3, labels = "AUTO") -->
-<!-- ``` -->
+ggarrange(plt1, plt2, plt3, ncol = 3, labels = "AUTO")
+```
 
 c. Produce all the associated tests for assumptions---i.e. the assumptions to be met when deciding whether to use your choice of inferential test or its non-parametric counterpart.
 
-<!-- ```{r} -->
-<!-- two_assum <- function(x) { -->
-<!--   x_var <- var(x) -->
-<!--   x_norm <- as.numeric(shapiro.test(x)[2]) -->
-<!--   result <- c(x_var, x_norm) -->
-<!--   return(result) -->
-<!-- } -->
+```{r}
+two_assum <- function(x) {
+  x_var <- var(x)
+  x_norm <- as.numeric(shapiro.test(x)[2])
+  result <- c(x_var, x_norm)
+  return(result)
+}
 
-<!-- lungs %>%  -->
-<!--   group_by(Gender) %>%  -->
-<!--   summarise(LungCap_var = round(two_assum(LungCap)[1], 3), -->
-<!--             LungCap_norm = round(two_assum(LungCap)[2], 3)) -->
+lungs %>%
+  group_by(Gender) %>%
+  summarise(LungCap_var = round(two_assum(LungCap)[1], 3),
+            LungCap_norm = round(two_assum(LungCap)[2], 3))
 
-<!-- lungs %>%  -->
-<!--   group_by(Smoke) %>%  -->
-<!--   summarise(LungCap_var = round(two_assum(LungCap)[1], 3), -->
-<!--             LungCap_norm = round(two_assum(LungCap)[2], 3)) -->
+lungs %>%
+  group_by(Smoke) %>%
+  summarise(LungCap_var = round(two_assum(LungCap)[1], 3),
+            LungCap_norm = round(two_assum(LungCap)[2], 3))
 
-<!-- lungs %>%  -->
-<!--   group_by(Caesarean) %>%  -->
-<!--   summarise(LungCap_var = round(two_assum(LungCap)[1], 3), -->
-<!--             LungCap_norm = round(two_assum(LungCap)[2], 3)) -->
+lungs %>%
+  group_by(Caesarean) %>%
+  summarise(LungCap_var = round(two_assum(LungCap)[1], 3),
+            LungCap_norm = round(two_assum(LungCap)[2], 3))
 
-<!-- # It would be best to continue with a Wilcoxon test -->
-<!-- ``` -->
+# It would be best to continue with a Wilcoxon test
+```
 
 d. Create a combined tidy dataframe (observe tidy principles) with the estimates for the 95% CI for the `LungCap` data (`LungCap` as a function of `Gender`), estimated using both the traditional and bootstrapping approaches. Create a plot comprising two panels (one for the traditional estimates, one for the bootstrapped estimates) of the mean, median, scatter of raw data points, and the upper and lower 95% CI.
 
-<!-- ```{r} -->
-<!-- groupwiseMean(LungCap ~ Gender, data = lungs, conf = 0.95, digits = 3, normal = TRUE) |>  -->
-<!--   pivot_longer(cols = Trad.lower:Normal.upper, -->
-<!--                names_to = "type", values_to = "CI") |>  -->
-<!--   separate(col = type, into = c("type", "direction")) |>  -->
-<!--   pivot_wider(names_from = direction, values_from = CI) |>  -->
-<!--   ggplot(aes(x = Gender, y = Mean)) + -->
-<!--     geom_jitter(data = lungs, aes(x = Gender, y = LungCap, colour = Smoke), -->
-<!--                 width = 0.1, alpha = 0.2) + -->
-<!--     geom_point(colour = "black") + -->
-<!--     geom_errorbar(aes(ymin = lower, ymax = upper), -->
-<!--                   width = 0.2, colour = "black") + -->
-<!--     geom_point(data = lungs, aes(x = Gender, y = median(LungCap)), -->
-<!--                colour = "red", shape = "X") + -->
-<!--     facet_wrap(~type) + -->
-<!--     ylab("Mean lung capacity") -->
-<!-- ``` -->
+```{r}
+groupwiseMean(LungCap ~ Gender, data = lungs, conf = 0.95, digits = 3, normal = TRUE) |>
+  pivot_longer(cols = Trad.lower:Normal.upper,
+               names_to = "type", values_to = "CI") |>
+  separate(col = type, into = c("type", "direction")) |>
+  pivot_wider(names_from = direction, values_from = CI) |>
+  ggplot(aes(x = Gender, y = Mean)) +
+    geom_jitter(data = lungs, aes(x = Gender, y = LungCap, colour = Smoke),
+                width = 0.1, alpha = 0.2) +
+    geom_point(colour = "black") +
+    geom_errorbar(aes(ymin = lower, ymax = upper),
+                  width = 0.2, colour = "black") +
+    geom_point(data = lungs, aes(x = Gender, y = median(LungCap)),
+               colour = "red", shape = "X") +
+    facet_wrap(~type) +
+    ylab("Mean lung capacity")
+```
 
 e. Undertake a statistical analysis that incorporates both the effect of `Age` *and* one of the categorical variables on `LungCap`. What new insight does this provide?
 
-<!-- ```{r} -->
-<!-- # focus only on males -->
-<!-- lungs |>  -->
-<!--   filter(Gender == "male") |>  -->
-<!--   group_by(Smoke) |>  -->
-<!--   summarise(LungCap_var = round(two_assum(LungCap)[1], 3), -->
-<!--             LungCap_norm = round(two_assum(LungCap)[2], 3)) -->
+```{r}
+# focus only on males
+lungs |>
+  filter(Gender == "male") |>
+  group_by(Smoke) |>
+  summarise(LungCap_var = round(two_assum(LungCap)[1], 3),
+            LungCap_norm = round(two_assum(LungCap)[2], 3))
 
-<!-- # above we see that within males, the subgroups based on whether or not -->
-<!-- # they smoke are normally distributed in both instances -->
+# above we see that within males, the subgroups based on whether or not
+# they smoke are normally distributed in both instances
 
-<!-- mod1 <- lm(LungCap ~ Smoke * Age, data = lungs[lungs$Gender == "male", ]) -->
-<!-- summary(mod1) -->
+mod1 <- lm(LungCap ~ Smoke * Age, data = lungs[lungs$Gender == "male", ])
+summary(mod1)
 
-<!-- # lung capacity of males is affected by age (disregarding effect of smoke), -->
-<!-- # lung capacity is not affected by smoke (disregarding effect of age), but -->
-<!-- # there is a significant interaction between them, i.e. the effect of age  -->
-<!-- # is more pronounced in non-smoker than it is in smokers... -->
+# lung capacity of males is affected by age (disregarding effect of smoke),
+# lung capacity is not affected by smoke (disregarding effect of age), but
+# there is a significant interaction between them, i.e. the effect of age
+# is more pronounced in non-smoker than it is in smokers...
 
-<!-- lungs[lungs$Gender == "male", ] |>  -->
-<!--   ggplot(aes(x = Age, y = LungCap)) + -->
-<!--     geom_point() + -->
-<!--     geom_smooth(method = "lm") + -->
-<!--     facet_wrap(~Smoke) -->
+lungs[lungs$Gender == "male", ] |>
+  ggplot(aes(x = Age, y = LungCap)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    facet_wrap(~Smoke)
 
-<!-- # the figure shows the interaction effect: in non-smokers their lung capacity -->
-<!-- # increases more rapidly with age, whereas in smokers, the development of lung -->
-<!-- # capacity with age seems to be stunted. -->
-<!-- ``` -->
+# the figure shows the interaction effect: in non-smokers their lung capacity
+# increases more rapidly with age, whereas in smokers, the development of lung
+# capacity with age seems to be stunted.
+```
 
 
 ## Question 5
@@ -463,66 +635,66 @@ The data represent an experiment designed to test whether or not fertiliser type
 
 Fully analyse this dataset.
 
-<!-- ```{r} -->
-<!-- fert <- read.csv("../data/fertiliser_crop_data.csv") -->
+```{r}
+fert <- read.csv("../data/fertiliser_crop_data.csv")
 
-<!-- # convert to SI units -->
-<!-- fert <- fert |>  -->
-<!--   mutate(mass = mass / 0.40468564224) -->
+# convert to SI units
+fert <- fert |>
+  mutate(mass = mass / 0.40468564224)
 
-<!-- # are assumptions met? note that I also calculate the mean +/- SD here -->
-<!-- fert %>%  -->
-<!--   group_by(density) %>%  -->
-<!--   summarise(mean = mean(mass), -->
-<!--             SD = sd(mass), -->
-<!--             mass_var = round(two_assum(mass)[1], 3), -->
-<!--             mass_norm = round(two_assum(mass)[2], 3)) -->
+# are assumptions met? note that I also calculate the mean +/- SD here
+fert %>%
+  group_by(density) %>%
+  summarise(mean = mean(mass),
+            SD = sd(mass),
+            mass_var = round(two_assum(mass)[1], 3),
+            mass_norm = round(two_assum(mass)[2], 3))
 
-<!-- fert %>%  -->
-<!--   group_by(block) %>%  -->
-<!--   summarise(mean = mean(mass), -->
-<!--             SD = sd(mass), -->
-<!--             mass_var = round(two_assum(mass)[1], 3), -->
-<!--             mass_norm = round(two_assum(mass)[2], 3)) -->
+fert %>%
+  group_by(block) %>%
+  summarise(mean = mean(mass),
+            SD = sd(mass),
+            mass_var = round(two_assum(mass)[1], 3),
+            mass_norm = round(two_assum(mass)[2], 3))
 
-<!-- fert %>%  -->
-<!--   group_by(fertilizer) %>%  -->
-<!--   summarise(mean = mean(mass), -->
-<!--             SD = sd(mass), -->
-<!--             mass_var = round(two_assum(mass)[1], 3), -->
-<!--             mass_norm = round(two_assum(mass)[2], 3)) -->
+fert %>%
+  group_by(fertilizer) %>%
+  summarise(mean = mean(mass),
+            SD = sd(mass),
+            mass_var = round(two_assum(mass)[1], 3),
+            mass_norm = round(two_assum(mass)[2], 3))
 
-<!-- # yes, all assumptions check out, proceed with normal paramatric stats -->
+# yes, all assumptions check out, proceed with normal paramatric stats
 
-<!-- # do an ANOVA and look at main effects first -->
-<!-- aov1 <- aov(mass ~ density + block + fertilizer, data = fert) -->
-<!-- summary(aov1) -->
+# do an ANOVA and look at main effects first
+aov1 <- aov(mass ~ density + block + fertilizer, data = fert)
+summary(aov1)
 
-<!-- # the block effect is not significant but density and fertilizer are -->
+# the block effect is not significant but density and fertilizer are
 
-<!-- # let's check if the fertilizer type interacts with density -->
-<!-- aov2 <- aov(mass ~ density * fertilizer, data = fert) -->
-<!-- summary(aov2) -->
+# let's check if the fertilizer type interacts with density
+aov2 <- aov(mass ~ density * fertilizer, data = fert)
+summary(aov2)
 
-<!-- # no interaction effect is present, so the fertilizer has the same -->
-<!-- # effect regardless of at which planting density it is applied -->
+# no interaction effect is present, so the fertilizer has the same
+# effect regardless of at which planting density it is applied
 
-<!-- # lets see which planting fertilizer results in the greatest mass -->
+# lets see which planting fertilizer results in the greatest mass
 
-<!-- TukeyHSD(aov2, which = "fertilizer", ordered = TRUE) -->
+TukeyHSD(aov2, which = "fertilizer", ordered = TRUE)
 
-<!-- TukeyHSD(aov2, which = "fertilizer", ordered = TRUE) -->
-<!-- plot(TukeyHSD(aov2, which = "fertilizer", ordered = TRUE)) -->
+TukeyHSD(aov2, which = "fertilizer", ordered = TRUE)
+plot(TukeyHSD(aov2, which = "fertilizer", ordered = TRUE))
 
-<!-- # here we can see that the mass of crop produced by fertilizer C is the -->
-<!-- # greatest, significantly more so compared to both A and B; the effect -->
-<!-- # of fertilizer B is no different than that of A -->
-<!-- #  -->
-<!-- # the second planting density also yields a greater mass per ha -->
-<!-- #  -->
-<!-- # make sure the results are written up as appropriate for a journal, -->
-<!-- # so indicate the d.f., S.S., and p-value -->
-<!-- ``` -->
+# here we can see that the mass of crop produced by fertilizer C is the
+# greatest, significantly more so compared to both A and B; the effect
+# of fertilizer B is no different than that of A
+#
+# the second planting density also yields a greater mass per ha
+#
+# make sure the results are written up as appropriate for a journal,
+# so indicate the d.f., S.S., and p-value
+```
 
 ## Question 8
 
