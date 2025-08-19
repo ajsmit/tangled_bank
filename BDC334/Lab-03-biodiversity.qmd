@@ -64,7 +64,6 @@ We will use **R**, so first, we must find, install and load various packages. So
 library(tidyverse)
 library(vegan)
 library(betapart)
-library(BiodiversityR) # this package may at times be problematic to install
 ```
 
 ### A Look at the Data
@@ -163,17 +162,6 @@ spp_richness <- tibble(section = 1:58,
 head(spp_richness)
 ```
 
-The `diversityresult()` function in the **BiodiversityR** package can do
-the same (sometimes this package is difficult to install due to various
-software dependencies that might be required for the package to load
-properly---do not be sad if this method does not work):
-
-```{r, eval=FALSE}
-spp_richness <- diversityresult(spp, index = 'richness',
-                                method = 'each site')
-head(spp_richness)
-```
-
 Now we make a plot seen in @fig-species-richness:
 
 ```{r}
@@ -269,7 +257,7 @@ round(J, 2)
 $$d = \frac{N_{max}}{N}$$
 where $N_{max}$ is the number of individuals of the most common species and $N$ is the total number of individuals in the sample.
 
-**Chao1 and ACE** are estimators often used to predict the total species richness in a community based on the number of rare species observed in samples.
+**Chao1** and **ACE** are estimators often used to predict the total species richness in a community based on the number of rare species observed in samples.
 
 ### Gamma-Diversity
 
@@ -280,17 +268,12 @@ ncol(spp) # <1>
 ```
 1. The number of columns gives the total number of species in this example.
 
-We can also use:
+We can also use the `specnumber()` function to calculate $\gamma$-diversity by applying it to columns where the `sum > 0`:
 
 ```{r, eval=TRUE}
-diversityresult(spp, index = 'richness', method = 'pooled')
+richness_pooled <- specnumber(colSums(spp > 0))
+richness_pooled
 ```
-
-<!-- ```{r} -->
-
-<!-- specpool() -->
-
-<!-- ``` -->
 
 ::: callout-important
 ## Lab 3
@@ -342,38 +325,47 @@ ggplot(data = abs_beta, (aes(x = section_no, y = beta))) +
 
 #### Contemporary Definitions $\beta$-Diversity
 
-Contemporary definitions of $\beta$-diversity rely on [pairwise *dissimilarity indices*](Lec-04-biodiversity.qmd#sec-dissimilarity-indices) such as Bray-Curtis, Jaccard, or Sørensen dissimilarities---see @koleff2003measuring for many more; also see `?vegdist`. However, discussing pairwise dissimilarities with $\beta$-diversity makes more sense.
+Contemporary definitions of $\beta$-diversity are anchored in [pairwise *dissimilarity indices*](Lec-04-biodiversity.qmd#sec-dissimilarity-indices) such as Bray–Curtis, Jaccard, or Sørensen dissimilarities—see @koleff2003measuring for a broader catalogue, and consult `?vegdist` for implementation details.
 
 ##### Dissimilarity indices
 
-Dissimilarity indices are special cases of diversity indices that use pairwise comparisons between sampling units, habitats, or ecosystems.
+Dissimilarity indices constitute a subset of diversity measures that rely on pairwise comparisons between sampling units, habitats, or ecosystems.
 
-Species dissimilarities result in pairwise matrices similar to the pairwise correlation or Euclidian distance matrices we have seen in [Lab 1](Lec-01-introduction.qmd). In [Lab 2b](Lec-04-biodiversity.qmd) you will have also learned how to calculate these ecological distances in R. These dissimilarity indices are multivariate and compare between sites, sections, plots, etc., and must therefore not be confused with the univariate diversity indices.
+The outcome of such comparisons is a *pairwise matrix* of species dissimilarities, directly analogous to the correlation and Euclidean distance matrices introduced in [Lab 1](Lec-01-introduction.qmd). In [Lab 2b](Lec-04-biodiversity.qmd) you learned how to compute these ecological distances in **R**. Unlike univariate diversity indices, these measures are multivariate, designed to quantify differences between sites, plots, or regions rather than summarising properties of a single community.
 
-We use the Bray-Curtis and Jaccard indices with abundance data and the Sørensen dissimilarity with presence-absence data. The seaweed dataset is a presence-absence dataset that necessitates using the Sørensen index. The interpretation of the resulting square (number of rows = number of columns) dissimilarity matrices is the same regardless of whether we calculate it for an abundance or presence-absence dataset. The values in the matrix range from 0 to 1. A 0 means that the pair of sites we compare is identical (all species in common) but 1 means they are completely different (no species in common). In the square dissimilarity matrix, the diagonal is 0, which essentially (and obviously) means that any site is identical to itself. Elsewhere the values will range from 0 to 1. Since this is a pairwise calculation (each site compared to every other site), our seaweed dataset will contain (58 × (58 - 1))/2 = 1653 values, each one ranging from 0 to 1.
+Different indices are used depending on the data structure: Bray–Curtis and Jaccard for abundance data, and Sørensen for presence–absence data. Because the seaweed dataset is presence–absence, Sørensen is the appropriate choice. Regardless of whether the matrix derives from abundance or presence–absence data, the interpretation is consistent: values range from 0 (two sites share all species) to 1 (no species in common). By construction, the diagonal is always 0, since any site is identical to itself.
 
-The first step involves the species table, $Y$. First, we compute the Sørensen dissimilarity index, $\beta_{\text{sør}}$, to compare the dissimilarity of all pairs of coastal sections using presence-absence data. The dissimilarity in species composition between two sections is calculated from three parameters, *viz*., *b* and *c*, which represent the number of species unique to each of the two sites, and *a*, the number of species in common between them. It is given by:
+For the seaweed dataset of 58 sites, the pairwise comparison yields
 
-$$\beta_\text{sør}=\frac{2a}{2a+b+c}$$
-Where $a$ is the number of species in common between two sites, and $b$ and $c$ are the number of species unique to each site. The Sørensen dissimilarity index ranges from 0 to 1, where 0 means that the pair of sites we compare is identical (all species in common) and 1 means they are completely different (no species in common).
+$$(58 \times (58 - 1))/2 = 1653$$
 
+unique values, each falling between 0 and 1. These entries populate a symmetric square matrix whose structure is both intuitive and mathematically consistent: the ecological distance between sites is expressed in a form readily amenable to further multivariate analysis.
 
-The **vegan** function `vegdist()` provides access to the dissimilarity indices. We calculate the Sørensen dissimilarity index:
+The first step begins with the species table, $Y$. Using presence–absence data, we compute the Sørensen dissimilarity index, $\beta_{\text{sør}}$, which quantifies the dissimilarity between all pairs of coastal sections. This measure is derived from three quantities: $a$, the number of species shared by both sites; and $b$ and $c$, the numbers of species unique to each site. Formally,
+
+$$
+\beta_\text{sør} = \frac{2a}{2a + b + c}.
+$$
+
+Here, $a$ denotes the species common to both sites, while $b$ and $c$ capture the exclusive species of each. The index ranges from 0 to 1: a value of 0 indicates identical species composition (complete overlap), whereas a value of 1 indicates complete dissimilarity (no overlap).
+
+In practice, the vegan function `vegdist()` provides access to a range of dissimilarity indices, including Sørensen, which we apply to the species table to generate the full pairwise matrix.
 
 ```{r}
 sor <- vegdist(spp, binary = TRUE) # makes the lower triangle matrix
 sor_df <- round(as.matrix(sor), 4)
 dim(sor_df)
-sor_df[1:10, 1:10] # the first 10 rows and columns
+sor_df[1:10, 1:10] # display only the first 10 rows and columns
 ```
 
 What we see above is a square dissimilarity matrix. The most important characteristics of the matrix are:
 
 i.  whereas the raw species data, $Y$, is rectangular (number rows ≠ number columns), the dissimilarity matrix is square (number rows = number columns);
-ii. the diagonal is filled with 0;
-iii. the matrix is symmetrical---it is comprised of symetrical upper and lower triangles.
+ii. the number of rows/columns is equal to the number of sites (58 in this case);
+iii. the diagonal is filled with 0;
+iv. the matrix is symmetrical---it is comprised of symetrical upper and lower triangles.
 
-Create a `data.frame` suitable for plotting:
+To continue using the dissimilarity matrix, it helps if we convert it to `data.frame`. This makes the matrix more amenable to a host of subsequent manipulations, including using it for plotting:
 
 ```{r}
 sor_df <- data.frame(round(as.matrix(sor), 4))
@@ -405,9 +397,11 @@ There are different interpretations linked to $\beta$-diversity, each telling us
 
 ##### Species turnover and nestedness-resultant $\beta$-diversity
 
-There are two kinds of $\beta$-diversity: [species turnover and nestedness-resultant $\beta$-diversity](Lec-04-biodiversity.qmd#sec-beta-diversity). The former is the result of species replacement between sites, whereas the latter is the result of species loss or gain between sites. The Sørensen dissimilarity index, $\beta_\text{sør}$, can be decomposed into these two components.
+There are two principal forms of $\beta$-diversity: [species turnover and nestedness-resultant $\beta$-diversity](Lec-04-biodiversity.qmd#sec-beta-diversity). Turnover reflects species replacement between sites, whereas nestedness-resultant $\beta$-diversity reflects ordered species loss or gain. The Sørensen index, $\beta_\text{sør}$, can be partitioned into these two components.
 
-How do we calculate the turnover and nestedness-resultant components of $\beta$-diversity? The **betapart** package [@baselga2022betapart] comes to the rescue. We decompose the dissimilarity into the $\beta_\text{sim}$ and $\beta_\text{sne}$ components [@baselga2010partitioning] using the `betapart.core()` and `betapart.pair()` functions. The outcomes of this partitioning calculation are placed into the matrices $Y1$ and $Y2$. These data can then be analysed further---e.g. we can apply a principal components analysis (PCA) or another multivariate analysis on $Y$ to find the major patterns in the community data---we will do this in BCB743.
+To calculate them, we rely on the **betapart** package [@baselga2022betapart], which implements the framework introduced by @baselga2010partitioning. The decomposition separates $\beta_\text{sør}$ into $\beta_\text{sim}$ (turnover) and $\beta_\text{sne}$ (nestedness-resultant) components, using the functions `betapart.core()` and `betapart.pair()`. The resulting matrices, $Y1$ and $Y2$, contain these partitioned dissimilarities.
+
+Once obtained, these matrices can serve as the basis for subsequent multivariate analyses—for instance, principal components analysis (PCA) or related ordination techniques applied to $Y$ to identify dominant community patterns. We will pursue such analyses in [BCB743](../BCB743/BCB743_index.qmd).
 
 ```{r}
 # Decompose total Sørensen dissimilarity into turnover and nestedness-resultant
@@ -432,10 +426,15 @@ A portion of the nestedness-resultant matrix:
 Y2[1:10, 1:10]
 ```
 
-A portion of the nestedness-resultant matrix reformatted as a `tibble()`^[Note that the rows are no longer numbered in the tibble view, but it can easily be recreated by `seq(1:58)`.]:
+A portion of the nestedness-resultant matrix reformatted as a `tibble()`^[Note that the rows are no longer numbered in the tibble view, but it can easily be recreated by `seq(1:58)`.], which is a modern take on a dataframe.:
+
 ```{r}
 Y2_tib <- as_tibble(Y2)
 head(Y2_tib)
+
+# this is functionally eqivalent to:
+Y2_df <- round(as.matrix(Y2), 4)
+head(Y2_df)[,1:13]
 ```
 
 
