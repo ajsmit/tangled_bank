@@ -50,6 +50,7 @@ library(sf)
 These data are provided as CSV file and are easy to load:
 
 ```{r}
+#| cache: true
 # sightings
 sights_data <- read_csv(
   "../data/occurences_sampled.Mn.txt",
@@ -68,8 +69,10 @@ It is important that we are clear about the start times (especially) of
 the sightings dataset.
 
 ```{r}
+#| cache: true
+#| eval: false
 # chlorophyll-*a*
-chlDir <- "/Users/ajsmit/Documents/R/R_in_Ocean_Science/_development/ERDDAP/"
+chlDir <- "/Users/ajsmit/Library/Mobile Documents/com~apple~CloudDocs/R/R_in_Ocean_Science/_development/ERDDAP/"
 load(paste0(chlDir, "MODIS_chl_data.Rdata"))
 min(chl_data$time); max(chl_data$time)
 
@@ -143,6 +146,7 @@ calculations (subsetting, cropping, etc.) there. This seems to be a bit
 faster than working in a dataframe.
 
 ```{r}
+#| eval: false
 chl_st <- chl_data |>
   dplyr::select(longitude, latitude, time, chlorophyll) |>
   st_as_stars(dims = c("longitude", "latitude", "time"),
@@ -163,6 +167,7 @@ class of the date vector here is the same as that of the chl-*a* data (this
 last step is probably not necessary).
 
 ```{r}
+#| eval: false
 sights <- sights_data |> 
   filter(date >= "2003-01-01") |> 
   mutate(
@@ -186,6 +191,7 @@ sighting on a particular date, and all the chl-*a* values in the pixels
 within the circular polygon will be aggregated.
 
 ```{r}
+#| eval: false
 # for testing...
 
 # arbitrarily selecting the date at the 200th line in the sightings
@@ -209,6 +215,7 @@ Plot of the full data extent on the first day of the chl-*a* dataset,
 showing the area to be cropped and aggregated:
 
 ```{r}
+#| eval: false
 plot(chl_st[, , , 1], reset = FALSE)
 plot(cir_sfc, col = NA, border = 'red', add = TRUE, lwd = 2)
 ```
@@ -217,6 +224,7 @@ Cropped data within a circular **sf** geometry region (circular polygon) around
 central point:
 
 ```{r}
+#| eval: false
 plot(chl_st[cir_sfc][, , , 1], reset = FALSE)
 plot(cir_sfc, col = NA, border = 'red', add = TRUE, lwd = 2)
 ```
@@ -224,6 +232,7 @@ plot(cir_sfc, col = NA, border = 'red', add = TRUE, lwd = 2)
 Data within a rectangular bbox:
 
 ```{r}
+#| eval: false
 plot(chl_st[cir_bbox][, , , 1], reset = FALSE)
 ```
 
@@ -260,6 +269,7 @@ made, within the bounding box for one particular observation, is:
 ```
 
 ```{r}
+#| eval: false
 # calculates median chl-a conc within a circle
 chl_conc <- chl_st |> 
   filter(time == date_val - as.difftime(0, unit = "weeks")) |>
@@ -303,6 +313,7 @@ whole `sights` dataset, i.e. once for each whale sighting.
 ```
 
 ```{r}
+#| eval: false
 buffer <- 0.2
 
 # function for method applied to stars object
@@ -328,6 +339,7 @@ chl_calc_safe <- possibly(chl_calc, "Error")
 Test the function on one line of `sights`:
 
 ```{r}
+#| eval: false
 chl_calc_safe(sights[1,], lag = 0) # works
 ```
 
@@ -335,6 +347,7 @@ Make each row of `sights` a unique list element and map the `chl_calc`
 function to each element in the list, `list_rbind` it into a dataframe:
 
 ```{r}
+#| eval: false
 chl_lag_0 <- sights |> 
   split(seq(nrow(sights))) |>
   map(\(df) chl_calc_safe(df)) |> 
@@ -346,6 +359,7 @@ Combine the output with the original sights dataset and also add a
 column with months:
 
 ```{r}
+#| eval: false
 sights_chl_lag_0 <- sights |> 
   mutate(row.num = row_number()) |> 
   left_join(chl_lag_0, by = "row.num") |> 
@@ -360,6 +374,7 @@ head(sights_chl_lag_0)
 Also do this with a lag of 8 weeks:
 
 ```{r}
+#| eval: false
 chl_lag_8 <- sights |> 
   split(seq(nrow(sights))) |>
   map(\(df) chl_calc(df, lag = 8)) |> 
@@ -368,6 +383,7 @@ chl_lag_8 <- sights |>
 ```
 
 ```{r}
+#| eval: false
 sights_chl_lag_8 <- sights |> 
   mutate(row.num = row_number()) |> 
   left_join(chl_lag_8, by = "row.num") |> 
