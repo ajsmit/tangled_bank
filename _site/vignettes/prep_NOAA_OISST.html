@@ -2,10 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.33">
+<meta name="generator" content="quarto-1.8.21">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="author" content="Robert W Schlegel and AJ Smit">
-<meta name="dcterms.date" content="2023-02-15">
+<meta name="dcterms.date" content="2025-09-01">
 <meta name="description" content="This vignette demonstrates how to download NOAA OISST data and prepare them for the detection of marine heatwaves.">
 <title>Downloading and Preparing NOAA OISST Data: ERDDAP – The Tangled Bank</title>
 <style>
@@ -68,14 +68,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/cookie-consent/cookie-consent.css" rel="stylesheet">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-59898bd1c6b9d2bb783127feaa000c76.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-f9d2e688c83043042fa051765c26f29b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-7116f089cfdb46b66375c744b53d3c7f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../site_libs/bootstrap/bootstrap-b5324c11422050a6ca6038ce3f1a2d11.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
   "collapse-after": 3,
@@ -136,6 +137,8 @@ cookieconsent.run({
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">The Tangled Bank</span>
     </a>
@@ -333,7 +336,7 @@ cookieconsent.run({
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 15, 2023</p>
+      <p class="date">September 1, 2025</p>
     </div>
   </div>
   
@@ -351,7 +354,7 @@ cookieconsent.run({
 </section><section id="setup" class="level2"><h2 class="anchored" data-anchor-id="setup">Setup</h2>
 <p>For this vignette we will be accessing the NOAA OISST dataset on this <a href="https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.html">ERDDAP server</a> for the subsetted data, while the global data are indexed <a href="https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/">here</a>. One may download the data on both servers manually by using the ERDDAP UI or clicking on each indexed file individually. But programming languages like R are designed to prevent us from needing to experience that sort of anguish. Below we will load the libraries we need in order to have R download all of the data that we may need. If any of the lines of code in the following chunk do not run it means that we will need to first install that package. Uncomment the line of code that would install the problem package and run it before trying to load the library again.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># The packages we will need</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># The packages we will need</span></span>
 <span id="cb1-2"><a href="#cb1-2"></a><span class="co"># install.packages("dplyr")</span></span>
 <span id="cb1-3"><a href="#cb1-3"></a><span class="co"># install.packages("lubridate")</span></span>
 <span id="cb1-4"><a href="#cb1-4"></a><span class="co"># install.packages("ggplot2")</span></span>
@@ -366,23 +369,23 @@ cookieconsent.run({
 <span id="cb1-13"><a href="#cb1-13"></a><span class="fu">library</span>(ggplot2) <span class="co"># The preferred library for data visualisation</span></span>
 <span id="cb1-14"><a href="#cb1-14"></a><span class="fu">library</span>(tidync) <span class="co"># For easily dealing with NetCDF data</span></span>
 <span id="cb1-15"><a href="#cb1-15"></a><span class="fu">library</span>(rerddap) <span class="co"># For easily downloading subsets of data</span></span>
-<span id="cb1-16"><a href="#cb1-16"></a><span class="fu">library</span>(doParallel) <span class="co"># For parallel processing</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-16"><a href="#cb1-16"></a><span class="fu">library</span>(doParallel) <span class="co"># For parallel processing</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>With our packages loaded we may now begin downloading and preparing our data for further use. Please use the table of contents on the right side of the screen to jump between the different download methods as desired. We will break each different method down into smaller steps in order to keep this process as clear as possible. Before we begin I need to stress that this is a very direct and unrestricted method for accessing these data and I urge responsibility in only downloading as much data as are necessary. Please do not download the entire dataset unless you have a specific need for it.</p>
 </section><section id="downloading-subsetted-data" class="level2"><h2 class="anchored" data-anchor-id="downloading-subsetted-data">Downloading subsetted data</h2>
 <section id="file-information" class="level3"><h3 class="anchored" data-anchor-id="file-information">File information</h3>
 <p>Before we begin downloading the subsetted data for our study area we need to make sure that they are currently available on an ERDDAP server. The location of the NOAA OISST data has changed in the past so it should not be assumed that the current location will exist in perpetuity. Finding the server on which these data are located can be a cup game at times.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># The information for the NOAA OISST data</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># The information for the NOAA OISST data</span></span>
 <span id="cb2-2"><a href="#cb2-2"></a>rerddap<span class="sc">::</span><span class="fu">info</span>(<span class="at">datasetid =</span> <span class="st">"ncdcOisst21Agg_LonPM180"</span>, <span class="at">url =</span> <span class="st">"https://coastwatch.pfeg.noaa.gov/erddap/"</span>)</span>
 <span id="cb2-3"><a href="#cb2-3"></a></span>
 <span id="cb2-4"><a href="#cb2-4"></a><span class="co"># Note that there is also a version with lon values from 0 yo 360</span></span>
-<span id="cb2-5"><a href="#cb2-5"></a>rerddap<span class="sc">::</span><span class="fu">info</span>(<span class="at">datasetid =</span> <span class="st">"ncdcOisst21Agg"</span>, <span class="at">url =</span> <span class="st">"https://coastwatch.pfeg.noaa.gov/erddap/"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5"></a>rerddap<span class="sc">::</span><span class="fu">info</span>(<span class="at">datasetid =</span> <span class="st">"ncdcOisst21Agg"</span>, <span class="at">url =</span> <span class="st">"https://coastwatch.pfeg.noaa.gov/erddap/"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>With our target dataset identified we may now begin the download with the <code>griddap()</code> function. While putting this vignette together however I noticed one little hiccup in the work flow. It seems that the ERDDAP server does not like it when one tries to access more than nine consecutive years of data in one request, regardless of the spatial extent being requested. So before we download our data we are going to make a wrapper function that helps us control the range of times we want to download. This will reduce the amount of redundant coding we would otherwise need to do.</p>
 </section><section id="download-function" class="level3"><h3 class="anchored" data-anchor-id="download-function">Download function</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># This function downloads and prepares data based on user provided start and end dates</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># This function downloads and prepares data based on user provided start and end dates</span></span>
 <span id="cb3-2"><a href="#cb3-2"></a>OISST_sub_dl <span class="ot">&lt;-</span> <span class="cf">function</span>(time_df){</span>
 <span id="cb3-3"><a href="#cb3-3"></a>  OISST_dat <span class="ot">&lt;-</span> <span class="fu">griddap</span>(<span class="at">x =</span> <span class="st">"ncdcOisst21Agg_LonPM180"</span>, </span>
 <span id="cb3-4"><a href="#cb3-4"></a>                       <span class="at">url =</span> <span class="st">"https://coastwatch.pfeg.noaa.gov/erddap/"</span>, </span>
@@ -395,25 +398,25 @@ cookieconsent.run({
 <span id="cb3-11"><a href="#cb3-11"></a>    dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">t =</span> time, <span class="at">temp =</span> sst) <span class="sc">%&gt;%</span> </span>
 <span id="cb3-12"><a href="#cb3-12"></a>    <span class="fu">select</span>(lon, lat, t, temp) <span class="sc">%&gt;%</span> </span>
 <span id="cb3-13"><a href="#cb3-13"></a>    <span class="fu">na.omit</span>()</span>
-<span id="cb3-14"><a href="#cb3-14"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-14"><a href="#cb3-14"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In the wrapper function above we see that we have chosen to download only the ‘sst’ data out of the several variables (‘fields’) available to us. We also see that we have chosen the spatial extent of latitude -40 to -35 and longitude 15 to 21. This a small window over some of the Agulhas Retroflection to the south west of South Africa. A larger area is not being chosen here simply due to the speed constraints of downloading the data and detecting the events therein. One may simply change the longitude and latitude values above as necessary to match the desired study area. The function will also be re-labelling the ‘time’ column as ‘t’, and the ‘sst’ column as ‘temp’. We do this so that they match the default column names that are expected for calculating MHWs and we won’t have to do any extra work later on.</p>
 <p>One must note here that depending on the RAM available on one’s machine, it may not be possible to handle all of the data downloaded at once if they are very large (e.g.&nbsp;&gt; 5 GB). The discussion on the limitations of the R language due to its dependence on virtual memory is beyond the scope of this vignette, but if one limits one’s downloads to no more than several square pixels at a time that should be fine. Were one to try to download the whole Indian Ocean, for example, that may cause issues if being run on a laptop or computer of a similar power.</p>
 </section><section id="date-range" class="level3"><h3 class="anchored" data-anchor-id="date-range">Date range</h3>
 <p>With our wrapper function written we would now need to run it several times in order to grab all of the OISST data from <code>1982-01-01</code> to <code>2019-12-31</code>. Even though each year of data for the extent used in this vignette is only ~360 KB, the server does not like it when more than 9 years of consecutive data are requested. The server will also end a users connection after ~17 individual files have been requested. Because we can’t download all of the data in one request, and we can’t download the data one year at a time, we will need to make requests for multiple batches of data. To accomplish this we will create a dataframe of start and end dates that will allow us to automate the entire download while meeting the aforementioned criteria.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># Date download range by start and end dates per year</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># Date download range by start and end dates per year</span></span>
 <span id="cb4-2"><a href="#cb4-2"></a>dl_years <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">date_index =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,</span>
 <span id="cb4-3"><a href="#cb4-3"></a>                       <span class="at">start =</span> <span class="fu">as.Date</span>(<span class="fu">c</span>(<span class="st">"1982-01-01"</span>, <span class="st">"1990-01-01"</span>, </span>
 <span id="cb4-4"><a href="#cb4-4"></a>                                         <span class="st">"1998-01-01"</span>, <span class="st">"2006-01-01"</span>, <span class="st">"2014-01-01"</span>)),</span>
 <span id="cb4-5"><a href="#cb4-5"></a>                       <span class="at">end =</span> <span class="fu">as.Date</span>(<span class="fu">c</span>(<span class="st">"1989-12-31"</span>, <span class="st">"1997-12-31"</span>, </span>
-<span id="cb4-6"><a href="#cb4-6"></a>                                       <span class="st">"2005-12-31"</span>, <span class="st">"2013-12-31"</span>, <span class="st">"2019-12-31"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-6"><a href="#cb4-6"></a>                                       <span class="st">"2005-12-31"</span>, <span class="st">"2013-12-31"</span>, <span class="st">"2019-12-31"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="downloadprep-data" class="level3"><h3 class="anchored" data-anchor-id="downloadprep-data">Download/prep data</h3>
 <p>One could also use the <strong><code>plyr</code></strong> suite of functions to automate the process of downloading and processing multiple files, but I’ve chosen here to stick with the <strong><code>tidyverse</code></strong> native approach. If the below chunk of code fails or times out, simply re-run it until all of the data have been downloaded.</p>
 <p>It is worth pointing out here that these data are downloaded as cached files on the users computer by using the <strong><code>hoardr</code></strong> package. This means that if one runs the same command again, it will not re-download the data because it first looks in the folder where it has automatically cached the data for you and sees that it may simply draw the data from there. No need to change anything or write a second script for loading data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># Download all of the data with one nested request</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="co"># Download all of the data with one nested request</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a><span class="co"># The time this takes will vary greatly based on connection speed</span></span>
 <span id="cb5-3"><a href="#cb5-3"></a><span class="fu">system.time</span>(</span>
 <span id="cb5-4"><a href="#cb5-4"></a>  OISST_data <span class="ot">&lt;-</span> dl_years <span class="sc">%&gt;%</span> </span>
@@ -421,13 +424,13 @@ cookieconsent.run({
 <span id="cb5-6"><a href="#cb5-6"></a>    <span class="fu">group_modify</span>(<span class="sc">~</span><span class="fu">OISST_sub_dl</span>(.x)) <span class="sc">%&gt;%</span> </span>
 <span id="cb5-7"><a href="#cb5-7"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb5-8"><a href="#cb5-8"></a>    <span class="fu">select</span>(lon, lat, t, temp)</span>
-<span id="cb5-9"><a href="#cb5-9"></a>) <span class="co"># 38 seconds, ~8 seconds per batch</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-9"><a href="#cb5-9"></a>) <span class="co"># 38 seconds, ~8 seconds per batch</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>If the above code chunk is giving errors it is likely due to one’s Internet connection timing out. There are also rare instances where the NOAA server is not responding due to an issue on their end. Any connection based issues may be resolved by simply waiting for a few minutes, or by ensuring a stable connection.</p>
 </section><section id="visualise-data" class="level3"><h3 class="anchored" data-anchor-id="visualise-data">Visualise data</h3>
 <p>Before we save our data for later use it is good practice to visualise them.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>OISST_data <span class="sc">%&gt;%</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>OISST_data <span class="sc">%&gt;%</span> </span>
 <span id="cb6-2"><a href="#cb6-2"></a>  <span class="fu">filter</span>(t <span class="sc">==</span> <span class="st">"2019-12-01"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb6-3"><a href="#cb6-3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> lon, <span class="at">y =</span> lat)) <span class="sc">+</span></span>
 <span id="cb6-4"><a href="#cb6-4"></a>  <span class="fu">geom_tile</span>(<span class="fu">aes</span>(<span class="at">fill =</span> temp)) <span class="sc">+</span></span>
@@ -435,13 +438,13 @@ cookieconsent.run({
 <span id="cb6-6"><a href="#cb6-6"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
 <span id="cb6-7"><a href="#cb6-7"></a>  <span class="fu">coord_quickmap</span>(<span class="at">expand =</span> F) <span class="sc">+</span></span>
 <span id="cb6-8"><a href="#cb6-8"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">fill =</span> <span class="st">"SST (°C)"</span>) <span class="sc">+</span></span>
-<span id="cb6-9"><a href="#cb6-9"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-9"><a href="#cb6-9"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="save-data" class="level3"><h3 class="anchored" data-anchor-id="save-data">Save data</h3>
 <p>With the data downloaded and prepared for further use (and a test visual run), all that’s left to do is save them.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># Save the data as an .Rds file because it has a much better compression rate than .RData</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">saveRDS</span>(OISST_data, <span class="at">file =</span> <span class="st">"~/Desktop/OISST_vignette.Rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># Save the data as an .Rds file because it has a much better compression rate than .RData</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">saveRDS</span>(OISST_data, <span class="at">file =</span> <span class="st">"~/Desktop/OISST_vignette.Rds"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Note above that I have chosen to save the file to my desktop. This is not normally where one (hopefully!) would save such a file. Rather one would be saving these data into the project folder out of which one is working. In the next vignette we will see how to <a href="https://robwschlegel.github.io/heatwaveR/articles/gridded_event_detection.html">detect MHWs in gridded data</a> using the data downloaded here.</p>
 </section></section><section id="downloading-global-data" class="level2"><h2 class="anchored" data-anchor-id="downloading-global-data">Downloading global data</h2>
@@ -449,7 +452,7 @@ cookieconsent.run({
 <section id="file-information-1" class="level3"><h3 class="anchored" data-anchor-id="file-information-1">File information</h3>
 <p>The first step in downloading the full global dataset is to tell you computer where they are. There is an automated way to do this but it requires a couple of additional packages and we aim to keep this vignette as simple and direct as possible. For our purposes today we will manually create the URLs of the files we want to download.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># First we tell R where the data are on the interwebs</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># First we tell R where the data are on the interwebs</span></span>
 <span id="cb8-2"><a href="#cb8-2"></a>OISST_base_url <span class="ot">&lt;-</span> <span class="st">"https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/"</span></span>
 <span id="cb8-3"><a href="#cb8-3"></a><span class="co"># Note that one may go to this URL in any web browser to manually inspect the files</span></span>
 <span id="cb8-4"><a href="#cb8-4"></a></span>
@@ -462,12 +465,12 @@ cookieconsent.run({
 <span id="cb8-11"><a href="#cb8-11"></a>  <span class="fu">mutate</span>(<span class="at">t_day =</span> <span class="fu">gsub</span>(<span class="st">"-"</span>, <span class="st">""</span>, t),</span>
 <span id="cb8-12"><a href="#cb8-12"></a>         <span class="at">t_month =</span> <span class="fu">substr</span>(t_day, <span class="dv">1</span>, <span class="dv">6</span>),</span>
 <span id="cb8-13"><a href="#cb8-13"></a>         <span class="at">t_year =</span> <span class="fu">year</span>(t),</span>
-<span id="cb8-14"><a href="#cb8-14"></a>         <span class="at">file_name =</span> <span class="fu">paste0</span>(OISST_base_url, t_month, <span class="st">"/"</span>, <span class="st">"oisst-avhrr-v02r01."</span>, t_day ,<span class="st">".nc"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-14"><a href="#cb8-14"></a>         <span class="at">file_name =</span> <span class="fu">paste0</span>(OISST_base_url, t_month, <span class="st">"/"</span>, <span class="st">"oisst-avhrr-v02r01."</span>, t_day ,<span class="st">".nc"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="download-data" class="level3"><h3 class="anchored" data-anchor-id="download-data">Download data</h3>
 <p>Now that we have a dataframe that contains all of the URLs for the files we want to download we’ll create a function that will crawl through those URLs and download the files for us.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># This function will go about downloading each day of data as a NetCDF file</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># This function will go about downloading each day of data as a NetCDF file</span></span>
 <span id="cb9-2"><a href="#cb9-2"></a><span class="co"># Note that this will download files into a 'data/OISST' folder in the root directory</span></span>
 <span id="cb9-3"><a href="#cb9-3"></a>  <span class="co"># If this folder does not exist it will create it</span></span>
 <span id="cb9-4"><a href="#cb9-4"></a>  <span class="co"># If it does not automatically create the folder it will need to be done manually</span></span>
@@ -492,12 +495,12 @@ cookieconsent.run({
 <span id="cb9-23"><a href="#cb9-23"></a></span>
 <span id="cb9-24"><a href="#cb9-24"></a><span class="co"># In roughly 15 seconds a user may have a full month of global data downloaded</span></span>
 <span id="cb9-25"><a href="#cb9-25"></a><span class="co"># This scales well into years and decades, and is much faster with more cores</span></span>
-<span id="cb9-26"><a href="#cb9-26"></a><span class="co"># Download speeds will also depend on the speed of the users internet connection</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-26"><a href="#cb9-26"></a><span class="co"># Download speeds will also depend on the speed of the users internet connection</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="load-data" class="level3"><h3 class="anchored" data-anchor-id="load-data">Load data</h3>
 <p>The following code chunk contains the function we may use to load and prepare our OISST data for further use in R.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># This function will load and subset daily data into one data.frame</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># This function will load and subset daily data into one data.frame</span></span>
 <span id="cb10-2"><a href="#cb10-2"></a><span class="co"># Note that the subsetting by lon/lat is done before the data are loaded</span></span>
 <span id="cb10-3"><a href="#cb10-3"></a>  <span class="co"># This means it will use much less RAM and is viable for use on most laptops</span></span>
 <span id="cb10-4"><a href="#cb10-4"></a>  <span class="co"># Assuming one's study area is not too large</span></span>
@@ -519,21 +522,21 @@ cookieconsent.run({
 <span id="cb10-20"><a href="#cb10-20"></a>OISST_dat <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">ldply</span>(<span class="at">.data =</span> OISST_files, <span class="at">.fun =</span> OISST_load, <span class="at">.parallel =</span> T,</span>
 <span id="cb10-21"><a href="#cb10-21"></a>                         <span class="at">lon1 =</span> <span class="dv">270</span>, <span class="at">lon2 =</span> <span class="dv">320</span>, <span class="at">lat1 =</span> <span class="dv">30</span>, <span class="at">lat2 =</span> <span class="dv">50</span>)</span>
 <span id="cb10-22"><a href="#cb10-22"></a></span>
-<span id="cb10-23"><a href="#cb10-23"></a><span class="co"># It should only take a few seconds to load one month of data depending on the size of the lon/lat extent chosen</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-23"><a href="#cb10-23"></a><span class="co"># It should only take a few seconds to load one month of data depending on the size of the lon/lat extent chosen</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In the code chunk above I have chosen the spatial extent of longitude 270 to 320 and latitude 30 to 50. This a window over the Atlantic Coast of North America. One may simply change the lon/lat values above as necessary to match the desired study area. The function also re-labels the ‘time’ column as ‘t’, and the ‘sst’ column as ‘temp’. We do this now so that they match the default column names that are expected for calculating MHWs so we won’t have to do any extra work later on.</p>
 <p>Again, please note that trying to load too much data at once may be too much for the RAM on one’s machine. If running the above code causes one’s machine to hang, try loading a smaller subset of data. Or make friends with someone with a server sized machine.</p>
 </section><section id="visualise-data-1" class="level3"><h3 class="anchored" data-anchor-id="visualise-data-1">Visualise data</h3>
 <p>It is always good to visualise data early and often in any workflow. The code pipeline below shows how we can visualise a day of data from those we’ve loaded.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>OISST_dat <span class="sc">%&gt;%</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>OISST_dat <span class="sc">%&gt;%</span> </span>
 <span id="cb11-2"><a href="#cb11-2"></a>  <span class="fu">filter</span>(t <span class="sc">==</span> <span class="st">"2019-12-01"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb11-3"><a href="#cb11-3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> lon, <span class="at">y =</span> lat)) <span class="sc">+</span></span>
 <span id="cb11-4"><a href="#cb11-4"></a>  <span class="fu">geom_tile</span>(<span class="fu">aes</span>(<span class="at">fill =</span> temp)) <span class="sc">+</span></span>
 <span id="cb11-5"><a href="#cb11-5"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
 <span id="cb11-6"><a href="#cb11-6"></a>  <span class="fu">coord_quickmap</span>(<span class="at">expand =</span> F) <span class="sc">+</span></span>
 <span id="cb11-7"><a href="#cb11-7"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">fill =</span> <span class="st">"SST (°C)"</span>) <span class="sc">+</span></span>
-<span id="cb11-8"><a href="#cb11-8"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-8"><a href="#cb11-8"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In the next vignette we will see how to <a href="https://robwschlegel.github.io/heatwaveR/articles/gridded_event_detection.html">detect MHWs in gridded data</a>.</p>
 
@@ -1008,7 +1011,7 @@ OISST Data: ERDDAP. <a href="http://tangledbank.netlify.app/vignettes/prep_NOAA_
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">---</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">---</span></span>
 <span id="cb12-2"><a href="#cb12-2"></a><span class="an">author:</span><span class="co"> "Robert W Schlegel and AJ Smit"</span></span>
 <span id="cb12-3"><a href="#cb12-3"></a><span class="an">date:</span><span class="co"> "`r Sys.Date()`"</span></span>
 <span id="cb12-4"><a href="#cb12-4"></a><span class="an">title:</span><span class="co"> "Downloading and Preparing NOAA OISST Data: ERDDAP"</span></span>
@@ -1268,7 +1271,7 @@ OISST Data: ERDDAP. <a href="http://tangledbank.netlify.app/vignettes/prep_NOAA_
 <span id="cb12-258"><a href="#cb12-258"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
 <span id="cb12-259"><a href="#cb12-259"></a><span class="in">```</span></span>
 <span id="cb12-260"><a href="#cb12-260"></a></span>
-<span id="cb12-261"><a href="#cb12-261"></a>In the next vignette we will see how to <span class="co">[</span><span class="ot">detect MHWs in gridded data</span><span class="co">](https://robwschlegel.github.io/heatwaveR/articles/gridded_event_detection.html)</span>.</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<span id="cb12-261"><a href="#cb12-261"></a>In the next vignette we will see how to <span class="co">[</span><span class="ot">detect MHWs in gridded data</span><span class="co">](https://robwschlegel.github.io/heatwaveR/articles/gridded_event_detection.html)</span>.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.33">
+<meta name="generator" content="quarto-1.8.21">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="author" content="Smit, A. J.">
 <title>Extracting gridded data within a buffer – The Tangled Bank</title>
@@ -66,14 +66,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/cookie-consent/cookie-consent.css" rel="stylesheet">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-59898bd1c6b9d2bb783127feaa000c76.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-f9d2e688c83043042fa051765c26f29b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-7116f089cfdb46b66375c744b53d3c7f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-b5324c11422050a6ca6038ce3f1a2d11.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -138,6 +139,8 @@ cookieconsent.run({
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">The Tangled Bank</span>
     </a>
@@ -317,17 +320,17 @@ cookieconsent.run({
 
 
 </header><div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Load necessary libraries</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Load necessary libraries</span></span>
 <span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(sf)</span>
 <span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(rnaturalearth)</span>
 <span id="cb1-5"><a href="#cb1-5"></a><span class="fu">library</span>(rnaturalearthdata)</span>
 <span id="cb1-6"><a href="#cb1-6"></a><span class="fu">library</span>(lwgeom) <span class="co"># For st_split function</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a><span class="co"># library(nngeo)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="co"># library(nngeo)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Download the coastline data for the entire world:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>world_coastline <span class="ot">&lt;-</span> <span class="fu">ne_download</span>(<span class="at">scale =</span> <span class="st">"large"</span>, <span class="at">type =</span> <span class="st">"coastline"</span>, <span class="at">category =</span> <span class="st">"physical"</span>, <span class="at">returnclass =</span> <span class="st">"sf"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>world_coastline <span class="ot">&lt;-</span> <span class="fu">ne_download</span>(<span class="at">scale =</span> <span class="st">"large"</span>, <span class="at">type =</span> <span class="st">"coastline"</span>, <span class="at">category =</span> <span class="st">"physical"</span>, <span class="at">returnclass =</span> <span class="st">"sf"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `ne_10m_coastline' from data source 
   `/private/var/folders/_4/g9r59v493jb5nd1_rd3vxk5m0000gn/T/RtmpKAVJM7/ne_10m_coastline.shp' 
@@ -338,7 +341,7 @@ Dimension:     XY
 Bounding box:  xmin: -180 ymin: -85.22194 xmax: 180 ymax: 83.6341
 Geodetic CRS:  WGS 84</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>world_countries <span class="ot">&lt;-</span> <span class="fu">ne_download</span>(<span class="at">scale =</span> <span class="st">"medium"</span>, <span class="at">type =</span> <span class="st">"countries"</span>, <span class="at">category =</span> <span class="st">"cultural"</span>, <span class="at">returnclass =</span> <span class="st">"sf"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>world_countries <span class="ot">&lt;-</span> <span class="fu">ne_download</span>(<span class="at">scale =</span> <span class="st">"medium"</span>, <span class="at">type =</span> <span class="st">"countries"</span>, <span class="at">category =</span> <span class="st">"cultural"</span>, <span class="at">returnclass =</span> <span class="st">"sf"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `ne_50m_admin_0_countries' from data source 
   `/private/var/folders/_4/g9r59v493jb5nd1_rd3vxk5m0000gn/T/RtmpKAVJM7/ne_50m_admin_0_countries.shp' 
@@ -349,8 +352,8 @@ Dimension:     XY
 Bounding box:  xmin: -180 ymin: -89.99893 xmax: 180 ymax: 83.59961
 Geodetic CRS:  WGS 84</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>africa_countries <span class="ot">&lt;-</span> world_countries <span class="sc">%&gt;%</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a>  <span class="fu">filter</span>(CONTINENT <span class="sc">==</span> <span class="st">"Africa"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>africa_countries <span class="ot">&lt;-</span> world_countries <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="fu">filter</span>(CONTINENT <span class="sc">==</span> <span class="st">"Africa"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Throughout the analysis we must keep track of the coordinate reference system (CRS) of the data. The CRS of the world coastline data is CRS 4326:</p>
 <ul>
@@ -361,7 +364,7 @@ Geodetic CRS:  WGS 84</code></pre>
 </ul>
 <p>We get it from the world_coastline object; let’s check it…</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">st_crs</span>(world_coastline)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">st_crs</span>(world_coastline)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Coordinate Reference System:
   User input: WGS 84 
@@ -384,55 +387,55 @@ GEOGCRS["WGS 84",
 </div>
 <p>Define the bounding box for Africa so we can work with only the coastline data for the continent and not the whole world. We then crop the coastline data to this bounding box.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>africa_bbox <span class="ot">&lt;-</span> <span class="fu">st_bbox</span>(<span class="fu">c</span>(<span class="at">xmin =</span> <span class="sc">-</span><span class="dv">20</span>, <span class="at">ymin =</span> <span class="sc">-</span><span class="dv">35</span>, <span class="at">xmax =</span> <span class="dv">52</span>, <span class="at">ymax =</span> <span class="dv">38</span>), <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span>
-<span id="cb9-2"><a href="#cb9-2"></a>africa_coastline <span class="ot">&lt;-</span> <span class="fu">st_crop</span>(world_coastline, africa_bbox)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>africa_bbox <span class="ot">&lt;-</span> <span class="fu">st_bbox</span>(<span class="fu">c</span>(<span class="at">xmin =</span> <span class="sc">-</span><span class="dv">20</span>, <span class="at">ymin =</span> <span class="sc">-</span><span class="dv">35</span>, <span class="at">xmax =</span> <span class="dv">52</span>, <span class="at">ymax =</span> <span class="dv">38</span>), <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span>
+<span id="cb9-2"><a href="#cb9-2"></a>africa_coastline <span class="ot">&lt;-</span> <span class="fu">st_crop</span>(world_coastline, africa_bbox)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now we define the BCLME region and extract a portion of coastline within this bounding box. We will use this section of coastline around which to create a buffer within which the data will be extracted. First, define the spatial extent of the BCLME region:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>bclme_bbox <span class="ot">&lt;-</span> <span class="fu">st_bbox</span>(<span class="fu">c</span>(<span class="at">xmin =</span> <span class="fl">7.91755</span>, <span class="at">ymin =</span> <span class="sc">-</span><span class="fl">36.61979</span>, <span class="at">xmax =</span> <span class="fl">19.788742</span>, <span class="at">ymax =</span> <span class="sc">-</span><span class="fl">5.811113</span>), <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>bclme_bbox <span class="ot">&lt;-</span> <span class="fu">st_bbox</span>(<span class="fu">c</span>(<span class="at">xmin =</span> <span class="fl">7.91755</span>, <span class="at">ymin =</span> <span class="sc">-</span><span class="fl">36.61979</span>, <span class="at">xmax =</span> <span class="fl">19.788742</span>, <span class="at">ymax =</span> <span class="sc">-</span><span class="fl">5.811113</span>), <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Crop the coastline data to the bounding box:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>bclme_coastline <span class="ot">&lt;-</span> <span class="fu">st_crop</span>(africa_coastline, bclme_bbox)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>bclme_coastline <span class="ot">&lt;-</span> <span class="fu">st_crop</span>(africa_coastline, bclme_bbox)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Create a buffer of 50 nautical miles (1 nautical mile = 1852 meters) around the portion of the coastline within the BCLME region:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>buffer_50nm <span class="ot">&lt;-</span> <span class="fu">st_make_valid</span>(<span class="fu">st_union</span>(<span class="fu">st_buffer</span>(bclme_coastline, <span class="at">dist =</span> <span class="dv">50</span> <span class="sc">*</span> <span class="dv">1852</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>buffer_50nm <span class="ot">&lt;-</span> <span class="fu">st_make_valid</span>(<span class="fu">st_union</span>(<span class="fu">st_buffer</span>(bclme_coastline, <span class="at">dist =</span> <span class="dv">50</span> <span class="sc">*</span> <span class="dv">1852</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We need to ensure the coastline extends beyond buffer. I do this by creating a new bounding box that’s slightly larger than the BCLME bbox (by 3 degrees in each direction). This new ‘extended’ coastline we will insersect the buffer ‘ribbon’ at both ends, effectively splitting it lengthwise. The extended bounding is:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>extended_bbox <span class="ot">&lt;-</span> <span class="fu">st_bbox</span>(<span class="fu">c</span>(<span class="at">xmin =</span> <span class="fl">7.91755</span> <span class="sc">-</span> <span class="dv">3</span>,</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>extended_bbox <span class="ot">&lt;-</span> <span class="fu">st_bbox</span>(<span class="fu">c</span>(<span class="at">xmin =</span> <span class="fl">7.91755</span> <span class="sc">-</span> <span class="dv">3</span>,</span>
 <span id="cb13-2"><a href="#cb13-2"></a>                           <span class="at">ymin =</span> <span class="sc">-</span><span class="fl">36.61979</span> <span class="sc">-</span> <span class="dv">3</span>,</span>
 <span id="cb13-3"><a href="#cb13-3"></a>                           <span class="at">xmax =</span> <span class="fl">19.788742</span> <span class="sc">+</span> <span class="dv">3</span>,</span>
 <span id="cb13-4"><a href="#cb13-4"></a>                           <span class="at">ymax =</span> <span class="sc">-</span><span class="fl">5.811113</span> <span class="sc">+</span> <span class="dv">3</span>),</span>
-<span id="cb13-5"><a href="#cb13-5"></a>                         <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-5"><a href="#cb13-5"></a>                         <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now crop the coastline data to the outer extended bbox:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>extended_coastline <span class="ot">&lt;-</span> <span class="fu">st_crop</span>(africa_coastline, extended_bbox)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>extended_coastline <span class="ot">&lt;-</span> <span class="fu">st_crop</span>(africa_coastline, extended_bbox)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Convert the outer coastline to a single LINESTRING object else it cannot be used to split the buffer:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>extended_coastline_line <span class="ot">&lt;-</span> <span class="fu">st_union</span>(<span class="fu">st_cast</span>(extended_coastline, <span class="st">"LINESTRING"</span>))</span>
-<span id="cb15-2"><a href="#cb15-2"></a>extended_coastline_line <span class="ot">&lt;-</span> <span class="fu">st_make_valid</span>(extended_coastline_line)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>extended_coastline_line <span class="ot">&lt;-</span> <span class="fu">st_union</span>(<span class="fu">st_cast</span>(extended_coastline, <span class="st">"LINESTRING"</span>))</span>
+<span id="cb15-2"><a href="#cb15-2"></a>extended_coastline_line <span class="ot">&lt;-</span> <span class="fu">st_make_valid</span>(extended_coastline_line)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now, use the extended coastline to split the buffer into the inland and offshore portions and extract the two portions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>split_buffers <span class="ot">&lt;-</span> <span class="fu">st_split</span>(buffer_50nm, extended_coastline_line)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>split_buffers <span class="ot">&lt;-</span> <span class="fu">st_split</span>(buffer_50nm, extended_coastline_line)</span>
 <span id="cb16-2"><a href="#cb16-2"></a>split_buffers_sf <span class="ot">&lt;-</span> <span class="fu">st_collection_extract</span>(split_buffers)</span>
 <span id="cb16-3"><a href="#cb16-3"></a></span>
 <span id="cb16-4"><a href="#cb16-4"></a><span class="co"># the resulting polygons are in a list, so we extract them to a simple feature collection</span></span>
 <span id="cb16-5"><a href="#cb16-5"></a>offshore_buffer <span class="ot">&lt;-</span> split_buffers_sf[<span class="dv">1</span>, ]</span>
-<span id="cb16-6"><a href="#cb16-6"></a>inland_buffer <span class="ot">&lt;-</span> split_buffers_sf[<span class="dv">2</span>, ]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb16-6"><a href="#cb16-6"></a>inland_buffer <span class="ot">&lt;-</span> split_buffers_sf[<span class="dv">2</span>, ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Ensure buffers are in the original CRS:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>offshore_buffer <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(offshore_buffer, <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span>
-<span id="cb17-2"><a href="#cb17-2"></a>inland_buffer <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(inland_buffer, <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>offshore_buffer <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(offshore_buffer, <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span>
+<span id="cb17-2"><a href="#cb17-2"></a>inland_buffer <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(inland_buffer, <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Make some simulate data that we can subset using the buffers:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="co"># Create simulated gridded data to test the buffer splitting</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="co"># Create simulated gridded data to test the buffer splitting</span></span>
 <span id="cb18-2"><a href="#cb18-2"></a><span class="co"># Define the bounding box for the region</span></span>
 <span id="cb18-3"><a href="#cb18-3"></a>xmin <span class="ot">&lt;-</span> <span class="fl">7.91755</span></span>
 <span id="cb18-4"><a href="#cb18-4"></a>ymin <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">36.61979</span></span>
@@ -453,11 +456,11 @@ GEOGCRS["WGS 84",
 <span id="cb18-19"><a href="#cb18-19"></a>  )</span>
 <span id="cb18-20"><a href="#cb18-20"></a></span>
 <span id="cb18-21"><a href="#cb18-21"></a><span class="co"># Convert the data frame to an sf object</span></span>
-<span id="cb18-22"><a href="#cb18-22"></a>grid_sf <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(grid, <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"lon"</span>, <span class="st">"lat"</span>), <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-22"><a href="#cb18-22"></a>grid_sf <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(grid, <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"lon"</span>, <span class="st">"lat"</span>), <span class="at">crs =</span> <span class="fu">st_crs</span>(world_coastline))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Extract the points within the inland and offshore buffers:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="co"># Extract points within the inland buffer</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="co"># Extract points within the inland buffer</span></span>
 <span id="cb19-2"><a href="#cb19-2"></a>points_in_inland_buffer <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(grid_sf, inland_buffer, <span class="at">sparse =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb19-3"><a href="#cb19-3"></a>inland_data <span class="ot">&lt;-</span> grid[<span class="fu">apply</span>(points_in_inland_buffer, <span class="dv">1</span>, any), ]</span>
 <span id="cb19-4"><a href="#cb19-4"></a></span>
@@ -466,18 +469,18 @@ GEOGCRS["WGS 84",
 <span id="cb19-7"><a href="#cb19-7"></a>offshore_data <span class="ot">&lt;-</span> grid[<span class="fu">apply</span>(points_in_offshore_buffer, <span class="dv">1</span>, any), ]</span>
 <span id="cb19-8"><a href="#cb19-8"></a></span>
 <span id="cb19-9"><a href="#cb19-9"></a><span class="co"># Print the number of points extracted for verification</span></span>
-<span id="cb19-10"><a href="#cb19-10"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Number of points in inshore buffer:"</span>, <span class="fu">nrow</span>(inland_data)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-10"><a href="#cb19-10"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Number of points in inshore buffer:"</span>, <span class="fu">nrow</span>(inland_data)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "Number of points in inshore buffer: 1678"</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Number of points in offshore buffer:"</span>, <span class="fu">nrow</span>(offshore_data)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Number of points in offshore buffer:"</span>, <span class="fu">nrow</span>(offshore_data)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "Number of points in offshore buffer: 1765"</code></pre>
 </div>
 </div>
 <p>Plot the offshore and inland buffers over the coastlines and simulated data:</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
 <span id="cb23-2"><a href="#cb23-2"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> africa_countries, <span class="at">fill =</span> <span class="st">"grey"</span>, <span class="at">colour =</span> <span class="st">"grey89"</span>) <span class="sc">+</span></span>
 <span id="cb23-3"><a href="#cb23-3"></a>  <span class="fu">geom_raster</span>(<span class="at">data =</span> offshore_data, <span class="fu">aes</span>(<span class="at">x =</span> lon, <span class="at">y =</span> lat, <span class="at">fill =</span> temperature <span class="sc">*</span> <span class="fl">0.8</span>)) <span class="sc">+</span> <span class="co"># Simulated data within the offshore buffer area</span></span>
 <span id="cb23-4"><a href="#cb23-4"></a>  <span class="fu">geom_raster</span>(<span class="at">data =</span> inland_data, <span class="fu">aes</span>(<span class="at">x =</span> lon, <span class="at">y =</span> lat, <span class="at">fill =</span> temperature <span class="sc">*</span> <span class="fl">1.2</span>)) <span class="sc">+</span> <span class="co"># Simulated data within the inland buffer area</span></span>
@@ -507,7 +510,7 @@ GEOGCRS["WGS 84",
 <span id="cb23-28"><a href="#cb23-28"></a>  <span class="fu">guides</span>(</span>
 <span id="cb23-29"><a href="#cb23-29"></a>    <span class="at">fill =</span> <span class="fu">guide_legend</span>(<span class="st">"Temperature"</span>,</span>
 <span id="cb23-30"><a href="#cb23-30"></a>                        <span class="at">position =</span> <span class="st">"bottom"</span>,</span>
-<span id="cb23-31"><a href="#cb23-31"></a>                        <span class="at">title.position =</span> <span class="st">"top"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb23-31"><a href="#cb23-31"></a>                        <span class="at">title.position =</span> <span class="st">"top"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure"><div class="quarto-figure quarto-figure-center">
@@ -989,7 +992,7 @@ Smit, A. J. Extracting gridded data within a buffer. <a href="http://tangledbank
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb24" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb24-1"><a href="#cb24-1"></a><span class="co">---</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb24-1"><a href="#cb24-1"></a><span class="co">---</span></span>
 <span id="cb24-2"><a href="#cb24-2"></a><span class="an">title:</span><span class="co"> "Extracting gridded data within a buffer"</span></span>
 <span id="cb24-3"><a href="#cb24-3"></a><span class="co">---</span></span>
 <span id="cb24-4"><a href="#cb24-4"></a></span>
@@ -1174,7 +1177,7 @@ Smit, A. J. Extracting gridded data within a buffer. <a href="http://tangledbank
 <span id="cb24-213"><a href="#cb24-213"></a>                        <span class="at">position =</span> <span class="st">"bottom"</span>,</span>
 <span id="cb24-214"><a href="#cb24-214"></a>                        <span class="at">title.position =</span> <span class="st">"top"</span>))</span>
 <span id="cb24-215"><a href="#cb24-215"></a><span class="in">```</span></span>
-</code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
