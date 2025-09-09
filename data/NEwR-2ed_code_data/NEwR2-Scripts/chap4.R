@@ -1,11 +1,11 @@
 ### CHAPTER 4: CLUSTER ANALYSIS
 ###
 ### Borcard D., Gillet F. & Legendre P. 2018. Numerical Ecology with R,
-### 2nd edition. Springer International Publishing AG. 
+### 2nd edition. Springer International Publishing AG.
 ###
-### Borcard D., Gillet F. & Legendre P. 2020. Numerical ecology with R, 
-### 2nd Chinese edition. (Translation: J. Lai, Institute of Botany, 
-### Chinese Academy of Sciences). Higher Education Press, Beijing. 
+### Borcard D., Gillet F. & Legendre P. 2020. Numerical ecology with R,
+### 2nd Chinese edition. (Translation: J. Lai, Institute of Botany,
+### Chinese Academy of Sciences). Higher Education Press, Beijing.
 
 # Load packages, functions and data ===============================
 
@@ -20,8 +20,8 @@ library(RColorBrewer)
 library(labdsv)
 library(rioja)
 library(indicspecies)
-library(mvpart)
-library(MVPARTwrap)
+# library(mvpart)
+# library(MVPARTwrap)
 library(dendextend)
 library(vegclust)
 library(colorspace)
@@ -41,8 +41,7 @@ source("boxplerk.R")
 source("boxplert.R")
 
 # Function to compute a binary dissimilarity matrix from clusters
-grpdist <- function(X)
-{
+grpdist <- function(X) {
   require(cluster)
   gr <- as.data.frame(as.factor(X))
   distgr <- daisy(gr, "gower")
@@ -61,7 +60,7 @@ latlong <- latlong[-8, ]
 
 # Compute and plot dendrograms ====================================
 
-## Hierarchical agglomerative clustering of the species abundance 
+## Hierarchical agglomerative clustering of the species abundance
 ## data
 
 # Compute matrix of chord distance among sites
@@ -85,27 +84,19 @@ par(mfrow = c(2, 2))
 # Compute single linkage agglomerative clustering
 spe.ch.single <- hclust(spe.ch, method = "single")
 # Plot a dendrogram using the default options
-plot(spe.ch.single, 
-  labels = rownames(spe), 
-  main = "Chord - Single linkage")
+plot(spe.ch.single, labels = rownames(spe), main = "Chord - Single linkage")
 
 # Compute complete-linkage agglomerative clustering
 spe.ch.complete <- hclust(spe.ch, method = "complete")
-plot(spe.ch.complete, 
-  labels = rownames(spe), 
-  main = "Chord - Complete linkage")
+plot(spe.ch.complete, labels = rownames(spe), main = "Chord - Complete linkage")
 
 # Compute UPGMA agglomerative clustering
 spe.ch.UPGMA <- hclust(spe.ch, method = "average")
-plot(spe.ch.UPGMA, 
-  labels = rownames(spe), 
-  main = "Chord - UPGMA")
+plot(spe.ch.UPGMA, labels = rownames(spe), main = "Chord - UPGMA")
 
 # Compute centroid clustering
 spe.ch.centroid <- hclust(spe.ch, method = "centroid")
-plot(spe.ch.centroid, 
-  labels = rownames(spe), 
-  main = "Chord - Centroid")
+plot(spe.ch.centroid, labels = rownames(spe), main = "Chord - Centroid")
 
 dev.new(
   title = "Compare clustering methods (2)",
@@ -117,29 +108,32 @@ par(mfrow = c(2, 2))
 
 # Compute beta-flexible clustering using cluster::agnes()
 # beta = -0.1
-spe.ch.beta1 <- agnes(spe.ch, method = "flexible",
-                      par.method = 0.55)
+spe.ch.beta1 <- agnes(spe.ch, method = "flexible", par.method = 0.55)
 # beta = -0.25
-spe.ch.beta2 <- agnes(spe.ch, method = "flexible",
-                      par.method = 0.625)
+spe.ch.beta2 <- agnes(spe.ch, method = "flexible", par.method = 0.625)
 # beta = -0.5
-spe.ch.beta3 <- agnes(spe.ch, method = "flexible",
-                      par.method = 0.75)
+spe.ch.beta3 <- agnes(spe.ch, method = "flexible", par.method = 0.75)
 # Change the class of agnes objects
 class(spe.ch.beta1)
 spe.ch.beta1 <- as.hclust(spe.ch.beta1)
 class(spe.ch.beta1)
 spe.ch.beta2 <- as.hclust(spe.ch.beta2)
 spe.ch.beta3 <- as.hclust(spe.ch.beta3)
-plot(spe.ch.beta1, 
-  labels = rownames(spe), 
-  main = "Chord - Beta-flexible (beta=-0.1)")
-plot(spe.ch.beta2, 
-  labels = rownames(spe), 
-  main = "Chord - Beta-flexible (beta=-0.25)")
-plot(spe.ch.beta3, 
-  labels = rownames(spe), 
-  main = "Chord - Beta-flexible (beta=-0.5)")
+plot(
+  spe.ch.beta1,
+  labels = rownames(spe),
+  main = "Chord - Beta-flexible (beta=-0.1)"
+)
+plot(
+  spe.ch.beta2,
+  labels = rownames(spe),
+  main = "Chord - Beta-flexible (beta=-0.25)"
+)
+plot(
+  spe.ch.beta3,
+  labels = rownames(spe),
+  main = "Chord - Beta-flexible (beta=-0.5)"
+)
 
 # Compute Ward's minimum variance clustering
 spe.ch.ward <- hclust(spe.ch, method = "ward.D2")
@@ -149,9 +143,7 @@ spe.ch.ward <- hclust(spe.ch, method = "ward.D2")
 # The result will not be striclty the same, however.
 # See the hclust help file and 'Numerical Ecology with R',
 # 1st edition, p. 61-62.
-plot(spe.ch.ward, 
-  labels = rownames(spe), 
-  main = "Chord - Ward")
+plot(spe.ch.ward, labels = rownames(spe), main = "Chord - Ward")
 
 
 # Cophenetic correlations =========================================
@@ -185,10 +177,16 @@ plot(
   asp = 1,
   xlim = c(0, sqrt(2)),
   ylim = c(0, sqrt(2)),
-  main = c("Single linkage", paste("Cophenetic correlation =",
-                        round(
-                        cor(spe.ch, spe.ch.single.coph), 3
-                        )))
+  main = c(
+    "Single linkage",
+    paste(
+      "Cophenetic correlation =",
+      round(
+        cor(spe.ch, spe.ch.single.coph),
+        3
+      )
+    )
+  )
 )
 abline(0, 1)
 lines(lowess(spe.ch, spe.ch.single.coph), col = "red")
@@ -200,10 +198,16 @@ plot(
   asp = 1,
   xlim = c(0, sqrt(2)),
   ylim = c(0, sqrt(2)),
-  main = c("Complete linkage", paste("Cophenetic correlation =",
-                        round(
-                        cor(spe.ch, spe.ch.comp.coph), 3
-                        )))
+  main = c(
+    "Complete linkage",
+    paste(
+      "Cophenetic correlation =",
+      round(
+        cor(spe.ch, spe.ch.comp.coph),
+        3
+      )
+    )
+  )
 )
 abline(0, 1)
 lines(lowess(spe.ch, spe.ch.comp.coph), col = "red")
@@ -215,10 +219,16 @@ plot(
   asp = 1,
   xlim = c(0, sqrt(2)),
   ylim = c(0, sqrt(2)),
-  main = c("UPGMA", paste("Cophenetic correlation =",
-                          round(
-                            cor(spe.ch, spe.ch.UPGMA.coph), 3
-                          )))
+  main = c(
+    "UPGMA",
+    paste(
+      "Cophenetic correlation =",
+      round(
+        cor(spe.ch, spe.ch.UPGMA.coph),
+        3
+      )
+    )
+  )
 )
 abline(0, 1)
 lines(lowess(spe.ch, spe.ch.UPGMA.coph), col = "red")
@@ -230,10 +240,16 @@ plot(
   asp = 1,
   xlim = c(0, sqrt(2)),
   ylim = c(0, max(spe.ch.ward$height)),
-  main = c("Ward", paste("Cophenetic correlation =",
-                         round(
-                           cor(spe.ch, spe.ch.ward.coph), 3
-                         )))
+  main = c(
+    "Ward",
+    paste(
+      "Cophenetic correlation =",
+      round(
+        cor(spe.ch, spe.ch.ward.coph),
+        3
+      )
+    )
+  )
 )
 abline(0, 1)
 lines(lowess(spe.ch, spe.ch.ward.coph), col = "red")
@@ -249,12 +265,11 @@ lines(lowess(spe.ch, spe.ch.ward.coph), col = "red")
 # abline(0,1)
 # lines(lowess(spe.ch, spe.ch.beta2.coph), col="red")
 
-
 # Gower (1983) distance
-(gow.dist.single <- sum((spe.ch - spe.ch.single.coph) ^ 2))
-(gow.dist.comp <- sum((spe.ch - spe.ch.comp.coph) ^ 2))
-(gow.dist.UPGMA <- sum((spe.ch - spe.ch.UPGMA.coph) ^ 2))
-(gow.dist.ward <- sum((spe.ch - spe.ch.ward.coph) ^ 2))
+(gow.dist.single <- sum((spe.ch - spe.ch.single.coph)^2))
+(gow.dist.comp <- sum((spe.ch - spe.ch.comp.coph)^2))
+(gow.dist.UPGMA <- sum((spe.ch - spe.ch.UPGMA.coph)^2))
+(gow.dist.ward <- sum((spe.ch - spe.ch.ward.coph)^2))
 
 
 # Graphs of fusion level values ===================================
@@ -269,10 +284,10 @@ par(mfrow = c(2, 2))
 # Plot the fusion level values of the single linkage clustering
 # plot(spe.ch.single$height, nrow(spe):2, type="S",
 # 	main="Fusion levels - Chord - Single",
-# 	ylab="k (number of clusters)", 
+# 	ylab="k (number of clusters)",
 #           xlab="h (node height)",
 #           col="grey")
-# text(spe.ch.single$height, nrow(spe):2, nrow(spe):2, 
+# text(spe.ch.single$height, nrow(spe):2, nrow(spe):2,
 #      col="red", cex=0.8)
 # Plot the fusion level values of the complete linkage clustering
 plot(
@@ -284,11 +299,7 @@ plot(
   xlab = "h (node height)",
   col = "grey"
 )
-text(spe.ch.complete$height,
-     nrow(spe):2,
-     nrow(spe):2,
-     col = "red",
-     cex = 0.8)
+text(spe.ch.complete$height, nrow(spe):2, nrow(spe):2, col = "red", cex = 0.8)
 # Plot the fusion level values of the UPGMA clustering
 plot(
   spe.ch.UPGMA$height,
@@ -299,11 +310,7 @@ plot(
   xlab = "h (node height)",
   col = "grey"
 )
-text(spe.ch.UPGMA$height,
-     nrow(spe):2,
-     nrow(spe):2,
-     col = "red",
-     cex = 0.8)
+text(spe.ch.UPGMA$height, nrow(spe):2, nrow(spe):2, col = "red", cex = 0.8)
 # Plot the fusion level values of the Ward clustering
 plot(
   spe.ch.ward$height,
@@ -314,12 +321,8 @@ plot(
   xlab = "h (node height)",
   col = "grey"
 )
-text(spe.ch.ward$height,
-     nrow(spe):2,
-     nrow(spe):2,
-     col = "red",
-     cex = 0.8)
-# Plot the fusion level values of the beta-flexible 
+text(spe.ch.ward$height, nrow(spe):2, nrow(spe):2, col = "red", cex = 0.8)
+# Plot the fusion level values of the beta-flexible
 # clustering (-0.25)
 plot(
   spe.ch.beta2$height,
@@ -330,11 +333,7 @@ plot(
   xlab = "h (node height)",
   col = "grey"
 )
-text(spe.ch.beta2$height,
-     nrow(spe):2,
-     nrow(spe):2,
-     col = "red",
-     cex = 0.8)
+text(spe.ch.beta2$height, nrow(spe):2, nrow(spe):2, col = "red", cex = 0.8)
 
 
 # Compare dendrograms =============================================
@@ -343,7 +342,7 @@ text(spe.ch.beta2$height,
 ## using contingency tables
 
 # Choose a common number of groups
-k <- 4  # Number of groups where at least a small jump is present
+k <- 4 # Number of groups where at least a small jump is present
 # in all four graphs of fusion levels
 # Cut the dendrograms
 spech.single.g <- cutree(spe.ch.single, k = k)
@@ -371,7 +370,7 @@ table(spech.beta.g, spech.ward.g)
 
 ## Compare two dendrograms to highlight common subtrees
 
-# Objects of class "hclust" must be first converted into objects of 
+# Objects of class "hclust" must be first converted into objects of
 # class "dendrogram"
 class(spe.ch.ward)
 dend1 <- as.dendrogram(spe.ch.ward)
@@ -400,10 +399,12 @@ tanglegram(
 
 # Compute p-values for all clusters (edges) of the dendrogram
 spech.pv <-
-  pvclust(t(spe.norm),
-          method.hclust = "ward.D2",
-          method.dist = "euc",
-          parallel=TRUE)
+  pvclust(
+    t(spe.norm),
+    method.hclust = "ward.D2",
+    method.dist = "euc",
+    parallel = TRUE
+  )
 
 # Plot dendrogram with p-values
 dev.new(
@@ -416,8 +417,8 @@ par(mfrow = c(1, 1))
 plot(spech.pv)
 
 # "This function plots a dendrogram with p-values for given object
-# of class pvclust. AU p-value (printed in red color in default) 
-# is the abbreviation of "approximately unbiased" p-value, which is 
+# of class pvclust. AU p-value (printed in red color in default)
+# is the abbreviation of "approximately unbiased" p-value, which is
 # calculated by multiscale bootstrap resampling. BP value (printed
 # in green color by default) is "bootstrap probability" value,
 # which is less accurate than AU value as p-value. One can consider
@@ -428,7 +429,6 @@ plot(spech.pv)
 pvrect(spech.pv, alpha = 0.95, pv = "au")
 lines(spech.pv)
 pvrect(spech.pv, alpha = 0.91, border = 4)
-
 
 
 # Optimal number of clusters ======================================
@@ -451,8 +451,7 @@ par(mfrow = c(1, 2))
 
 # Average silhouette widths (Rousseeuw quality index)
 Si <- numeric(nrow(spe))
-for (k in 2:(nrow(spe) - 1))
-{
+for (k in 2:(nrow(spe) - 1)) {
   sil <- silhouette(cutree(hc, k = k), spe.ch)
   Si[k] <- summary(sil)$avg.width
 }
@@ -473,17 +472,11 @@ axis(
   font = 2,
   col.axis = "red"
 )
-points(k.best,
-       max(Si),
-       pch = 16,
-       col = "red",
-       cex = 1.5
-)
-# Optimal number of clusters according to matrix correlation 
+points(k.best, max(Si), pch = 16, col = "red", cex = 1.5)
+# Optimal number of clusters according to matrix correlation
 # statistic (Pearson)
 kt <- data.frame(k = 1:nrow(spe), r = 0)
-for (i in 2:(nrow(spe) - 1)) 
-{
+for (i in 2:(nrow(spe) - 1)) {
   gr <- cutree(hc, i)
   distgr <- grpdist(gr)
   mt <- cor(spe.ch, distgr, method = "pearson")
@@ -506,18 +499,13 @@ axis(
   font = 2,
   col.axis = "red"
 )
-points(k.best,
-       max(kt$r),
-       pch = 16,
-       col = "red",
-       cex = 1.5)
+points(k.best, max(kt$r), pch = 16, col = "red", cex = 1.5)
 
 # Optimal number of clusters according as per indicator species
 # analysis (IndVal, Dufrene-Legendre; package: labdsv)
 IndVal <- numeric(nrow(spe))
 ng <- numeric(nrow(spe))
-for (k in 2:(nrow(spe) - 1))
-{
+for (k in 2:(nrow(spe) - 1)) {
   iva <- indval(spe, cutree(hc, k = k), numitr = 1000)
   gr <- factor(iva$maxcls[iva$pval <= 0.05])
   ng[k] <- length(levels(gr)) / k
@@ -570,17 +558,15 @@ plot(
   main = "Proportion of clusters with significant indicator species",
   col = col3
 )
-axis(1,
-     k.best,
-     paste("optimum", k.best, sep = "\n"),
-     col = "red",
-     font = 2,
-     col.axis = "red")
-points(k.best,
-       max(ng),
-       pch = 16,
-       col = "red",
-       cex = 1.5)
+axis(
+  1,
+  k.best,
+  paste("optimum", k.best, sep = "\n"),
+  col = "red",
+  font = 2,
+  col.axis = "red"
+)
+points(k.best, max(ng), pch = 16, col = "red", cex = 1.5)
 text(28, 0.98, "b", cex = 1.8)
 
 
@@ -635,13 +621,12 @@ hcoplot(spe.ch.ward, spe.ch, lab = rownames(spe), k = 4)
 
 # Plot the Ward clusters on a map of the Doubs River
 # (see Chapter 2)
-dev.new(title = "Four Ward clusters on river",
-        width = 9,
-        noRStudioGD = TRUE)
-drawmap(xy = spa,
-        clusters = spech.ward.g,
-        main = "Four Ward clusters along the Doubs River")
-
+dev.new(title = "Four Ward clusters on river", width = 9, noRStudioGD = TRUE)
+drawmap(
+  xy = spa,
+  clusters = spech.ward.g,
+  main = "Four Ward clusters along the Doubs River"
+)
 
 
 # Miscellaneous graphical outputs =================================
@@ -649,7 +634,7 @@ drawmap(xy = spa,
 # Convert the "hclust" object into a "dendrogram" object
 dend <- as.dendrogram(spe.chwo)
 
-# Plot the dendrogram with colored branches using the dendextend 
+# Plot the dendrogram with colored branches using the dendextend
 # syntax
 dev.new(
   title = "Colored dendrogram",
@@ -661,12 +646,9 @@ dend %>% set("branches_k_color", k = k) %>% plot
 
 # Use standard colors for clusters
 clusters <- cutree(dend, k)[order.dendrogram(dend)]
-dend %>% set("branches_k_color", 
-             k = k, value = unique(clusters) + 1) %>% plot
+dend %>% set("branches_k_color", k = k, value = unique(clusters) + 1) %>% plot
 # Add a colored bar
-colored_bars(clusters + 1,
-             y_shift = -0.5,
-             rowLabels = paste(k, "clusters"))
+colored_bars(clusters + 1, y_shift = -0.5, rowLabels = paste(k, "clusters"))
 
 # With a colored bar
 # clusters <- cutree(dend, k)[order.dendrogram(dend)]
@@ -675,18 +657,18 @@ colored_bars(clusters + 1,
 # ord_cols <- rainbow_hcl(k)[order(unique(clusters))]
 # tmp_cols  <- rep(1, length(clusters))
 # tmp_cols[clusters != 0] <- ord_cols[clusters != 0][clusters]
-# colored_bars(tmp_cols, 
-#              y_shift = -0.5, 
+# colored_bars(tmp_cols,
+#              y_shift = -0.5,
 #              rowLabels = paste(k, "clusters"))
-# 
+#
 # # Use standard colors
 # cols <- 2:(k + 1)
 # ord_cols <- cols[order(unique(clusters))]
 # tmp_cols  <- rep(1, length(clusters))
 # tmp_cols[clusters != 0] <- ord_cols[clusters != 0][clusters]
 # dend %>% branches_attr_by_clusters(clusters, values = cols) %>% plot
-# colored_bars(tmp_cols, 
-#              y_shift = -0.5, 
+# colored_bars(tmp_cols,
+#              y_shift = -0.5,
 #              rowLabels = paste(k, "clusters"))
 
 # Heat map of the dissimilarity matrix ordered with the dendrogram
@@ -743,7 +725,7 @@ dev.new(
 )
 plot(spe.KM.cascade, sortg = TRUE)
 
-# Comparison with the 4-group classification derived from Ward 
+# Comparison with the 4-group classification derived from Ward
 # clustering. Cluster numbering in kmeans is arbitrary!
 table(spe.kmeans$cluster, spech.ward.g)
 table(spe.KM.cascade$partition[, 3], spech.ward.g)
@@ -757,17 +739,17 @@ ord.KM <- vegemite(spe, spe.kmeans.g)
 spe[ord.KM$sites, ord.KM$species]
 
 # Plot of the 4 k-means clusters on a map of the Doubs River
-dev.new(title = "Four k-means clusters on river",
-        width = 9,
-        noRStudioGD = TRUE)
-drawmap(xy = spa,
-        clusters = spe.kmeans.g,
-        main = "Four k-means clusters along the Doubs River")
+dev.new(title = "Four k-means clusters on river", width = 9, noRStudioGD = TRUE)
+drawmap(
+  xy = spa,
+  clusters = spe.kmeans.g,
+  main = "Four k-means clusters along the Doubs River"
+)
 
 
 # k-means optimization of a hierarchical clustering result ========
 
-# k-means with Ward species means per group (centroids) as 
+# k-means with Ward species means per group (centroids) as
 # starting points:
 
 # Mean species abundances on Ward site clusters
@@ -784,13 +766,13 @@ spe.kmeans2 <- kmeans(spe.norm, centers = startpoints)
 
 # A slightly different approach is to go back to the hierarchical
 # clustering, identify the most 'typical' object in each group
-# (cf. silhouette plot), and provide these medoids as starting 
+# (cf. silhouette plot), and provide these medoids as starting
 # points to kmeans:
 
 startobjects <- spe.norm[c(2, 17, 21, 23), ]
 spe.kmeans3 <- kmeans(spe.norm, centers = startobjects)
 
-# Comparison with the 4-group classification derived from Ward 
+# Comparison with the 4-group classification derived from Ward
 # clustering:
 table(spe.kmeans2$cluster, spech.ward.g)
 # Comparison among the two optimized 4-group classifications:
@@ -806,19 +788,24 @@ par(mfrow = c(1, 1))
 k <- 4
 sil <- silhouette(spech.ward.gk, spe.ch)
 rownames(sil) <- row.names(spe)
-plot(sil,
-     main = "Silhouette plot - Ward & k-means",
-     cex.names = 0.8,
-     col = 2:(k + 1))
+plot(
+  sil,
+  main = "Silhouette plot - Ward & k-means",
+  cex.names = 0.8,
+  col = 2:(k + 1)
+)
 
 # Plot of the optimized Ward clusters on a map of the Doubs River
-dev.new(title = "Four optimized Ward clusters on river",
-        width = 9,
-        noRStudioGD = TRUE)
-drawmap(xy = spa,
-       clusters = spech.ward.gk,
-       main = "Four optimized Ward clusters along the Doubs River")
-
+dev.new(
+  title = "Four optimized Ward clusters on river",
+  width = 9,
+  noRStudioGD = TRUE
+)
+drawmap(
+  xy = spa,
+  clusters = spech.ward.gk,
+  main = "Four optimized Ward clusters along the Doubs River"
+)
 
 
 # Partitioning around medoids (PAM) ===============================
@@ -827,8 +814,9 @@ drawmap(xy = spa,
 # Choice of the number of clusters
 # Loop: obtain average silhouette widths (asw) for 2 to 28 clusters
 asw <- numeric(nrow(spe))
-for (k in 2:(nrow(spe) - 1))
+for (k in 2:(nrow(spe) - 1)) {
   asw[k] <- pam(spe.ch, k, diss = TRUE)$silinfo$avg.width
+}
 k.best <- which.max(asw)
 dev.new(title = "PAM", noRStudioGD = TRUE)
 plot(
@@ -847,11 +835,7 @@ axis(
   font = 2,
   col.axis = "red"
 )
-points(k.best,
-       max(asw),
-       pch = 16,
-       col = "red",
-       cex = 1.5)
+points(k.best, max(asw), pch = 16, col = "red", cex = 1.5)
 
 # PAM for k = 4 clusters
 spe.ch.pam <- pam(spe.ch, k = 4, diss = TRUE)
@@ -862,7 +846,7 @@ spe.ch.pam$silinfo$widths
 # Compare with classification from Ward clustering and from k-means
 table(spe.ch.pam.g, spech.ward.g)
 table(spe.ch.pam.g, spe.kmeans.g)
-# Compare classifications from k-means and from optimized Ward 
+# Compare classifications from k-means and from optimized Ward
 # clustering
 table(spe.kmeans.g, spech.ward.gk)
 
@@ -877,10 +861,7 @@ par(mfrow = c(1, 2))
 k <- 4
 sil <- silhouette(spe.kmeans.g, spe.ch)
 rownames(sil) <- row.names(spe)
-plot(sil,
-     main = "Silhouette plot - k-means",
-     cex.names = 0.8,
-     col = 2:(k + 1))
+plot(sil, main = "Silhouette plot - k-means", cex.names = 0.8, col = 2:(k + 1))
 plot(
   silhouette(spe.ch.pam),
   main = "Silhouette plot - PAM",
@@ -889,17 +870,16 @@ plot(
 )
 
 
-
 # Relationships between fish clusters and environmental variables
 # based on the optimized partition (four groups) ==================
 
 with(env, {
   # Boxplots of four quantitative environmental variables:
-  # Elevation, Slope, Oxygen, and Ammonium (after some 
+  # Elevation, Slope, Oxygen, and Ammonium (after some
   # transformations)
   dev.new(
-      title = "Boxplots of quantitative environmental variables",
-      noRStudioGD = TRUE
+    title = "Boxplots of quantitative environmental variables",
+    noRStudioGD = TRUE
   )
   par(mfrow = c(2, 2))
   boxplot(
@@ -943,18 +923,18 @@ with(env, {
   shapiro.test(resid(aov(log(slo) ~ as.factor(spech.ward.gk))))
   shapiro.test(resid(aov(oxy ~ as.factor(spech.ward.gk))))
   shapiro.test(resid(aov(sqrt(amm) ~ as.factor(spech.ward.gk))))
-  
+
   # Homogeneity of variances
   bartlett.test(sqrt(ele), as.factor(spech.ward.gk))
   bartlett.test(log(slo), as.factor(spech.ward.gk))
   bartlett.test(oxy, as.factor(spech.ward.gk))
   bartlett.test(sqrt(amm), as.factor(spech.ward.gk))
-  
+
   # ANOVA of the testable variables
   summary(aov(log(slo) ~ as.factor(spech.ward.gk)))
   summary(aov(oxy ~ as.factor(spech.ward.gk)))
   summary(aov(sqrt(amm) ~ as.factor(spech.ward.gk)))
-  
+
   # Kruskal-Wallis test of variable alt
   kruskal.test(ele ~ as.factor(spech.ward.gk))
 })
@@ -965,7 +945,7 @@ dev.new(
 )
 par(mfrow = c(2, 2))
 with(env, {
-# Use boxplert() or boxplerk() to plot results with post-hoc tests
+  # Use boxplert() or boxplerk() to plot results with post-hoc tests
   boxplerk(
     ele,
     spech.ward.gk,
@@ -1019,7 +999,7 @@ table(spe.kmeans.g, env.kmeans.g)
 # Test the relationship using a chi-square test
 #    chisq.test(table(spe.kmeans.g, env.kmeans.g))
 # Change the testing procedure to a permutation test
-#    chisq.test(table(spe.kmeans.g, env.kmeans.g), 
+#    chisq.test(table(spe.kmeans.g, env.kmeans.g),
 #               simulate.p.value = TRUE)
 
 # Test the relationship using a Fisher's exact test
@@ -1044,7 +1024,6 @@ group1.domin <- which(group1 > mean(group1))
 group1
 group1.domin
 #... same for other groups
-
 
 # Kendall's W coefficient of concordance ==========================
 
@@ -1072,27 +1051,23 @@ dev.new(
 )
 plot(spe.t.kmeans.casc, sortg = TRUE)
 
-# The partition into 2 groups is found in column 1 of the 
+# The partition into 2 groups is found in column 1 of the
 # object $partition
 (clusters2 <- spe.t.kmeans.casc$partition[, 1])
 
 # Partitions into three or four groups:
-(clusters3 <- spe.t.kmeans.casc$partition[, 2]) 
+(clusters3 <- spe.t.kmeans.casc$partition[, 2])
 (clusters4 <- spe.t.kmeans.casc$partition[, 3])
 
 # Concordance analysis
 (spe.kendall.global2 <- kendall.global(spe.hel, clusters2))
 
 # A posteriori tests
-(spe.kendall.post2 <- 
-     kendall.post(spe.hel, 
-                  clusters2, 
-                  nperm = 9999))
+(spe.kendall.post2 <-
+  kendall.post(spe.hel, clusters2, nperm = 9999))
 
-(spe.kendall.post3 <- 
-     kendall.post(spe.hel, 
-                  clusters3, 
-                  nperm = 9999))
+(spe.kendall.post3 <-
+  kendall.post(spe.hel, clusters3, nperm = 9999))
 
 
 # Species assemblages on presence-absence data ====================
@@ -1100,7 +1075,7 @@ plot(spe.t.kmeans.casc, sortg = TRUE)
 # Transform the data to presence-absence
 spe.pa <- decostand(spe, "pa")
 # Test the co-occurrence of species
-# Many permutations to have enough decimal places for Holm 
+# Many permutations to have enough decimal places for Holm
 # correction (see below).
 res <- test.a(spe.pa, nperm = 99999)
 summary(res)
@@ -1129,10 +1104,7 @@ dev.new(
   height = 6,
   noRStudioGD = TRUE
 )
-coldiss(res.pa.dist,
-        nc = 16,
-        byrank = TRUE,
-        diag = TRUE)
+coldiss(res.pa.dist, nc = 16, byrank = TRUE, diag = TRUE)
 
 
 # Co-occurrence network ===========================================
@@ -1159,7 +1131,7 @@ adjm3 <- cor(spe, method = "spearman")
 # adjm[adjm3 < 0.2] <- 0
 # adjm[adjm3 >= 0.2] <- 1  # binary co-occurrences
 adjm2[adjm3 < 0.25] <- 0
-adjm2[adjm3 >= 0.25] <- 1  # binary co-occurrences
+adjm2[adjm3 >= 0.25] <- 1 # binary co-occurrences
 diag(adjm3) <- 0
 
 # Species co-occurrence dissimilarities (picante, Hardy 2008)
@@ -1180,12 +1152,10 @@ dev.new(
 hist(adjm)
 
 # Build graph
-go <- graph_from_adjacency_matrix(adjm, 
-                                  weighted = TRUE, 
-                                  mode = "undirected")
+go <- graph_from_adjacency_matrix(adjm, weighted = TRUE, mode = "undirected")
 plot(go)
 
-# Network structure detection: find densely connected subgraphs 
+# Network structure detection: find densely connected subgraphs
 # (modules or "communities") in a graph
 # wc <- cluster_walktrap(go)
 # wc <- cluster_edge_betweenness(go)
@@ -1210,16 +1180,13 @@ unloadNamespace("rgexf")
 # If not sufficient:
 # unloadNamespace("igraph")
 
-
-
 # Indicator species ===============================================
 
 # IndVal species indicator values (Dufrene and Legendre)
 
 # Divide the sites into 4 groups depending on the distance from
 # the source of the river
-dfs.D1 <- dist(data.frame(dfs = env[, 1], 
-               row.names = rownames(env)))
+dfs.D1 <- dist(data.frame(dfs = env[, 1], row.names = rownames(env)))
 dfsD1.kmeans <- kmeans(dfs.D1, centers = 4, nstart = 100)
 # Cluster delimitation and numbering
 dfsD1.kmeans$cluster
@@ -1280,10 +1247,9 @@ round(iva.phi$str, 3)
 (iva.phi.boot <- strassoc(spe, grps, func = "r.g", nboot = 1000))
 
 
-
 # Multivariate regression trees ===================================
 
-# As of this writing, {mvpart} and {MVPARTwrap} must be installed 
+# As of this writing, {mvpart} and {MVPARTwrap} must be installed
 # from github.
 # If it is not already done, follow these lines:
 # On Windows machines, Rtools (3.4 and above) must be installed
@@ -1327,9 +1293,11 @@ dev.new(
 )
 par(mfrow = c(1, 2))
 hist(residuals(spe.ch.mvpart), col = "bisque")
-plot(predict(spe.ch.mvpart, type = "matrix"),
-     residuals(spe.ch.mvpart),
-     main = "Residuals vs Predicted")
+plot(
+  predict(spe.ch.mvpart, type = "matrix"),
+  residuals(spe.ch.mvpart),
+  main = "Residuals vs Predicted"
+)
 abline(h = 0, lty = 3, col = "grey")
 
 # Group composition
@@ -1344,20 +1312,19 @@ env[which(spe.ch.mvpart$where == groups.mrt[1]), ]
 # Table and pie charts of fish composition of leaves
 leaf.sum <- matrix(0, length(groups.mrt), ncol(spe))
 colnames(leaf.sum) <- colnames(spe)
-for (i in 1:length(groups.mrt))
-{
+for (i in 1:length(groups.mrt)) {
   leaf.sum[i, ] <-
-    apply(spe.norm[which(spe.ch.mvpart$where == groups.mrt[i]), ],
-          2, sum)
+    apply(spe.norm[which(spe.ch.mvpart$where == groups.mrt[i]), ], 2, sum)
 }
 leaf.sum
 dev.new(title = "Fish composition of 4 leaves", noRStudioGD = TRUE)
 par(mfrow = c(2, 2))
-for (i in 1:length(groups.mrt))
-{
-  pie(which(leaf.sum[i, ] > 0),
-      radius = 1,
-      main = paste("leaf #", groups.mrt[i]))
+for (i in 1:length(groups.mrt)) {
+  pie(
+    which(leaf.sum[i, ] > 0),
+    radius = 1,
+    main = paste("leaf #", groups.mrt[i])
+  )
 }
 
 # Extracting MRT results from an mvpart object
@@ -1369,7 +1336,7 @@ summary(spe.ch.mvpart.wrap)
 # Indicator species search on the MRT result
 spe.ch.MRT.indval <- indval(spe.norm, spe.ch.mvpart$where)
 # spe.ch.MRT.indval$pval		# Probability
-pval.adj3 <- p.adjust(spe.ch.MRT.indval$pval)    # Corrected prob.
+pval.adj3 <- p.adjust(spe.ch.MRT.indval$pval) # Corrected prob.
 
 # For each significant species, find the leaf with the highest
 # IndVal
@@ -1387,18 +1354,18 @@ levels(spech.mvpart.g) <- 1:length(levels(spech.mvpart.g))
 table(spech.mvpart.g, spech.ward.g)
 
 # Plot of the MRT clusters on a map of the Doubs River
-dev.new(title = "Four MRT clusters on river",
-        width = 9,
-        noRStudioGD = TRUE)
-drawmap(xy = spa,
-        clusters = spech.mvpart.g,
-        main = "Four MRT clusters along the Doubs River")
+dev.new(title = "Four MRT clusters on river", width = 9, noRStudioGD = TRUE)
+drawmap(
+  xy = spa,
+  clusters = spech.mvpart.g,
+  main = "Four MRT clusters along the Doubs River"
+)
 
 
 ## MRT as a monothetic clustering method
 
 # Method related to Williams & Lambert (1959) association analysis:
-# spe.pa (presence-absence) is the response and the explanatory 
+# spe.pa (presence-absence) is the response and the explanatory
 # matrix
 
 spe.pa <- decostand(spe, "pa")
@@ -1435,7 +1402,7 @@ res.part2 <-
 # Here, click on the desired tree size (suggested: 5)
 res.part2$where
 
-# spe.norm is the response and spe (untransformed) is the 
+# spe.norm is the response and spe (untransformed) is the
 # explanatory matrix
 res.part3 <-
   mvpart(
@@ -1448,7 +1415,6 @@ res.part3 <-
   )
 # Here, click on the desired tree size (suggested: 6)
 
-
 # Membership of objects to groups – presence-absence on both sides
 res.part1$where
 res.part1.g <- factor(res.part1$where)
@@ -1458,13 +1424,16 @@ table(res.part1.g, spech.ward.g)
 table(res.part1.g, spech.ward.gk)
 
 # Plot of the MRT clusters on a map of the Doubs River
-dev.new(title = "Six monothetic clusters on river",
-        width = 9,
-        noRStudioGD = TRUE)
-drawmap3(xy = spa,
-        clusters = res.part1.g,
-        main = "Six monothetic clusters along the Doubs River")
-
+dev.new(
+  title = "Six monothetic clusters on river",
+  width = 9,
+  noRStudioGD = TRUE
+)
+drawmap3(
+  xy = spa,
+  clusters = res.part1.g,
+  main = "Six monothetic clusters along the Doubs River"
+)
 
 
 # Clustering with sequential constraint ===========================
@@ -1472,20 +1441,22 @@ drawmap3(xy = spa,
 # NOT IN THE BOOK -- Sequential clustering using MRT
 
 dev.new(
-  title = "MRT with sequential constraint", 
-  width = 14, 
+  title = "MRT with sequential constraint",
+  width = 14,
   height = 7,
   noRStudioGD = TRUE
 )
 par(mfrow = c(1, 2))
-spe.ch.seq <- mvpart(as.matrix(spe) ~ dfs, 
-                     env, 
-                     cp = 0, 
-                     xv = "pick", 
-                     margin = 0.08,
-	         xval = nrow(spe), 
-	         xvmult = 100, 
-	         which = 4)
+spe.ch.seq <- mvpart(
+  as.matrix(spe) ~ dfs,
+  env,
+  cp = 0,
+  xv = "pick",
+  margin = 0.08,
+  xval = nrow(spe),
+  xvmult = 100,
+  which = 4
+)
 # Here, click on the desired number of groups
 
 summary(spe.ch.seq)
@@ -1496,20 +1467,22 @@ summary(spe.ch.seq)
 # Renumber clusters sequentially
 aa <- 1
 gr2 <- rep(1, length(gr))
-for (i in 2 : length(gr))
-{
-	if (gr[i] !=  gr[i-1]) aa <- aa + 1
-	gr2[i] <- aa
+for (i in 2:length(gr)) {
+  if (gr[i] != gr[i - 1]) {
+    aa <- aa + 1
+  }
+  gr2[i] <- aa
 }
 
 # Plot the clusters on a map of the Doubs river
 dev.new(title = "MRT groups on river", noRStudioGD = TRUE)
-drawmap3(xy = spa,
-        clusters = gr2,
-        main = "MRT sequential clustering along the Doubs River")
+drawmap3(
+  xy = spa,
+  clusters = gr2,
+  main = "MRT sequential clustering along the Doubs River"
+)
 
 # END NOT IN THE BOOK
-
 
 # Default method CONISS
 # On the percentage difference dissimilarity matrix
@@ -1517,8 +1490,9 @@ spe.chcl <- chclust(vegdist(spe))
 
 # Compare the dispersion of the hierarchical classification to that
 # obtained from a broken stick model
-dev.new(title="Compare classification to broken stick model", 
-  noRStudioGD=TRUE
+dev.new(
+  title = "Compare classification to broken stick model",
+  noRStudioGD = TRUE
 )
 bstick(spe.chcl, 10)
 
@@ -1537,27 +1511,22 @@ plot(spe.chcl, hang = -1, main = "CONISS clustering")
 rect.hclust(spe.chcl, k = k)
 
 # Dendrogram with observations plotted according to dfs
-plot(spe.chcl,
-     xvar = env$dfs,
-     hang = -1,
-     main = "CONISS clustering",
-     cex = 0.8)
+plot(spe.chcl, xvar = env$dfs, hang = -1, main = "CONISS clustering", cex = 0.8)
 
 # Plot the clusters on a map of the Doubs River
-dev.new(title = "Four sequential clusters on river",
-        width = 9,
-        noRStudioGD = TRUE)
-drawmap(xy = spa,
-        clusters = gr4,
-        main = "Sequential clusters along the river")
-
+dev.new(
+  title = "Four sequential clusters on river",
+  width = 9,
+  noRStudioGD = TRUE
+)
+drawmap(xy = spa, clusters = gr4, main = "Sequential clusters along the river")
 
 
 # Fuzzy clustering ================================================
 
 ## Fuzzy c-means clustering of the fish species data
 
-k <- 4		# Choose the number of clusters
+k <- 4 # Choose the number of clusters
 spe.fuz <- fanny(spe.ch, k = k, memb.exp = 1.5)
 summary(spe.fuz)
 
@@ -1568,8 +1537,10 @@ spe.fuz$clustering
 spefuz.g <- spe.fuz$clustering
 
 # Silhouette plot
-dev.new(title = "Fuzzy clustering of fish data - Silhouette plot",
-        noRStudioGD = TRUE)
+dev.new(
+  title = "Fuzzy clustering of fish data - Silhouette plot",
+  noRStudioGD = TRUE
+)
 plot(
   silhouette(spe.fuz),
   main = "Silhouette plot - Fuzzy clustering",
@@ -1582,17 +1553,20 @@ plot(
 dc.pcoa <- cmdscale(spe.ch)
 dc.scores <- scores(dc.pcoa, choices = c(1, 2))
 # Step 2: ordination plot of fuzzy clustering result
-dev.new(title = "Fuzzy clustering of fish data - Ordination plot",
-        noRStudioGD = TRUE)
-plot(dc.scores,
-     asp = 1,
-     type = "n",
-     main = "Ordination of fuzzy clusters (PCoA)")
+dev.new(
+  title = "Fuzzy clustering of fish data - Ordination plot",
+  noRStudioGD = TRUE
+)
+plot(
+  dc.scores,
+  asp = 1,
+  type = "n",
+  main = "Ordination of fuzzy clusters (PCoA)"
+)
 abline(h = 0, lty = "dotted")
 abline(v = 0, lty = "dotted")
 # Step 3: representation of fuzzy clusters
-for (i in 1:k)
-{
+for (i in 1:k) {
   gg <- dc.scores[spefuz.g == i, ]
   hpts <- chull(gg)
   hpts <- c(hpts, hpts[1])
@@ -1611,9 +1585,7 @@ stars(
 )
 
 # Plot the fuzzy clusters on a map of the Doubs River
-dev.new(title = "Four fuzzy clusters on river",
-        width = 9,
-        noRStudioGD = TRUE)
+dev.new(title = "Four fuzzy clusters on river", width = 9, noRStudioGD = TRUE)
 plot(
   spa,
   asp = 1,
@@ -1674,16 +1646,19 @@ spefuz.g <- defuzzify(spe.nc$memb)$cluster
 clNum <- as.numeric(as.factor(spefuz.g))
 
 # Ordination of fuzzy clusters (PCoA)
-dev.new(title = "Noise clustering of fish data - Ordination plot",
-        noRStudioGD = TRUE)
-plot(dc.scores,
-     # main = "Ordination of fuzzy clusters (PCoA)",
-     asp = 1,
-     type = "n")
+dev.new(
+  title = "Noise clustering of fish data - Ordination plot",
+  noRStudioGD = TRUE
+)
+plot(
+  dc.scores,
+  # main = "Ordination of fuzzy clusters (PCoA)",
+  asp = 1,
+  type = "n"
+)
 abline(h = 0, lty = "dotted")
 abline(v = 0, lty = "dotted")
-for (i in 1:k)
-{
+for (i in 1:k) {
   gg <- dc.scores[clNum == i, ]
   hpts <- chull(gg)
   hpts <- c(hpts, hpts[1])
@@ -1702,8 +1677,7 @@ stars(
 )
 
 # Defuzzified site plot
-dev.new(title = "Defuzzified site plot",
-        noRStudioGD = TRUE)
+dev.new(title = "Defuzzified site plot", noRStudioGD = TRUE)
 plot(
   dc.pcoa,
   xlab = "MDS1",
@@ -1720,9 +1694,7 @@ legend(
 )
 
 # Plot the fuzzy clusters on a map of the Doubs River
-dev.new(title = "Four noise clusters on river",
-        width = 9,
-        noRStudioGD = TRUE)
+dev.new(title = "Four noise clusters on river", width = 9, noRStudioGD = TRUE)
 plot(
   spa,
   asp = 1,

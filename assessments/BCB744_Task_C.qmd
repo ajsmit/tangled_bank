@@ -19,29 +19,61 @@ params:
 # Load libraries
 library(tidyverse) # ✓
 library(scales) # ✓
-library(ggsn) # replace this with ggspatial ✓
+library(ggspatial) # replace this with ggspatial ✓
+library(grid)
 
 # Load Africa map
-load("../data/africa_map.RData") # ✓
+load(here::here("data", "africa_map.RData")) # ✓
 
-my_map <-ggplot() +
-  borders(size = 0.2, fill = "cornsilk", colour = "black") + # ✓
-  coord_equal(xlim = c(12, 37), ylim = c(-38, -22.1), expand = 0) + # ✓
-  annotate("text", label = "Atlantic\nOcean", # ✓
-           x = 15.1, y = -32.0, 
-           size = 5.0, 
-           angle = 30, 
-           colour = "navy") +
-  annotate("text", label = "Indian\nOcean", # ✓
-           x = 33.2, y = -34.2, 
-           size = 5.0, 
-           angle = 330, 
-           colour = "red4") +
-  scalebar(x.min = 22, x.max = 26, y.min = -36, y.max = -35, # Set location of bar
-           dist = 100, dist_unit = "km", height = 0.3, st.dist = 0.8, st.size = 4, # Set particulars
-           transform = TRUE, border.size = 0.2, model = "WGS84") + # Set appearance
-  north(x.min = 22.5, x.max = 25.5, y.min = -33, y.max = -31, # Set location of symbol
-        scale = 1.2, symbol = 16)
+my_map <- ggplot() +
+  borders(size = 0.2, fill = "cornsilk", colour = "black") +
+  coord_equal(xlim = c(12, 37), ylim = c(-38, -22.1), expand = 0) +
+  annotate(
+    "text",
+    label = "Atlantic\nOcean",
+    x = 15.1,
+    y = -32.0,
+    size = 5.0,
+    angle = 30,
+    colour = "navy"
+  ) +
+  annotate(
+    "text",
+    label = "Indian\nOcean",
+    x = 33.2,
+    y = -34.2,
+    size = 5.0,
+    angle = 330,
+    colour = "red4"
+  ) +
+  # ---- ggspatial replacements ----
+  # Scale bar originally x ∈ [22, 26], y ≈ [-36, -35] near bottom.
+  # Width fraction = (26-22)/(37-12) = 4/25 = 0.16.
+  # Horizontal pad from left = (22-12)/(37-12) = 10/25 = 0.40 npc.
+  # Vertical pad from bottom ≈ (-36 - -38)/( -22.1 - -38 ) ≈ 2/15.9 ≈ 0.126 npc.
+  annotation_scale(
+    location = "bl",
+    width_hint = 0.16,
+    pad_x = unit(0.40, "npc"),
+    pad_y = unit(0.13, "npc"),
+    height = unit(0.3, "cm"),
+    text_cex = 1.0, # ≈ st.size = 4
+    line_width = 0.2,
+    bar_cols = c("black", "white")
+  ) +
+  # North arrow originally around x ∈ [22.5, 25.5], y ∈ [-33, -31].
+  # Midpoint x ≈ 24  → pad_x = (24-12)/25 = 0.48 npc from left.
+  # Midpoint y ≈ -32 → pad_y = (-32 - -38)/15.9 ≈ 6/15.9 ≈ 0.38 npc from bottom.
+  annotation_north_arrow(
+    location = "bl",
+    which_north = "true",
+    pad_x = unit(0.48, "npc"),
+    pad_y = unit(0.38, "npc"),
+    height = unit(1.2, "cm"), # ≈ scale = 1.2
+    width = unit(1.2, "cm"),
+    style = north_arrow_fancy_orienteering
+  )
+
 my_map
 ```
 
@@ -57,33 +89,61 @@ Aethetically improve the map you created in this lecture (above example) and add
 # Load libraries
 library(tidyverse) # ✓
 library(scales) # ✓
-library(ggsn) # replace this with ggspatial ✓
+library(ggspatial) # replace this with ggspatial ✓
+library(grid)
 
 # Load Africa map
-load("../data/africa_map.RData") # ✓
+load(here::here("data", "africa_map.RData")) # ✓
 
-my_map <-ggplot() +
-  borders(size = 0.2, fill = "cornsilk", colour = "black") + # ✓
-  coord_equal(xlim = c(12, 37), ylim = c(-38, -22.1), expand = 0) + # ✓
-  annotate("text", label = "Atlantic\nOcean", # ✓
-           x = 15.1, y = -32.0, 
-           size = 5.0, 
-           angle = 30, 
-           colour = "navy") +
-  annotate("text", label = "Indian\nOcean", # ✓
-           x = 33.2, y = -34.2, 
-           size = 5.0, 
-           angle = 330, 
-           colour = "red4") +
-  scalebar(x.min = 15, x.max = 26, y.min = -36, y.max = -35, # ✓
-           dist = 400, dist_unit = "km", height = 0.3, st.dist = 0.8, st.size = 4,
-           transform = TRUE, border.size = 0.2, model = "WGS84") +
-  north(x.min = 12.5, x.max = 15.5, y.min = -37, y.max = -35, # ✓
-        scale = 1.2, symbol = 16) +
-  theme_minimal() + # ✓
-  labs(title = "Southern Africa", # ✓
-       subtitle = "An interesting subtitle", # ✓
-       x = "Lon (°E)", y = "Lat (°S)") # ✓
+my_map <- ggplot() +
+  borders(size = 0.2, fill = "cornsilk", colour = "black") +
+  coord_equal(xlim = c(12, 37), ylim = c(-38, -22.1), expand = 0) +
+  annotate(
+    "text",
+    label = "Atlantic\nOcean",
+    x = 15.1,
+    y = -32.0,
+    size = 5.0,
+    angle = 30,
+    colour = "navy"
+  ) +
+  annotate(
+    "text",
+    label = "Indian\nOcean",
+    x = 33.2,
+    y = -34.2,
+    size = 5.0,
+    angle = 330,
+    colour = "red4"
+  ) +
+  # ≈ Scale bar originally spanning x ≈ 15–26 near the bottom:
+  # width_hint ≈ (26-15) / (37-12) = 11/25 = 0.44
+  annotation_scale(
+    location = "bl",
+    width_hint = 0.44,
+    height = unit(0.3, "cm"),
+    text_cex = 1.0, # ≈ st.size = 4
+    pad_x = unit(2.0, "cm"), # horizontal offset from left edge
+    pad_y = unit(0.5, "cm"), # vertical offset from bottom edge
+    bar_cols = c("black", "white"),
+    line_width = 0.2
+  ) +
+  # ≈ North arrow originally around x ≈ 12.5–15.5, y ≈ -37 to -35 (bottom-left):
+  annotation_north_arrow(
+    location = "bl",
+    which_north = "true",
+    pad_x = unit(0.5, "cm"),
+    pad_y = unit(1.2, "cm"),
+    style = north_arrow_fancy_orienteering
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Southern Africa",
+    subtitle = "An interesting subtitle",
+    x = "Lon (°E)",
+    y = "Lat (°S)"
+  )
+
 my_map
 ```
 
@@ -100,12 +160,22 @@ Add a the capital city/town of each province to the map using `geom_point()` and
 
 ```{r, fig.width=5,fig.asp=0.65,out.width="60%",fig.align='center',echo=TRUE,warning=FALSE,message=FALSE}
 # Load the data
-caps <- read.csv("../data/south_africa_capitals.csv") # ✓ 
+caps <- read.csv(here::here("data", "south_africa_capitals.csv")) # ✓
 
 my_map +
-  geom_point(data = caps, aes(x = Longitude, y = Latitude), size = 2, colour = "red") + # ✓ 
-  geom_text(data = caps, aes(x = Longitude, y = Latitude, label = City), # ✓ 
-            nudge_x = 1, nudge_y = 0.5, size = 2.4)
+  geom_point(
+    data = caps,
+    aes(x = Longitude, y = Latitude),
+    size = 2,
+    colour = "red"
+  ) + # ✓
+  geom_text(
+    data = caps,
+    aes(x = Longitude, y = Latitude, label = City), # ✓
+    nudge_x = 1,
+    nudge_y = 0.5,
+    size = 2.4
+  )
 ```
 
 Note: The positioning of the city names isn't optimal, but I won't apply penalties to that.
@@ -130,28 +200,40 @@ library(rnaturalearthdata)
 sf_use_s2(FALSE)
 
 # the full map extent:
-xmin <- 12; ymin <- -36.5; xmax <- 40.5; ymax <- -10
-xlim <- c(xmin, xmax); ylim <- c(ymin, ymax)
+xmin <- 12
+ymin <- -36.5
+xmax <- 40.5
+ymax <- -10
+xlim <- c(xmin, xmax)
+ylim <- c(ymin, ymax)
 
 # make a bounding box for cropping:
-bbox <- st_bbox(c(xmin = xmin, ymin = ymin,
-  xmax = xmax, ymax = ymax))
+bbox <- st_bbox(c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax))
 
-# might be useful for zooming into a smaller region (False Bay and 
+# might be useful for zooming into a smaller region (False Bay and
 # the Cape Peninsula):
-xlim_zoom <- c(17.8, 19); ylim_zoom <- c(-34.5, -33.2)
+xlim_zoom <- c(17.8, 19)
+ylim_zoom <- c(-34.5, -33.2)
 
 # load the countries:
-safrica_countries <- ne_countries(returnclass = 'sf',
+safrica_countries <- ne_countries(
+  returnclass = 'sf',
   continent = "Africa",
-  country = c("South Africa", "Mozambique",
-    "Namibia", "Zimbabwe", "Botswana",
-    "Lesotho", "Eswatini"),
-  scale = "large")
+  country = c(
+    "South Africa",
+    "Mozambique",
+    "Namibia",
+    "Zimbabwe",
+    "Botswana",
+    "Lesotho",
+    "Eswatini"
+  ),
+  scale = "large"
+)
 
-safrica_countries_new <- safrica_countries |> 
-  group_by(continent) |> 
-  summarise() |> 
+safrica_countries_new <- safrica_countries |>
+  group_by(continent) |>
+  summarise() |>
   st_crop(bbox) |>
   st_combine()
 ```
@@ -224,31 +306,48 @@ library(rnaturalearthdata)
 sf_use_s2(FALSE)
 
 # the full map extent:
-xmin <- 12; ymin <- -36.5; xmax <- 40.5; ymax <- -10  # ✓
-xlim <- c(xmin, xmax); ylim <- c(ymin, ymax)
+xmin <- 12
+ymin <- -36.5
+xmax <- 40.5
+ymax <- -10 # ✓
+xlim <- c(xmin, xmax)
+ylim <- c(ymin, ymax)
 
 # make a bounding box for cropping:
-bbox <- st_bbox(c(xmin = xmin, ymin = ymin,  # ✓
-  xmax = xmax, ymax = ymax))
+bbox <- st_bbox(c(
+  xmin = xmin,
+  ymin = ymin, # ✓
+  xmax = xmax,
+  ymax = ymax
+))
 
 
 # load the countries:
-safrica_countries <- ne_countries(returnclass = 'sf',  # ✓
+safrica_countries <- ne_countries(
+  returnclass = 'sf', # ✓
   continent = "Africa",
-  country = c("South Africa", "Mozambique",
-    "Namibia", "Zimbabwe", "Botswana",
-    "Lesotho", "Eswatini"),
-  scale = "large")
+  country = c(
+    "South Africa",
+    "Mozambique",
+    "Namibia",
+    "Zimbabwe",
+    "Botswana",
+    "Lesotho",
+    "Eswatini"
+  ),
+  scale = "large"
+)
 
 safrica_countries_new <- safrica_countries |> # ✓
-  group_by(continent) |> 
-  summarise() |> 
+  group_by(continent) |>
+  summarise() |>
   st_crop(bbox) |>
   st_combine()
 
-# For zooming into a smaller region (False Bay and 
+# For zooming into a smaller region (False Bay and
 # the Cape Peninsula):
-xlim_zoom <- c(17.8, 19); ylim_zoom <- c(-34.5, -33.2) # ✓
+xlim_zoom <- c(17.8, 19)
+ylim_zoom <- c(-34.5, -33.2) # ✓
 
 # Cape Town lon and lat
 ctown <- c(18.4241, -33.9249) # ✓
@@ -256,11 +355,18 @@ ctown <- c(18.4241, -33.9249) # ✓
 ggplot() +
   geom_sf(data = safrica_countries, colour = "indianred", fill = "beige") + # ✓
   geom_point(aes(x = ctown[1], y = ctown[2]), size = 3, colour = "blue") + # ✓
-  geom_text(aes(x = ctown[1], y = ctown[2], label = "Cape Town"), # ✓
-            nudge_x = 0.1, nudge_y = 0.08, size = 3) +
+  geom_text(
+    aes(x = ctown[1], y = ctown[2], label = "Cape Town"), # ✓
+    nudge_x = 0.1,
+    nudge_y = 0.08,
+    size = 3
+  ) +
   coord_sf(xlim = xlim_zoom, ylim = ylim_zoom, expand = 0) + # ✓
-  labs(title = "Cape Town", # ✓
-       x = "Lon (°E)", y = "Lat (°S)") +
+  labs(
+    title = "Cape Town", # ✓
+    x = "Lon (°E)",
+    y = "Lat (°S)"
+  ) +
   scale_x_continuous(breaks = c(18, 19)) + # ✓
   scale_y_continuous(breaks = c(-34.2, -33.4)) # ✓
 ```
