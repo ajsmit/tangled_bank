@@ -1,1 +1,1 @@
-source("renv/activate.R")
+# renv removed from project - using system R library
