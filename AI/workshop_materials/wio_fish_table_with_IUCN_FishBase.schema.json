@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/schemas/wio-fish-table.schema.json",
+  "title": "Western Indian Ocean – Harmonised Fish Table",
+  "description": "Row-wise schema for harmonised taxonomic records used for cross-source binding. Rows represent taxa (primarily finfish; cephalopods appear when required for contextual linkage). Use 'Scientific Name' as the canonical key where available; otherwise fall back to 'FishBase accepted' or 'WoRMS accepted'. All text fields use Unicode NFC; leading/trailing whitespace should be trimmed before validation. The FishBase-specific IUCN fields are populated programmatically from FishBase species pages (preferred) or from the rfishbase API when fields are exposed; the text mirrors the on-page string and the Date assessed value as displayed by FishBase.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "Scientific Name"
+    ],
+    "properties": {
+      "Common Name": {
+        "type": "string"
+      },
+      "Scientific Name": {
+        "type": "string"
+      },
+      "Family": {
+        "type": "string"
+      },
+      "Distribution": {
+        "type": "string"
+      },
+      "Additional Data Available": {
+        "type": "string"
+      },
+      "Submitted name": {
+        "type": "string"
+      },
+      "FishBase accepted": {
+        "type": "string"
+      },
+      "WoRMS accepted": {
+        "type": "string"
+      },
+      "Provenance": {
+        "type": "string"
+      },
+      "IUCN redlist status": {
+        "type": "string",
+        "description": "Conservation status according to the IUCN Red List",
+        "enum": [
+          "Extinct",
+          "Extinct in the Wild",
+          "Critically Endangered",
+          "Endangered",
+          "Vulnerable",
+          "Near Threatened",
+          "Least Concern",
+          "Data Deficient",
+          "Not Evaluated"
+        ]
+      },
+      "IUCN redlist status (FishBase)": {
+        "type": "string",
+        "description": "Verbatim IUCN Red List status string as displayed on the FishBase species summary page (e.g., 'Critically Endangered (CR) (A2cd)'). Use Unicode NFC; do not abbreviate or recode."
+      },
+      "IUCN assessment date (FishBase)": {
+        "type": "string",
+        "description": "The 'Date assessed' value shown on FishBase for the species (the IUCN assessment completion date). Prefer the exact display string (e.g., '02 February 2022'); ISO-8601 'YYYY-MM-DD' also permitted.",
+        "anyOf": [
+          {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          {
+            "type": "string",
+            "pattern": "^[0-9]{1,2} [A-Za-z]+ [0-9]{4}$"
+          },
+          {
+            "type": "string",
+            "minLength": 4
+          }
+        ]
+      }
+    }
+  },
+  "$comment": "Harvest FishBase fields by requesting the species summary page at https://www.fishbase.se/summary/Genus-species (canonical hyphenated path) and parsing the block that begins 'IUCN Red List Status (Ref. 130435: Version ...)'. Capture both the status string and the 'Date assessed'. When the rfishbase API exposes equivalent fields, use them to cross-check but keep the HTML string authoritative. Interpret 'Date assessed' using IUCN semantics: the date the assessment was completed (not necessarily the publication year)."
+}
