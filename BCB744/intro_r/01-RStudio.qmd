@@ -1,6 +1,9 @@
 ---
 date: "2021-01-01"
 title: "1. R & RStudio"
+format:
+  html:
+    fig-format: png
 ---
 
 ![](../../images/PhD_comics4.JPG){width=50%}
@@ -17,7 +20,9 @@ title: "1. R & RStudio"
 knitr::opts_chunk$set(
   comment = "R>",
   warning = FALSE,
-  message = FALSE
+  message = FALSE,
+  dev = "ragg_png",
+  fig.ext = "png"
 )
 ```
 
@@ -76,7 +81,7 @@ A very nifty way of managing your workflow in RStudio is through the built-in fu
 2. Select 'New Directory' and then 'New Project'.
 3. Name the project 'Intro_R_Workshop' and save it in a location of your choice (make sure you understand your computer's file system and where you are saving files).
 4. Click 'Create Project'.
-5. Copy the data archive `Archive.zip` to the project directory and unzip it there.
+5. Copy the data archive [`Archive.zip`](https://drive.google.com/drive/folders/17wOshp348ZWikPPTyt4fqrKY2OmaV0FR?usp=sharing) to the project directory and unzip it there.
 6. Rename the unzipped folder to `data`.
 
 Your RStudio should now look like this:
@@ -98,12 +103,19 @@ library(dplyr)
 library(tidyr)
 url <- "https://cran.r-project.org/web/packages/available_packages_by_date.html"
 
-pkgs_lst <- read_html(url) %>%
-  html_node("table") %>%
-  html_table()
+pkgs_lst <- tryCatch({
+  read_html(url) %>%
+    html_node("table") %>%
+    html_table()
+}, error = function(e) {
+  message("Unable to fetch package table from CRAN: ", conditionMessage(e))
+  NULL
+})
+
+pkgs_count <- if (is.null(pkgs_lst)) NA_integer_ else nrow(pkgs_lst)
 ```
 
-The most common functions used in R are contained within the **base** package; this makes R useful 'out of the box.' However, there is extensive additional functionality that is being expanded all the time through the use of packages. Packages are simply collections of code called functions that automate complex mathematical or statistical tasks. One of the most useful features of R is that users are continuously developing new packages and making them available for free. You can find a comprehensive list of available packages on the [CRAN website](https://cran.r-project.org/web/packages/). There are currently (```r Sys.Date()```) ```r nrow(pkgs_lst)``` packages available for R!
+The most common functions used in R are contained within the **base** package; this makes R useful 'out of the box.' However, there is extensive additional functionality that is being expanded all the time through the use of packages. Packages are simply collections of code called functions that automate complex mathematical or statistical tasks. One of the most useful features of R is that users are continuously developing new packages and making them available for free. You can find a comprehensive list of available packages on the [CRAN website](https://cran.r-project.org/web/packages/). There are currently (```r Sys.Date()```) ```r if (is.na(pkgs_count)) "many" else format(pkgs_count, big.mark = ",")``` packages available for R!
 
 If the thought of searching for and finding R packages is daunting, a good place to start is the [R Task Views](http://cran.r-project.org/web/views/) page. This page curates collections of packages for general tasks you might encounter, such as Experimental Design, Meta-Analysis, or Multivariate Analysis. Go and have a look for yourself, you might be surprised to find a good explanation of what you need.
 
