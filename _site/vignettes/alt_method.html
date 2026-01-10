@@ -2,10 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.24">
+<meta name="generator" content="quarto-1.8.26">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="author" content="AJ Smit and Robert W Schlegel">
-<meta name="dcterms.date" content="2025-09-16">
+<meta name="dcterms.date" content="2026-01-10">
 <meta name="description" content="This vignette demonstrates an alternative method for downloading NOAA OISST data (using a python script) and preparing and detecting marine heatwaves.">
 <title>Downloading and Preparing NOAA OISST Data: python + CDO – The Tangled Bank</title>
 <style>
@@ -73,10 +73,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-a6e161b2431e1f94a14e0f5d32135a3c.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-597958c53c93a607afca12fd375c57ed.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-238d583a1c34a2bc5bccf77e447084b3.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-37d9842ca13b32c9c58adfc4ed5d9451.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -144,8 +144,6 @@ cookieconsent.run({
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="../index.html" class="navbar-brand navbar-brand-logo">
-    </a>
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">The Tangled Bank</span>
     </a>
@@ -216,10 +214,10 @@ cookieconsent.run({
     </ul>
 </li>
   <li class="nav-item dropdown ">
-    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-high-performace-computing" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">High-Performace Computing</span>
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-high-performance-computing" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">High-Performance Computing</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-high-performace-computing">
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-high-performance-computing">
 <li>
     <a class="dropdown-item" href="../vignettes/README_Lengau.html">
  <span class="dropdown-text">Using Lengau</span></a>
@@ -290,11 +288,11 @@ cookieconsent.run({
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#subsetting-using-a-python-script" id="toc-subsetting-using-a-python-script" class="nav-link" data-scroll-target="#subsetting-using-a-python-script">Subsetting using a python script</a></li>
-  <li><a href="#combine-daily-netcdfs-into-an-%C3%BCber-netcdf-using-cdo" id="toc-combine-daily-netcdfs-into-an-über-netcdf-using-cdo" class="nav-link" data-scroll-target="#combine-daily-netcdfs-into-an-%C3%BCber-netcdf-using-cdo">Combine daily netCDFs into an über netCDF using CDO</a></li>
-  <li><a href="#extract-sst-data-using-tidync-and-parallel-process-individual-slices" id="toc-extract-sst-data-using-tidync-and-parallel-process-individual-slices" class="nav-link" data-scroll-target="#extract-sst-data-using-tidync-and-parallel-process-individual-slices">Extract SST data using <code>tidync</code>, and parallel process individual ‘slices’</a></li>
-  <li><a href="#apply-the-slice-and-detect-functions" id="toc-apply-the-slice-and-detect-functions" class="nav-link" data-scroll-target="#apply-the-slice-and-detect-functions">Apply the slice and detect functions</a></li>
+<li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a></li>
+  <li><a href="#subsetting-using-a-python-script" id="toc-subsetting-using-a-python-script" class="nav-link" data-scroll-target="#subsetting-using-a-python-script"><span class="header-section-number">2</span> Subsetting using a python script</a></li>
+  <li><a href="#combine-daily-netcdfs-into-an-%C3%BCber-netcdf-using-cdo" id="toc-combine-daily-netcdfs-into-an-über-netcdf-using-cdo" class="nav-link" data-scroll-target="#combine-daily-netcdfs-into-an-%C3%BCber-netcdf-using-cdo"><span class="header-section-number">3</span> Combine daily netCDFs into an über netCDF using CDO</a></li>
+  <li><a href="#extract-sst-data-using-tidync-and-parallel-process-individual-slices" id="toc-extract-sst-data-using-tidync-and-parallel-process-individual-slices" class="nav-link" data-scroll-target="#extract-sst-data-using-tidync-and-parallel-process-individual-slices"><span class="header-section-number">4</span> Extract SST data using <code>tidync</code>, and parallel process individual ‘slices’</a></li>
+  <li><a href="#apply-the-slice-and-detect-functions" id="toc-apply-the-slice-and-detect-functions" class="nav-link" data-scroll-target="#apply-the-slice-and-detect-functions"><span class="header-section-number">5</span> Apply the slice and detect functions</a></li>
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/vignettes/alt_method.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
@@ -322,7 +320,7 @@ cookieconsent.run({
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 16, 2025</p>
+      <p class="date">January 10, 2026</p>
     </div>
   </div>
   
@@ -331,7 +329,8 @@ cookieconsent.run({
   
 
 
-</header><section id="overview" class="level2"><h2 class="anchored" data-anchor-id="overview">Overview</h2>
+</header><section id="overview" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="overview">
+<span class="header-section-number">1</span> Overview</h2>
 <p>In this vignette we shall look at retrieving and processing the <a href="https://journals.ametsoc.org/doi/full/10.1175/2007JCLI1824.1">Reynolds Optimally Interpolated Sea Surface Temperature</a> (OISST), which is a global data set of Advanced Very High Resolution Radiometer (AVHRR) derived SSTs at a daily resolution, starting on 1 September 1981. The source of the data is the <a href="https://podaac.jpl.nasa.gov/">Physical Oceanography Distributed Active Archive Centre (PODAAC)</a>.</p>
 <p>Several steps are involved:</p>
 <ul>
@@ -347,7 +346,8 @@ cookieconsent.run({
 <figcaption><strong>Figure 1.</strong> OISST data plotted on a Gnomonic Cubed Sphere projection thanks to <a href="https://www.giss.nasa.gov/tools/panoply/">Panoply</a>—the similarity with certain religious iconography is purely coincidental.</figcaption></figure>
 </div>
 <p>Each global, daily file is around 8.3Mb, so they add up to a large amount of data when a time series of at least 30 years duration is downloaded. A time series of at least 30 years is needed for heatwave detection. Currently I have 13,216 of these global files, and this amounts to ~108Gb of total disk space. Since not everyone will need all of these data, we shall subset the data using a python script prior to downloading them.</p>
-</section><section id="subsetting-using-a-python-script" class="level2"><h2 class="anchored" data-anchor-id="subsetting-using-a-python-script">Subsetting using a python script</h2>
+</section><section id="subsetting-using-a-python-script" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="subsetting-using-a-python-script">
+<span class="header-section-number">2</span> Subsetting using a python script</h2>
 <p>To do the subsetting and bring the data to your local computer/server, you will need access to <strong>python &gt;3.7</strong> with <strong>numpy</strong>. Make sure it is installed on your system and visible on the system PATH.</p>
 <p>&lt;&lt;&lt; — check python version — &gt;&gt;&gt;</p>
 <p>Create a folder on your server where all the data will be received, below, for example, I use <code>/Users/ajsmit/spatial/test/netCDF</code>.</p>
@@ -366,7 +366,8 @@ cookieconsent.run({
 <p>The spatial extent is for a region around southern Africa that has both the Benguela and Agulhas Current in it; we select files starting in 1981-09-01 and going up to 2022-02-28. The short name is the name mentioned on the <a href="https://podaac.jpl.nasa.gov/dataset/AVHRR_OI-NCEI-L4-GLOB-v2.0">Reynolds OISST data website</a>—substituting this name for any of the other SST datasets on that website <em>should</em> then permit the retrieval of other data sets (e.g.&nbsp;the <a href="https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1">MUR data’s</a> short name is MUR-JPL-L4-GLOB-v4.1). This website seems to be down frequently, so try a couple of times if it does not work the first time.</p>
 <p>Adjust any of these parameters to taste in order to define the spatial extent and the time period as required by your study.</p>
 <p>If everything works according to plan, a bunch of data will now be downloaded. This might take several hours. There will be one netCDF file for each day of the study period. In later steps we shall combine them into one netCDF file, and then do some further processing to extract the marine heatwaves.</p>
-</section><section id="combine-daily-netcdfs-into-an-über-netcdf-using-cdo" class="level2"><h2 class="anchored" data-anchor-id="combine-daily-netcdfs-into-an-über-netcdf-using-cdo">Combine daily netCDFs into an über netCDF using CDO</h2>
+</section><section id="combine-daily-netcdfs-into-an-über-netcdf-using-cdo" class="level2" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="combine-daily-netcdfs-into-an-über-netcdf-using-cdo">
+<span class="header-section-number">3</span> Combine daily netCDFs into an über netCDF using CDO</h2>
 <p>The approach taken here sequentially slices the combined über netCDF and then detects marine heatwaves in parallel within each ‘slice.’</p>
 <p>To make a giant netCDF, I use the <a href="https://code.mpimet.mpg.de/projects/cdo">Climate Data Operators</a> (CDO) command in the terminal:</p>
 <p><code>&gt; cdo mergetime *.nc OISST_combined.nc</code></p>
@@ -376,9 +377,11 @@ cookieconsent.run({
 <ul>
 <li>netCDF: 30 Gb, or</li>
 <li>csv and db file: ~97 Gb each</li>
-</ul></section><section id="extract-sst-data-using-tidync-and-parallel-process-individual-slices" class="level2"><h2 class="anchored" data-anchor-id="extract-sst-data-using-tidync-and-parallel-process-individual-slices">Extract SST data using <code>tidync</code>, and parallel process individual ‘slices’</h2>
+</ul></section><section id="extract-sst-data-using-tidync-and-parallel-process-individual-slices" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="extract-sst-data-using-tidync-and-parallel-process-individual-slices">
+<span class="header-section-number">4</span> Extract SST data using <code>tidync</code>, and parallel process individual ‘slices’</h2>
 <p>I use <code><a href="https://docs.ropensci.org/tidync/reference/tidync.html">tidync::tidync()</a></code> to sequentially select small slices that fit into memory and process each in parallel using <code>plyr::ldapply()</code>. Someday I’ll replace the <code>plyr</code> function with something newer as this package is sadly no longer maintained. Maybe one of the <code>map()</code> family of functions in the <strong>purrr</strong> package? The ‘width’ of a slice can be scaled with the amount of memory, and the subsequent parallel processing to detect the events within each slice scales with the number of CPU cores.</p>
-</section><section id="apply-the-slice-and-detect-functions" class="level2"><h2 class="anchored" data-anchor-id="apply-the-slice-and-detect-functions">Apply the slice and detect functions</h2>
+</section><section id="apply-the-slice-and-detect-functions" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="apply-the-slice-and-detect-functions">
+<span class="header-section-number">5</span> Apply the slice and detect functions</h2>
 <p>Here is a set of steps that does the job for me:</p>
 <div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Load packages -----------------------------------------------------------</span></span>
@@ -1103,7 +1106,7 @@ OISST Data: python + CDO. <a href="http://tangledbank.netlify.app/vignettes/alt_
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2025, AJ Smit</p>
+<p>© 2026, AJ Smit</p>
 </div>   
     <div class="nav-footer-center">
 
