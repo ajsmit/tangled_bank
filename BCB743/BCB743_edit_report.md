@@ -1,0 +1,79 @@
+# BCB743 Edit Report
+
+## Scope
+- Files: `BCB743/*.qmd` and `BCB743/tasks/*.qmd`
+- Focus: prose corrections (British English, grammar, punctuation, and clarity), with minor spelling fixes in code comments where they were purely textual.
+
+## Edits Made (by file)
+- `BCB743/BCB743_index.qmd`
+  - Standardised UK spellings (e.g., utilise, colours, organisation).
+  - Fixed typos and grammar (e.g., “make the difference”, “necessary”, “acceptable”, “workshop”, “courteous”).
+  - Added Oxford commas and smoothed phrasing in instructional paragraphs.
+  - Clarified WhatsApp/Issues guidance and adjusted wording for readability.
+- `BCB743/PCA.qmd`
+  - Corrected spelling/grammar (understanding, Euclidean, simplifying).
+  - Standardised book title to *Numerical Ecology with R* and fixed “Ecology”.
+  - Smoothed phrasing and reduced contractions for formal consistency.
+- `BCB743/PCA_SDG_example.qmd`
+  - UK spellings (Organisation, standardised, centre).
+  - Clarified “respective dataframes” sentence and added a comma for flow.
+- `BCB743/CA.qmd`
+  - Standardised book title to *Numerical Ecology with R* in the header table and reference line.
+- `BCB743/DCA.qmd`
+  - Standardised book title to *Numerical Ecology with R* in the header table.
+- `BCB743/PCoA.qmd`
+  - Standardised book title to *Numerical Ecology with R* (header and references).
+  - Fixed a spelling error in a code comment (“Species”).
+- `BCB743/cluster_analysis.qmd`
+  - Standardised book title to *Numerical Ecology with R*.
+  - Fixed typos and grammar (Euclidean, algorithm, tells, groups).
+  - Corrected a spelling error in a code comment.
+- `BCB743/correlations.qmd`
+  - Euclidian → Euclidean in prose.
+- `BCB743/deep_dive.qmd`
+  - Euclidian → Euclidean in prose and a nearby code comment.
+- `BCB743/model_building.qmd`
+  - “exemple” → “example”; improved sentence structure (“of broad applicability”).
+- `BCB743/nMDS.qmd`
+  - Grammar and spacing fixes (e.g., “nMDS and”, “diagrams”).
+  - Standardised book title to *Numerical Ecology with R*.
+- `BCB743/two_oceans_appendices.qmd`
+  - Euclidian → Euclidean; neigbouring → neighbouring; corrected a spelling error in a code comment.
+- `BCB743/tasks/Task_A1.qmd`
+  - modeling → modelling (British spelling in prose).
+- `BCB743/tasks/Task_A1_2024.qmd`
+  - modeling → modelling (British spelling in prose).
+- `BCB743/tasks/Task_A2.qmd`
+  - modeling → modelling (British spelling in prose).
+- `BCB743/tasks/Task_A2_2024.qmd`
+  - modeling → modelling (British spelling in prose).
+- `BCB743/PCA_examples.qmd`
+  - Removed erroneous commas introduced during the Oxford comma pass (e.g., “length and width” groupings).
+- `BCB743/constrained_ordination.qmd`
+  - Removed extra commas inserted between paired terms; kept Oxford commas only in true lists of three or more.
+- `BCB743/dis-metrics.qmd`
+  - Removed commas in two-item phrases; cleaned punctuation around list clauses.
+- `BCB743/nMDS.qmd`
+  - Removed commas in two-item phrases and corrected Oxford comma placement.
+- `BCB743/nMDS_diatoms.qmd`
+  - Removed commas in two-item phrases and corrected Oxford comma placement.
+- `BCB743/ordination.qmd`
+  - Removed commas in two-item phrases and corrected Oxford comma placement.
+- `BCB743/tasks/Task_E.qmd`
+  - Removed comma in a two-item phrase.
+- `BCB743/tasks/Task_F.qmd`
+  - Removed commas between paired terms in task instructions.
+- `BCB743/tasks/Task_G.qmd`
+  - Removed commas in two-item phrases and corrected Oxford comma placement.
+- `BCB743/two_oceans_appendices.qmd`
+  - Removed commas in two-item phrases and corrected Oxford comma placement.
+- `BCB743/unconstrained-summary.qmd`
+  - Removed commas in two-item phrases and corrected Oxford comma placement.
+- `BCB743/assessments/_05-spp_dissimilarity.qmd`
+  - Removed commas in two-item phrases and corrected Oxford comma placement.
+
+## Inconsistencies, Ambiguities, and Clarity Recommendations
+- “Shepard plot” is an accepted eponym in ordination; I left it unchanged despite spellchecker suggestions.
+- URLs containing `adn.biol.umontreal.ca` are correct and were left unchanged.
+- Oxford comma usage is now consistent in sentences edited here; consider a pass over remaining lists if you want strict consistency across the whole module.
+- If you prefer avoiding contractions across the module (e.g., “it is” vs “it’s”), I can apply that consistently.
