@@ -1084,7 +1084,7 @@ CRS:           +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0
 </div>
 </div>
 </div>
-<p>The western Pacific is now focal, but the map looks strange to say the least. This is due to the break at the anti-meridian which causes the polygons to join up in odd and unexpected ways when the central longitude in the map is not displayed at exactly 0° (in my reprojection I made the focus on 170°E and it became the centre). I can fix it using <code>st_break_antimeridian()</code> but to do so I must start with unprojected data, and only <em>then</em> apply this function.</p>
+<p>The western Pacific is now focal, but the map looks strange to say the least. This is due to the break at the anti-meridian which causes the polygons to join up in odd, unexpected ways when the central longitude in the map is not displayed at exactly 0° (in my reprojection I made the focus on 170°E and it became the centre). I can fix it using<code>st_break_antimeridian()</code> but to do so I must start with unprojected data, and only <em>then</em> apply this function.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>world_1 <span class="ot">&lt;-</span> <span class="fu">ne_countries</span>(<span class="at">returnclass =</span> <span class="st">'sf'</span>,</span>
 <span id="cb6-2"><a href="#cb6-2"></a>  <span class="at">scale =</span> <span class="dv">10</span>, <span class="at">type =</span> <span class="st">"countries"</span>) <span class="sc">|&gt;</span> </span>
@@ -1106,13 +1106,13 @@ CRS:           +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0
 <p>There are three options for focusing in on a particular area of the map (zooming in):</p>
 <ul>
 <li>selecting only certain areas of interest from the spatial dataset (e.g.&nbsp;only certain countries / continent(s) / etc.);</li>
-<li>cropping the geometries in the spatial dataset using <code>sf_crop()</code>; and</li>
+<li>cropping the geometries in the spatial dataset using <code>sf_crop()</code>;</li>
 <li>restricting the display window via <code>coord_sf()</code>.</li>
 </ul>
 <p>I will look at each in some detail.</p>
 </section><section id="selecting-areas-of-interest" class="level1" data-number="4"><h1 data-number="4">
 <span class="header-section-number">4</span> Selecting areas of interest</h1>
-<p>I am interested only in the ‘continent’ called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region and not a continent. It is comprised of Australasia, Melanesia, Micronesia, and Polynesia which span the the Eastern and Western Hemispheres.</p>
+<p>I am interested only in the ‘continent’ called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region, not a continent. It is comprised of Australasia and Melanesia, Micronesia, and Polynesia which span the Eastern, Western Hemispheres.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>oceania <span class="ot">&lt;-</span> world_1[world_1<span class="sc">$</span>continent <span class="sc">==</span> <span class="st">'Oceania'</span>,]</span>
 <span id="cb7-2"><a href="#cb7-2"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
@@ -1125,7 +1125,7 @@ CRS:           +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0
 </div>
 </div>
 <p>Zooming in on only the group of nations included with Oceania reveals another problem. This is, only part of New Guinea is displayed: Papua New Guinea appears on the map but the western side of New Guinea, called Western New Guinea, is absent. This is because Papua New Guinea is part of Micronesia whereas West New Guinea is part of Indonesia (part of the South-eastern Asia region).</p>
-<p>There is no easy way to select the countries that constitute Australasia, Melanesia, Micronesia, Indonesia, and Polynesia—unless I create an exhaustive list of these small island nations. But I can use the <strong>countrycode</strong> package to insert an attribute with the geographic <a href="https://unstats.un.org/unsd/methodology/m49/">regional classification of the United Nations</a> in the <code>world_1</code> map. Now all the constituent countries belonging to these regions will be correctly classified to the UN regional classification scheme. Note that I also collapse the countries into their continents by merging all polygons belonging to the same continent (the <code>group_by()</code> and <code>summarise()</code> functions)—I do this because I don’t want to display individual countries.</p>
+<p>There is no easy way to select the countries that constitute Australasia, Melanesia, Micronesia, Indonesia, and Polynesia—unless I create an exhaustive list of these small island nations. But I can use the <strong>countrycode</strong> package to insert an attribute with the geographic <a href="https://unstats.un.org/unsd/methodology/m49/">regional classification of the United Nations</a> in the <code>world_1</code> map. Now all the constituent countries belonging to these regions will be correctly classified to the UN regional classification scheme. Note that I also collapse the countries into their continents by merging all polygons belonging to the same continent (the <code>group_by()</code> and <code>summarise()</code> functions)—I do this because I do not want to display individual countries.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">library</span>(countrycode)</span>
 <span id="cb8-2"><a href="#cb8-2"></a></span>
@@ -1151,8 +1151,8 @@ CRS:           +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0
 </section><section id="cropping" class="level1" data-number="5"><h1 data-number="5">
 <span class="header-section-number">5</span> Cropping</h1>
 <p>The above map is good but not perfect. I have in mind zooming in a bit more into the region around Fiji where the earthquake monitoring network is located. One way to do this is to crop the extent of the study region using a bounding box whose boundaries are defined by the extent of the <code>quakes</code> datapoints.</p>
-<p>To start, I use the earthquake data and extract from there the study domain and increase the edges all round by a given margin—this is so that the stations are not plotted right on the maps’ edges.</p>
-<p>Important! The coordinates in the <code>quakes</code> data are provided in WGS84, so I need to first specify them as such and then transform them to the same coordinate system used by the map.</p>
+<p>To start, I use the earthquake data, extract from there the study domain and increase the edges all round by a given margin—this is so that the stations are not plotted right on the maps’ edges.</p>
+<p>Important! The coordinates in the <code>quakes</code> data are provided in WGS84, so I need to first specify them as such, then transform them to the same coordinate system used by the map.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>quakes <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(datasets<span class="sc">::</span>quakes)</span>
 <span id="cb9-2"><a href="#cb9-2"></a>margin <span class="ot">&lt;-</span> <span class="fl">15.0</span></span>
@@ -1177,12 +1177,12 @@ CRS:           +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0
 </div>
 </div>
 </div>
-<p>That looks decent enough, but there’s another way to accomplish the same.</p>
+<p>That looks decent enough, but there is another way to accomplish the same.</p>
 </section><section id="setting-the-mapping-limits-in-ggplot2" class="level1" data-number="6"><h1 data-number="6">
 <span class="header-section-number">6</span> Setting the mapping limits in <strong>ggplot2</strong>
 </h1>
 <p>The third approach to get closer to the region of interest is to use the full map extent (the world) loaded at the beginning, but to set the limits of the view window within the <code>coord_sf()</code> function in <code>ggplot()</code>.</p>
-<p>To do this, I start with the <code>bbox_sf_trans</code> object, which was obtained by first specifying the coordinates marking the extent of the map in the WGS84 coordinate system and then transforming them to Natural Earth. We can extract the transformed limits with <code>st_coordinates()</code> and supply them to the map.</p>
+<p>To do this, I start with the <code>bbox_sf_trans</code> object, which was obtained by first specifying the coordinates marking the extent of the map in the WGS84 coordinate system, then transforming them to Natural Earth. We can extract the transformed limits with<code>st_coordinates()</code> and supply them to the map.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>bbox_trans_coord <span class="ot">&lt;-</span> <span class="fu">st_coordinates</span>(bbox_trans)</span>
 <span id="cb10-2"><a href="#cb10-2"></a></span>
@@ -1862,7 +1862,7 @@ Smit, A. J. (2021) 11. The Fiji Earthquake Data. <a href="http://tangledbank.net
 <span id="cb16-106"><a href="#cb16-106"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> world_0, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">fill =</span> <span class="st">"grey70"</span>)</span>
 <span id="cb16-107"><a href="#cb16-107"></a><span class="in">```</span></span>
 <span id="cb16-108"><a href="#cb16-108"></a></span>
-<span id="cb16-109"><a href="#cb16-109"></a>The western Pacific is now focal, but the map looks strange to say the least. This is due to the break at the anti-meridian which causes the polygons to join up in odd and unexpected ways when the central longitude in the map is not displayed at exactly 0° (in my reprojection I made the focus on 170°E and it became the centre). I can fix it using <span class="in">`st_break_antimeridian()`</span> but to do so I must start with unprojected data, and only *then* apply this function.</span>
+<span id="cb16-109"><a href="#cb16-109"></a>The western Pacific is now focal, but the map looks strange to say the least. This is due to the break at the anti-meridian which causes the polygons to join up in odd, unexpected ways when the central longitude in the map is not displayed at exactly 0° (in my reprojection I made the focus on 170°E and it became the centre). I can fix it using<span class="in">`st_break_antimeridian()`</span> but to do so I must start with unprojected data, and only *then* apply this function.</span>
 <span id="cb16-110"><a href="#cb16-110"></a></span>
 <span id="cb16-113"><a href="#cb16-113"></a><span class="in">```{r}</span></span>
 <span id="cb16-114"><a href="#cb16-114"></a><span class="co">#| eval: true</span></span>
@@ -1882,14 +1882,14 @@ Smit, A. J. (2021) 11. The Fiji Earthquake Data. <a href="http://tangledbank.net
 <span id="cb16-128"><a href="#cb16-128"></a>There are three options for focusing in on a particular area of the map (zooming in):</span>
 <span id="cb16-129"><a href="#cb16-129"></a></span>
 <span id="cb16-130"><a href="#cb16-130"></a><span class="ss">- </span>selecting only certain areas of interest from the spatial dataset (e.g. only certain countries / continent(s) / etc.);</span>
-<span id="cb16-131"><a href="#cb16-131"></a><span class="ss">- </span>cropping the geometries in the spatial dataset using <span class="in">`sf_crop()`</span>; and</span>
+<span id="cb16-131"><a href="#cb16-131"></a><span class="ss">- </span>cropping the geometries in the spatial dataset using <span class="in">`sf_crop()`</span>;</span>
 <span id="cb16-132"><a href="#cb16-132"></a><span class="ss">- </span>restricting the display window via <span class="in">`coord_sf()`</span>.</span>
 <span id="cb16-133"><a href="#cb16-133"></a></span>
 <span id="cb16-134"><a href="#cb16-134"></a>I will look at each in some detail.</span>
 <span id="cb16-135"><a href="#cb16-135"></a></span>
 <span id="cb16-136"><a href="#cb16-136"></a><span class="fu"># Selecting areas of interest</span></span>
 <span id="cb16-137"><a href="#cb16-137"></a></span>
-<span id="cb16-138"><a href="#cb16-138"></a>I am interested only in the 'continent' called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region and not a continent. It is comprised of Australasia, Melanesia, Micronesia, and Polynesia which span the the Eastern and Western Hemispheres.</span>
+<span id="cb16-138"><a href="#cb16-138"></a>I am interested only in the 'continent' called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region, not a continent. It is comprised of Australasia and Melanesia, Micronesia, and Polynesia which span the Eastern, Western Hemispheres.</span>
 <span id="cb16-139"><a href="#cb16-139"></a></span>
 <span id="cb16-142"><a href="#cb16-142"></a><span class="in">```{r}</span></span>
 <span id="cb16-143"><a href="#cb16-143"></a><span class="co">#| eval: true</span></span>
@@ -1900,7 +1900,7 @@ Smit, A. J. (2021) 11. The Fiji Earthquake Data. <a href="http://tangledbank.net
 <span id="cb16-148"><a href="#cb16-148"></a></span>
 <span id="cb16-149"><a href="#cb16-149"></a>Zooming in on only the group of nations included with Oceania reveals another problem. This is, only part of New Guinea is displayed: Papua New Guinea appears on the map but the western side of New Guinea, called Western New Guinea, is absent. This is because Papua New Guinea is part of Micronesia whereas West New Guinea is part of Indonesia (part of the South-eastern Asia region).</span>
 <span id="cb16-150"><a href="#cb16-150"></a></span>
-<span id="cb16-151"><a href="#cb16-151"></a>There is no easy way to select the countries that constitute Australasia, Melanesia, Micronesia, Indonesia, and Polynesia---unless I create an exhaustive list of these small island nations. But I can use the **countrycode** package to insert an attribute with the geographic <span class="co">[</span><span class="ot">regional classification of the United Nations</span><span class="co">](https://unstats.un.org/unsd/methodology/m49/)</span> in the <span class="in">`world_1`</span> map. Now all the constituent countries belonging to these regions will be correctly classified to the UN regional classification scheme. Note that I also collapse the countries into their continents by merging all polygons belonging to the same continent (the <span class="in">`group_by()`</span> and <span class="in">`summarise()`</span> functions)---I do this because I don't want to display individual countries. </span>
+<span id="cb16-151"><a href="#cb16-151"></a>There is no easy way to select the countries that constitute Australasia, Melanesia, Micronesia, Indonesia, and Polynesia---unless I create an exhaustive list of these small island nations. But I can use the **countrycode** package to insert an attribute with the geographic <span class="co">[</span><span class="ot">regional classification of the United Nations</span><span class="co">](https://unstats.un.org/unsd/methodology/m49/)</span> in the <span class="in">`world_1`</span> map. Now all the constituent countries belonging to these regions will be correctly classified to the UN regional classification scheme. Note that I also collapse the countries into their continents by merging all polygons belonging to the same continent (the <span class="in">`group_by()`</span> and <span class="in">`summarise()`</span> functions)---I do this because I do not want to display individual countries. </span>
 <span id="cb16-152"><a href="#cb16-152"></a></span>
 <span id="cb16-155"><a href="#cb16-155"></a><span class="in">```{r}</span></span>
 <span id="cb16-156"><a href="#cb16-156"></a><span class="co">#| eval: true</span></span>
@@ -1926,9 +1926,9 @@ Smit, A. J. (2021) 11. The Fiji Earthquake Data. <a href="http://tangledbank.net
 <span id="cb16-176"><a href="#cb16-176"></a></span>
 <span id="cb16-177"><a href="#cb16-177"></a>The above map is good but not perfect. I have in mind zooming in a bit more into the region around Fiji where the earthquake monitoring network is located. One way to do this is to crop the extent of the study region using a bounding box whose boundaries are defined by the extent of the <span class="in">`quakes`</span> datapoints.</span>
 <span id="cb16-178"><a href="#cb16-178"></a></span>
-<span id="cb16-179"><a href="#cb16-179"></a>To start, I use the earthquake data and extract from there the study domain and increase the edges all round by a given margin---this is so that the stations are not plotted right on the maps' edges.</span>
+<span id="cb16-179"><a href="#cb16-179"></a>To start, I use the earthquake data, extract from there the study domain and increase the edges all round by a given margin---this is so that the stations are not plotted right on the maps' edges.</span>
 <span id="cb16-180"><a href="#cb16-180"></a></span>
-<span id="cb16-181"><a href="#cb16-181"></a>Important! The coordinates in the <span class="in">`quakes`</span> data are provided in WGS84, so I need to first specify them as such and then transform them to the same coordinate system used by the map.</span>
+<span id="cb16-181"><a href="#cb16-181"></a>Important! The coordinates in the <span class="in">`quakes`</span> data are provided in WGS84, so I need to first specify them as such, then transform them to the same coordinate system used by the map.</span>
 <span id="cb16-182"><a href="#cb16-182"></a></span>
 <span id="cb16-185"><a href="#cb16-185"></a><span class="in">```{r}</span></span>
 <span id="cb16-186"><a href="#cb16-186"></a><span class="co">#| eval: true</span></span>
@@ -1952,13 +1952,13 @@ Smit, A. J. (2021) 11. The Fiji Earthquake Data. <a href="http://tangledbank.net
 <span id="cb16-204"><a href="#cb16-204"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> sw_pacific_cropped, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">fill =</span> <span class="st">"grey70"</span>)</span>
 <span id="cb16-205"><a href="#cb16-205"></a><span class="in">```</span></span>
 <span id="cb16-206"><a href="#cb16-206"></a></span>
-<span id="cb16-207"><a href="#cb16-207"></a>That looks decent enough, but there's another way to accomplish the same.</span>
+<span id="cb16-207"><a href="#cb16-207"></a>That looks decent enough, but there is another way to accomplish the same.</span>
 <span id="cb16-208"><a href="#cb16-208"></a></span>
 <span id="cb16-209"><a href="#cb16-209"></a><span class="fu"># Setting the mapping limits in **ggplot2**</span></span>
 <span id="cb16-210"><a href="#cb16-210"></a></span>
 <span id="cb16-211"><a href="#cb16-211"></a>The third approach to get closer to the region of interest is to use the full map extent (the world) loaded at the beginning, but to set the limits of the view window within the <span class="in">`coord_sf()`</span> function in <span class="in">`ggplot()`</span>.</span>
 <span id="cb16-212"><a href="#cb16-212"></a></span>
-<span id="cb16-213"><a href="#cb16-213"></a>To do this, I start with the <span class="in">`bbox_sf_trans`</span> object, which was obtained by first specifying the coordinates marking the extent of the map in the WGS84 coordinate system and then transforming them to Natural Earth. We can extract the transformed limits with <span class="in">`st_coordinates()`</span> and supply them to the map.</span>
+<span id="cb16-213"><a href="#cb16-213"></a>To do this, I start with the <span class="in">`bbox_sf_trans`</span> object, which was obtained by first specifying the coordinates marking the extent of the map in the WGS84 coordinate system, then transforming them to Natural Earth. We can extract the transformed limits with<span class="in">`st_coordinates()`</span> and supply them to the map.</span>
 <span id="cb16-214"><a href="#cb16-214"></a></span>
 <span id="cb16-217"><a href="#cb16-217"></a><span class="in">```{r}</span></span>
 <span id="cb16-218"><a href="#cb16-218"></a><span class="co">#| eval: true</span></span>

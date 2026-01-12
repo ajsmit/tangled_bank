@@ -2,7 +2,7 @@
 
 ## Scope
 - Files: `BCB743/*.qmd` and `BCB743/tasks/*.qmd`
-- Focus: prose corrections (British English, grammar, punctuation, and clarity), with minor spelling fixes in code comments where they were purely textual.
+- Focus: prose corrections (British English, grammar, punctuation, syntax, active voice, em-dash usage, and clarity), with minor spelling fixes in code comments where they were purely textual.
 
 ## Edits Made (by file)
 - `BCB743/BCB743_index.qmd`
@@ -30,6 +30,7 @@
   - Corrected a spelling error in a code comment.
 - `BCB743/correlations.qmd`
   - Euclidian → Euclidean in prose.
+  - Shifted a passive construction to active voice in the opening description.
 - `BCB743/deep_dive.qmd`
   - Euclidian → Euclidean in prose and a nearby code comment.
 - `BCB743/model_building.qmd`
@@ -51,14 +52,19 @@
   - Removed erroneous commas introduced during the Oxford comma pass (e.g., “length and width” groupings).
 - `BCB743/constrained_ordination.qmd`
   - Removed extra commas inserted between paired terms; kept Oxford commas only in true lists of three or more.
+  - Recast passive constructions to active voice in the overview section.
 - `BCB743/dis-metrics.qmd`
   - Removed commas in two-item phrases; cleaned punctuation around list clauses.
+  - Rephrased several definitions to active voice (e.g., “We calculate …”).
 - `BCB743/nMDS.qmd`
   - Removed commas in two-item phrases and corrected Oxford comma placement.
+  - Removed remaining contractions and smoothed dash usage.
 - `BCB743/nMDS_diatoms.qmd`
   - Removed commas in two-item phrases and corrected Oxford comma placement.
+  - Removed contractions and smoothed dash usage.
 - `BCB743/ordination.qmd`
   - Removed commas in two-item phrases and corrected Oxford comma placement.
+  - Removed contractions and smoothed dash usage.
 - `BCB743/tasks/Task_E.qmd`
   - Removed comma in a two-item phrase.
 - `BCB743/tasks/Task_F.qmd`
@@ -67,13 +73,16 @@
   - Removed commas in two-item phrases and corrected Oxford comma placement.
 - `BCB743/two_oceans_appendices.qmd`
   - Removed commas in two-item phrases and corrected Oxford comma placement.
+  - Removed contractions and smoothed dash usage.
 - `BCB743/unconstrained-summary.qmd`
   - Removed commas in two-item phrases and corrected Oxford comma placement.
+  - Removed contractions and smoothed dash usage.
 - `BCB743/assessments/_05-spp_dissimilarity.qmd`
   - Removed commas in two-item phrases and corrected Oxford comma placement.
+  - Removed contractions and smoothed dash usage.
 
 ## Inconsistencies, Ambiguities, and Clarity Recommendations
 - “Shepard plot” is an accepted eponym in ordination; I left it unchanged despite spellchecker suggestions.
 - URLs containing `adn.biol.umontreal.ca` are correct and were left unchanged.
 - Oxford comma usage is now consistent in sentences edited here; consider a pass over remaining lists if you want strict consistency across the whole module.
-- If you prefer avoiding contractions across the module (e.g., “it is” vs “it’s”), I can apply that consistently.
+- Passive voice remains in some technical definitions and may warrant a focused pass if you want a stricter active-voice style throughout.

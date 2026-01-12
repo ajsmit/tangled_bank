@@ -98,7 +98,7 @@ ggplot() +
   geom_sf(data = world_0, colour = "black", fill = "grey70")
 ```
 
-The western Pacific is now focal, but the map looks strange to say the least. This is due to the break at the anti-meridian which causes the polygons to join up in odd and unexpected ways when the central longitude in the map is not displayed at exactly 0° (in my reprojection I made the focus on 170°E and it became the centre). I can fix it using `st_break_antimeridian()` but to do so I must start with unprojected data, and only *then* apply this function.
+The western Pacific is now focal, but the map looks strange to say the least. This is due to the break at the anti-meridian which causes the polygons to join up in odd, unexpected ways when the central longitude in the map is not displayed at exactly 0° (in my reprojection I made the focus on 170°E and it became the centre). I can fix it using`st_break_antimeridian()` but to do so I must start with unprojected data, and only *then* apply this function.
 
 ```{r}
 #| eval: true
@@ -118,14 +118,14 @@ ggplot() +
 There are three options for focusing in on a particular area of the map (zooming in):
 
 - selecting only certain areas of interest from the spatial dataset (e.g. only certain countries / continent(s) / etc.);
-- cropping the geometries in the spatial dataset using `sf_crop()`; and
+- cropping the geometries in the spatial dataset using `sf_crop()`;
 - restricting the display window via `coord_sf()`.
 
 I will look at each in some detail.
 
 # Selecting areas of interest
 
-I am interested only in the 'continent' called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region and not a continent. It is comprised of Australasia, Melanesia, Micronesia, and Polynesia which span the the Eastern and Western Hemispheres.
+I am interested only in the 'continent' called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region, not a continent. It is comprised of Australasia and Melanesia, Micronesia, and Polynesia which span the Eastern, Western Hemispheres.
 
 ```{r}
 #| eval: true
@@ -136,7 +136,7 @@ ggplot() +
 
 Zooming in on only the group of nations included with Oceania reveals another problem. This is, only part of New Guinea is displayed: Papua New Guinea appears on the map but the western side of New Guinea, called Western New Guinea, is absent. This is because Papua New Guinea is part of Micronesia whereas West New Guinea is part of Indonesia (part of the South-eastern Asia region).
 
-There is no easy way to select the countries that constitute Australasia, Melanesia, Micronesia, Indonesia, and Polynesia---unless I create an exhaustive list of these small island nations. But I can use the **countrycode** package to insert an attribute with the geographic [regional classification of the United Nations](https://unstats.un.org/unsd/methodology/m49/) in the `world_1` map. Now all the constituent countries belonging to these regions will be correctly classified to the UN regional classification scheme. Note that I also collapse the countries into their continents by merging all polygons belonging to the same continent (the `group_by()` and `summarise()` functions)---I do this because I don't want to display individual countries. 
+There is no easy way to select the countries that constitute Australasia, Melanesia, Micronesia, Indonesia, and Polynesia---unless I create an exhaustive list of these small island nations. But I can use the **countrycode** package to insert an attribute with the geographic [regional classification of the United Nations](https://unstats.un.org/unsd/methodology/m49/) in the `world_1` map. Now all the constituent countries belonging to these regions will be correctly classified to the UN regional classification scheme. Note that I also collapse the countries into their continents by merging all polygons belonging to the same continent (the `group_by()` and `summarise()` functions)---I do this because I do not want to display individual countries. 
 
 ```{r}
 #| eval: true
@@ -162,9 +162,9 @@ As we can see above, by including the South-eastern Asia region I complete the m
 
 The above map is good but not perfect. I have in mind zooming in a bit more into the region around Fiji where the earthquake monitoring network is located. One way to do this is to crop the extent of the study region using a bounding box whose boundaries are defined by the extent of the `quakes` datapoints.
 
-To start, I use the earthquake data and extract from there the study domain and increase the edges all round by a given margin---this is so that the stations are not plotted right on the maps' edges.
+To start, I use the earthquake data, extract from there the study domain and increase the edges all round by a given margin---this is so that the stations are not plotted right on the maps' edges.
 
-Important! The coordinates in the `quakes` data are provided in WGS84, so I need to first specify them as such and then transform them to the same coordinate system used by the map.
+Important! The coordinates in the `quakes` data are provided in WGS84, so I need to first specify them as such, then transform them to the same coordinate system used by the map.
 
 ```{r}
 #| eval: true
@@ -188,13 +188,13 @@ ggplot() +
   geom_sf(data = sw_pacific_cropped, colour = "black", fill = "grey70")
 ```
 
-That looks decent enough, but there's another way to accomplish the same.
+That looks decent enough, but there is another way to accomplish the same.
 
 # Setting the mapping limits in **ggplot2**
 
 The third approach to get closer to the region of interest is to use the full map extent (the world) loaded at the beginning, but to set the limits of the view window within the `coord_sf()` function in `ggplot()`.
 
-To do this, I start with the `bbox_sf_trans` object, which was obtained by first specifying the coordinates marking the extent of the map in the WGS84 coordinate system and then transforming them to Natural Earth. We can extract the transformed limits with `st_coordinates()` and supply them to the map.
+To do this, I start with the `bbox_sf_trans` object, which was obtained by first specifying the coordinates marking the extent of the map in the WGS84 coordinate system, then transforming them to Natural Earth. We can extract the transformed limits with`st_coordinates()` and supply them to the map.
 
 ```{r}
 #| eval: true
