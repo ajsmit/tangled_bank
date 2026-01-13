@@ -41,13 +41,19 @@ David Zelený describes the background to the data on his excellent [website](ht
 
 **Correlation** refers to the statistical (non-causal) relationship between two continuous variables. It measures the extent to which changes in one variable correspond to changes in another variable. Correlations are quantified into values ranging from -1 to +1, with -1 indicating a perfect negative correlation, +1 indicating a perfect positive correlation, and 0 indicating no correlation. A positive correlation implies that as one variable increases, the other variable also increases. Conversely, a negative correlation implies that as one variable increases, the other decreases. Correlation can be calculated using several methods, the most common one being the Pearson correlation coefficient. Non-parametric correlations can be applied to ordinal or non-normal data.
 
+In a system such as the Doubs River, correlations among environmental variables should not be seen as a collection of independent pairwise relationships. Instead, many of these correlations are joint expressions of a single, spatially ordered gradient extending from the headwaters to the river mouth. Variables such as elevation, distance from source, slope, nutrient concentrations, oxygen availability, and organic load are structurally linked through longitudinal transport, cumulative catchment effects, and downstream integration of physical and biogeochemical processes. As a result, strong correlations here often reflect the coherence of the riverine gradient rather than discrete ecological linkages between variables. Recognising this distinction is important, as it takes interpretation from isolated variable–variable associations to an integrative understanding of how multivariate environmental structure is imposed by spatial ordering along the river continuum.
+
+Because these variables are jointly structured by a altitudinal (or some other geographical) gradient, high pairwise correlations also indicate substantial *collinearity* within the environmental dataset. This has important consequences for further analyses. When strongly correlated predictors are treated as independent covariates (such as in multiple regression or constrained ordination) their shared variance becomes difficult to disentangle, parameter estimates become unstable, and apparent effects may reflect gradient position rather than distinct environmental influences. Here, the correlation matrix functions less as an indication of relationships to be interpreted individually and more as a diagnostic view of multivariate redundancy imposed by spatial ordering. Identifying such collinearity early is therefore a matter of one's analytical routine... it informs decisions about variable selection, dimensional reduction, and the appropriateness of modelling frameworks that assume relative independence among predictors.
+
+Here follows a correlation analysis of the Doubs River envirnmental data:
+
 ```{r}
 load(here::here("data", "NEwR-2ed_code_data", "NEwR2-Data", "Doubs.RData"))
 
 head(env, 5)
 ```
 
-We use correlations to establish how the environmental variables relate to one another across the sample sites. We do not need to standardise as one would do for the calculation of Euclidean distances, but in some instances data transformations might be necessary:
+We do not need to standardise as one would do for the calculation of Euclidean distances, but in some instances data transformations might be necessary:
 
 ```{r}
 env_cor <- round(cor(env), 2)
@@ -60,7 +66,9 @@ Or if we want to see the associated *p*-values to establish a statistical signif
 rcorr(as.matrix(env))
 ```
 
-We can also do a visual exploration (see Question 1, below).
+We can now follow with a visual exploration (see Question 1, below).
+
+
 
 <!-- ```{r} -->
 
@@ -74,15 +82,17 @@ We can also do a visual exploration (see Question 1, below).
 
 <!-- ``` -->
 
+Although Pearson correlation is used here for convenience and familiarity, its interpretation requires that the distributional assumptions are met, which is only weakly true for several of the environmental variables in the Doubs dataset. Nutrient concentrations, biological oxygen demand, and ammonia exhibit skewness, uneven variance across sites, and the influence of low or zero values associated with upstream locations. Under such conditions, Pearson’s *r* reflects the strength of association *and* the leverage of extreme values along the river gradient. Non-parametric (rank-based) alternatives, such as Spearman correlation, relax these assumptions assessing the relative ordering rather than their given magnitudes. Comparing Pearson and Spearman correlations for this dataset therefore provides a useful diagnostic exercise, since it allows one to assess whether observed relationships are driven primarily by monotonic structure along the gradient or by a smaller number of influential observations. By stating our choice of correlation in this way, we can shift the analysis from default computation to informative method selection, where the form of the data actively informs the statistical lens applied to it.
+
+Note also that the *p*-values reported for these correlations must be carefully used. With a sample size of 30 sites arranged along a strongly ordered riverine gradient, the assumption of *independent observations* that underpins classical significance testing is only weakly met. Many environmental variables here co-vary not because of distinct pairwise relationships, but because they are jointly structured by position along the river continuum. Under such conditions, small *p*-values often arise as a by-product of gradient coherence rather than as evidence for separable or mechanistic links between variables. Here, the *p*-value functions primarily as a descriptive indicator of consistency across sites, not as a hypothesis test in the conventional sense (H~0~: There is not statistically-significant relationship among variable pairs along the length of the Doubs River). Treating it as an yes/no marker for “significant” versus “non-significant” relationships might hide the multivariate dependence that motivates the analysis in the first place, and can encourage interpretive habits that become misleading once these variables are carried forward into ordination or regression-based frameworks.
+
 ### Association between species
 
-**Species associations** refer to the relationships or interactions between different species within an ecosystem or community. The term can be used to describe the outcome of a wide range of relationships, including competition, predation, symbiosis (mutualism, commensalism, parasitism), or simply the tendency for different species to occur in the same habitats or microhabitats.
+In this chapter, **species association** is used in a strictly statistical sense to denote patterns of joint occurrence across sampling sites. An association describes whether two species tend to be recorded at the same sites more or less often than expected from their individual distributions, without implying any underlying ecological mechanism.
 
-When two or more species are frequently found in the same area or under the same conditions, they are positively associated. This could be due to similar environmental preferences, mutualistic relationships, or one species depending on the presence of another. For example, bees and flowering plants have a mutualistic relationship where the bees gather nectar for food, and in the process, they pollinate the flowers. In this sense, bees would be positively associated with some flowering plants.
+Such patterns may arise from shared responses to environmental gradients, similar habitat tolerances, or spatial structuring of sites, as well as from direct biological interactions.
 
-Conversely, if two species are rarely found in the same area or under the same conditions, they are negatively associated. This can be due to competition for resources, predation, or differing environmental preferences.
-
-Analyses of species associations can help us understand the complex dynamics of ecological communities, including how species interact with each other and their environment, the roles they play in their ecosystems, and the effects of environmental changes on species distributions and community composition. A first glance insight into the existence of some of these types of interactions can be found by examining tables of association among species.
+The methods applied here (based on dissimilarity measures such as the Jaccard index) operate only on presence–absence or abundance patterns and are therefore agnostic to the processes that generate those patterns. Association matrices should accordingly be seen as summaries of co-occurrence structure, not as evidence of interaction, dependency, or ecological coupling between species.
 
 The Doubs River fish species dataset is an example of abundance data and it will serve well to examine the properties of an association matrix:
 
@@ -120,3 +130,11 @@ write_pkgs <- function() {
   if(np > 0) cat(pkgs, file = .pkg_file, append=TRUE, sep = "\n")
 }
 ```
+
+Interpreting these association matrices requires attention to what the chosen form of the Jaccard index reflects. When calculated on abundance data, the Jaccard distance shows whether two species co-occur *and* how their abundances are distributed across shared sites. Under this specofocation, species that frequently occur together but differ greatly in dominance can appear less closely associated than species with more similar abundances, even when their occupancy patterns are comparable. The binary version of the Jaccard index, however, removes abundance information altogether and retains only shared presence or absence, giving a measure that isolates co-occurrence structure independently of dominance. It is also worth emphasising that the Jaccard index is a dissimilarity, i.e., lower values correspond to stronger co-occurrence (greater association), whereas higher values indicate weaker co-occurrence. Interpreting “strong” or “weak” association therefore requires paying attention both to the magnitude of the distance and to how that distance has been constructed (from a *dissimilarity index*, in this case). Reading the abundance-weighted and binary matrices side by side makes clear that association is not an intrinsic property of a species pair, but a consequence of the analytical view applied. This is a distinction that becomes important when these distances are later used for clustering and ordination.
+
+## Looking forward
+
+The analyses in this chapter are intended as diagnostic steps on which the subsequent modelling choices can build. But they may also be insightful in themselves, as being able to read these matricers certainly gives one a level of deeper insight into one's data. Strong correlations among environmental variables indicate redundancy that constrains how these predictors can be used together in regression-based models, i.e., collinearity inflates variance, destabilises parameter estimates, and undermines attempts to attribute effects to individual covariates. In such situations, treating each variable as an independent explanatory factor becomes statistically problematic. Correlation matrices therefore provide an initial step before downstream analyses are attempted. They reveal when dimensional reduction or alternative representations of environmental structure are required before formal modelling proceeds.
+
+The same applies to species associations. Patterns of co-occurrence summarised in association matrices anticipate the geometry that species will occupy in multivariate space. High redundancy among species warns of compressed ordination structures, while weak or uneven associations often translate into elongated gradients or sparse configurations. This will become clear when we do our first ordination analyses. By examining correlations and associations at an early stage, we describe the data *and* diagnose their effective dimensionality; so, they represent assessments that motivate the transition toward ordination, clustering, and constrained multivariate methods in subsequent chapters.
