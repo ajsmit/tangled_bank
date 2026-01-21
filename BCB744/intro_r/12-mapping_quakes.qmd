@@ -1,12 +1,12 @@
 ---
 date: "2021-01-01"
-title: "12. The Fiji Earthquake Data"
+title: "12. the Fiji Earthquake Data"
 ---
 
 Here I will plot the built-in earthquake dataset (`datasets::quakes`).
 
 ::: {.callout-note appearance="simple"}
-## Global earthquake distribution
+## Global Earthquake Distribution
 For a global map of earthquakes, see my plot of the [Kaggle earthquake data](../../pages/kaggle_earthquakes.qmd).
 :::
 
@@ -19,11 +19,11 @@ These are specified to the mapping / plotting functions via the Coordinate Refer
 
 You will also learn how to deal with polygons that cross the dateline (0° wrapping back onto 360°) or the anti-meridian (-180° folding back onto +180°).
 
-# Load packages and data
+# Load Packages and Data
 
 I will use the [Natural Earth](https://www.naturalearthdata.com/) data and manipulate it with the [**sf**](https://r-spatial.github.io/sf/) package functions. This package integrates well with the [**tidyverse**](https://www.tidyverse.org/).
 
-```{r}
+```{r code-library-tidyverse}
 #| eval: true
 #| echo: true
 #| warning: false
@@ -34,11 +34,11 @@ library(rnaturalearth)
 library(rnaturalearthhires)
 ```
 
-# Load the Natural Earth map
+# Load the Natural Earth Map
 
 The **rnaturalearth** package has the `ne_counties()` function which we use to load borders of all the countries in the world. I load the medium resolution dataset and make sure the data are of class **sf**, i.e. a *simple features collection*.
 
-```{r}
+```{r code-sf-use-s2-false}
 #| eval: true
 #| echo: true
 #| warning: false
@@ -78,7 +78,7 @@ More information about the map data is available with the `head(world)` function
 
 A very quick map looks like this:
 
-```{r}
+```{r fig-ggplot}
 #| eval: true
 ggplot() +
   geom_sf(data = world, colour = "black", fill = "grey70")
@@ -87,7 +87,7 @@ ggplot() +
 You can see above that Africa is centrally positioned. However, I want to focus on the western Pacific region. I am also going to apply a new projection ([ESRI:53077
 ](https://epsg.io/53077), the Natural Earth projection) to it. The 'rotation' is accomplished by setting `lon_0=170` in the proj-string.
 
-```{r}
+```{r fig-ne-proj-proj-natearth-lon-0}
 #| eval: true
 NE_proj <- "+proj=natearth +lon_0=170 "
 
@@ -100,7 +100,7 @@ ggplot() +
 
 The western Pacific is now focal, but the map looks strange to say the least. This is due to the break at the anti-meridian which causes the polygons to join up in odd, unexpected ways when the central longitude in the map is not displayed at exactly 0° (in my reprojection I made the focus on 170°E and it became the centre). I can fix it using`st_break_antimeridian()` but to do so I must start with unprojected data, and only *then* apply this function.
 
-```{r}
+```{r fig-world-1-ne-countries-returnclass-sf}
 #| eval: true
 #| warning: false
 world_1 <- ne_countries(returnclass = 'sf',
@@ -113,7 +113,7 @@ ggplot() +
   geom_sf(data = world_1, colour = "black", fill = "grey70")
 ```
 
-# Zooming in
+# Zooming In
 
 There are three options for focusing in on a particular area of the map (zooming in):
 
@@ -123,11 +123,11 @@ There are three options for focusing in on a particular area of the map (zooming
 
 I will look at each in some detail.
 
-# Selecting areas of interest
+# Selecting Areas of Interest
 
 I am interested only in the 'continent' called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region, not a continent. It is comprised of Australasia and Melanesia, Micronesia, and Polynesia which span the Eastern, Western Hemispheres.
 
-```{r}
+```{r fig-oceania-world-1-world-1-continent}
 #| eval: true
 oceania <- world_1[world_1$continent == 'Oceania',]
 ggplot() +
@@ -138,7 +138,7 @@ Zooming in on only the group of nations included with Oceania reveals another pr
 
 There is no easy way to select the countries that constitute Australasia, Melanesia, Micronesia, Indonesia, and Polynesia---unless I create an exhaustive list of these small island nations. But I can use the **countrycode** package to insert an attribute with the geographic [regional classification of the United Nations](https://unstats.un.org/unsd/methodology/m49/) in the `world_1` map. Now all the constituent countries belonging to these regions will be correctly classified to the UN regional classification scheme. Note that I also collapse the countries into their continents by merging all polygons belonging to the same continent (the `group_by()` and `summarise()` functions)---I do this because I do not want to display individual countries. 
 
-```{r}
+```{r fig-library-countrycode}
 #| eval: true
 #| warning: false
 library(countrycode)
@@ -166,7 +166,7 @@ To start, I use the earthquake data, extract from there the study domain and inc
 
 Important! The coordinates in the `quakes` data are provided in WGS84, so I need to first specify them as such, then transform them to the same coordinate system used by the map.
 
-```{r}
+```{r fig-quakes-as-tibble-datasets-quakes}
 #| eval: true
 #| echo: true
 #| warning: false
@@ -190,13 +190,13 @@ ggplot() +
 
 That looks decent enough, but there is another way to accomplish the same.
 
-# Setting the mapping limits in **ggplot2**
+# Setting the Mapping Limits in **ggplot2**
 
 The third approach to get closer to the region of interest is to use the full map extent (the world) loaded at the beginning, but to set the limits of the view window within the `coord_sf()` function in `ggplot()`.
 
 To do this, I start with the `bbox_sf_trans` object, which was obtained by first specifying the coordinates marking the extent of the map in the WGS84 coordinate system, then transforming them to Natural Earth. We can extract the transformed limits with`st_coordinates()` and supply them to the map.
 
-```{r}
+```{r fig-bbox-trans-coord-st-coordinates-bbox-trans}
 #| eval: true
 bbox_trans_coord <- st_coordinates(bbox_trans)
 
@@ -208,7 +208,7 @@ ggplot() +
 
 Great! This works well. Note that the coordinates on the graticule are in degrees longitude and latitude, the default for WGS84. By setting `datum = NE_proj` ensures the graticule is displayed in Natural Earth coordinate system units, which is meters. This might look strange at first, but it is not wrong.
 
-```{r}
+```{r fig-ggplot-2}
 #| eval: true
 ggplot() +
   geom_sf(data = world_1, colour = "black", fill = "grey70") +
@@ -216,11 +216,11 @@ ggplot() +
     expand = FALSE, datum = NE_proj)
 ```
 
-# Adding the `quakes` data as points
+# Adding the `quakes` Data as Points
 
 In order to plot the `quakes` data, I need to create a `sf` object from the quakes data. When converting the dataframe to class `sf`, I must also assign to it the CRS associated of the original dataset. This would be WGS84. Afterwards I will transform it to the Natural Earth CRS.
 
-```{r}
+```{r code-quakes-sf-quakes}
 #| output: false
 #| eval: true
 quakes_sf <- quakes |> 
@@ -250,7 +250,7 @@ CRS:           +proj=natearth +lon_0=170
 
 I am going to make a map of the Fiji region and plot the spatial location of the earthquakes, and scale the points indicating the earthquakes' magnitude by their intensity (`mag`).
 
-```{r}
+```{r fig-ggplot-3}
 #| eval: true
 #| echo: true
 ggplot() +
@@ -268,7 +268,7 @@ ggplot() +
 
 Now I apply a more appropriate CRS to the map. The **WGS 84 / NIWA Albers** projection ([EPSG:9191](https://epsg.io/9191)) is suitable for the southwestern Pacific Ocean and Southern Ocean areas surrounding New Zealand.
 
-```{r}
+```{r fig-niwa-albers-proj-proj-aea-lat-0}
 #| eval: true
 #| echo: true
 #| fig-width: 12

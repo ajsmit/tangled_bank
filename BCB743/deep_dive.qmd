@@ -1,6 +1,6 @@
 ---
 date: "2021-01-01"
-title: "Deep Dive Into Gradients"
+title: "Deep Dive into Gradients"
 format:
   html: default
 ---
@@ -9,7 +9,7 @@ format:
 
 
 ::: callout-tip
-## **Material required for this chapter**
+## **Material Required for This Chapter**
 
 | Type        | Name                                     | Link                                                                       |
 |-------------|------------------------------------------|----------------------------------------------------------------------------|
@@ -31,7 +31,7 @@ What these lines of code do is recreate Figure 5 in @smit2017seaweeds. Please re
 
 (To be updated...)
 
-```{r}
+```{r code-library-tidyverse}
 ## Setting up the analysis environment
 library(tidyverse)
 library(plyr)
@@ -43,7 +43,7 @@ library(betapart) # for partitioning beta-diversity
 
 ### The environmental data
 
-```{r}
+```{r code-load-here-here-data}
 # load the environmental data...
 load(here::here("data", "seaweed", "SeaweedEnv.RData"))
 env <- as.data.frame(env)
@@ -56,7 +56,7 @@ env <- env[, c("annMean", "annRange", "annSD", "febMean", "febRange",
 
 Various bioregions have been defined for South African marine biota. I prefer to use the one made by @bolton2002seaweed:
 
-```{r}
+```{r code-bioreg-read-csv-here}
 # load the bioregions data...
 bioreg <- read.csv(here::here("data", "seaweed", "bioregions.csv"),
                    header = TRUE)
@@ -67,7 +67,7 @@ rbind(head(bioreg, 3), tail(bioreg, 3))
 
 Since the connectivity between sections is constrained by their location along a shoreline, we calculated the distances between sections not as 'as the crow flies' distances (e.g. Section 1 is not connected in a straight line to Section 58 because of the intervening land in-between), but as the great circle geodesic distances between each pair of sections along a 'route'. Travelling from **1** to **58** therefore requires visiting **2**, then **3**, and eventually all the way up to **58**. The total distance between a pair of arbitrary sections is thus the cumulative sum of the great circle distances between each consecutive pair of intervening sections along the route. These data are contained in `dists_mat.RData` (I prepared it earlier):
 
-```{r}
+```{r code-load-here-here-data-2}
 # load the distances matrix...
 load(here::here("data", "seaweed", "dists_mat.RData"))
 # loaded as dists_mat
@@ -76,7 +76,7 @@ dists.mat[1:10, 1:8]
 
 Make a copy of the original matrix of distances between pairs of sites to create a full matrix which constrains pairwise comparisons to pairs within bioregions:
 
-```{r}
+```{r code-bioreg-mat-dists-mat}
 bioreg_mat <- dists.mat
 bioreg_mat[1:58, 1:58] <- "out"
 bioreg_mat[1:16, 1:16] <- "BMP"
@@ -96,14 +96,14 @@ bioreg_tri <- gdata::lowerTriangle(bioreg_mat, diag = FALSE)
 
 In `bioreg_._mat`, pairs of sites that do not fall within any of the bioregions are labelled 'out':
 
-```{r}
+```{r code-bioreg-mat}
 # print output below...
 bioreg_mat[1:3, 53:58]
 ```
 
 We extract the slices (groups of rows) of the original species table into separate dataframes, one for each of the four bioregions:
 
-```{r}
+```{r code-env-bmp-env}
 env_BMP <- env[1:16, ]
 env_BATZ <- env[17:21, ]
 env_AMP <- env[22:41, ]
@@ -112,14 +112,14 @@ env_ECTZ <- env[42:58, ]
 
 Now we make an environmental dataframe for use with plots of pairwise correlations etc.:
 
-```{r}
+```{r code-env-df-data-frame-bio}
 env_df <- data.frame(bio = bioreg$bolton, round(env, 3))
 rbind(head(env_df, 3), tail(env_df, 3))
 ```
 
 ### The seaweed species data
 
-```{r}
+```{r code-spp-read-csv-here}
 # load the seaweed data...
 spp <- read.csv(here::here("data", "seaweed", "SeaweedSpp.csv"))
 spp <- dplyr::select(spp, -1)
@@ -130,7 +130,7 @@ spp[1:10, 1:10]
 
 Calculate $\beta$-diversity using the Sørensen index of dissimilarity. This is used throughout; binary Bray-Curtis is equivalent to Sørensen in **vegan**. I then extract the subdiagonal from this matrix of species dissimilarities. The subdiagonal refers to the elements immediately below the main diagonal. For a matrix $Y$ with elements $y_{ij}$, the subdiagonal elements are $y_{i, i+1}$.
 
-```{r}
+```{r code-y-vegdist-spp-binary}
 # ---- Sorensen-index ----
 ## this is used throughout...
 Y <- vegdist(spp, binary = TRUE)
@@ -143,7 +143,7 @@ Y_diag <- append(0, Y_diag, after = 1)
 
 Decompose into turnover and nestedness-resultant beta-diversity:
 
-```{r}
+```{r code-y-core-betapart-core}
 # ---- do-betapart ----
 ## Calculations with betapart...
 Y.core <- betapart.core(spp)
@@ -157,7 +157,7 @@ Y.pair <- beta.pair(Y.core, index.family = "sor")
 
 Extract the subdiagonal for plotting later on:
 
-```{r}
+```{r code-y1-mat-as-matrix-y}
 # Y1 will be the turnover component
 Y1_mat <- as.matrix(Y.pair$beta.sim)
 # extract the subdiagonal...
@@ -173,7 +173,7 @@ Y2_diag <- append(0, Y2_diag, after = 1)
 
 Create separate matrices for each bioregion:
 
-```{r}
+```{r code-spp-bmp-spp}
 # ---- spp-bioregion ----
 spp.BMP <- spp[1:16, ]
 Y.BMP <- vegdist(spp.BMP, binary = TRUE)
@@ -202,14 +202,14 @@ Y.pair.ECTZ <- beta.pair(spp.core.ECTZ, index.family = "sor")
 
 Calculate species richness ($\alpha$-diversity):
 
-```{r}
+```{r code-spp-richness-site-specnumber}
 # ---- do-species-richness ----
 spp.richness.site <- specnumber(spp)
 ```
 
 Calculate the environmental distances:
 
-```{r}
+```{r code-env-raw-env}
 # ---- environmental-distance ----
 # Euclidean distances on temperatures
 # first make a copy so we can use untransformed data later on...
@@ -220,7 +220,7 @@ env <- decostand(env, method = "standardize")
 
 Using individual thermal variables, calculate Euclidean distances, make a matrix, and extract the subdiagonal. The data have already been standardised in `env`:
 
-```{r}
+```{r code-env4-mat-env}
 # augMean
 # to be used in env_rda2...
 env4_mat <- env |> 
@@ -232,7 +232,7 @@ env4_diag <- diag(env4_mat[-1, -nrow(env4_mat)])
 env4_diag <- append(0, env4_diag, after = 1)
 ```
 
-```{r}
+```{r code-env5-mat-env}
 # febRange
 # to be used in env_rda2...
 env5_mat <- env |> 
@@ -244,7 +244,7 @@ env5_diag <- diag(env5_mat[-1, -nrow(env5_mat)])
 env5_diag <- append(0, env5_diag, after = 1)
 ```
 
-```{r}
+```{r code-env6-mat-env}
 # febSD
 # to be used in env_rda2...
 env6_mat <- env |> 
@@ -256,7 +256,7 @@ env6_diag <- diag(env6_mat[-1, -nrow(env6_mat)])
 env6_diag <- append(0, env6_diag, after = 1)
 ```
 
-```{r}
+```{r code-env7-mat-env}
 # augSD
 # to be used in env_rda2...
 env7_mat <- env |> 
@@ -268,7 +268,7 @@ env7_diag <- diag(env7_mat[-1, -nrow(env7_mat)])
 env7_diag <- append(0, env7_diag, after = 1)
 ```
 
-```{r}
+```{r code-env8-mat-env}
 # annMean
 # to be used in env_rda2...
 env8_mat <- env |> 
@@ -280,7 +280,7 @@ env8_diag <- diag(env8_mat[-1, -nrow(env8_mat)])
 env8_diag <- append(0, env8_diag, after = 1)
 ```
 
-```{r}
+```{r code-env-comb-mat-env}
 # combined variables selected with the db-RDA
 # these have a far poorer fit...
 env_comb_mat <- env |> 
@@ -292,7 +292,7 @@ env_comb_diag <- diag(env_comb_mat[-1, -nrow(env_comb_mat)])
 env_comb_diag <- append(0, env_comb_diag, after = 1)
 ```
 
-```{r}
+```{r code-spp-df-data-frame-dist}
 # ---- do-figure-5 ----
 # assemble data frame for plotting...
 spp_df <- data.frame(dist = as.vector(dists.mat),
@@ -313,7 +313,7 @@ rbind(head(spp_df2, 3), tail(spp_df2, 3))
 
 I will save this file with the combined data for use later in the [Multiple Regression Chapter](multiple_regression.Rmd):
 
-```{r}
+```{r code-write-csv-spp-df2-file}
 #| eval: false
 write.csv(spp_df2, file = here::here("data", "seaweed", "spp_df2.csv"))
 ```
@@ -321,7 +321,7 @@ write.csv(spp_df2, file = here::here("data", "seaweed", "spp_df2.csv"))
 
 Do the various linear regressions of Sørensen dissimilarities ($\beta_\text{sør}$), turnover ($\beta_\text{sim}$) and nestedness-related $\beta$-diversity ($\beta_\text{sne}$) as a function of the various thermal distances. I only display the results of the linear regression for $Y1$ regressed on geographical distance, `dist`, but do all the calculations:
 
-```{r}
+```{r fn-y1-lm1-dlply-spp-df2-bio}
 # turnover...
 Y1_lm1 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ dist, data = x))
 lapply(Y1_lm1, summary)
@@ -347,7 +347,7 @@ Now assemble **Figure 5.** in @smit2017seaweeds. It is a plot of pairwise (a) S�
 
 Combine the data in a way that makes for easy plotting:
 
-```{r}
+```{r code-spp-long-spp-df}
 # Plots...
 spp_long <- spp_df %>%
   gather(beta, dissim, Y:Y2) %>%
@@ -359,7 +359,7 @@ spp_long$metric = factor(spp_long$metric,
 
 The repetitive portions of code needed to create each of the panels. I was too lazy to write neater and more concise code:
 
-```{r}
+```{r fig-plt5a-spp-long}
 # sim as a function of geographic distance...
 plt5a <- spp_long %>%
   dplyr::filter(beta %in% "Y1" & metric %in% "dist") %>%
@@ -392,7 +392,7 @@ plt5a <- spp_long %>%
   ggtitle(expression(paste(beta[sim], " as a function of distance")))
 ```
 
-```{r}
+```{r fig-plt5b-spp-long}
 # sim as a function of augMean...
 plt5b <- spp_long %>%
   dplyr::filter(beta %in% "Y1" & metric %in% "augMean") %>%
@@ -425,7 +425,7 @@ plt5b <- spp_long %>%
   ggtitle(expression(paste(beta[sim], " as a function of augMean")))
 ```
 
-```{r}
+```{r fig-plt5c-spp-long}
 # sim as a function of febRange...
 plt5c <- spp_long %>%
   dplyr::filter(beta %in% "Y1" & metric %in% "febRange") %>%
@@ -452,7 +452,7 @@ plt5c <- spp_long %>%
   ggtitle(expression(paste(beta[sim], " as a function of febRange")))
 ```
 
-```{r}
+```{r fig-plt5d-spp-long}
 # sim as a function of febSD...
 plt5d <- spp_long %>%
   dplyr::filter(beta %in% "Y1" & metric %in% "febSD") %>%
@@ -479,7 +479,7 @@ plt5d <- spp_long %>%
   ggtitle(expression(paste(beta[sim], " as a function of febSD")))
 ```
 
-```{r}
+```{r fig-plt5e-spp-long}
 # sim as a function of augSD...
 plt5e <- spp_long %>%
   dplyr::filter(beta %in% "Y1" & metric %in% "augSD") %>%
@@ -506,7 +506,7 @@ plt5e <- spp_long %>%
   ggtitle(expression(paste(beta[sim], " as a function of augSD")))
 ```
 
-```{r}
+```{r fig-plt5f-spp-long}
 # sne as a function of distance...
 plt5f <- spp_long %>%
   dplyr::filter(beta %in% "Y2" & metric %in% "dist") %>%
@@ -533,7 +533,7 @@ plt5f <- spp_long %>%
   ggtitle(expression(paste(beta[sne], " as a function of distance")))
 ```
 
-```{r}
+```{r fig-plt5g-spp-long}
 # sne as a function of annMean...
 plt5g <- spp_long %>%
   dplyr::filter(beta %in% "Y2" & metric %in% "annMean") %>%
@@ -560,7 +560,7 @@ plt5g <- spp_long %>%
   ggtitle(expression(paste(beta[sne], " as a function of annMean")))
 ```
 
-```{r}
+```{r fig-plt5h-ggplot-spp-long-aes}
 plt5h <- ggplot(spp_long, aes(x = distance, y = dissim)) +
   geom_blank() +
   theme(plot.background = element_blank(),
@@ -578,7 +578,7 @@ plt5h <- ggplot(spp_long, aes(x = distance, y = dissim)) +
 
 Assemble using the **cowplot** package:
 
-```{r}
+```{r code-library-cowplot}
 #| fig-width: 16
 #| fig-height: 10
 #| fig.align: center

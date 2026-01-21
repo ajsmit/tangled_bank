@@ -2,7 +2,7 @@
 author: "AJ Smit and Robert W Schlegel"
 date: "`r Sys.Date()`"
 title: "Detecting Events in Gridded Data"
-subtitle: "Marine heatwaves and cold spells as per Hobday et al (2016) and Schlegel et al (2017)."
+subtitle: "Marine Heatwaves and Cold Spells as per Hobday Et Al (2016) and Schlegel Et Al (2017)."
 description: "This vignette demonstrates how to detect marine heatwaves (MHWs) in dataframes of gridded data in which each pixel is a separate time series."
 bibliography: ../references.bib
 csl: ../styles/marine-biology.csl
@@ -19,7 +19,7 @@ format:
     page-layout: full
 ---
 
-```{r global_options, include = FALSE}
+```{r code-global-options, include = FALSE}
 knitr::opts_chunk$set(fig.width = 4, fig.align = 'center', echo = TRUE,
                       warning = FALSE, message = FALSE, tidy = FALSE)
 ```
@@ -28,7 +28,7 @@ knitr::opts_chunk$set(fig.width = 4, fig.align = 'center', echo = TRUE,
 
 This vignette uses the data we acquired earlier in [Downloading and Preparing NOAA OISST Data: ERDDAP](../vignettes/prep_NOAA_OISST.qmd). We will use these subsetted data for our example on how to detect MHWs in gridded data.
 
-```{r load-pkg}
+```{r code-load-pkg}
 library(dplyr) # For basic data manipulation
 library(ggplot2) # For visualising data
 library(heatwaveR) # For detecting MHWs
@@ -36,23 +36,23 @@ library(tidync) # For easily dealing with NetCDF data
 library(doParallel) # For parallel processing
 ```
 
-## Loading data
+## Loading Data
 
 Because we saved our data as an `.Rds` file, loading it into R is easy.
 
-```{r load-data}
+```{r code-load-data}
 OISST <- readRDS("~/Desktop/OISST_vignette.Rds")
 ```
 
-## Event detection
+## Event Detection
 
-### Two good choices: __`dplyr`__ vs. __`plyr`__
+### Two good choices: __`dplyr`__ Vs. __`plyr`__
 
 When we want to make the same calculation across multiple groups of data within one dataframe we have two good options available to us. The first is to make use of the `map()` suite of functions found in the __`purrr`__ package, and now implemented in __`dplyr`__. This is a very fast __`tidyverse`__ friendly approach to splitting up tasks. The other good option is to go back in time a bit and use the `ddply()` function from the __`plyr`__ package. This is arguably a better approach as it allows us to very easily use multiple cores to detect the MHWs. The problem with this approach is that one must _never_ load the __`plyr`__ library directly as it has some fundamental inconsistencies with the __`tidyverse`__. We will see below how to perform these two different techniques without causing ourselves any headaches.
 
 It is a little clumsy to use multiple functions at once with the two methods so we will combine the calculations we want to make into one wrapper function.
 
-```{r detect-func}
+```{r fn-detect-func}
 event_only <- function(df) {
   # First calculate the climatologies
   clim <- ts2clm(data = df, climatologyPeriod = c("1982-01-01", "2011-01-01"))
@@ -64,11 +64,11 @@ event_only <- function(df) {
 ```
 
 
-#### The __`dplyr`__ method
+#### The __`dplyr`__ Method
 
 This method requires no special consideration and is performed just as any other friendly __`tidyverse`__ code chunk would be.
 
-```{r detect-purrr}
+```{r code-detect-purrr}
 system.time(
 # First we start by choosing the 'OISST' dataframe
 MHW_dplyr <- OISST %>% 
@@ -81,11 +81,11 @@ MHW_dplyr <- OISST %>%
 
 Running the above calculations with only one of the 2.8 GHz cores on a modern laptop took ~123 seconds. It must be noted however that a recent update to the __`dplyr`__ package now allows it to interrogate one's computer to determine how many cores it has at it's disposal. It then uses one core at full capacity and the other cores usually at half capacity.
 
-#### The __`plyr`__ technique
+#### The __`plyr`__ Technique
 
 This method requires that we first tell our machine how many of its processor cores to give us for our calculation.
 
-```{r detect-plyr}
+```{r code-detect-plyr}
 # NB: One should never use ALL available cores, save at least 1 for other essential tasks
 # The computer I'm writing this vignette on has 8 cores, so I use 7 here
 registerDoParallel(cores = 7)
@@ -104,7 +104,7 @@ As one may see above, running these calculations on a very large (or even global
 
 In order to happily combine these two options into one we will need to convert the __`dplyr`__ code we wrote above into it's own wrapper function, which we will then call on a stack of files using the __`plyr`__ technique. Before we do that we must first create the aforementioned stack of files.
 
-```{r lon-files}
+```{r code-lon-files}
 for(i in 1:length(unique(OISST$lon))) {
   OISST_sub <- OISST %>% 
     filter(lon == unique(lon)[i])
@@ -114,7 +114,7 @@ for(i in 1:length(unique(OISST$lon))) {
 
 This may initially seem like an unnecessary extra step, but when one is working with time series data it is necessary to have all of the dates at a given pixel loaded at once. Unless one is working from a server/virtual machine/supercomputer this means that one will often not be able to comfortably hold an entire grid for a study area in memory at once. Having the data accessible as thin strips like this makes life easier. And as we see in the code chunk below it also (arguably) allows us to perform the most efficient calculations on our data.
 
-```{r detect-both}
+```{r fn-detect-both}
 # The 'dplyr' wrapper function to pass to 'plyr'
 dplyr_wraper <- function(file_name){
   MHW_dplyr <- readRDS(file_name) %>% 
@@ -137,7 +137,7 @@ Even though this technique is not much faster computationally, it is much lighte
 
 As mentioned above, recent changes to how __`dplyr`__ interacts with one's computer has perhaps slowed down the __`plyr`__ + __`dplyr`__ workflow shown here. It may be now that simply using __`plyr`__ by itself is the better option. It depends on the number of cores and the amount of RAM that one has available.
 
-## Case study
+## Case Study
 
 Because of human-induced climate change, we anticipate that extreme events will occur more frequently and that they will become greater in intensity. Here we investigate this hypothesis by using gridded SST data, which is the only way that we can assess if this trend is unfolding across large ocean regions. Using the gridded 0.25 degree Reynolds OISST, we will detect marine heatwaves (MHWs) around South Africa by applying the `detect_event()` function pixel-by-pixel to the data we downloaded in [the previous vignette](https://robwschlegel.github.io/heatwaveR/articles/OISST_preparation.html). After detecting the events, we will fit a generalised linear model (GLM) to each pixel to calculate rates of change in some MHW metrics, and then plot the estimated trends. 
 
@@ -147,7 +147,7 @@ With our MHW detected we will now look at how to fit some GLMs to the results in
 
 Up first we see how to calculate the number of events that occurred per pixel.
 
-```{r event-tally}
+```{r code-event-tally}
 # summarise the number of unique longitude, latitude and year combination:
 OISST_n <- MHW_result %>% 
   mutate(year = lubridate::year(date_start)) %>% 
@@ -161,7 +161,7 @@ head(OISST_n)
 
 Then we specify the particulars of the GLM we are going to use.
 
-```{r trend-fun}
+```{r fn-trend-fun}
 lin_fun <- function(ev) {
   mod1 <- glm(n ~ year, family = poisson(link = "log"), data = ev)
   # extract slope coefficient and its p-value
@@ -173,7 +173,7 @@ lin_fun <- function(ev) {
 
 Lastly we make the calculations.
 
-```{r apply-trend-fun-plyr}
+```{r code-apply-trend-fun-plyr}
 OISST_nTrend <- plyr::ddply(OISST_n, c("lon", "lat"), lin_fun, .parallel = T)
 OISST_nTrend$pval <- cut(OISST_nTrend$p, breaks = c(0, 0.001, 0.01, 0.05, 1))
 head(OISST_nTrend)
@@ -183,7 +183,7 @@ head(OISST_nTrend)
 
 Let's finish this vignette by visualising the long-term trends in the annual occurrence of MHWs per pixel in the chosen study area. First we will grab the base global map from the __`maps`__ package.
 
-```{r prep-geography}
+```{r code-prep-geography}
 # The base map
 map_base <- ggplot2::fortify(maps::map(fill = TRUE, plot = FALSE)) %>% 
   dplyr::rename(lon = long)
@@ -191,7 +191,7 @@ map_base <- ggplot2::fortify(maps::map(fill = TRUE, plot = FALSE)) %>%
 
 Then we will create two maps that we will stick together using __`ggpubr`__. The first map will show the slope of the count of events detected per year over time as shades of red, and the second map will show the significance (_p_-value) of these trends in shades of grey.
 
-```{r the-figure}
+```{r fig-the-figure}
 map_slope <- ggplot(OISST_nTrend, aes(x = lon, y = lat)) +
   geom_rect(size = 0.2, fill = NA,
        aes(xmin = lon - 0.1, xmax = lon + 0.1, ymin = lat - 0.1, ymax = lat + 0.1,

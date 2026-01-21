@@ -15,7 +15,7 @@ format:
     page-layout: full
 ---
 
-```{r}
+```{r code-library-tidyverse-a-staple}
 # The packages we will use
 library(tidyverse) # A staple for modern data management in R
 library(tidync) # For easily dealing with NetCDF data
@@ -25,7 +25,7 @@ library(doParallel) # For parallel processing
 
 This document is a more basic version of the tutorial Robert Schlegel wrote, and which is available on our GitHub site as a [vignette of the **heatwaveR**](https://robwschlegel.github.io/heatwaveR/articles/OISST_preparation.html) package.
 
-## What are ERDDAP servers?
+## What Are ERDDAP Servers?
 
 According to the [ERDDAP website](https://coastwatch.pfeg.noaa.gov/erddap/index.html), "ERDDAP is a data server that gives you a simple, consistent way to download subsets of scientific datasets in common file formats and make graphs and maps. This particular ERDDAP installation has oceanographic data (for example, data from satellites and buoys)."
 
@@ -39,7 +39,7 @@ ERDDAP allows us to conveniently access, subset, and download a multitude of gri
 
 I will provide tutorial for each of these in due course.
 
-## ERDDAP sources
+## ERDDAP Sources
 
 The **rerddap** package provides a useful interface to ERDDAP servers via R. Internally, it uses the unix utility, `curl`. The package comes with a built-in list of links to widely used ERDDAP servers, which can be seen in a [json file](https://irishmarineinstitute.github.io/awesome-erddap/erddaps.json) maintained by the package authors. Included are well-known servers such as:
 
@@ -54,18 +54,18 @@ The **rerddap** package provides a useful interface to ERDDAP servers via R. Int
 
 Other servers may be accessed if they are not listed here.
 
-## Accessing ERDDAP servers
+## Accessing ERDDAP Servers
 
 Let us interrogate the list of servers known to the package. To find these servers, we use the `servers()` function:
 
-```{r}
+```{r code-serv-list-servers}
 # ERDDAP servers?
 serv_list <- servers()
 ```
 
 This load the database of server names. There are four columns with useful information:
 
-```{r}
+```{r code-colnames-serv-list}
 colnames(serv_list)
 ```
 
@@ -73,7 +73,7 @@ The content of the columns is reasonably self-explanatory.
 
 We may be interested in some kind of variable contained somewhere in any of these servers. For example, the MODIS satellite platform provides gridded chlorophyll-*a* data, and so we can construct a search using the `ed_search()` function:
 
-```{r}
+```{r code-which-chl-ed-search-query-chlorophyll}
 which_chl <- ed_search(query = "chlorophyll-a", which = "griddap")
 
 # voluminous output
@@ -86,27 +86,27 @@ Above you'll notice the `which = "griddap"` argument. [**griddap**](https://coas
 
 I select `dataset_id` "erdMH1chla1day" which corresponds to the `title` "Chlorophyll-a, Aqua MODIS, NPP, L3SMI, Global, 4km, Science Quality, 2003-present (1 Day Composite)". Note that I also select the version of the dataset in which longitudes west of the prime meridian run from -179.9792 to ~0. One can find this information inside the `which_chl` object and searching in the `title` column of the `info` dataframe contained within. 
 
-```{r}
+```{r code-view-which-chl-info}
 #| eval: false
 View(which_chl[["info"]])
 ```
 
 We can obtain more information about the data using the `browse()` command, which opens some information (the meta-data) in a web browser:
 
-```{r}
+```{r code-browse-erdmh1chla1day}
 #| eval: false
 browse('erdMH1chla1day')
 ```
 
 We can see that this dataset is **griddap** data. We can also use the `info()` function and now more concise but equally useful information is returned in the R console:
 
-```{r}
+```{r code-info-erdmh1chla1day}
 info("erdMH1chla1day")
 ```
 
 The convenience of ERDDAP is that we may specify various parameters to limit the data to download to a specific subset.
 
-```{r}
+```{r code-lats-c-a-region}
 lats = c(36.7950, 39.6790) # a region around the Azores
 lons = c(-31.5933, -23.6177)
 time = c("2003-01-01", "2022-07-27") # the full temporal extent
@@ -114,7 +114,7 @@ time = c("2003-01-01", "2022-07-27") # the full temporal extent
 
 Now we put together a function to download the files in CSV format. 
 
-```{r}
+```{r fn-chl-sub-dl-function-time-df}
 #| eval: false
 # this function downloads and prepares data based on user provided start and end dates
 # run once only, then save the downloaded data!
@@ -131,7 +131,7 @@ chl_sub_dl <- function(time_df) {
 
 The rationale for this script is provided in [Downloading and Preparing NOAA OISST Data: ERDDAP](../vignettes/prep_NOAA_OISST.qmd). Basically, even though each year of data for the extent used in this vignette is not very large, the ERDDAP server does not like it when more than nine years of consecutive data are requested (at least, this was true several years ago, and I have not yet tried to establish of this limitation was removed). The server will also end a user's connection after ~17 individual files have been requested. Because we can’t download all of the data in one request, and we can’t download the data one year at a time, we will need to make requests for multiple batches of data. To accomplish this we will create a dataframe of start and end dates that will allow us to automate the entire download while meeting the aforementioned criteria. 
 
-```{r}
+```{r code-dl-years-data-frame-date-index}
 #| eval: false
 # date download range by start and end dates per year
 dl_years <- data.frame(date_index = 1:3,
@@ -145,7 +145,7 @@ dl_years <- data.frame(date_index = 1:3,
 
 Now we may download all of the data with one nested request using some of the **tidyverse**'s functionality---we apply the function we made above to the dataframe of start and end dates. The time this takes will vary greatly based on connection speed:
 
-```{r}
+```{r code-system-time}
 #| eval: false
 system.time(
   chl_data <- dl_years %>% 
@@ -157,7 +157,7 @@ system.time(
 
 Finally, we save the data to a .Rdata file to avoid having to download it again:
 
-```{r}
+```{r code-save-chl-data-file-data}
 #| eval: false
 save(chl_data, file = "/data/MODIS_chl_data.Rdata")
 ```
@@ -165,7 +165,7 @@ save(chl_data, file = "/data/MODIS_chl_data.Rdata")
 Or we can download and save to disk as a netCDF (manually renamed to
 `chl_data.nc` afterwards):
 
-```{r}
+```{r code-griddap-datasetx-erdmh1chla1day}
 #| eval: false
 griddap(datasetx = "erdMH1chla1day", 
         url = "https://upwell.pfeg.noaa.gov/erddap/", 

@@ -5,7 +5,7 @@
 <meta name="generator" content="quarto-1.8.26">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="author" content="Smit, A. J.">
-<meta name="dcterms.date" content="2026-01-20">
+<meta name="dcterms.date" content="2026-01-21">
 <meta name="description" content="This vignette demonstrates an example workflow for extracting chlorophyll-a data at the point localities where whales were sighted.">
 <title>Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-a Data – The Tangled Bank</title>
 <style>
@@ -282,18 +282,18 @@ cookieconsent.run({
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#load-libraries" id="toc-load-libraries" class="nav-link active" data-scroll-target="#load-libraries"><span class="header-section-number">1</span> Load libraries</a></li>
-  <li><a href="#load-the-whale-sightings-data" id="toc-load-the-whale-sightings-data" class="nav-link" data-scroll-target="#load-the-whale-sightings-data"><span class="header-section-number">2</span> Load the whale sightings data</a></li>
+<li><a href="#load-libraries" id="toc-load-libraries" class="nav-link active" data-scroll-target="#load-libraries"><span class="header-section-number">1</span> Load Libraries</a></li>
+  <li><a href="#load-the-whale-sightings-data" id="toc-load-the-whale-sightings-data" class="nav-link" data-scroll-target="#load-the-whale-sightings-data"><span class="header-section-number">2</span> Load the Whale Sightings Data</a></li>
   <li><a href="#reading-chlorophyll-a-from-csv-rdata" id="toc-reading-chlorophyll-a-from-csv-rdata" class="nav-link" data-scroll-target="#reading-chlorophyll-a-from-csv-rdata"><span class="header-section-number">3</span> Reading chlorophyll-<em>a</em> from CSV (RData)</a></li>
-  <li><a href="#reading-chlorophyll-a-from-netcdf-alternative" id="toc-reading-chlorophyll-a-from-netcdf-alternative" class="nav-link" data-scroll-target="#reading-chlorophyll-a-from-netcdf-alternative"><span class="header-section-number">4</span> Reading chlorophyll-<em>a</em> from netCDF (alternative)</a></li>
+  <li><a href="#reading-chlorophyll-a-from-netcdf-alternative" id="toc-reading-chlorophyll-a-from-netcdf-alternative" class="nav-link" data-scroll-target="#reading-chlorophyll-a-from-netcdf-alternative"><span class="header-section-number">4</span> Reading chlorophyll-<em>a</em> from netCDF (Alternative)</a></li>
   <li><a href="#processing" id="toc-processing" class="nav-link" data-scroll-target="#processing"><span class="header-section-number">5</span> Processing</a></li>
-  <li><a href="#make-a-function-to-apply" id="toc-make-a-function-to-apply" class="nav-link" data-scroll-target="#make-a-function-to-apply"><span class="header-section-number">6</span> Make a function to apply</a></li>
+  <li><a href="#make-a-function-to-apply" id="toc-make-a-function-to-apply" class="nav-link" data-scroll-target="#make-a-function-to-apply"><span class="header-section-number">6</span> Make a Function to Apply</a></li>
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/vignettes/chl_localisation.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content column-page-left" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
 <div class="quarto-title-block"><div><h1 class="title">Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-<em>a</em> Data</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
-<p class="subtitle lead">An example analysis and workflow</p>
+<p class="subtitle lead">An Example Analysis and Workflow</p>
 </div>
 
 <div>
@@ -324,7 +324,7 @@ cookieconsent.run({
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 20, 2026</p>
+      <p class="date">January 21, 2026</p>
     </div>
   </div>
   
@@ -336,7 +336,7 @@ cookieconsent.run({
 </header><p>This analysis uses the chlorophyll<em>a</em> data downloaded in <a href="../vignettes/chl_ERDDAP.html">Retrieving Chlorophyll-a Data from ERDDAP Servers</a>.</p>
 <p>The purpose of this analysis is to extract chlorophyll-<em>a</em> (chl-<em>a</em>) data collocated with the position of whale sightings. The geographical locality of each whale sighting is used to define a centre point in the gridded chl-<em>a</em> dataset. This centre point is then expanded by a specified radius, and all the pixels located within the expanded area’s bounding box are then aggregated along the latitude and longitude dimensions. This is repeated for each whale sighting since the start of the chl-<em>a</em> record time period (i.e.&nbsp;since 2003-01-01).</p>
 <section id="load-libraries" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="load-libraries">
-<span class="header-section-number">1</span> Load libraries</h2>
+<span class="header-section-number">1</span> Load Libraries</h2>
 <p>I use <strong>tidyverse</strong> (of course) for basic data processing, <strong>lubridate</strong> for date calculations (specifically the ceiling of a pre-defined time interval such as week), and <strong>stars</strong> and <strong>sf</strong> for some specific geographical computations.</p>
 <div class="cell" data-warnings="false">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -348,7 +348,7 @@ cookieconsent.run({
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># devtools::session_info()</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="load-the-whale-sightings-data" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="load-the-whale-sightings-data">
-<span class="header-section-number">2</span> Load the whale sightings data</h2>
+<span class="header-section-number">2</span> Load the Whale Sightings Data</h2>
 <p>These data are provided as CSV file and are easy to load:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># sightings</span></span>
@@ -392,7 +392,7 @@ cookieconsent.run({
 <span id="cb6-21"><a href="#cb6-21"></a><span class="co"># class(chl_df$date_ceiling)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="reading-chlorophyll-a-from-netcdf-alternative" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="reading-chlorophyll-a-from-netcdf-alternative">
-<span class="header-section-number">4</span> Reading chlorophyll-<em>a</em> from netCDF (alternative)</h2>
+<span class="header-section-number">4</span> Reading chlorophyll-<em>a</em> from netCDF (Alternative)</h2>
 <p>Note that we can also download (in <code>1_ERDDAP_download.html</code>) the data in netCDF format, and load the netCDF directly as a <strong>stars</strong> object. In the future I’ll probably go this route because I like the convenience of netCDF. An example workflow is provided for the netCDF approach, but the subsequent analysis proceeds with the data loaded from CSV.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>chl_nc <span class="ot">&lt;-</span></span>
@@ -515,7 +515,7 @@ cookieconsent.run({
 </div>
 <p>Now I know how to do the data extraction and processing for one line in the <code>sights</code> dataset. The next trick is to do it line by line for the whole <code>sights</code> dataset, i.e.&nbsp;once for each whale sighting.</p>
 </section><section id="make-a-function-to-apply" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="make-a-function-to-apply">
-<span class="header-section-number">6</span> Make a function to apply</h2>
+<span class="header-section-number">6</span> Make a Function to Apply</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="co"># for testing (legacy code)</span></span>
 <span id="cb16-2"><a href="#cb16-2"></a></span>
@@ -1088,7 +1088,7 @@ Chlorophyll-*a* Data. <a href="http://tangledbank.netlify.app/vignettes/chl_loca
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb23-1"><a href="#cb23-1"></a><span class="co">---</span></span>
 <span id="cb23-2"><a href="#cb23-2"></a><span class="an">title:</span><span class="co"> "Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-*a* Data"</span></span>
-<span id="cb23-3"><a href="#cb23-3"></a><span class="an">subtitle:</span><span class="co"> "An example analysis and workflow"</span></span>
+<span id="cb23-3"><a href="#cb23-3"></a><span class="an">subtitle:</span><span class="co"> "An Example Analysis and Workflow"</span></span>
 <span id="cb23-4"><a href="#cb23-4"></a><span class="an">date:</span><span class="co"> "`r Sys.Date()`"</span></span>
 <span id="cb23-5"><a href="#cb23-5"></a><span class="an">description:</span><span class="co"> "This vignette demonstrates an example workflow for extracting chlorophyll-*a* data at the point localities where whales were sighted."</span></span>
 <span id="cb23-6"><a href="#cb23-6"></a><span class="an">bibliography:</span><span class="co"> ../references.bib</span></span>
@@ -1113,400 +1113,399 @@ Chlorophyll-*a* Data. <a href="http://tangledbank.netlify.app/vignettes/chl_loca
 <span id="cb23-25"><a href="#cb23-25"></a>dimensions. This is repeated for each whale sighting since the start of</span>
 <span id="cb23-26"><a href="#cb23-26"></a>the chl-*a* record time period (i.e. since 2003-01-01).</span>
 <span id="cb23-27"><a href="#cb23-27"></a></span>
-<span id="cb23-28"><a href="#cb23-28"></a><span class="fu">## Load libraries</span></span>
+<span id="cb23-28"><a href="#cb23-28"></a><span class="fu">## Load Libraries</span></span>
 <span id="cb23-29"><a href="#cb23-29"></a></span>
 <span id="cb23-30"><a href="#cb23-30"></a>I use **tidyverse** (of course) for basic data processing, **lubridate**</span>
 <span id="cb23-31"><a href="#cb23-31"></a>for date calculations (specifically the ceiling of a pre-defined time</span>
 <span id="cb23-32"><a href="#cb23-32"></a>interval such as week), and **stars** and **sf** for some specific</span>
 <span id="cb23-33"><a href="#cb23-33"></a>geographical computations.</span>
 <span id="cb23-34"><a href="#cb23-34"></a></span>
-<span id="cb23-37"><a href="#cb23-37"></a><span class="in">```{r}</span></span>
-<span id="cb23-38"><a href="#cb23-38"></a><span class="co">#| output: false</span></span>
-<span id="cb23-39"><a href="#cb23-39"></a><span class="co">#| warnings: false</span></span>
-<span id="cb23-40"><a href="#cb23-40"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb23-41"><a href="#cb23-41"></a><span class="fu">library</span>(lubridate)</span>
-<span id="cb23-42"><a href="#cb23-42"></a><span class="fu">library</span>(stars)</span>
-<span id="cb23-43"><a href="#cb23-43"></a><span class="fu">library</span>(sf)</span>
-<span id="cb23-44"><a href="#cb23-44"></a><span class="in">```</span></span>
-<span id="cb23-45"><a href="#cb23-45"></a></span>
-<span id="cb23-48"><a href="#cb23-48"></a><span class="in">```{r}</span></span>
-<span id="cb23-49"><a href="#cb23-49"></a><span class="co"># devtools::session_info()</span></span>
-<span id="cb23-50"><a href="#cb23-50"></a><span class="in">```</span></span>
+<span id="cb23-35"><a href="#cb23-35"></a><span class="in">```{r code-library-tidyverse}</span></span>
+<span id="cb23-36"><a href="#cb23-36"></a><span class="co">#| output: false</span></span>
+<span id="cb23-37"><a href="#cb23-37"></a><span class="co">#| warnings: false</span></span>
+<span id="cb23-38"><a href="#cb23-38"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb23-39"><a href="#cb23-39"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb23-40"><a href="#cb23-40"></a><span class="fu">library</span>(stars)</span>
+<span id="cb23-41"><a href="#cb23-41"></a><span class="fu">library</span>(sf)</span>
+<span id="cb23-42"><a href="#cb23-42"></a><span class="in">```</span></span>
+<span id="cb23-43"><a href="#cb23-43"></a></span>
+<span id="cb23-44"><a href="#cb23-44"></a><span class="in">```{r code-chunk}</span></span>
+<span id="cb23-45"><a href="#cb23-45"></a><span class="co"># devtools::session_info()</span></span>
+<span id="cb23-46"><a href="#cb23-46"></a><span class="in">```</span></span>
+<span id="cb23-47"><a href="#cb23-47"></a></span>
+<span id="cb23-48"><a href="#cb23-48"></a><span class="fu">## Load the Whale Sightings Data</span></span>
+<span id="cb23-49"><a href="#cb23-49"></a></span>
+<span id="cb23-50"><a href="#cb23-50"></a>These data are provided as CSV file and are easy to load:</span>
 <span id="cb23-51"><a href="#cb23-51"></a></span>
-<span id="cb23-52"><a href="#cb23-52"></a><span class="fu">## Load the whale sightings data</span></span>
-<span id="cb23-53"><a href="#cb23-53"></a></span>
-<span id="cb23-54"><a href="#cb23-54"></a>These data are provided as CSV file and are easy to load:</span>
-<span id="cb23-55"><a href="#cb23-55"></a></span>
-<span id="cb23-58"><a href="#cb23-58"></a><span class="in">```{r}</span></span>
-<span id="cb23-59"><a href="#cb23-59"></a><span class="co">#| cache: false</span></span>
-<span id="cb23-60"><a href="#cb23-60"></a><span class="co"># sightings</span></span>
-<span id="cb23-61"><a href="#cb23-61"></a>sights_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb23-62"><a href="#cb23-62"></a>  here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"occurences_sampled.Mn.txt"</span>),</span>
-<span id="cb23-63"><a href="#cb23-63"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
-<span id="cb23-64"><a href="#cb23-64"></a>)</span>
-<span id="cb23-65"><a href="#cb23-65"></a><span class="fu">min</span>(sights_data<span class="sc">$</span>date); <span class="fu">max</span>(sights_data<span class="sc">$</span>date)</span>
-<span id="cb23-66"><a href="#cb23-66"></a><span class="in">```</span></span>
+<span id="cb23-52"><a href="#cb23-52"></a><span class="in">```{r code-sights-data-read-csv}</span></span>
+<span id="cb23-53"><a href="#cb23-53"></a><span class="co">#| cache: false</span></span>
+<span id="cb23-54"><a href="#cb23-54"></a><span class="co"># sightings</span></span>
+<span id="cb23-55"><a href="#cb23-55"></a>sights_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb23-56"><a href="#cb23-56"></a>  here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"occurences_sampled.Mn.txt"</span>),</span>
+<span id="cb23-57"><a href="#cb23-57"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb23-58"><a href="#cb23-58"></a>)</span>
+<span id="cb23-59"><a href="#cb23-59"></a><span class="fu">min</span>(sights_data<span class="sc">$</span>date); <span class="fu">max</span>(sights_data<span class="sc">$</span>date)</span>
+<span id="cb23-60"><a href="#cb23-60"></a><span class="in">```</span></span>
+<span id="cb23-61"><a href="#cb23-61"></a></span>
+<span id="cb23-62"><a href="#cb23-62"></a><span class="fu">## Reading chlorophyll-*a* from CSV (RData)</span></span>
+<span id="cb23-63"><a href="#cb23-63"></a></span>
+<span id="cb23-64"><a href="#cb23-64"></a>Next I load the chlorophyll-*a* data. These data were downloaded as flat</span>
+<span id="cb23-65"><a href="#cb23-65"></a>CSV file and stored in a more compact RData file. See <span class="in">`1_ERDDAP_download.html`</span></span>
+<span id="cb23-66"><a href="#cb23-66"></a>for information about the download process.</span>
 <span id="cb23-67"><a href="#cb23-67"></a></span>
-<span id="cb23-68"><a href="#cb23-68"></a><span class="fu">## Reading chlorophyll-*a* from CSV (RData)</span></span>
-<span id="cb23-69"><a href="#cb23-69"></a></span>
-<span id="cb23-70"><a href="#cb23-70"></a>Next I load the chlorophyll-*a* data. These data were downloaded as flat</span>
-<span id="cb23-71"><a href="#cb23-71"></a>CSV file and stored in a more compact RData file. See <span class="in">`1_ERDDAP_download.html`</span></span>
-<span id="cb23-72"><a href="#cb23-72"></a>for information about the download process.</span>
-<span id="cb23-73"><a href="#cb23-73"></a></span>
-<span id="cb23-74"><a href="#cb23-74"></a>It is important that we are clear about the start times (especially) of</span>
-<span id="cb23-75"><a href="#cb23-75"></a>the sightings dataset.</span>
-<span id="cb23-76"><a href="#cb23-76"></a></span>
-<span id="cb23-79"><a href="#cb23-79"></a><span class="in">```{r}</span></span>
-<span id="cb23-80"><a href="#cb23-80"></a><span class="co">#| cache: false</span></span>
-<span id="cb23-81"><a href="#cb23-81"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-82"><a href="#cb23-82"></a><span class="co"># chlorophyll-*a*</span></span>
-<span id="cb23-83"><a href="#cb23-83"></a>chlDir <span class="ot">&lt;-</span> <span class="st">"/Users/ajsmit/Library/Mobile Documents/com~apple~CloudDocs/R/R_in_Ocean_Science/_development/ERDDAP/"</span></span>
-<span id="cb23-84"><a href="#cb23-84"></a><span class="fu">load</span>(<span class="fu">paste0</span>(chlDir, <span class="st">"MODIS_chl_data.Rdata"</span>))</span>
-<span id="cb23-85"><a href="#cb23-85"></a><span class="fu">min</span>(chl_data<span class="sc">$</span>time); <span class="fu">max</span>(chl_data<span class="sc">$</span>time)</span>
-<span id="cb23-86"><a href="#cb23-86"></a></span>
-<span id="cb23-87"><a href="#cb23-87"></a><span class="co"># for testing only (legacy code)</span></span>
-<span id="cb23-88"><a href="#cb23-88"></a></span>
-<span id="cb23-89"><a href="#cb23-89"></a><span class="co"># chl_df &lt;- chl_data |&gt;</span></span>
-<span id="cb23-90"><a href="#cb23-90"></a><span class="co">#   dplyr::filter(time &gt;= "2003-01-01") |&gt;</span></span>
-<span id="cb23-91"><a href="#cb23-91"></a><span class="co">#   dplyr::mutate(date_ceiling = ceiling_date(time, unit = "week",</span></span>
-<span id="cb23-92"><a href="#cb23-92"></a><span class="co">#                                         week_start = 3)) |&gt;</span></span>
-<span id="cb23-93"><a href="#cb23-93"></a><span class="co">#   dplyr::group_by(longitude, latitude, date_ceiling) |&gt;</span></span>
-<span id="cb23-94"><a href="#cb23-94"></a><span class="co">#   dplyr::select(-time) |&gt;</span></span>
-<span id="cb23-95"><a href="#cb23-95"></a><span class="co">#   dplyr::summarise(chlorophyll = median(chlorophyll, na.rm = TRUE), .groups = "drop")</span></span>
-<span id="cb23-96"><a href="#cb23-96"></a><span class="co"># </span></span>
-<span id="cb23-97"><a href="#cb23-97"></a><span class="co"># chl_date_df &lt;- data.frame(date = unique(chl_df$date_ceiling))</span></span>
+<span id="cb23-68"><a href="#cb23-68"></a>It is important that we are clear about the start times (especially) of</span>
+<span id="cb23-69"><a href="#cb23-69"></a>the sightings dataset.</span>
+<span id="cb23-70"><a href="#cb23-70"></a></span>
+<span id="cb23-71"><a href="#cb23-71"></a><span class="in">```{r code-chldir-users-ajsmit-library}</span></span>
+<span id="cb23-72"><a href="#cb23-72"></a><span class="co">#| cache: false</span></span>
+<span id="cb23-73"><a href="#cb23-73"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-74"><a href="#cb23-74"></a><span class="co"># chlorophyll-*a*</span></span>
+<span id="cb23-75"><a href="#cb23-75"></a>chlDir <span class="ot">&lt;-</span> <span class="st">"/Users/ajsmit/Library/Mobile Documents/com~apple~CloudDocs/R/R_in_Ocean_Science/_development/ERDDAP/"</span></span>
+<span id="cb23-76"><a href="#cb23-76"></a><span class="fu">load</span>(<span class="fu">paste0</span>(chlDir, <span class="st">"MODIS_chl_data.Rdata"</span>))</span>
+<span id="cb23-77"><a href="#cb23-77"></a><span class="fu">min</span>(chl_data<span class="sc">$</span>time); <span class="fu">max</span>(chl_data<span class="sc">$</span>time)</span>
+<span id="cb23-78"><a href="#cb23-78"></a></span>
+<span id="cb23-79"><a href="#cb23-79"></a><span class="co"># for testing only (legacy code)</span></span>
+<span id="cb23-80"><a href="#cb23-80"></a></span>
+<span id="cb23-81"><a href="#cb23-81"></a><span class="co"># chl_df &lt;- chl_data |&gt;</span></span>
+<span id="cb23-82"><a href="#cb23-82"></a><span class="co">#   dplyr::filter(time &gt;= "2003-01-01") |&gt;</span></span>
+<span id="cb23-83"><a href="#cb23-83"></a><span class="co">#   dplyr::mutate(date_ceiling = ceiling_date(time, unit = "week",</span></span>
+<span id="cb23-84"><a href="#cb23-84"></a><span class="co">#                                         week_start = 3)) |&gt;</span></span>
+<span id="cb23-85"><a href="#cb23-85"></a><span class="co">#   dplyr::group_by(longitude, latitude, date_ceiling) |&gt;</span></span>
+<span id="cb23-86"><a href="#cb23-86"></a><span class="co">#   dplyr::select(-time) |&gt;</span></span>
+<span id="cb23-87"><a href="#cb23-87"></a><span class="co">#   dplyr::summarise(chlorophyll = median(chlorophyll, na.rm = TRUE), .groups = "drop")</span></span>
+<span id="cb23-88"><a href="#cb23-88"></a><span class="co"># </span></span>
+<span id="cb23-89"><a href="#cb23-89"></a><span class="co"># chl_date_df &lt;- data.frame(date = unique(chl_df$date_ceiling))</span></span>
+<span id="cb23-90"><a href="#cb23-90"></a></span>
+<span id="cb23-91"><a href="#cb23-91"></a><span class="co"># check! this must align with the first date of the whale sighting data after</span></span>
+<span id="cb23-92"><a href="#cb23-92"></a><span class="co"># we calculate the date ceiling</span></span>
+<span id="cb23-93"><a href="#cb23-93"></a><span class="co"># min(chl_df$date_ceiling); max(chl_df$date_ceiling)</span></span>
+<span id="cb23-94"><a href="#cb23-94"></a><span class="co"># class(chl_df$date_ceiling)</span></span>
+<span id="cb23-95"><a href="#cb23-95"></a><span class="in">```</span></span>
+<span id="cb23-96"><a href="#cb23-96"></a></span>
+<span id="cb23-97"><a href="#cb23-97"></a><span class="fu">## Reading chlorophyll-*a* from netCDF (Alternative)</span></span>
 <span id="cb23-98"><a href="#cb23-98"></a></span>
-<span id="cb23-99"><a href="#cb23-99"></a><span class="co"># check! this must align with the first date of the whale sighting data after</span></span>
-<span id="cb23-100"><a href="#cb23-100"></a><span class="co"># we calculate the date ceiling</span></span>
-<span id="cb23-101"><a href="#cb23-101"></a><span class="co"># min(chl_df$date_ceiling); max(chl_df$date_ceiling)</span></span>
-<span id="cb23-102"><a href="#cb23-102"></a><span class="co"># class(chl_df$date_ceiling)</span></span>
-<span id="cb23-103"><a href="#cb23-103"></a><span class="in">```</span></span>
+<span id="cb23-99"><a href="#cb23-99"></a>Note that we can also download (in <span class="in">`1_ERDDAP_download.html`</span>) the data in</span>
+<span id="cb23-100"><a href="#cb23-100"></a>netCDF format, and load the netCDF directly as a **stars** object. In the</span>
+<span id="cb23-101"><a href="#cb23-101"></a>future I'll probably go this route because I like the convenience of</span>
+<span id="cb23-102"><a href="#cb23-102"></a>netCDF. An example workflow is provided for the netCDF approach, but the</span>
+<span id="cb23-103"><a href="#cb23-103"></a>subsequent analysis proceeds with the data loaded from CSV.</span>
 <span id="cb23-104"><a href="#cb23-104"></a></span>
-<span id="cb23-105"><a href="#cb23-105"></a><span class="fu">## Reading chlorophyll-*a* from netCDF (alternative)</span></span>
-<span id="cb23-106"><a href="#cb23-106"></a></span>
-<span id="cb23-107"><a href="#cb23-107"></a>Note that we can also download (in <span class="in">`1_ERDDAP_download.html`</span>) the data in</span>
-<span id="cb23-108"><a href="#cb23-108"></a>netCDF format, and load the netCDF directly as a **stars** object. In the</span>
-<span id="cb23-109"><a href="#cb23-109"></a>future I'll probably go this route because I like the convenience of</span>
-<span id="cb23-110"><a href="#cb23-110"></a>netCDF. An example workflow is provided for the netCDF approach, but the</span>
-<span id="cb23-111"><a href="#cb23-111"></a>subsequent analysis proceeds with the data loaded from CSV.</span>
-<span id="cb23-112"><a href="#cb23-112"></a></span>
-<span id="cb23-115"><a href="#cb23-115"></a><span class="in">```{r}</span></span>
-<span id="cb23-116"><a href="#cb23-116"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-117"><a href="#cb23-117"></a>chl_nc <span class="ot">&lt;-</span></span>
-<span id="cb23-118"><a href="#cb23-118"></a>  stars<span class="sc">::</span><span class="fu">read_ncdf</span>(<span class="fu">paste0</span>(chlDir, <span class="st">"chl_data.nc"</span>),</span>
-<span id="cb23-119"><a href="#cb23-119"></a>                   <span class="at">var =</span> <span class="st">"chlorophyll"</span>,</span>
-<span id="cb23-120"><a href="#cb23-120"></a>                   <span class="at">proxy =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb23-121"><a href="#cb23-121"></a></span>
-<span id="cb23-122"><a href="#cb23-122"></a><span class="co"># 'warp' to regular grid (for some reason it was not properly registered as a</span></span>
-<span id="cb23-123"><a href="#cb23-123"></a><span class="co"># regular grid, even though it is one)</span></span>
-<span id="cb23-124"><a href="#cb23-124"></a>chl_st1 <span class="ot">&lt;-</span> <span class="fu">st_warp</span>(chl_nc, <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
-<span id="cb23-125"><a href="#cb23-125"></a></span>
-<span id="cb23-126"><a href="#cb23-126"></a><span class="co"># check the CRS</span></span>
-<span id="cb23-127"><a href="#cb23-127"></a><span class="co"># st_crs(chl_st1)</span></span>
-<span id="cb23-128"><a href="#cb23-128"></a></span>
-<span id="cb23-129"><a href="#cb23-129"></a><span class="co"># make a vector of proper dates</span></span>
-<span id="cb23-130"><a href="#cb23-130"></a>dates <span class="ot">&lt;-</span></span>
-<span id="cb23-131"><a href="#cb23-131"></a>  <span class="fu">as.Date</span>(<span class="fu">st_get_dimension_values</span>(chl_st1, <span class="at">which =</span> <span class="st">"time"</span>),</span>
-<span id="cb23-132"><a href="#cb23-132"></a>          <span class="at">format =</span> <span class="st">"%Y-%m-%d"</span>)</span>
+<span id="cb23-105"><a href="#cb23-105"></a><span class="in">```{r code-chl-nc}</span></span>
+<span id="cb23-106"><a href="#cb23-106"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-107"><a href="#cb23-107"></a>chl_nc <span class="ot">&lt;-</span></span>
+<span id="cb23-108"><a href="#cb23-108"></a>  stars<span class="sc">::</span><span class="fu">read_ncdf</span>(<span class="fu">paste0</span>(chlDir, <span class="st">"chl_data.nc"</span>),</span>
+<span id="cb23-109"><a href="#cb23-109"></a>                   <span class="at">var =</span> <span class="st">"chlorophyll"</span>,</span>
+<span id="cb23-110"><a href="#cb23-110"></a>                   <span class="at">proxy =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-111"><a href="#cb23-111"></a></span>
+<span id="cb23-112"><a href="#cb23-112"></a><span class="co"># 'warp' to regular grid (for some reason it was not properly registered as a</span></span>
+<span id="cb23-113"><a href="#cb23-113"></a><span class="co"># regular grid, even though it is one)</span></span>
+<span id="cb23-114"><a href="#cb23-114"></a>chl_st1 <span class="ot">&lt;-</span> <span class="fu">st_warp</span>(chl_nc, <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
+<span id="cb23-115"><a href="#cb23-115"></a></span>
+<span id="cb23-116"><a href="#cb23-116"></a><span class="co"># check the CRS</span></span>
+<span id="cb23-117"><a href="#cb23-117"></a><span class="co"># st_crs(chl_st1)</span></span>
+<span id="cb23-118"><a href="#cb23-118"></a></span>
+<span id="cb23-119"><a href="#cb23-119"></a><span class="co"># make a vector of proper dates</span></span>
+<span id="cb23-120"><a href="#cb23-120"></a>dates <span class="ot">&lt;-</span></span>
+<span id="cb23-121"><a href="#cb23-121"></a>  <span class="fu">as.Date</span>(<span class="fu">st_get_dimension_values</span>(chl_st1, <span class="at">which =</span> <span class="st">"time"</span>),</span>
+<span id="cb23-122"><a href="#cb23-122"></a>          <span class="at">format =</span> <span class="st">"%Y-%m-%d"</span>)</span>
+<span id="cb23-123"><a href="#cb23-123"></a></span>
+<span id="cb23-124"><a href="#cb23-124"></a><span class="co"># transform this to a vector of 'date floors'</span></span>
+<span id="cb23-125"><a href="#cb23-125"></a><span class="co"># dates &lt;- ceiling_date(dates, unit = "week")</span></span>
+<span id="cb23-126"><a href="#cb23-126"></a></span>
+<span id="cb23-127"><a href="#cb23-127"></a><span class="co"># assign the proper dates to the coordinate dimension</span></span>
+<span id="cb23-128"><a href="#cb23-128"></a>chl_st1 <span class="ot">&lt;-</span> <span class="fu">st_set_dimensions</span>(chl_st1, <span class="at">which =</span> <span class="st">"time"</span>,</span>
+<span id="cb23-129"><a href="#cb23-129"></a>                             <span class="at">values =</span> dates)</span>
+<span id="cb23-130"><a href="#cb23-130"></a><span class="in">```</span></span>
+<span id="cb23-131"><a href="#cb23-131"></a></span>
+<span id="cb23-132"><a href="#cb23-132"></a><span class="fu">## Processing</span></span>
 <span id="cb23-133"><a href="#cb23-133"></a></span>
-<span id="cb23-134"><a href="#cb23-134"></a><span class="co"># transform this to a vector of 'date floors'</span></span>
-<span id="cb23-135"><a href="#cb23-135"></a><span class="co"># dates &lt;- ceiling_date(dates, unit = "week")</span></span>
-<span id="cb23-136"><a href="#cb23-136"></a></span>
-<span id="cb23-137"><a href="#cb23-137"></a><span class="co"># assign the proper dates to the coordinate dimension</span></span>
-<span id="cb23-138"><a href="#cb23-138"></a>chl_st1 <span class="ot">&lt;-</span> <span class="fu">st_set_dimensions</span>(chl_st1, <span class="at">which =</span> <span class="st">"time"</span>,</span>
-<span id="cb23-139"><a href="#cb23-139"></a>                             <span class="at">values =</span> dates)</span>
-<span id="cb23-140"><a href="#cb23-140"></a><span class="in">```</span></span>
-<span id="cb23-141"><a href="#cb23-141"></a></span>
-<span id="cb23-142"><a href="#cb23-142"></a><span class="fu">## Processing</span></span>
+<span id="cb23-134"><a href="#cb23-134"></a>Both the sightings and chlorophyll-*a* data have a date/time vector</span>
+<span id="cb23-135"><a href="#cb23-135"></a>comprised of daily dates. But will they align after we calculate the</span>
+<span id="cb23-136"><a href="#cb23-136"></a>weekly data?</span>
+<span id="cb23-137"><a href="#cb23-137"></a></span>
+<span id="cb23-138"><a href="#cb23-138"></a>The chlorophyll-*a* data are available since 2002-12-29 and the whale</span>
+<span id="cb23-139"><a href="#cb23-139"></a>sighting data since much earlier. I will use 2003-01-01 as the date from</span>
+<span id="cb23-140"><a href="#cb23-140"></a>which to calculate the date ceiling and thus align the datasets along</span>
+<span id="cb23-141"><a href="#cb23-141"></a>the time dimension. Note that I also calculated the weekly chl-*a*</span>
+<span id="cb23-142"><a href="#cb23-142"></a>medians.</span>
 <span id="cb23-143"><a href="#cb23-143"></a></span>
-<span id="cb23-144"><a href="#cb23-144"></a>Both the sightings and chlorophyll-*a* data have a date/time vector</span>
-<span id="cb23-145"><a href="#cb23-145"></a>comprised of daily dates. But will they align after we calculate the</span>
-<span id="cb23-146"><a href="#cb23-146"></a>weekly data?</span>
+<span id="cb23-144"><a href="#cb23-144"></a>I convert the dataframe to a **stars** object and do all subsequent</span>
+<span id="cb23-145"><a href="#cb23-145"></a>calculations (subsetting, cropping, etc.) there. This seems to be a bit</span>
+<span id="cb23-146"><a href="#cb23-146"></a>faster than working in a dataframe.</span>
 <span id="cb23-147"><a href="#cb23-147"></a></span>
-<span id="cb23-148"><a href="#cb23-148"></a>The chlorophyll-*a* data are available since 2002-12-29 and the whale</span>
-<span id="cb23-149"><a href="#cb23-149"></a>sighting data since much earlier. I will use 2003-01-01 as the date from</span>
-<span id="cb23-150"><a href="#cb23-150"></a>which to calculate the date ceiling and thus align the datasets along</span>
-<span id="cb23-151"><a href="#cb23-151"></a>the time dimension. Note that I also calculated the weekly chl-*a*</span>
-<span id="cb23-152"><a href="#cb23-152"></a>medians.</span>
-<span id="cb23-153"><a href="#cb23-153"></a></span>
-<span id="cb23-154"><a href="#cb23-154"></a>I convert the dataframe to a **stars** object and do all subsequent</span>
-<span id="cb23-155"><a href="#cb23-155"></a>calculations (subsetting, cropping, etc.) there. This seems to be a bit</span>
-<span id="cb23-156"><a href="#cb23-156"></a>faster than working in a dataframe.</span>
+<span id="cb23-148"><a href="#cb23-148"></a><span class="in">```{r code-chl-st-chl-data}</span></span>
+<span id="cb23-149"><a href="#cb23-149"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-150"><a href="#cb23-150"></a>chl_st <span class="ot">&lt;-</span> chl_data <span class="sc">|&gt;</span></span>
+<span id="cb23-151"><a href="#cb23-151"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(longitude, latitude, time, chlorophyll) <span class="sc">|&gt;</span></span>
+<span id="cb23-152"><a href="#cb23-152"></a>  <span class="fu">st_as_stars</span>(<span class="at">dims =</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>, <span class="st">"time"</span>),</span>
+<span id="cb23-153"><a href="#cb23-153"></a>              <span class="at">raster =</span> <span class="st">"chlorophyll"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb23-154"><a href="#cb23-154"></a>  sf<span class="sc">::</span><span class="fu">st_set_crs</span>(<span class="dv">4326</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-155"><a href="#cb23-155"></a>  <span class="fu">filter</span>(time <span class="sc">&gt;=</span> <span class="st">"2003-01-01"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb23-156"><a href="#cb23-156"></a>  <span class="fu">aggregate</span>(<span class="at">by =</span> <span class="st">"7 days"</span>, <span class="at">FUN =</span> median, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb23-157"><a href="#cb23-157"></a></span>
-<span id="cb23-160"><a href="#cb23-160"></a><span class="in">```{r}</span></span>
-<span id="cb23-161"><a href="#cb23-161"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-162"><a href="#cb23-162"></a>chl_st <span class="ot">&lt;-</span> chl_data <span class="sc">|&gt;</span></span>
-<span id="cb23-163"><a href="#cb23-163"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(longitude, latitude, time, chlorophyll) <span class="sc">|&gt;</span></span>
-<span id="cb23-164"><a href="#cb23-164"></a>  <span class="fu">st_as_stars</span>(<span class="at">dims =</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>, <span class="st">"time"</span>),</span>
-<span id="cb23-165"><a href="#cb23-165"></a>              <span class="at">raster =</span> <span class="st">"chlorophyll"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb23-166"><a href="#cb23-166"></a>  sf<span class="sc">::</span><span class="fu">st_set_crs</span>(<span class="dv">4326</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb23-167"><a href="#cb23-167"></a>  <span class="fu">filter</span>(time <span class="sc">&gt;=</span> <span class="st">"2003-01-01"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb23-168"><a href="#cb23-168"></a>  <span class="fu">aggregate</span>(<span class="at">by =</span> <span class="st">"7 days"</span>, <span class="at">FUN =</span> median, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb23-169"><a href="#cb23-169"></a></span>
-<span id="cb23-170"><a href="#cb23-170"></a>chl_st <span class="ot">&lt;-</span> <span class="fu">st_warp</span>(chl_st, <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
-<span id="cb23-171"><a href="#cb23-171"></a><span class="fu">print</span>(chl_st)</span>
-<span id="cb23-172"><a href="#cb23-172"></a>chl_date_st <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">date =</span> <span class="fu">unique</span>(<span class="fu">st_get_dimension_values</span>(chl_st, <span class="at">which =</span> <span class="st">"time"</span>)))</span>
-<span id="cb23-173"><a href="#cb23-173"></a><span class="fu">min</span>(<span class="fu">st_get_dimension_values</span>(chl_st, <span class="at">which =</span> <span class="st">"time"</span>)); <span class="fu">max</span>(<span class="fu">st_get_dimension_values</span>(chl_st, <span class="at">which =</span> <span class="st">"time"</span>))</span>
-<span id="cb23-174"><a href="#cb23-174"></a><span class="in">```</span></span>
-<span id="cb23-175"><a href="#cb23-175"></a></span>
-<span id="cb23-176"><a href="#cb23-176"></a>I want to create a date ceiling for the sights date and I want to ensure that</span>
-<span id="cb23-177"><a href="#cb23-177"></a>the week starts on a Wednesday (2003-01-01). I also want to ensure that the</span>
-<span id="cb23-178"><a href="#cb23-178"></a>class of the date vector here is the same as that of the chl-*a* data (this</span>
-<span id="cb23-179"><a href="#cb23-179"></a>last step is probably not necessary).</span>
-<span id="cb23-180"><a href="#cb23-180"></a></span>
-<span id="cb23-183"><a href="#cb23-183"></a><span class="in">```{r}</span></span>
-<span id="cb23-184"><a href="#cb23-184"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-185"><a href="#cb23-185"></a>sights <span class="ot">&lt;-</span> sights_data <span class="sc">|&gt;</span> </span>
-<span id="cb23-186"><a href="#cb23-186"></a>  <span class="fu">filter</span>(date <span class="sc">&gt;=</span> <span class="st">"2003-01-01"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb23-187"><a href="#cb23-187"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb23-188"><a href="#cb23-188"></a>    <span class="at">date_ceiling =</span> <span class="fu">as.Date</span>(<span class="fu">ceiling_date</span>(date, <span class="at">unit =</span> <span class="st">"week"</span>,</span>
-<span id="cb23-189"><a href="#cb23-189"></a>                                        <span class="at">week_start =</span> <span class="dv">3</span>))</span>
-<span id="cb23-190"><a href="#cb23-190"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb23-191"><a href="#cb23-191"></a>  <span class="fu">select</span>(<span class="sc">-</span>date) <span class="sc">|&gt;</span> </span>
-<span id="cb23-192"><a href="#cb23-192"></a>  <span class="fu">arrange</span>(date_ceiling)</span>
-<span id="cb23-193"><a href="#cb23-193"></a></span>
-<span id="cb23-194"><a href="#cb23-194"></a><span class="co"># check! it aligns with the first date ceiling in the chl-*a* time series</span></span>
-<span id="cb23-195"><a href="#cb23-195"></a><span class="fu">min</span>(sights<span class="sc">$</span>date_ceiling); <span class="fu">max</span>(sights<span class="sc">$</span>date_ceiling)</span>
-<span id="cb23-196"><a href="#cb23-196"></a><span class="fu">sort</span>(<span class="fu">unique</span>(sights<span class="sc">$</span>date_ceiling)[<span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>])</span>
-<span id="cb23-197"><a href="#cb23-197"></a><span class="fu">class</span>(sights<span class="sc">$</span>date_ceiling)</span>
-<span id="cb23-198"><a href="#cb23-198"></a><span class="in">```</span></span>
-<span id="cb23-199"><a href="#cb23-199"></a></span>
-<span id="cb23-200"><a href="#cb23-200"></a>For each line of the sightings data, I find the point of interest</span>
-<span id="cb23-201"><a href="#cb23-201"></a>(<span class="in">`longitude`</span> and <span class="in">`latitude`</span>), add a buffer around it, and create a</span>
-<span id="cb23-202"><a href="#cb23-202"></a>circular polygon that specifies the spatial extent around the point. This</span>
-<span id="cb23-203"><a href="#cb23-203"></a>circular polygon will be used to crop the area of interest around each whale</span>
-<span id="cb23-204"><a href="#cb23-204"></a>sighting on a particular date, and all the chl-*a* values in the pixels</span>
-<span id="cb23-205"><a href="#cb23-205"></a>within the circular polygon will be aggregated.</span>
+<span id="cb23-158"><a href="#cb23-158"></a>chl_st <span class="ot">&lt;-</span> <span class="fu">st_warp</span>(chl_st, <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
+<span id="cb23-159"><a href="#cb23-159"></a><span class="fu">print</span>(chl_st)</span>
+<span id="cb23-160"><a href="#cb23-160"></a>chl_date_st <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">date =</span> <span class="fu">unique</span>(<span class="fu">st_get_dimension_values</span>(chl_st, <span class="at">which =</span> <span class="st">"time"</span>)))</span>
+<span id="cb23-161"><a href="#cb23-161"></a><span class="fu">min</span>(<span class="fu">st_get_dimension_values</span>(chl_st, <span class="at">which =</span> <span class="st">"time"</span>)); <span class="fu">max</span>(<span class="fu">st_get_dimension_values</span>(chl_st, <span class="at">which =</span> <span class="st">"time"</span>))</span>
+<span id="cb23-162"><a href="#cb23-162"></a><span class="in">```</span></span>
+<span id="cb23-163"><a href="#cb23-163"></a></span>
+<span id="cb23-164"><a href="#cb23-164"></a>I want to create a date ceiling for the sights date and I want to ensure that</span>
+<span id="cb23-165"><a href="#cb23-165"></a>the week starts on a Wednesday (2003-01-01). I also want to ensure that the</span>
+<span id="cb23-166"><a href="#cb23-166"></a>class of the date vector here is the same as that of the chl-*a* data (this</span>
+<span id="cb23-167"><a href="#cb23-167"></a>last step is probably not necessary).</span>
+<span id="cb23-168"><a href="#cb23-168"></a></span>
+<span id="cb23-169"><a href="#cb23-169"></a><span class="in">```{r code-sights-sights-data}</span></span>
+<span id="cb23-170"><a href="#cb23-170"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-171"><a href="#cb23-171"></a>sights <span class="ot">&lt;-</span> sights_data <span class="sc">|&gt;</span> </span>
+<span id="cb23-172"><a href="#cb23-172"></a>  <span class="fu">filter</span>(date <span class="sc">&gt;=</span> <span class="st">"2003-01-01"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-173"><a href="#cb23-173"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb23-174"><a href="#cb23-174"></a>    <span class="at">date_ceiling =</span> <span class="fu">as.Date</span>(<span class="fu">ceiling_date</span>(date, <span class="at">unit =</span> <span class="st">"week"</span>,</span>
+<span id="cb23-175"><a href="#cb23-175"></a>                                        <span class="at">week_start =</span> <span class="dv">3</span>))</span>
+<span id="cb23-176"><a href="#cb23-176"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb23-177"><a href="#cb23-177"></a>  <span class="fu">select</span>(<span class="sc">-</span>date) <span class="sc">|&gt;</span> </span>
+<span id="cb23-178"><a href="#cb23-178"></a>  <span class="fu">arrange</span>(date_ceiling)</span>
+<span id="cb23-179"><a href="#cb23-179"></a></span>
+<span id="cb23-180"><a href="#cb23-180"></a><span class="co"># check! it aligns with the first date ceiling in the chl-*a* time series</span></span>
+<span id="cb23-181"><a href="#cb23-181"></a><span class="fu">min</span>(sights<span class="sc">$</span>date_ceiling); <span class="fu">max</span>(sights<span class="sc">$</span>date_ceiling)</span>
+<span id="cb23-182"><a href="#cb23-182"></a><span class="fu">sort</span>(<span class="fu">unique</span>(sights<span class="sc">$</span>date_ceiling)[<span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>])</span>
+<span id="cb23-183"><a href="#cb23-183"></a><span class="fu">class</span>(sights<span class="sc">$</span>date_ceiling)</span>
+<span id="cb23-184"><a href="#cb23-184"></a><span class="in">```</span></span>
+<span id="cb23-185"><a href="#cb23-185"></a></span>
+<span id="cb23-186"><a href="#cb23-186"></a>For each line of the sightings data, I find the point of interest</span>
+<span id="cb23-187"><a href="#cb23-187"></a>(<span class="in">`longitude`</span> and <span class="in">`latitude`</span>), add a buffer around it, and create a</span>
+<span id="cb23-188"><a href="#cb23-188"></a>circular polygon that specifies the spatial extent around the point. This</span>
+<span id="cb23-189"><a href="#cb23-189"></a>circular polygon will be used to crop the area of interest around each whale</span>
+<span id="cb23-190"><a href="#cb23-190"></a>sighting on a particular date, and all the chl-*a* values in the pixels</span>
+<span id="cb23-191"><a href="#cb23-191"></a>within the circular polygon will be aggregated.</span>
+<span id="cb23-192"><a href="#cb23-192"></a></span>
+<span id="cb23-193"><a href="#cb23-193"></a><span class="in">```{r code-buffer}</span></span>
+<span id="cb23-194"><a href="#cb23-194"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-195"><a href="#cb23-195"></a><span class="co"># for testing...</span></span>
+<span id="cb23-196"><a href="#cb23-196"></a></span>
+<span id="cb23-197"><a href="#cb23-197"></a><span class="co"># arbitrarily selecting the date at the 200th line in the sightings</span></span>
+<span id="cb23-198"><a href="#cb23-198"></a><span class="co"># dataset</span></span>
+<span id="cb23-199"><a href="#cb23-199"></a>buffer <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
+<span id="cb23-200"><a href="#cb23-200"></a>t_step <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb23-201"><a href="#cb23-201"></a>(date_val <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(sights<span class="sc">$</span>date_ceiling[t_step]))</span>
+<span id="cb23-202"><a href="#cb23-202"></a></span>
+<span id="cb23-203"><a href="#cb23-203"></a><span class="co"># the coordinates for that particular whale sighting</span></span>
+<span id="cb23-204"><a href="#cb23-204"></a>lon_val <span class="ot">&lt;-</span> sights<span class="sc">$</span>lon[t_step]</span>
+<span id="cb23-205"><a href="#cb23-205"></a>lat_val <span class="ot">&lt;-</span> sights<span class="sc">$</span>lat[t_step]</span>
 <span id="cb23-206"><a href="#cb23-206"></a></span>
-<span id="cb23-209"><a href="#cb23-209"></a><span class="in">```{r}</span></span>
-<span id="cb23-210"><a href="#cb23-210"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-211"><a href="#cb23-211"></a><span class="co"># for testing...</span></span>
-<span id="cb23-212"><a href="#cb23-212"></a></span>
-<span id="cb23-213"><a href="#cb23-213"></a><span class="co"># arbitrarily selecting the date at the 200th line in the sightings</span></span>
-<span id="cb23-214"><a href="#cb23-214"></a><span class="co"># dataset</span></span>
-<span id="cb23-215"><a href="#cb23-215"></a>buffer <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
-<span id="cb23-216"><a href="#cb23-216"></a>t_step <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb23-217"><a href="#cb23-217"></a>(date_val <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(sights<span class="sc">$</span>date_ceiling[t_step]))</span>
-<span id="cb23-218"><a href="#cb23-218"></a></span>
-<span id="cb23-219"><a href="#cb23-219"></a><span class="co"># the coordinates for that particular whale sighting</span></span>
-<span id="cb23-220"><a href="#cb23-220"></a>lon_val <span class="ot">&lt;-</span> sights<span class="sc">$</span>lon[t_step]</span>
-<span id="cb23-221"><a href="#cb23-221"></a>lat_val <span class="ot">&lt;-</span> sights<span class="sc">$</span>lat[t_step]</span>
+<span id="cb23-207"><a href="#cb23-207"></a><span class="co"># calculate the bounding box for the sighting</span></span>
+<span id="cb23-208"><a href="#cb23-208"></a>cir_pt <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_point</span>(<span class="fu">c</span>(lon_val, lat_val))</span>
+<span id="cb23-209"><a href="#cb23-209"></a>cir_sfg <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_buffer</span>(cir_pt, buffer) <span class="co"># approx. 22.2 km radius</span></span>
+<span id="cb23-210"><a href="#cb23-210"></a>cir_sfc <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_sfc</span>(cir_sfg, <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
+<span id="cb23-211"><a href="#cb23-211"></a>cir_bbox <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_bbox</span>(cir_sfc)</span>
+<span id="cb23-212"><a href="#cb23-212"></a><span class="in">```</span></span>
+<span id="cb23-213"><a href="#cb23-213"></a></span>
+<span id="cb23-214"><a href="#cb23-214"></a>Plot of the full data extent on the first day of the chl-*a* dataset,</span>
+<span id="cb23-215"><a href="#cb23-215"></a>showing the area to be cropped and aggregated:</span>
+<span id="cb23-216"><a href="#cb23-216"></a></span>
+<span id="cb23-217"><a href="#cb23-217"></a><span class="in">```{r fig-plot-chl-st-reset-false}</span></span>
+<span id="cb23-218"><a href="#cb23-218"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-219"><a href="#cb23-219"></a><span class="fu">plot</span>(chl_st[, , , <span class="dv">1</span>], <span class="at">reset =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb23-220"><a href="#cb23-220"></a><span class="fu">plot</span>(cir_sfc, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="st">'red'</span>, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb23-221"><a href="#cb23-221"></a><span class="in">```</span></span>
 <span id="cb23-222"><a href="#cb23-222"></a></span>
-<span id="cb23-223"><a href="#cb23-223"></a><span class="co"># calculate the bounding box for the sighting</span></span>
-<span id="cb23-224"><a href="#cb23-224"></a>cir_pt <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_point</span>(<span class="fu">c</span>(lon_val, lat_val))</span>
-<span id="cb23-225"><a href="#cb23-225"></a>cir_sfg <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_buffer</span>(cir_pt, buffer) <span class="co"># approx. 22.2 km radius</span></span>
-<span id="cb23-226"><a href="#cb23-226"></a>cir_sfc <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_sfc</span>(cir_sfg, <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
-<span id="cb23-227"><a href="#cb23-227"></a>cir_bbox <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_bbox</span>(cir_sfc)</span>
-<span id="cb23-228"><a href="#cb23-228"></a><span class="in">```</span></span>
-<span id="cb23-229"><a href="#cb23-229"></a></span>
-<span id="cb23-230"><a href="#cb23-230"></a>Plot of the full data extent on the first day of the chl-*a* dataset,</span>
-<span id="cb23-231"><a href="#cb23-231"></a>showing the area to be cropped and aggregated:</span>
-<span id="cb23-232"><a href="#cb23-232"></a></span>
-<span id="cb23-235"><a href="#cb23-235"></a><span class="in">```{r}</span></span>
-<span id="cb23-236"><a href="#cb23-236"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-237"><a href="#cb23-237"></a><span class="fu">plot</span>(chl_st[, , , <span class="dv">1</span>], <span class="at">reset =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb23-238"><a href="#cb23-238"></a><span class="fu">plot</span>(cir_sfc, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="st">'red'</span>, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb23-239"><a href="#cb23-239"></a><span class="in">```</span></span>
-<span id="cb23-240"><a href="#cb23-240"></a></span>
-<span id="cb23-241"><a href="#cb23-241"></a>Cropped data within a circular **sf** geometry region (circular polygon) around</span>
-<span id="cb23-242"><a href="#cb23-242"></a>central point:</span>
+<span id="cb23-223"><a href="#cb23-223"></a>Cropped data within a circular **sf** geometry region (circular polygon) around</span>
+<span id="cb23-224"><a href="#cb23-224"></a>central point:</span>
+<span id="cb23-225"><a href="#cb23-225"></a></span>
+<span id="cb23-226"><a href="#cb23-226"></a><span class="in">```{r fig-plot-chl-st-cir-sfc-reset}</span></span>
+<span id="cb23-227"><a href="#cb23-227"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-228"><a href="#cb23-228"></a><span class="fu">plot</span>(chl_st[cir_sfc][, , , <span class="dv">1</span>], <span class="at">reset =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb23-229"><a href="#cb23-229"></a><span class="fu">plot</span>(cir_sfc, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="st">'red'</span>, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb23-230"><a href="#cb23-230"></a><span class="in">```</span></span>
+<span id="cb23-231"><a href="#cb23-231"></a></span>
+<span id="cb23-232"><a href="#cb23-232"></a>Data within a rectangular bbox:</span>
+<span id="cb23-233"><a href="#cb23-233"></a></span>
+<span id="cb23-234"><a href="#cb23-234"></a><span class="in">```{r fig-plot-chl-st-cir-bbox-reset}</span></span>
+<span id="cb23-235"><a href="#cb23-235"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-236"><a href="#cb23-236"></a><span class="fu">plot</span>(chl_st[cir_bbox][, , , <span class="dv">1</span>], <span class="at">reset =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb23-237"><a href="#cb23-237"></a><span class="in">```</span></span>
+<span id="cb23-238"><a href="#cb23-238"></a></span>
+<span id="cb23-239"><a href="#cb23-239"></a>I extract the chl-*a* data within the **sf** geometry at the exact time</span>
+<span id="cb23-240"><a href="#cb23-240"></a>step as that the whale sighting, and calculate their median value. The</span>
+<span id="cb23-241"><a href="#cb23-241"></a>output is one value, which can be appended to to original sightings</span>
+<span id="cb23-242"><a href="#cb23-242"></a>dataset, one value per line of whale sighting.</span>
 <span id="cb23-243"><a href="#cb23-243"></a></span>
-<span id="cb23-246"><a href="#cb23-246"></a><span class="in">```{r}</span></span>
-<span id="cb23-247"><a href="#cb23-247"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-248"><a href="#cb23-248"></a><span class="fu">plot</span>(chl_st[cir_sfc][, , , <span class="dv">1</span>], <span class="at">reset =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb23-249"><a href="#cb23-249"></a><span class="fu">plot</span>(cir_sfc, <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="st">'red'</span>, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb23-250"><a href="#cb23-250"></a><span class="in">```</span></span>
-<span id="cb23-251"><a href="#cb23-251"></a></span>
-<span id="cb23-252"><a href="#cb23-252"></a>Data within a rectangular bbox:</span>
-<span id="cb23-253"><a href="#cb23-253"></a></span>
-<span id="cb23-256"><a href="#cb23-256"></a><span class="in">```{r}</span></span>
-<span id="cb23-257"><a href="#cb23-257"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-258"><a href="#cb23-258"></a><span class="fu">plot</span>(chl_st[cir_bbox][, , , <span class="dv">1</span>], <span class="at">reset =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb23-259"><a href="#cb23-259"></a><span class="in">```</span></span>
+<span id="cb23-244"><a href="#cb23-244"></a>We also need to be able to calculate the median chl-*a* value at certain</span>
+<span id="cb23-245"><a href="#cb23-245"></a>lags before the date of whale sightings. Because the data are aggregated</span>
+<span id="cb23-246"><a href="#cb23-246"></a>to weeky values, we *must* ensure that the value provided to the <span class="in">`lag`</span></span>
+<span id="cb23-247"><a href="#cb23-247"></a>argument is a multiple of 7 days (i.e. 7, 14, 21, 28, etc.). So, to</span>
+<span id="cb23-248"><a href="#cb23-248"></a>accommodate the lag calculated for the full region (see</span>
+<span id="cb23-249"><a href="#cb23-249"></a><span class="in">`2_sightings.html`</span>), the value closest to 54 day is 8 weeks x 7</span>
+<span id="cb23-250"><a href="#cb23-250"></a>days = 56 days. In my function I will only allow the user to enter the</span>
+<span id="cb23-251"><a href="#cb23-251"></a>number of full weeks as lags.</span>
+<span id="cb23-252"><a href="#cb23-252"></a></span>
+<span id="cb23-253"><a href="#cb23-253"></a>For example, the median chlorophyll-*a* concentration 8 weeks prior to</span>
+<span id="cb23-254"><a href="#cb23-254"></a>the date on which the greatest number of cetaceans observations were</span>
+<span id="cb23-255"><a href="#cb23-255"></a>made, within the bounding box for one particular observation, is:</span>
+<span id="cb23-256"><a href="#cb23-256"></a></span>
+<span id="cb23-257"><a href="#cb23-257"></a><span class="in">```{r code-chunk-2}</span></span>
+<span id="cb23-258"><a href="#cb23-258"></a><span class="co"># for testing only (legacy code)</span></span>
+<span id="cb23-259"><a href="#cb23-259"></a><span class="co"># calculates the median chl-a value within bbox rectangle</span></span>
 <span id="cb23-260"><a href="#cb23-260"></a></span>
-<span id="cb23-261"><a href="#cb23-261"></a>I extract the chl-*a* data within the **sf** geometry at the exact time</span>
-<span id="cb23-262"><a href="#cb23-262"></a>step as that the whale sighting, and calculate their median value. The</span>
-<span id="cb23-263"><a href="#cb23-263"></a>output is one value, which can be appended to to original sightings</span>
-<span id="cb23-264"><a href="#cb23-264"></a>dataset, one value per line of whale sighting.</span>
-<span id="cb23-265"><a href="#cb23-265"></a></span>
-<span id="cb23-266"><a href="#cb23-266"></a>We also need to be able to calculate the median chl-*a* value at certain</span>
-<span id="cb23-267"><a href="#cb23-267"></a>lags before the date of whale sightings. Because the data are aggregated</span>
-<span id="cb23-268"><a href="#cb23-268"></a>to weeky values, we *must* ensure that the value provided to the <span class="in">`lag`</span></span>
-<span id="cb23-269"><a href="#cb23-269"></a>argument is a multiple of 7 days (i.e. 7, 14, 21, 28, etc.). So, to</span>
-<span id="cb23-270"><a href="#cb23-270"></a>accommodate the lag calculated for the full region (see</span>
-<span id="cb23-271"><a href="#cb23-271"></a><span class="in">`2_sightings.html`</span>), the value closest to 54 day is 8 weeks x 7</span>
-<span id="cb23-272"><a href="#cb23-272"></a>days = 56 days. In my function I will only allow the user to enter the</span>
-<span id="cb23-273"><a href="#cb23-273"></a>number of full weeks as lags.</span>
-<span id="cb23-274"><a href="#cb23-274"></a></span>
-<span id="cb23-275"><a href="#cb23-275"></a>For example, the median chlorophyll-*a* concentration 8 weeks prior to</span>
-<span id="cb23-276"><a href="#cb23-276"></a>the date on which the greatest number of cetaceans observations were</span>
-<span id="cb23-277"><a href="#cb23-277"></a>made, within the bounding box for one particular observation, is:</span>
+<span id="cb23-261"><a href="#cb23-261"></a><span class="co"># chl_conc &lt;- chl_df |&gt;</span></span>
+<span id="cb23-262"><a href="#cb23-262"></a><span class="co">#   filter(date_ceiling == date_val - as.difftime(0, unit = "weeks")) |&gt;</span></span>
+<span id="cb23-263"><a href="#cb23-263"></a><span class="co">#   group_by(date_ceiling) |&gt;</span></span>
+<span id="cb23-264"><a href="#cb23-264"></a><span class="co">#   filter(between(longitude, cir_bbox[['xmin']], cir_bbox[['xmax']]),</span></span>
+<span id="cb23-265"><a href="#cb23-265"></a><span class="co">#          between(latitude, cir_bbox[['ymin']], cir_bbox[['ymax']])) |&gt;</span></span>
+<span id="cb23-266"><a href="#cb23-266"></a><span class="co">#   summarise(med_chl = median(chlorophyll, na.rm = TRUE))</span></span>
+<span id="cb23-267"><a href="#cb23-267"></a><span class="co"># </span></span>
+<span id="cb23-268"><a href="#cb23-268"></a><span class="co"># chl_conc</span></span>
+<span id="cb23-269"><a href="#cb23-269"></a><span class="in">```</span></span>
+<span id="cb23-270"><a href="#cb23-270"></a></span>
+<span id="cb23-271"><a href="#cb23-271"></a><span class="in">```{r code-chl-conc-chl-st}</span></span>
+<span id="cb23-272"><a href="#cb23-272"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-273"><a href="#cb23-273"></a><span class="co"># calculates median chl-a conc within a circle</span></span>
+<span id="cb23-274"><a href="#cb23-274"></a>chl_conc <span class="ot">&lt;-</span> chl_st <span class="sc">|&gt;</span> </span>
+<span id="cb23-275"><a href="#cb23-275"></a>  <span class="fu">filter</span>(time <span class="sc">==</span> date_val <span class="sc">-</span> <span class="fu">as.difftime</span>(<span class="dv">0</span>, <span class="at">unit =</span> <span class="st">"weeks"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb23-276"><a href="#cb23-276"></a>  <span class="fu">aggregate</span>(<span class="at">by =</span> cir_sfc, <span class="at">FUN =</span> median, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-277"><a href="#cb23-277"></a>  <span class="fu">as.data.frame</span>()</span>
 <span id="cb23-278"><a href="#cb23-278"></a></span>
-<span id="cb23-281"><a href="#cb23-281"></a><span class="in">```{r}</span></span>
-<span id="cb23-282"><a href="#cb23-282"></a><span class="co"># for testing only (legacy code)</span></span>
-<span id="cb23-283"><a href="#cb23-283"></a><span class="co"># calculates the median chl-a value within bbox rectangle</span></span>
-<span id="cb23-284"><a href="#cb23-284"></a></span>
-<span id="cb23-285"><a href="#cb23-285"></a><span class="co"># chl_conc &lt;- chl_df |&gt;</span></span>
-<span id="cb23-286"><a href="#cb23-286"></a><span class="co">#   filter(date_ceiling == date_val - as.difftime(0, unit = "weeks")) |&gt;</span></span>
-<span id="cb23-287"><a href="#cb23-287"></a><span class="co">#   group_by(date_ceiling) |&gt;</span></span>
-<span id="cb23-288"><a href="#cb23-288"></a><span class="co">#   filter(between(longitude, cir_bbox[['xmin']], cir_bbox[['xmax']]),</span></span>
-<span id="cb23-289"><a href="#cb23-289"></a><span class="co">#          between(latitude, cir_bbox[['ymin']], cir_bbox[['ymax']])) |&gt;</span></span>
-<span id="cb23-290"><a href="#cb23-290"></a><span class="co">#   summarise(med_chl = median(chlorophyll, na.rm = TRUE))</span></span>
-<span id="cb23-291"><a href="#cb23-291"></a><span class="co"># </span></span>
-<span id="cb23-292"><a href="#cb23-292"></a><span class="co"># chl_conc</span></span>
-<span id="cb23-293"><a href="#cb23-293"></a><span class="in">```</span></span>
-<span id="cb23-294"><a href="#cb23-294"></a></span>
-<span id="cb23-297"><a href="#cb23-297"></a><span class="in">```{r}</span></span>
-<span id="cb23-298"><a href="#cb23-298"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-299"><a href="#cb23-299"></a><span class="co"># calculates median chl-a conc within a circle</span></span>
-<span id="cb23-300"><a href="#cb23-300"></a>chl_conc <span class="ot">&lt;-</span> chl_st <span class="sc">|&gt;</span> </span>
-<span id="cb23-301"><a href="#cb23-301"></a>  <span class="fu">filter</span>(time <span class="sc">==</span> date_val <span class="sc">-</span> <span class="fu">as.difftime</span>(<span class="dv">0</span>, <span class="at">unit =</span> <span class="st">"weeks"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb23-302"><a href="#cb23-302"></a>  <span class="fu">aggregate</span>(<span class="at">by =</span> cir_sfc, <span class="at">FUN =</span> median, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb23-303"><a href="#cb23-303"></a>  <span class="fu">as.data.frame</span>()</span>
-<span id="cb23-304"><a href="#cb23-304"></a></span>
-<span id="cb23-305"><a href="#cb23-305"></a>chl_conc[<span class="dv">1</span>,<span class="dv">3</span>]</span>
-<span id="cb23-306"><a href="#cb23-306"></a><span class="in">```</span></span>
-<span id="cb23-307"><a href="#cb23-307"></a></span>
-<span id="cb23-308"><a href="#cb23-308"></a>Now I know how to do the data extraction and processing for one line in</span>
-<span id="cb23-309"><a href="#cb23-309"></a>the <span class="in">`sights`</span> dataset. The next trick is to do it line by line for the</span>
-<span id="cb23-310"><a href="#cb23-310"></a>whole <span class="in">`sights`</span> dataset, i.e. once for each whale sighting.</span>
+<span id="cb23-279"><a href="#cb23-279"></a>chl_conc[<span class="dv">1</span>,<span class="dv">3</span>]</span>
+<span id="cb23-280"><a href="#cb23-280"></a><span class="in">```</span></span>
+<span id="cb23-281"><a href="#cb23-281"></a></span>
+<span id="cb23-282"><a href="#cb23-282"></a>Now I know how to do the data extraction and processing for one line in</span>
+<span id="cb23-283"><a href="#cb23-283"></a>the <span class="in">`sights`</span> dataset. The next trick is to do it line by line for the</span>
+<span id="cb23-284"><a href="#cb23-284"></a>whole <span class="in">`sights`</span> dataset, i.e. once for each whale sighting.</span>
+<span id="cb23-285"><a href="#cb23-285"></a></span>
+<span id="cb23-286"><a href="#cb23-286"></a><span class="fu">## Make a Function to Apply</span></span>
+<span id="cb23-287"><a href="#cb23-287"></a></span>
+<span id="cb23-288"><a href="#cb23-288"></a><span class="in">```{r fn-chunk}</span></span>
+<span id="cb23-289"><a href="#cb23-289"></a><span class="co"># for testing (legacy code)</span></span>
+<span id="cb23-290"><a href="#cb23-290"></a></span>
+<span id="cb23-291"><a href="#cb23-291"></a><span class="co"># buffer &lt;- 0.2</span></span>
+<span id="cb23-292"><a href="#cb23-292"></a><span class="co"># </span></span>
+<span id="cb23-293"><a href="#cb23-293"></a><span class="co"># # function for method applied to dataframe</span></span>
+<span id="cb23-294"><a href="#cb23-294"></a><span class="co"># chl_calc &lt;- function(df, lag = 0) {</span></span>
+<span id="cb23-295"><a href="#cb23-295"></a><span class="co">#   cir_bbox &lt;-</span></span>
+<span id="cb23-296"><a href="#cb23-296"></a><span class="co">#     sf::st_bbox(st_sfc(st_buffer(st_point(</span></span>
+<span id="cb23-297"><a href="#cb23-297"></a><span class="co">#       c(as.numeric(df[1]), as.numeric(df[2]))</span></span>
+<span id="cb23-298"><a href="#cb23-298"></a><span class="co">#     ), buffer),</span></span>
+<span id="cb23-299"><a href="#cb23-299"></a><span class="co">#     crs = st_crs(4326)))</span></span>
+<span id="cb23-300"><a href="#cb23-300"></a><span class="co"># </span></span>
+<span id="cb23-301"><a href="#cb23-301"></a><span class="co">#   chl_conc &lt;- chl_df |&gt;</span></span>
+<span id="cb23-302"><a href="#cb23-302"></a><span class="co">#     filter(date_ceiling == as.Date(df[["date_ceiling"]]) -</span></span>
+<span id="cb23-303"><a href="#cb23-303"></a><span class="co">#              as.difftime(lag, unit = "weeks")) |&gt;</span></span>
+<span id="cb23-304"><a href="#cb23-304"></a><span class="co">#     group_by(date_ceiling) |&gt;</span></span>
+<span id="cb23-305"><a href="#cb23-305"></a><span class="co">#     filter(between(longitude, cir_bbox[['xmin']], cir_bbox[['xmax']]),</span></span>
+<span id="cb23-306"><a href="#cb23-306"></a><span class="co">#            between(latitude, cir_bbox[['ymin']], cir_bbox[['ymax']])) |&gt;</span></span>
+<span id="cb23-307"><a href="#cb23-307"></a><span class="co">#     summarise(med_chl = median(chlorophyll, na.rm = TRUE))</span></span>
+<span id="cb23-308"><a href="#cb23-308"></a><span class="co"># </span></span>
+<span id="cb23-309"><a href="#cb23-309"></a><span class="co">#   return(chl_conc)</span></span>
+<span id="cb23-310"><a href="#cb23-310"></a><span class="co"># }</span></span>
 <span id="cb23-311"><a href="#cb23-311"></a></span>
-<span id="cb23-312"><a href="#cb23-312"></a><span class="fu">## Make a function to apply</span></span>
-<span id="cb23-313"><a href="#cb23-313"></a></span>
-<span id="cb23-316"><a href="#cb23-316"></a><span class="in">```{r}</span></span>
-<span id="cb23-317"><a href="#cb23-317"></a><span class="co"># for testing (legacy code)</span></span>
+<span id="cb23-312"><a href="#cb23-312"></a><span class="co"># chl_calc_safe &lt;- possibly(chl_calc, "Error")</span></span>
+<span id="cb23-313"><a href="#cb23-313"></a><span class="in">```</span></span>
+<span id="cb23-314"><a href="#cb23-314"></a></span>
+<span id="cb23-315"><a href="#cb23-315"></a><span class="in">```{r fn-buffer}</span></span>
+<span id="cb23-316"><a href="#cb23-316"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-317"><a href="#cb23-317"></a>buffer <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
 <span id="cb23-318"><a href="#cb23-318"></a></span>
-<span id="cb23-319"><a href="#cb23-319"></a><span class="co"># buffer &lt;- 0.2</span></span>
-<span id="cb23-320"><a href="#cb23-320"></a><span class="co"># </span></span>
-<span id="cb23-321"><a href="#cb23-321"></a><span class="co"># # function for method applied to dataframe</span></span>
-<span id="cb23-322"><a href="#cb23-322"></a><span class="co"># chl_calc &lt;- function(df, lag = 0) {</span></span>
-<span id="cb23-323"><a href="#cb23-323"></a><span class="co">#   cir_bbox &lt;-</span></span>
-<span id="cb23-324"><a href="#cb23-324"></a><span class="co">#     sf::st_bbox(st_sfc(st_buffer(st_point(</span></span>
-<span id="cb23-325"><a href="#cb23-325"></a><span class="co">#       c(as.numeric(df[1]), as.numeric(df[2]))</span></span>
-<span id="cb23-326"><a href="#cb23-326"></a><span class="co">#     ), buffer),</span></span>
-<span id="cb23-327"><a href="#cb23-327"></a><span class="co">#     crs = st_crs(4326)))</span></span>
-<span id="cb23-328"><a href="#cb23-328"></a><span class="co"># </span></span>
-<span id="cb23-329"><a href="#cb23-329"></a><span class="co">#   chl_conc &lt;- chl_df |&gt;</span></span>
-<span id="cb23-330"><a href="#cb23-330"></a><span class="co">#     filter(date_ceiling == as.Date(df[["date_ceiling"]]) -</span></span>
-<span id="cb23-331"><a href="#cb23-331"></a><span class="co">#              as.difftime(lag, unit = "weeks")) |&gt;</span></span>
-<span id="cb23-332"><a href="#cb23-332"></a><span class="co">#     group_by(date_ceiling) |&gt;</span></span>
-<span id="cb23-333"><a href="#cb23-333"></a><span class="co">#     filter(between(longitude, cir_bbox[['xmin']], cir_bbox[['xmax']]),</span></span>
-<span id="cb23-334"><a href="#cb23-334"></a><span class="co">#            between(latitude, cir_bbox[['ymin']], cir_bbox[['ymax']])) |&gt;</span></span>
-<span id="cb23-335"><a href="#cb23-335"></a><span class="co">#     summarise(med_chl = median(chlorophyll, na.rm = TRUE))</span></span>
-<span id="cb23-336"><a href="#cb23-336"></a><span class="co"># </span></span>
-<span id="cb23-337"><a href="#cb23-337"></a><span class="co">#   return(chl_conc)</span></span>
-<span id="cb23-338"><a href="#cb23-338"></a><span class="co"># }</span></span>
-<span id="cb23-339"><a href="#cb23-339"></a></span>
-<span id="cb23-340"><a href="#cb23-340"></a><span class="co"># chl_calc_safe &lt;- possibly(chl_calc, "Error")</span></span>
-<span id="cb23-341"><a href="#cb23-341"></a><span class="in">```</span></span>
-<span id="cb23-342"><a href="#cb23-342"></a></span>
-<span id="cb23-345"><a href="#cb23-345"></a><span class="in">```{r}</span></span>
-<span id="cb23-346"><a href="#cb23-346"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-347"><a href="#cb23-347"></a>buffer <span class="ot">&lt;-</span> <span class="fl">0.2</span></span>
+<span id="cb23-319"><a href="#cb23-319"></a><span class="co"># function for method applied to stars object</span></span>
+<span id="cb23-320"><a href="#cb23-320"></a>chl_calc <span class="ot">&lt;-</span> <span class="cf">function</span>(df, <span class="at">lag =</span> <span class="dv">0</span>) {</span>
+<span id="cb23-321"><a href="#cb23-321"></a>  cir_sfc <span class="ot">&lt;-</span></span>
+<span id="cb23-322"><a href="#cb23-322"></a>    <span class="fu">st_sfc</span>(<span class="fu">st_buffer</span>(<span class="fu">st_point</span>(</span>
+<span id="cb23-323"><a href="#cb23-323"></a>      <span class="fu">c</span>(<span class="fu">as.numeric</span>(df[<span class="dv">1</span>]), <span class="fu">as.numeric</span>(df[<span class="dv">2</span>]))</span>
+<span id="cb23-324"><a href="#cb23-324"></a>    ), buffer),</span>
+<span id="cb23-325"><a href="#cb23-325"></a>    <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
+<span id="cb23-326"><a href="#cb23-326"></a>  </span>
+<span id="cb23-327"><a href="#cb23-327"></a>  chl_conc <span class="ot">&lt;-</span> chl_st <span class="sc">|&gt;</span> </span>
+<span id="cb23-328"><a href="#cb23-328"></a>    <span class="fu">filter</span>(time <span class="sc">==</span> <span class="fu">as.Date</span>(df[[<span class="st">"date_ceiling"</span>]]) <span class="sc">-</span></span>
+<span id="cb23-329"><a href="#cb23-329"></a>             <span class="fu">as.difftime</span>(lag, <span class="at">unit =</span> <span class="st">"weeks"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb23-330"><a href="#cb23-330"></a>    <span class="fu">aggregate</span>(<span class="at">by =</span> cir_sfc, <span class="at">FUN =</span> median, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-331"><a href="#cb23-331"></a>    <span class="fu">as.data.frame</span>()</span>
+<span id="cb23-332"><a href="#cb23-332"></a>  </span>
+<span id="cb23-333"><a href="#cb23-333"></a>  <span class="fu">return</span>(chl_conc[<span class="dv">1</span>,<span class="dv">2</span><span class="sc">:</span><span class="dv">3</span>])</span>
+<span id="cb23-334"><a href="#cb23-334"></a>}</span>
+<span id="cb23-335"><a href="#cb23-335"></a></span>
+<span id="cb23-336"><a href="#cb23-336"></a>chl_calc_safe <span class="ot">&lt;-</span> <span class="fu">possibly</span>(chl_calc, <span class="st">"Error"</span>)</span>
+<span id="cb23-337"><a href="#cb23-337"></a><span class="in">```</span></span>
+<span id="cb23-338"><a href="#cb23-338"></a></span>
+<span id="cb23-339"><a href="#cb23-339"></a>Test the function on one line of <span class="in">`sights`</span>:</span>
+<span id="cb23-340"><a href="#cb23-340"></a></span>
+<span id="cb23-341"><a href="#cb23-341"></a><span class="in">```{r code-chl-calc-safe-sights-lag-works}</span></span>
+<span id="cb23-342"><a href="#cb23-342"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-343"><a href="#cb23-343"></a><span class="fu">chl_calc_safe</span>(sights[<span class="dv">1</span>,], <span class="at">lag =</span> <span class="dv">0</span>) <span class="co"># works</span></span>
+<span id="cb23-344"><a href="#cb23-344"></a><span class="in">```</span></span>
+<span id="cb23-345"><a href="#cb23-345"></a></span>
+<span id="cb23-346"><a href="#cb23-346"></a>Make each row of <span class="in">`sights`</span> a unique list element and map the <span class="in">`chl_calc`</span></span>
+<span id="cb23-347"><a href="#cb23-347"></a>function to each element in the list, <span class="in">`list_rbind`</span> it into a dataframe:</span>
 <span id="cb23-348"><a href="#cb23-348"></a></span>
-<span id="cb23-349"><a href="#cb23-349"></a><span class="co"># function for method applied to stars object</span></span>
-<span id="cb23-350"><a href="#cb23-350"></a>chl_calc <span class="ot">&lt;-</span> <span class="cf">function</span>(df, <span class="at">lag =</span> <span class="dv">0</span>) {</span>
-<span id="cb23-351"><a href="#cb23-351"></a>  cir_sfc <span class="ot">&lt;-</span></span>
-<span id="cb23-352"><a href="#cb23-352"></a>    <span class="fu">st_sfc</span>(<span class="fu">st_buffer</span>(<span class="fu">st_point</span>(</span>
-<span id="cb23-353"><a href="#cb23-353"></a>      <span class="fu">c</span>(<span class="fu">as.numeric</span>(df[<span class="dv">1</span>]), <span class="fu">as.numeric</span>(df[<span class="dv">2</span>]))</span>
-<span id="cb23-354"><a href="#cb23-354"></a>    ), buffer),</span>
-<span id="cb23-355"><a href="#cb23-355"></a>    <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
-<span id="cb23-356"><a href="#cb23-356"></a>  </span>
-<span id="cb23-357"><a href="#cb23-357"></a>  chl_conc <span class="ot">&lt;-</span> chl_st <span class="sc">|&gt;</span> </span>
-<span id="cb23-358"><a href="#cb23-358"></a>    <span class="fu">filter</span>(time <span class="sc">==</span> <span class="fu">as.Date</span>(df[[<span class="st">"date_ceiling"</span>]]) <span class="sc">-</span></span>
-<span id="cb23-359"><a href="#cb23-359"></a>             <span class="fu">as.difftime</span>(lag, <span class="at">unit =</span> <span class="st">"weeks"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb23-360"><a href="#cb23-360"></a>    <span class="fu">aggregate</span>(<span class="at">by =</span> cir_sfc, <span class="at">FUN =</span> median, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb23-361"><a href="#cb23-361"></a>    <span class="fu">as.data.frame</span>()</span>
-<span id="cb23-362"><a href="#cb23-362"></a>  </span>
-<span id="cb23-363"><a href="#cb23-363"></a>  <span class="fu">return</span>(chl_conc[<span class="dv">1</span>,<span class="dv">2</span><span class="sc">:</span><span class="dv">3</span>])</span>
-<span id="cb23-364"><a href="#cb23-364"></a>}</span>
-<span id="cb23-365"><a href="#cb23-365"></a></span>
-<span id="cb23-366"><a href="#cb23-366"></a>chl_calc_safe <span class="ot">&lt;-</span> <span class="fu">possibly</span>(chl_calc, <span class="st">"Error"</span>)</span>
-<span id="cb23-367"><a href="#cb23-367"></a><span class="in">```</span></span>
-<span id="cb23-368"><a href="#cb23-368"></a></span>
-<span id="cb23-369"><a href="#cb23-369"></a>Test the function on one line of <span class="in">`sights`</span>:</span>
+<span id="cb23-349"><a href="#cb23-349"></a><span class="in">```{r code-chl-lag-0-sights}</span></span>
+<span id="cb23-350"><a href="#cb23-350"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-351"><a href="#cb23-351"></a>chl_lag_0 <span class="ot">&lt;-</span> sights <span class="sc">|&gt;</span> </span>
+<span id="cb23-352"><a href="#cb23-352"></a>  <span class="fu">split</span>(<span class="fu">seq</span>(<span class="fu">nrow</span>(sights))) <span class="sc">|&gt;</span></span>
+<span id="cb23-353"><a href="#cb23-353"></a>  <span class="fu">map</span>(\(df) <span class="fu">chl_calc_safe</span>(df)) <span class="sc">|&gt;</span> </span>
+<span id="cb23-354"><a href="#cb23-354"></a>  <span class="fu">list_rbind</span>(<span class="at">names_to =</span> <span class="st">"row.num"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-355"><a href="#cb23-355"></a>  <span class="fu">mutate</span>(<span class="at">row.num =</span> <span class="fu">as.integer</span>(row.num))</span>
+<span id="cb23-356"><a href="#cb23-356"></a><span class="in">```</span></span>
+<span id="cb23-357"><a href="#cb23-357"></a></span>
+<span id="cb23-358"><a href="#cb23-358"></a>Combine the output with the original sights dataset and also add a</span>
+<span id="cb23-359"><a href="#cb23-359"></a>column with months:</span>
+<span id="cb23-360"><a href="#cb23-360"></a></span>
+<span id="cb23-361"><a href="#cb23-361"></a><span class="in">```{r code-sights-chl-lag-0-sights}</span></span>
+<span id="cb23-362"><a href="#cb23-362"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-363"><a href="#cb23-363"></a>sights_chl_lag_0 <span class="ot">&lt;-</span> sights <span class="sc">|&gt;</span> </span>
+<span id="cb23-364"><a href="#cb23-364"></a>  <span class="fu">mutate</span>(<span class="at">row.num =</span> <span class="fu">row_number</span>()) <span class="sc">|&gt;</span> </span>
+<span id="cb23-365"><a href="#cb23-365"></a>  <span class="fu">left_join</span>(chl_lag_0, <span class="at">by =</span> <span class="st">"row.num"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-366"><a href="#cb23-366"></a>  <span class="fu">select</span>(<span class="sc">-</span>row.num) <span class="sc">|&gt;</span> </span>
+<span id="cb23-367"><a href="#cb23-367"></a>  <span class="fu">mutate</span>(<span class="at">month =</span> <span class="fu">month</span>(date_ceiling, <span class="at">label =</span> <span class="cn">TRUE</span>, <span class="at">abbr =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb23-368"><a href="#cb23-368"></a>  <span class="fu">rename</span>(<span class="at">sight_date =</span> date_ceiling,</span>
+<span id="cb23-369"><a href="#cb23-369"></a>         <span class="at">chl_date =</span> time)</span>
 <span id="cb23-370"><a href="#cb23-370"></a></span>
-<span id="cb23-373"><a href="#cb23-373"></a><span class="in">```{r}</span></span>
-<span id="cb23-374"><a href="#cb23-374"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-375"><a href="#cb23-375"></a><span class="fu">chl_calc_safe</span>(sights[<span class="dv">1</span>,], <span class="at">lag =</span> <span class="dv">0</span>) <span class="co"># works</span></span>
-<span id="cb23-376"><a href="#cb23-376"></a><span class="in">```</span></span>
-<span id="cb23-377"><a href="#cb23-377"></a></span>
-<span id="cb23-378"><a href="#cb23-378"></a>Make each row of <span class="in">`sights`</span> a unique list element and map the <span class="in">`chl_calc`</span></span>
-<span id="cb23-379"><a href="#cb23-379"></a>function to each element in the list, <span class="in">`list_rbind`</span> it into a dataframe:</span>
-<span id="cb23-380"><a href="#cb23-380"></a></span>
-<span id="cb23-383"><a href="#cb23-383"></a><span class="in">```{r}</span></span>
-<span id="cb23-384"><a href="#cb23-384"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-385"><a href="#cb23-385"></a>chl_lag_0 <span class="ot">&lt;-</span> sights <span class="sc">|&gt;</span> </span>
-<span id="cb23-386"><a href="#cb23-386"></a>  <span class="fu">split</span>(<span class="fu">seq</span>(<span class="fu">nrow</span>(sights))) <span class="sc">|&gt;</span></span>
-<span id="cb23-387"><a href="#cb23-387"></a>  <span class="fu">map</span>(\(df) <span class="fu">chl_calc_safe</span>(df)) <span class="sc">|&gt;</span> </span>
-<span id="cb23-388"><a href="#cb23-388"></a>  <span class="fu">list_rbind</span>(<span class="at">names_to =</span> <span class="st">"row.num"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb23-389"><a href="#cb23-389"></a>  <span class="fu">mutate</span>(<span class="at">row.num =</span> <span class="fu">as.integer</span>(row.num))</span>
-<span id="cb23-390"><a href="#cb23-390"></a><span class="in">```</span></span>
-<span id="cb23-391"><a href="#cb23-391"></a></span>
-<span id="cb23-392"><a href="#cb23-392"></a>Combine the output with the original sights dataset and also add a</span>
-<span id="cb23-393"><a href="#cb23-393"></a>column with months:</span>
-<span id="cb23-394"><a href="#cb23-394"></a></span>
-<span id="cb23-397"><a href="#cb23-397"></a><span class="in">```{r}</span></span>
-<span id="cb23-398"><a href="#cb23-398"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-399"><a href="#cb23-399"></a>sights_chl_lag_0 <span class="ot">&lt;-</span> sights <span class="sc">|&gt;</span> </span>
-<span id="cb23-400"><a href="#cb23-400"></a>  <span class="fu">mutate</span>(<span class="at">row.num =</span> <span class="fu">row_number</span>()) <span class="sc">|&gt;</span> </span>
-<span id="cb23-401"><a href="#cb23-401"></a>  <span class="fu">left_join</span>(chl_lag_0, <span class="at">by =</span> <span class="st">"row.num"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb23-402"><a href="#cb23-402"></a>  <span class="fu">select</span>(<span class="sc">-</span>row.num) <span class="sc">|&gt;</span> </span>
-<span id="cb23-403"><a href="#cb23-403"></a>  <span class="fu">mutate</span>(<span class="at">month =</span> <span class="fu">month</span>(date_ceiling, <span class="at">label =</span> <span class="cn">TRUE</span>, <span class="at">abbr =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb23-404"><a href="#cb23-404"></a>  <span class="fu">rename</span>(<span class="at">sight_date =</span> date_ceiling,</span>
-<span id="cb23-405"><a href="#cb23-405"></a>         <span class="at">chl_date =</span> time)</span>
-<span id="cb23-406"><a href="#cb23-406"></a></span>
-<span id="cb23-407"><a href="#cb23-407"></a><span class="fu">head</span>(sights_chl_lag_0)</span>
-<span id="cb23-408"><a href="#cb23-408"></a><span class="in">```</span></span>
-<span id="cb23-409"><a href="#cb23-409"></a></span>
-<span id="cb23-410"><a href="#cb23-410"></a>Also do this with a lag of 8 weeks:</span>
-<span id="cb23-411"><a href="#cb23-411"></a></span>
-<span id="cb23-414"><a href="#cb23-414"></a><span class="in">```{r}</span></span>
-<span id="cb23-415"><a href="#cb23-415"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-416"><a href="#cb23-416"></a>chl_lag_8 <span class="ot">&lt;-</span> sights <span class="sc">|&gt;</span> </span>
-<span id="cb23-417"><a href="#cb23-417"></a>  <span class="fu">split</span>(<span class="fu">seq</span>(<span class="fu">nrow</span>(sights))) <span class="sc">|&gt;</span></span>
-<span id="cb23-418"><a href="#cb23-418"></a>  <span class="fu">map</span>(\(df) <span class="fu">chl_calc</span>(df, <span class="at">lag =</span> <span class="dv">8</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb23-419"><a href="#cb23-419"></a>  <span class="fu">list_rbind</span>(<span class="at">names_to =</span> <span class="st">"row.num"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb23-420"><a href="#cb23-420"></a>  <span class="fu">mutate</span>(<span class="at">row.num =</span> <span class="fu">as.integer</span>(row.num))</span>
-<span id="cb23-421"><a href="#cb23-421"></a><span class="in">```</span></span>
-<span id="cb23-422"><a href="#cb23-422"></a></span>
-<span id="cb23-425"><a href="#cb23-425"></a><span class="in">```{r}</span></span>
-<span id="cb23-426"><a href="#cb23-426"></a><span class="co">#| eval: false</span></span>
-<span id="cb23-427"><a href="#cb23-427"></a>sights_chl_lag_8 <span class="ot">&lt;-</span> sights <span class="sc">|&gt;</span> </span>
-<span id="cb23-428"><a href="#cb23-428"></a>  <span class="fu">mutate</span>(<span class="at">row.num =</span> <span class="fu">row_number</span>()) <span class="sc">|&gt;</span> </span>
-<span id="cb23-429"><a href="#cb23-429"></a>  <span class="fu">left_join</span>(chl_lag_8, <span class="at">by =</span> <span class="st">"row.num"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb23-430"><a href="#cb23-430"></a>  <span class="fu">select</span>(<span class="sc">-</span>row.num) <span class="sc">|&gt;</span> </span>
-<span id="cb23-431"><a href="#cb23-431"></a>  <span class="fu">mutate</span>(<span class="at">month =</span> <span class="fu">month</span>(date_ceiling, <span class="at">label =</span> <span class="cn">TRUE</span>, <span class="at">abbr =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb23-432"><a href="#cb23-432"></a>  <span class="fu">mutate</span>(<span class="at">diff.time =</span> date_ceiling <span class="sc">-</span> time) <span class="sc">|&gt;</span> <span class="co"># check</span></span>
-<span id="cb23-433"><a href="#cb23-433"></a>  <span class="fu">rename</span>(<span class="at">sight_date =</span> date_ceiling,</span>
-<span id="cb23-434"><a href="#cb23-434"></a>         <span class="at">chl_date =</span> time)</span>
-<span id="cb23-435"><a href="#cb23-435"></a></span>
-<span id="cb23-436"><a href="#cb23-436"></a><span class="fu">head</span>(sights_chl_lag_8)</span>
-<span id="cb23-437"><a href="#cb23-437"></a><span class="in">```</span></span>
-<span id="cb23-438"><a href="#cb23-438"></a></span>
-<span id="cb23-439"><a href="#cb23-439"></a>Above, <span class="in">`sight_date`</span> is the date in the sightings dataset <span class="in">`sights`</span></span>
-<span id="cb23-440"><a href="#cb23-440"></a>and <span class="in">`chl_date`</span> is the earlier date (it may be lagged) at which the</span>
-<span id="cb23-441"><a href="#cb23-441"></a>chl-*a* data were extracted (i.e. after incorporating the lag).</span>
-<span id="cb23-442"><a href="#cb23-442"></a></span>
-<span id="cb23-443"><a href="#cb23-443"></a>I am not too sure what to do with this output as there is actually no measured</span>
-<span id="cb23-444"><a href="#cb23-444"></a>data associated with each observational record. The only thing of use really</span>
-<span id="cb23-445"><a href="#cb23-445"></a>is that each row is one observation with an associated date and location. I</span>
-<span id="cb23-446"><a href="#cb23-446"></a>assume that each row belongs with only one animal.</span>
-<span id="cb23-447"><a href="#cb23-447"></a></span>
-<span id="cb23-448"><a href="#cb23-448"></a>In order to create some observational data that are actually a bit</span>
-<span id="cb23-449"><a href="#cb23-449"></a>more useful, I think it might be a good idea to create a column with the</span>
-<span id="cb23-450"><a href="#cb23-450"></a>number of observations per day. The only way I can do this is to count the</span>
-<span id="cb23-451"><a href="#cb23-451"></a>number of observations within a slightly larger spatial domain, and to do</span>
-<span id="cb23-452"><a href="#cb23-452"></a>so, I regrid the observational data to a slightly courser resolution. So,</span>
-<span id="cb23-453"><a href="#cb23-453"></a>at a resolution of, say, 0.2 × 0.2° latitude and longitude grid cells, I</span>
-<span id="cb23-454"><a href="#cb23-454"></a>can count the number of observations within---now  'observations' are</span>
-<span id="cb23-455"><a href="#cb23-455"></a>comprised of counts of point localities of individual observations for each</span>
-<span id="cb23-456"><a href="#cb23-456"></a>day within these slightly expanded grid cells. This analysis is provided</span>
-<span id="cb23-457"><a href="#cb23-457"></a>in the next file, <span class="in">`4_regrid_sights.html`</span>.</span>
-<span id="cb23-458"><a href="#cb23-458"></a></span>
-<span id="cb23-459"><a href="#cb23-459"></a>Consequently, I don't actually do anything with the end result of the </span>
-<span id="cb23-460"><a href="#cb23-460"></a>calculations provided within this script.</span>
-</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb23-371"><a href="#cb23-371"></a><span class="fu">head</span>(sights_chl_lag_0)</span>
+<span id="cb23-372"><a href="#cb23-372"></a><span class="in">```</span></span>
+<span id="cb23-373"><a href="#cb23-373"></a></span>
+<span id="cb23-374"><a href="#cb23-374"></a>Also do this with a lag of 8 weeks:</span>
+<span id="cb23-375"><a href="#cb23-375"></a></span>
+<span id="cb23-376"><a href="#cb23-376"></a><span class="in">```{r code-chl-lag-8-sights}</span></span>
+<span id="cb23-377"><a href="#cb23-377"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-378"><a href="#cb23-378"></a>chl_lag_8 <span class="ot">&lt;-</span> sights <span class="sc">|&gt;</span> </span>
+<span id="cb23-379"><a href="#cb23-379"></a>  <span class="fu">split</span>(<span class="fu">seq</span>(<span class="fu">nrow</span>(sights))) <span class="sc">|&gt;</span></span>
+<span id="cb23-380"><a href="#cb23-380"></a>  <span class="fu">map</span>(\(df) <span class="fu">chl_calc</span>(df, <span class="at">lag =</span> <span class="dv">8</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb23-381"><a href="#cb23-381"></a>  <span class="fu">list_rbind</span>(<span class="at">names_to =</span> <span class="st">"row.num"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-382"><a href="#cb23-382"></a>  <span class="fu">mutate</span>(<span class="at">row.num =</span> <span class="fu">as.integer</span>(row.num))</span>
+<span id="cb23-383"><a href="#cb23-383"></a><span class="in">```</span></span>
+<span id="cb23-384"><a href="#cb23-384"></a></span>
+<span id="cb23-385"><a href="#cb23-385"></a><span class="in">```{r code-sights-chl-lag-8-sights}</span></span>
+<span id="cb23-386"><a href="#cb23-386"></a><span class="co">#| eval: false</span></span>
+<span id="cb23-387"><a href="#cb23-387"></a>sights_chl_lag_8 <span class="ot">&lt;-</span> sights <span class="sc">|&gt;</span> </span>
+<span id="cb23-388"><a href="#cb23-388"></a>  <span class="fu">mutate</span>(<span class="at">row.num =</span> <span class="fu">row_number</span>()) <span class="sc">|&gt;</span> </span>
+<span id="cb23-389"><a href="#cb23-389"></a>  <span class="fu">left_join</span>(chl_lag_8, <span class="at">by =</span> <span class="st">"row.num"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-390"><a href="#cb23-390"></a>  <span class="fu">select</span>(<span class="sc">-</span>row.num) <span class="sc">|&gt;</span> </span>
+<span id="cb23-391"><a href="#cb23-391"></a>  <span class="fu">mutate</span>(<span class="at">month =</span> <span class="fu">month</span>(date_ceiling, <span class="at">label =</span> <span class="cn">TRUE</span>, <span class="at">abbr =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb23-392"><a href="#cb23-392"></a>  <span class="fu">mutate</span>(<span class="at">diff.time =</span> date_ceiling <span class="sc">-</span> time) <span class="sc">|&gt;</span> <span class="co"># check</span></span>
+<span id="cb23-393"><a href="#cb23-393"></a>  <span class="fu">rename</span>(<span class="at">sight_date =</span> date_ceiling,</span>
+<span id="cb23-394"><a href="#cb23-394"></a>         <span class="at">chl_date =</span> time)</span>
+<span id="cb23-395"><a href="#cb23-395"></a></span>
+<span id="cb23-396"><a href="#cb23-396"></a><span class="fu">head</span>(sights_chl_lag_8)</span>
+<span id="cb23-397"><a href="#cb23-397"></a><span class="in">```</span></span>
+<span id="cb23-398"><a href="#cb23-398"></a></span>
+<span id="cb23-399"><a href="#cb23-399"></a>Above, <span class="in">`sight_date`</span> is the date in the sightings dataset <span class="in">`sights`</span></span>
+<span id="cb23-400"><a href="#cb23-400"></a>and <span class="in">`chl_date`</span> is the earlier date (it may be lagged) at which the</span>
+<span id="cb23-401"><a href="#cb23-401"></a>chl-*a* data were extracted (i.e. after incorporating the lag).</span>
+<span id="cb23-402"><a href="#cb23-402"></a></span>
+<span id="cb23-403"><a href="#cb23-403"></a>I am not too sure what to do with this output as there is actually no measured</span>
+<span id="cb23-404"><a href="#cb23-404"></a>data associated with each observational record. The only thing of use really</span>
+<span id="cb23-405"><a href="#cb23-405"></a>is that each row is one observation with an associated date and location. I</span>
+<span id="cb23-406"><a href="#cb23-406"></a>assume that each row belongs with only one animal.</span>
+<span id="cb23-407"><a href="#cb23-407"></a></span>
+<span id="cb23-408"><a href="#cb23-408"></a>In order to create some observational data that are actually a bit</span>
+<span id="cb23-409"><a href="#cb23-409"></a>more useful, I think it might be a good idea to create a column with the</span>
+<span id="cb23-410"><a href="#cb23-410"></a>number of observations per day. The only way I can do this is to count the</span>
+<span id="cb23-411"><a href="#cb23-411"></a>number of observations within a slightly larger spatial domain, and to do</span>
+<span id="cb23-412"><a href="#cb23-412"></a>so, I regrid the observational data to a slightly courser resolution. So,</span>
+<span id="cb23-413"><a href="#cb23-413"></a>at a resolution of, say, 0.2 × 0.2° latitude and longitude grid cells, I</span>
+<span id="cb23-414"><a href="#cb23-414"></a>can count the number of observations within---now  'observations' are</span>
+<span id="cb23-415"><a href="#cb23-415"></a>comprised of counts of point localities of individual observations for each</span>
+<span id="cb23-416"><a href="#cb23-416"></a>day within these slightly expanded grid cells. This analysis is provided</span>
+<span id="cb23-417"><a href="#cb23-417"></a>in the next file, <span class="in">`4_regrid_sights.html`</span>.</span>
+<span id="cb23-418"><a href="#cb23-418"></a></span>
+<span id="cb23-419"><a href="#cb23-419"></a>Consequently, I don't actually do anything with the end result of the </span>
+<span id="cb23-420"><a href="#cb23-420"></a>calculations provided within this script.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

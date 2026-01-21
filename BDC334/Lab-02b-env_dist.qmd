@@ -28,7 +28,7 @@ format:
 :::
 
 ::: callout-tip
-## Data For This Lab
+## Data for This Lab
 
 -   Example xyz data -- [`Euclidean_distance_demo_data_xyz.csv`](../data/Euclidean_distance_demo_data_xyz.csv)
 -   Example env data -- [`Euclidean_distance_demo_data_env.csv`](../data/Euclidean_distance_demo_data_env.csv)
@@ -41,7 +41,7 @@ format:
 >
 > --- Albert Einstein
 
-```{r echo=FALSE, eval=FALSE}
+```{r tbl-data-frame, echo=FALSE, eval=FALSE}
 data.frame(
   Feature = c("Formatting", "Math", "Links"),
   Example = c(
@@ -53,9 +53,9 @@ data.frame(
   knitr::kable(format = "html", escape = FALSE)
 ```
 
-# Set Up the Analysis Environment
+# Set up the Analysis Environment
 
-```{r message=FALSE, warning=FALSE}
+```{r code-library-vegan, message=FALSE, warning=FALSE}
 library(vegan)
 library(ggplot2)
 library(geodist) # to calculate geographic distances between lats/lons
@@ -72,7 +72,7 @@ The distance is found between every pair of sites named ***a*** to ***g*** whose
 
 Let's load the dataset and find the size of the dataframe:
 
-```{r}
+```{r code-xyz-read-csv-here}
 # xyz <- read.csv("../data/Euclidean_distance_demo_data_xyz.csv")
 xyz <- read.csv(here::here("data", "Euclidean_distance_demo_data_xyz.csv"))
 dim(xyz)
@@ -82,7 +82,7 @@ There are seven rows and four columns.
 
 The data look like:
 
-```{r}
+```{r code-xyz}
 xyz
 ```
 
@@ -90,7 +90,7 @@ The first column contains the site names and it must be excluded from subsequent
 
 Calculate the Euclidean distance using **vegan**'s `vegdist()` function and view the lower triangle with the diagonal:
 
-```{r}
+```{r code-xyz-euc-round}
 xyz_euc <- round(
   vegdist(xyz[, 2:4], method = "euclidian", upper = FALSE, diag = TRUE),
   4
@@ -101,7 +101,7 @@ xyz_euc
 
 Convert to a dataframe and view it:
 
-```{r}
+```{r code-xyz-df-as-data-frame}
 xyz_df <- as.data.frame(as.matrix(xyz_euc))
 xyz_df
 ```
@@ -118,7 +118,7 @@ In terms of the meaning of the cell values, their interpretation is also analogo
 
 Since each column, $x$, $y$, and $z$, is a variable, we can substitute them for *actual* variables or properties of the environment within which species are present. Let's load such data (again fictitious):
 
-```{r}
+```{r code-env-fict-read-csv-here}
 env_fict <- read.csv(here::here("data", "Euclidean_distance_demo_data_env.csv"))
 head(env_fict, 2) # print first two rows only
 ```
@@ -133,7 +133,7 @@ Let us now use some real data.
 
 These data accompany the analysis of the South African seaweed flora [@smit2017seaweeds].
 
-```{r}
+```{r code-load-here-here-data}
 load(here::here("data", "seaweed", "SeaweedEnv.RData"))
 
 # lets look at the data
@@ -142,19 +142,19 @@ dim(env)
 
 We see that the data have 58 rows and 18 columns... the same number of rows as the `seaweed.csv` data. What is in the first five rows?
 
-```{r}
+```{r code-round-env}
 round(env[1:5, 1:5], 4)
 ```
 
 And the last five rows?
 
-```{r}
+```{r code-round-env-nrow-env}
 round(env[(nrow(env) - 5):nrow(env), (ncol(env) - 5):ncol(env)], 4)
 ```
 
 So, each of the rows corresponds to a site (i.e. each of the coastal sections), and the columns each contains an environmental variable. The names of the environmental variables are:
 
-```{r}
+```{r code-colnames-env}
 colnames(env)
 ```
 
@@ -162,7 +162,7 @@ As we have seen, there are 18 variables (or dimensions). These data are truly mu
 
 We select only some of the thermal variables; the rest are collinear with some of the ones I import:
 
-```{r}
+```{r code-env1-dplyr-select}
 env1 <- dplyr::select(
   env,
   febMean,
@@ -179,9 +179,8 @@ env1 <- dplyr::select(
 
 Let us make a quick graph of `annMean` as a function of distance along the coast (@fig-seawater-temp).
 
-```{r}
+```{r fig-seawater-temp}
 #| fig-cap: "Line plot showing the trend in the mean annual seawater temperature along the coast from the west at Section 1 to Section 58 in the East."
-#| label: fig-seawater-temp
 ggplot(env1, aes(x = 1:58, y = annMean)) +
   geom_line(colour = "indianred", size = 1.2) +
   labs(x = "Coastal section (west to east)", y = "Temperature (°C)") +
@@ -192,16 +191,15 @@ ggplot(env1, aes(x = 1:58, y = annMean)) +
 
 Here we need to do something new that was not necessary with the toy data. We calculate *z*-scores, and the process is called 'standardisation'. Standardisation is necessary when the variables are measured in different units---e.g. the unit for temperature is °C whereas Ch-*a* is measured in mg Chl-*a*/m^3^.
 
-```{r}
+```{r code-e1-round-decostand-env1}
 E1 <- round(decostand(env1, method = "standardize"), 4)
 E1[1:5, 1:5]
 ```
 
 For comparison with the previous plot showing the raw data, let us now plot the standardised `annMean` data (@fig-std-ann-mean).
 
-```{r}
+```{r fig-std-ann-mean}
 #| fig-cap: "Line plot showing the trend in the standardised mean annual seawater temperature along the coast from the west at Section 1 to Section 58 in the East."
-#| label: fig-std-ann-mean
 ggplot(E1, aes(x = 1:58, y = annMean)) +
   geom_line(colour = "indianred", size = 1.2) +
   labs(x = "Coastal section (west to east)", y = "Standardised temperature") +
@@ -210,7 +208,7 @@ ggplot(E1, aes(x = 1:58, y = annMean)) +
 
 # Euclidean Distance
 
-```{r}
+```{r code-e1-euc-round-vegdist-e1}
 E1_euc <- round(vegdist(E1, method = "euclidian", upper = TRUE), 4)
 E1_df <- as.data.frame(as.matrix(E1_euc))
 E1_df[1:10, 1:10]
@@ -218,9 +216,8 @@ E1_df[1:10, 1:10]
 
 We already know how to read this matrix. Let's plot it as a function of the coastal section's number (@fig-env-dist).
 
-```{r}
+```{r fig-env-dist}
 #| fig-cap: "Line plot showing the trend in environmental distance along the coast from the west at Section 1 to Section 58 in the East."
-#| label: fig-env-dist
 ggplot(data = E1_df, (aes(x = 1:58, y = `1`))) +
   geom_line(colour = "indianred", size = 1.2) +
   xlab("Coastal section, west to east") +
@@ -247,13 +244,13 @@ We will explore distance and dissimilarity matrices in more detail in later sect
 
 It is easy to calculate pairwise correlation matrices for the above data:
 
-```{r}
+```{r code-env1-cor-round-cor-env1}
 env1_cor <- round(cor(env1), 2)
 env1_cor
 ```
 
 ::: callout-important
-## Lab 2 (continue)
+## Lab 2 (Continue)
 
 (To be reviewed by BCB743 student but not for marks)
 
@@ -266,12 +263,12 @@ env1_cor
 
 When we calculate Euclidean distances between geographic lat/lon coordinate, the relationship between sections will be the same (but scaled) as actual geographic distances.
 
-```{r}
+```{r code-geo-read-csv-here}
 geo <- read.csv(here::here("data", "seaweed", "SeaweedSites.csv"))
 dim(geo)
 ```
 
-```{r}
+```{r code-head-geo}
 head(geo)
 ```
 
@@ -279,14 +276,14 @@ head(geo)
 
 Calculate geographic distances (in meters) between coordinate pairs (@fig-geodist).
 
-```{r}
+```{r code-dists-geodist-geo-paired}
 dists <- geodist(geo, paired = TRUE, measure = "geodesic")
 dists_df <- as.data.frame(as.matrix(dists))
 colnames(dists_df) <- seq(1:58)
 dists_df[1:5, 1:5]
 ```
 
-```{r}
+```{r fig-plt1-ggplot-data-dists-df}
 plt1 <- ggplot(data = dists_df, (aes(x = 1:58, y = `1` / 1000))) +
   geom_line(colour = "indianred", size = 1.2) +
   xlab("Coastal section, west to east") +
@@ -295,15 +292,14 @@ plt1 <- ggplot(data = dists_df, (aes(x = 1:58, y = `1` / 1000))) +
   theme_linedraw()
 ```
 
-```{r}
+```{r code-dists-euc-vegdist-geo-method}
 dists_euc <- vegdist(geo, method = "euclidian")
 dists_euc_df <- round(as.data.frame(as.matrix(dists_euc)), 4)
 dists_euc_df[1:5, 1:5]
 ```
 
-```{r}
+```{r fig-geodist}
 #| fig-cap: "Line plots showing the relationship between Euclidean and geographical distance."
-#| label: fig-geodist
 #| fig-align: center
 #| fig-width: 8
 #| fig-height: 2.75
@@ -319,7 +315,7 @@ ggarrange(plt1, plt2, ncol = 2)
 ```
 
 ::: callout-important
-## Lab 2 (continue)
+## Lab 2 (Continue)
 
 (To be reviewed by BCB743 student but not for marks)
 

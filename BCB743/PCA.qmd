@@ -4,7 +4,7 @@ title: "Principal Component Analysis (PCA)"
 ---
 
 ::: callout-tip
-## **Material required for this chapter**
+## **Material Required for This Chapter**
 
 | Type           | Name                                     | Link                                                                              |
 |----------------|------------------------------------------|-----------------------------------------------------------------------------------|
@@ -15,13 +15,13 @@ title: "Principal Component Analysis (PCA)"
 :::
 
 ::: {.callout-important appearance="simple"}
-## Tasks to complete in this Chapter
+## Tasks to Complete in This Chapter
 
 * [Task C 1--5](tasks/Task_C.qmd)
 :::
 
 ::: {.callout-important appearance="simple"}
-## PCA as a foundation for understanding ordination
+## PCA as a Foundation for Understanding Ordination
 
 Thoroughly understanding PCA is a prerequisite for understanding more complex ordination techniques. Mastered this chapter before moving on to CA, PCoA, RDA, and CCA. Much of the same terminology and concepts are used in these techniques.
 :::
@@ -59,7 +59,7 @@ Let us work through a PCA to demonstrate the ideas.
 
 ## Set-up the Analysis Environment
 
-```{r}
+```{r code-library-tidyverse}
 library(tidyverse)
 library(vegan)
 library(ggcorrplot) # for the correlations
@@ -68,19 +68,18 @@ library(ggpubr)
 
 ## The Doubs River Data
 
-```{r}
+```{r code-load-here-here-data}
 load(here::here("data", "NEwR-2ed_code_data", "NEwR2-Data", "Doubs.RData"))
 head(env)
 ```
 
 ## First Do a Correlation
 
-```{r}
+```{r code-pca-correlation}
 #| fig-width: 8
 #| fig-height: 8
 #| fig.align: center
 #| fig.cap: "Pairwise correlations among the environmental variables included with the Doubs River study."
-#| label: fig-pca-correlation
 
 # computing a correlation matrix
 corr <- round(cor(env), 1)
@@ -99,10 +98,9 @@ Here we will proceed with all the variables --- this is a delibirate decision fo
 
 The patterns in the data and the correlations between them will make more sense if we can visualise a spatial context. Thankfully spatial data are available:
 
-```{r}
+```{r fig-pca-map1}
 #| fig.align: center
 #| fig.cap: "The spatial configuration of the Doubs River sites."
-#| label: fig-pca-map1
 
 head(spa)
 ggplot(spa, aes(x = X, y = Y, label = rownames(spa))) +
@@ -112,12 +110,11 @@ ggplot(spa, aes(x = X, y = Y, label = rownames(spa))) +
 
 These site numbers correspond approximately to the ones in @verneaux1973cours but some of the numbers may have been shifted slightly in the example Doubs dataset used here compared to how they were originally numbered in Verneaux's thesis and subsequent publication. This should not affect the interpretation. We can also scale the symbol size by the magnitude of the environmental variables. Lets look at two pairs of variables that are strongly correlated with one-another:
 
-```{r}
+```{r fig-pca-map2}
 #| fig-width: 8
 #| fig-height: 6
 #| fig.align: center
 #| fig.cap: "Four different representations of the site configuration (spatial context) of the Doubs River sampling layout. Symbols are scaled relative to A) ammonium concentration, B) BOD, C) Altitude, and D) Flow rate."
-#| label: fig-pca-map2
 
 # We scale the data first so as to better represent the full
 # magnitude of all variables with a common symbol size
@@ -153,7 +150,7 @@ ggarrange(plt1, plt2, plt3, plt4, nrow = 2, ncol = 2,
 
 We use the function `rda()` to do the PCA, but it can also be performed in base R with the functions `prcomp()` and `princomp()`. `rda()` is the same function that we will use later for a Redundancy Analysis, but when used without specifying constraints (as we do here) it amounts to simply doing a PCA. Typically we standardise environmental data to unit variance, but the PCA done by the `rda()` function accomplishes this step automagically when `scale = TRUE`. When applied to environmental data (as we typically do with a PCA) it works with correlations amongst the scaled variables. PCA preserves Euclidean distance and the relationships detected are linear, and for this reason it is not typically applied to species data without suitable transformations. In fact, in this module we will seldom apply a PCA to species data at all.
 
-```{r}
+```{r code-env-pca-rda-env-scale}
 env_pca <- rda(env, scale = TRUE)
 env_pca
 
@@ -173,7 +170,7 @@ At this point it is important to distinguish between statistical adequacy and ec
 
 To extract the first eigenvalue we can do:
 
-```{r}
+```{r code-round-eigenvals-env-pca}
 round(eigenvals(env_pca)[1], 3)
 
 # or
@@ -183,7 +180,7 @@ round(env_pca$CA$eig[1], 3)
 
 The total inertia is:
 
-```{r}
+```{r code-sum-eigenvals-env-pca}
 sum(eigenvals(env_pca))
 
 # or
@@ -193,13 +190,13 @@ sum(env_pca$CA$eig)
 
 So the proportion of variation explained by the first PC is:
 
-```{r}
+```{r code-round-env-pca-ca-eig}
 round(env_pca$CA$eig[1] / sum(env_pca$CA$eig) * 100, 1) # result in %
 ```
 
 We can show the same information as part of a more verbose summary. Here we see the pre-calculated **Proportion Explained** and **Cumulative Proportion** (it should be obvious what this is). There is also an assortment of other information, viz. **Scaling 2 for species and site scores**, **Species scores**, and **Site scores**.
 
-```{r}
+```{r code-summary-env-pca}
 summary(env_pca)
 ```
 
@@ -207,13 +204,13 @@ Newer versions of the ordinations' `summary()` method no longer shows the specie
 
 The species scores can be extracted from the ordination object by:
 
-```{r}
+```{r code-scores-env-pca-display-species}
 # extract species scores for first three PCA axes:
 scores(env_pca, display = "species", choices = 1:3)
 ```
 Similarly, for the site scores, do:
 
-```{r}
+```{r code-scores-env-pca-display-site}
 # extract the site scores for axes 1 and 2
 scores(env_pca, display = "site", choices = 1:3) |> 
   head() # truncate to save space in this example
@@ -268,10 +265,9 @@ When interpreting a PCA biplot (see below), the species scores (loadings) indica
 
 The number of axes to retain is a difficult question to answer. The first few axes will always explain the most variation, but how do we know how many reduced axes are influential and should be kept? Commonly recommended is the **broken stick** method---keep the principal components whose eigenvalues are higher than corresponding random broken stick components:
 
-```{r fig.height=4, fig.width=6}
+```{r code-pca-screeplot, fig.height=4, fig.width=6}
 #| fig.align: center
 #| fig.cap: "Scree plot of the Doubs River environmental data PCA."
-#| label: fig-pca-screeplot
 
 # make a scree plot using the vegan function:
 screeplot(env_pca, bstick = TRUE, type = "lines")
@@ -279,10 +275,9 @@ screeplot(env_pca, bstick = TRUE, type = "lines")
 
 Or I can make a scree plot using **ggplot2**, which is more flexible:
 
-```{r fig.height=3, fig.width=6}
+```{r fig-pca-scree-ggplot, fig.height=3, fig.width=6}
 #| fig.align: center
 #| fig.cap: "Scree plot of the Doubs River environmental data PCA made in **ggplot2**."
-#| label: fig-pca-scree-ggplot
 
 scree_dat <- data.frame(eigenvalue = as.vector(eigenvals(env_pca)),
                         bstick = bstick(env_pca))
@@ -414,12 +409,11 @@ I provide some examples of ordination diagrams scattered throughout the course c
 
 Let us look at examples. In a PCA ordination diagram, following the tradition of scatter diagrams in Cartesian coordinate systems, objects are represented as points and variables are displayed as arrows. We first use the standard **vegan** `biplot()` function:
 
-```{r}
+```{r code-pca-biplots}
 #| fig-width: 10
 #| fig-height: 5.625 
 #| fig.align: center
 #| fig.cap: "Ordination plot of the Doubs River environmental data showing site scaling (left) and species scaling (right)."
-#| label: fig-pca-biplots
 
 opar <- par(no.readonly = TRUE)
 par(mfrow = c(1, 2))
@@ -440,12 +434,11 @@ Now we create biplots using the `cleanplot.pca()` function that comes with the *
 
 We only assign importance to the arrows that extend beyond the radius of the circle (@fig-pca-cleanplot):
 
-```{r}
+```{r fig-pca-cleanplot}
 #| fig-width: 10
 #| fig-height: 5.625 
 #| fig.align: center
 #| fig.cap: "Ordination plot of the Doubs River environmental data made with the `cleanplot.pca()` function."
-#| label: fig-pca-cleanplot
 
 # we need to load the function first from its R file:
 source(here::here("data", "NEwR-2ed_code_data", "NEwR2-Functions", "cleanplot.pca.R"))
@@ -462,14 +455,13 @@ For more about `ordisurf()`, see Gavin Simpson's blog post [What is `ordifurf()`
 
 We plot the response surfaces for elevation and biological oxygen demand:
 
-```{r}
+```{r code-pca-ordisurf}
 #| message: false
 #| warning: false
 #| fig-width: 10
 #| fig-height: 5.625 
 #| fig.align: center
 #| fig.cap: "Ordination plot of the Doubs River environmental data fitted with a smooth response surface for elevation and biological oxygen demand."
-#| label: fig-pca-ordisurf
 
 biplot(env_pca, type = c("text", "points"), col = c("black", "black"))
 invisible(ordisurf(env_pca ~ bod, env, add = TRUE, col = "turquoise", knots = 1)) # <1>
@@ -478,4 +470,3 @@ invisible(ordisurf(env_pca ~ ele, env, add = TRUE, col = "salmon", knots = 1))
 1. `invisible()` is used to suppress the output of the `ordisurf()` function; only the figure is returned.
 
 PCA is best understood as an exploratory and diagnostic method rather than a catch-all solution for ecological ordination. Its strength lies in revealing broad structure in multivariate data, i.e., dominant gradients, major axes of covariation, and large-scale patterns that organise samples and variables in a reduced space. When applied to environmental data, PCA can provide a clear initial orientation to highlight correlated drivers, identify major contrasts among sites, and offer a coherent global summary of variation. Its limitations arise from the scope of a PCA: it is constrained to linear relationships under Euclidean geometry, and therefore cannot represent non-linear ecological responses without distortion them. PCA can be useful to establish a baseline against which alternative ordination methods can be evaluated, to guide you toward approaches such as CA, CCA, nMDS, or distance-based methods that are better aligned with specific response forms and inferential goals.
-

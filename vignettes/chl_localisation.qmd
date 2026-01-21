@@ -1,6 +1,6 @@
 ---
 title: "Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-*a* Data"
-subtitle: "An example analysis and workflow"
+subtitle: "An Example Analysis and Workflow"
 date: "`r Sys.Date()`"
 description: "This vignette demonstrates an example workflow for extracting chlorophyll-*a* data at the point localities where whales were sighted."
 bibliography: ../references.bib
@@ -25,14 +25,14 @@ bounding box are then aggregated along the latitude and longitude
 dimensions. This is repeated for each whale sighting since the start of
 the chl-*a* record time period (i.e. since 2003-01-01).
 
-## Load libraries
+## Load Libraries
 
 I use **tidyverse** (of course) for basic data processing, **lubridate**
 for date calculations (specifically the ceiling of a pre-defined time
 interval such as week), and **stars** and **sf** for some specific
 geographical computations.
 
-```{r}
+```{r code-library-tidyverse}
 #| output: false
 #| warnings: false
 library(tidyverse)
@@ -41,15 +41,15 @@ library(stars)
 library(sf)
 ```
 
-```{r}
+```{r code-chunk}
 # devtools::session_info()
 ```
 
-## Load the whale sightings data
+## Load the Whale Sightings Data
 
 These data are provided as CSV file and are easy to load:
 
-```{r}
+```{r code-sights-data-read-csv}
 #| cache: false
 # sightings
 sights_data <- read_csv(
@@ -68,7 +68,7 @@ for information about the download process.
 It is important that we are clear about the start times (especially) of
 the sightings dataset.
 
-```{r}
+```{r code-chldir-users-ajsmit-library}
 #| cache: false
 #| eval: false
 # chlorophyll-*a*
@@ -94,7 +94,7 @@ min(chl_data$time); max(chl_data$time)
 # class(chl_df$date_ceiling)
 ```
 
-## Reading chlorophyll-*a* from netCDF (alternative)
+## Reading chlorophyll-*a* from netCDF (Alternative)
 
 Note that we can also download (in `1_ERDDAP_download.html`) the data in
 netCDF format, and load the netCDF directly as a **stars** object. In the
@@ -102,7 +102,7 @@ future I'll probably go this route because I like the convenience of
 netCDF. An example workflow is provided for the netCDF approach, but the
 subsequent analysis proceeds with the data loaded from CSV.
 
-```{r}
+```{r code-chl-nc}
 #| eval: false
 chl_nc <-
   stars::read_ncdf(paste0(chlDir, "chl_data.nc"),
@@ -145,7 +145,7 @@ I convert the dataframe to a **stars** object and do all subsequent
 calculations (subsetting, cropping, etc.) there. This seems to be a bit
 faster than working in a dataframe.
 
-```{r}
+```{r code-chl-st-chl-data}
 #| eval: false
 chl_st <- chl_data |>
   dplyr::select(longitude, latitude, time, chlorophyll) |>
@@ -166,7 +166,7 @@ the week starts on a Wednesday (2003-01-01). I also want to ensure that the
 class of the date vector here is the same as that of the chl-*a* data (this
 last step is probably not necessary).
 
-```{r}
+```{r code-sights-sights-data}
 #| eval: false
 sights <- sights_data |> 
   filter(date >= "2003-01-01") |> 
@@ -190,7 +190,7 @@ circular polygon will be used to crop the area of interest around each whale
 sighting on a particular date, and all the chl-*a* values in the pixels
 within the circular polygon will be aggregated.
 
-```{r}
+```{r code-buffer}
 #| eval: false
 # for testing...
 
@@ -214,7 +214,7 @@ cir_bbox <- sf::st_bbox(cir_sfc)
 Plot of the full data extent on the first day of the chl-*a* dataset,
 showing the area to be cropped and aggregated:
 
-```{r}
+```{r fig-plot-chl-st-reset-false}
 #| eval: false
 plot(chl_st[, , , 1], reset = FALSE)
 plot(cir_sfc, col = NA, border = 'red', add = TRUE, lwd = 2)
@@ -223,7 +223,7 @@ plot(cir_sfc, col = NA, border = 'red', add = TRUE, lwd = 2)
 Cropped data within a circular **sf** geometry region (circular polygon) around
 central point:
 
-```{r}
+```{r fig-plot-chl-st-cir-sfc-reset}
 #| eval: false
 plot(chl_st[cir_sfc][, , , 1], reset = FALSE)
 plot(cir_sfc, col = NA, border = 'red', add = TRUE, lwd = 2)
@@ -231,7 +231,7 @@ plot(cir_sfc, col = NA, border = 'red', add = TRUE, lwd = 2)
 
 Data within a rectangular bbox:
 
-```{r}
+```{r fig-plot-chl-st-cir-bbox-reset}
 #| eval: false
 plot(chl_st[cir_bbox][, , , 1], reset = FALSE)
 ```
@@ -254,7 +254,7 @@ For example, the median chlorophyll-*a* concentration 8 weeks prior to
 the date on which the greatest number of cetaceans observations were
 made, within the bounding box for one particular observation, is:
 
-```{r}
+```{r code-chunk-2}
 # for testing only (legacy code)
 # calculates the median chl-a value within bbox rectangle
 
@@ -268,7 +268,7 @@ made, within the bounding box for one particular observation, is:
 # chl_conc
 ```
 
-```{r}
+```{r code-chl-conc-chl-st}
 #| eval: false
 # calculates median chl-a conc within a circle
 chl_conc <- chl_st |> 
@@ -283,9 +283,9 @@ Now I know how to do the data extraction and processing for one line in
 the `sights` dataset. The next trick is to do it line by line for the
 whole `sights` dataset, i.e. once for each whale sighting.
 
-## Make a function to apply
+## Make a Function to Apply
 
-```{r}
+```{r fn-chunk}
 # for testing (legacy code)
 
 # buffer <- 0.2
@@ -312,7 +312,7 @@ whole `sights` dataset, i.e. once for each whale sighting.
 # chl_calc_safe <- possibly(chl_calc, "Error")
 ```
 
-```{r}
+```{r fn-buffer}
 #| eval: false
 buffer <- 0.2
 
@@ -338,7 +338,7 @@ chl_calc_safe <- possibly(chl_calc, "Error")
 
 Test the function on one line of `sights`:
 
-```{r}
+```{r code-chl-calc-safe-sights-lag-works}
 #| eval: false
 chl_calc_safe(sights[1,], lag = 0) # works
 ```
@@ -346,7 +346,7 @@ chl_calc_safe(sights[1,], lag = 0) # works
 Make each row of `sights` a unique list element and map the `chl_calc`
 function to each element in the list, `list_rbind` it into a dataframe:
 
-```{r}
+```{r code-chl-lag-0-sights}
 #| eval: false
 chl_lag_0 <- sights |> 
   split(seq(nrow(sights))) |>
@@ -358,7 +358,7 @@ chl_lag_0 <- sights |>
 Combine the output with the original sights dataset and also add a
 column with months:
 
-```{r}
+```{r code-sights-chl-lag-0-sights}
 #| eval: false
 sights_chl_lag_0 <- sights |> 
   mutate(row.num = row_number()) |> 
@@ -373,7 +373,7 @@ head(sights_chl_lag_0)
 
 Also do this with a lag of 8 weeks:
 
-```{r}
+```{r code-chl-lag-8-sights}
 #| eval: false
 chl_lag_8 <- sights |> 
   split(seq(nrow(sights))) |>
@@ -382,7 +382,7 @@ chl_lag_8 <- sights |>
   mutate(row.num = as.integer(row.num))
 ```
 
-```{r}
+```{r code-sights-chl-lag-8-sights}
 #| eval: false
 sights_chl_lag_8 <- sights |> 
   mutate(row.num = row_number()) |> 

@@ -8,7 +8,7 @@ format:
 <!--- # Topic 12: Constrained ordination --->
 
 ::: callout-tip
-## **Material required for this chapter**
+## **Material Required for This Chapter**
 
 | Type        | Name                                     | Link                                                                                        |
 |-------------|------------------------------------------|---------------------------------------------------------------------------------------------|
@@ -43,7 +43,7 @@ The second, $E$ (in `env.csv`), is a dataset of *in situ* coastal seawater tempe
 
 ## Set-Up the Analysis Environment
 
-```{r}
+```{r code-library-tidyverse}
 library(tidyverse)
 library(betapart)
 library(vegan)
@@ -54,7 +54,7 @@ library(gridBase)
 
 Load the seaweed data:
 
-```{r}
+```{r code-spp-read-csv-here}
 spp <- read.csv(here::here("data", "seaweed", "SeaweedSpp.csv"))
 spp <- dplyr::select(spp, -1)
 dim(spp)
@@ -64,7 +64,7 @@ dim(spp)
 
 The first step involves the species table ($Y$). First I compute the Sørensen dissimilarity, which I then decompose into 'nestedness-resultant' ($\beta_\text{sne}$) and 'turnover' ($\beta_\text{sim}$) components using the `betapart.core()` and `betapart.pair()` functions of the **betapart** package [@baselga2018partitioning]. These are placed into the matrices $Y1$ and $Y2$. It is not necessary to decompose into $Y1$ and $Y2$, but I do so here because I want to focus on the turnover component without a nestedness-resultant influence. Optionally, I can apply a CA, PCoA, or nMDS on $Y$ to find the major patterns in the community data---to let the species data speak for themselves, so to speak. The formal in this chapter analysis will use the species data in a distance-based redundancy analyses (db-RDA as per **vegan**'s `capscale()` function) by coupling it with $E$.
 
-```{r}
+```{r code-y-core-betapart-core}
 Y.core <- betapart.core(spp) 
 Y.pair <- beta.pair(Y.core, index.family = "sor")
 
@@ -76,7 +76,7 @@ It is now necessary to load the environmental data and some setup files that par
 
 The thermal (environmental) data contain many variables, but in the analysis I use only some of them. These data were obtained from many sites along the South African coast, but using interpolation (not included here) I calculated the thermal properties for each of the coastal sections for which seaweed data are available. Consequently we have a data frame with 58 rows and a column for each of the thermal metrics.
 
-```{r}
+```{r code-load-here-here-data}
 load(here::here("data", "seaweed", "SeaweedEnv.RData"))
 dim(env)
 ```
@@ -85,27 +85,27 @@ Note that they have the same number of rows as the seaweed data.
 
 I select only some of the thermal variables because I excluded some of the ones I knew were collinear (I assessed this with pairwise correlations). There will still be some multicollinearity, but I will deal with this later after I have fit the constrained ordination (see @sec-multicollinearity). If you require more information about dealing with multicollinearity, refer to the Multiple Regression chapter in The Biostatistics Book. 
 
-```{r}
+```{r code-e1-dplyr-select-env}
 E1 <- dplyr::select(env, febMean, febRange, febSD, augMean,
                     augRange, augSD, annMean, annRange, annSD)
 ```
 
 Next I calculate *z*-scores:
 
-```{r}
+```{r code-e1-decostand-e1-method}
 E1 <- decostand(E1, method = "standardize")
 ```
 
 Four bioregions are recognised for South Africa by @bolton_2004 (the variable called `bolton`), namely the Benguela Marine Province (`BMP`; coastal sections **1**--**17**), the Benguela-Agulhas Transition Zone (`B-ATZ`; **18**--**22**), the Agulhas Marine Province (`AMP`; **19**--**43**/**44**) and the East Coast Transition Zone (`ECTZ`; **44**/**45**--**58**). My plotting functions partition the data into the bioregions and colour code the figures accordingly so I can see regional patterns in $\beta$-diversity emerging.
 
-```{r}
+```{r code-bioreg-read-csv-here}
 bioreg <- read.csv(here::here("data", "seaweed", "bioregions.csv"))
 head(bioreg)
 ```
 
 Load the geographic coordinates for the coastal sections:
 
-```{r}
+```{r code-sites-read-csv-here}
 sites <- read.csv(here::here("data", "seaweed", "SeaweedSites.csv"))
 sites <- sites[, c(2, 1)]
 head(sites)
@@ -120,7 +120,7 @@ I test the niche difference mechanism as the primary species compositional assem
 
 I do a db-RDA involving all the thermal variables in $E1$ (the 'global analysis' resulting in the full model, `cap_full`). The function to use is called `capscale()` but `dbrda()` achieves something similar. The analysis shown for $Y1$:
 
-```{r}
+```{r code-cap-full-capscale-y1-e1}
 # fit the full model:
 cap_full <- capscale(Y1 ~., E1) # <1>
 # cap_full <- capscale(spp ~., E1, dist = "bray", add = TRUE) # <2>
@@ -129,7 +129,7 @@ cap_full
 1. Because I am using the pre-calculated turnover component of $\beta$-diversity, the species information is not available in `summary(cap_full)`.
 2. If I use the species data directly, the species scores are available in `summary(cap_full)`. This is useful for interpreting the ordination diagram---generally this is advisable for most ordinations, but because I use the turnover component of $\beta$-diversity, this was not an option for the current analysis.
 
-```{r}
+```{r code-chunk}
 # summary(cap_full)
 # notice that the species scores are missing
 # refer to PCoA for why
@@ -139,38 +139,38 @@ The dissimilarity-matrix calculation discards species information, but if the or
 
 Is the fit significant? I run a permutation test to check:
 
-```{r}
+```{r code-anova-cap-full-parallel-yes}
 anova(cap_full, parallel = 4) # ... yes!
 ```
 
 Since the fit is significant (the environmental variables capture the variation seen in the species data), I compute the adjusted $R^{2}$:
 
-```{r}
+```{r code-cap-full-r2-rsquareadj-cap-full-adj}
 cap_full_R2 <- RsquareAdj(cap_full)$adj.r.squared
 round(cap_full_R2, 2)
 ```
 
 The inertia accounted for by constraints:
 
-```{r}
+```{r code-round-sum-cap-full-cca}
 round(sum(cap_full$CCA$eig), 2)
 ```
 
 The remaining (unconstrained) inertia:
 
-```{r}
+```{r code-round-sum-cap-full-ca}
 round(sum(cap_full$CA$eig), 2)
 ```
 
 The total inertia:
 
-```{r}
+```{r code-round-cap-full-tot-chi}
 round(cap_full$tot.chi, 2)
 ```
 
 What is the proportion of variation explained by the full set environmental variables?
 
-```{r}
+```{r code-round-sum-cap-full-cca-2}
 round(sum(cap_full$CCA$eig) / cap_full$tot.chi * 100, 2) # this is 6.86398 / 7.52344 * 100 (%)
 ```
 
@@ -180,13 +180,13 @@ I check for collinearity using variance inflation factors (VIF), and retain a su
 
 First on the full model:
 
-```{r}
+```{r code-vif-cca-cap-full}
 vif.cca(cap_full)
 ```
 
 I assess the output and drop annMean, which has the highest VIF value. I then re-run the VIF procedure on the slightly reduced model (and iterate until all VIFs are below 10).
 
-```{r}
+```{r code-e2-dplyr-select-e1}
 E2 <- dplyr::select(E1, -annMean)
 cap_sel1 <- capscale(Y1 ~., E2)
 vif.cca(cap_sel1)
@@ -194,7 +194,7 @@ vif.cca(cap_sel1)
 
 Drop febMean:
 
-```{r}
+```{r code-e3-dplyr-select-e2}
 E3 <- dplyr::select(E2, -febMean)
 cap_sel2 <- capscale(Y1 ~., E3)
 vif.cca(cap_sel2)
@@ -202,7 +202,7 @@ vif.cca(cap_sel2)
 
 Drop augSD:
 
-```{r}
+```{r code-e4-dplyr-select-e3}
 E4 <- dplyr::select(E3, -augSD)
 cap_sel3 <- capscale(Y1 ~., E4)
 vif.cca(cap_sel3)
@@ -212,7 +212,7 @@ I select $E4$ as the variables to construct the final model (`cap_final`) from.
 
 **Note:** you can switch to the formula interface within `capscale()` and specify the variables to use on the right-hand side of the formula (as shown but not executed). You will (obviously) no longer analyse only the turnover component of $\beta$-diversity as you will be using the raw `spp` data that encapsulate both nestedness-resultant and turnover processes, but the upshot of this is that you will now have species scores. Run this bit of code by yourself and see what the outcome is (the ordiplot is affected, as well as the $R^{2}$, number of significant reduced axes, etc.).
 
-```{r}
+```{r code-cap-final-cap-sel3}
 cap_final <- cap_sel3
 # cap_final <- capscale(spp ~ febRange + febSD + augMean + augRange + augSD + annRange + annSD, data = E3, distance = "jaccard")
 ```
@@ -221,26 +221,26 @@ cap_final <- cap_sel3
 
 I calculate the significance of the model, the variance explained by all the constraints (in $E4$) in the final model, as well as the $R^{2}$:
 
-```{r}
+```{r code-anova-cap-final-parallel-yes}
 # is the fit significant?
 anova(cap_final, parallel = 4) # ... yes!
 ```
 
 Which axes are significant?
 
-```{r}
+```{r code-anova-cap-final-by-axis}
 anova(cap_final, by = "axis", parallel = 4) # ... yes!
 ```
 
 Extract the significant variables in $E4$ that are influential in the final model as influencers of seaweed community differences amongsth coastal sections:
 
-```{r}
+```{r code-cap-final-axis-test-anova-cap-final-by}
 (cap_final_axis_test <- anova(cap_final, by = "terms", parallel = 4))
 ```
 
 The significant variables are:
 
-```{r}
+```{r code-cap-final-ax-which-cap-final-axis-test}
 cap_final_ax <- which(cap_final_axis_test[, 4] < 0.05)
 cap_final_sign_ax <- colnames(E4[,cap_final_ax])
 cap_final_sign_ax
@@ -248,19 +248,19 @@ cap_final_sign_ax
 
 The adjusted $R^{2}$ for the constraints:
 
-```{r}
+```{r code-round-cap-final-r2-rsquareadj-cap-final}
 round(cap_final_R2 <- RsquareAdj(cap_final)$adj.r.squared, 2) # %
 ```
 
 The variance explained by reduced (final) model:
 
-```{r}
+```{r code-round-sum-cap-final-cca}
 round(sum(cap_final$CCA$eig) / cap_final$tot.chi * 100, 2)
 ```
 
 The biplot scores for constraining variables:
 
-```{r}
+```{r code-scores-cap-final-display-bp}
 scores(cap_final, display = "bp", choices = c(1:2))
 ```
 
@@ -270,7 +270,7 @@ These biplot scores will mark the position of the termini of the arrows that ind
 
 This code recreates Figure 2a in Smit et al. (2017):
 
-```{r fig.width=8, fig.height=6}
+```{r fig-cap-final-scrs-scores-cap-final-display, fig.width=8, fig.height=6}
 # use scaling = 1 or scaling = 2 for site and species scaling, respectively
 cap_final_scrs <- scores(cap_final, display = c("sp", "wa", "lc", "bp"))
 # see ?plot.cca for insight into the use of lc vs wa scores
@@ -305,7 +305,7 @@ Note that in Smit et al. (2017, Fig. 2a) I plot the linear constraints (lc score
 
 ## Factor Variables
 
-```{r fig.width=8, fig.height=6}
+```{r fig-e5-e4-c-cap-final-sign-ax, fig.width=8, fig.height=6}
 # retain only significant variables as per `cap_final_sign_ax`
 E5 <- E4[, c(cap_final_sign_ax)]
 # append the bioregs after the thermal vars
@@ -317,7 +317,7 @@ plot(cap_cat)
 
 The default plot works okay and shows all necessary info, but the various pieces (site, species, and centroid scores) are not clearly discernible. Plot the class (factor) centroids in `ggplot()`:
 
-```{r fig.width=8, fig.height=6}
+```{r fig-cap-cat-scrs-scores-cap-cat-display, fig.width=8, fig.height=6}
 # also extractthe factor centroids for the bioregions
 cap_cat_scrs <- scores(cap_cat, display = c("sp", "wa", "lc", "bp", "cn"))
 site_scores <- data.frame(cap_cat_scrs$site) # the wa scores

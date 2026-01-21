@@ -1,6 +1,6 @@
 ---
 title: "Plotting the Whale Sightings and Chlorophyll-*a* Concentrations"
-subtitle: "A brief demonstration of data summaries"
+subtitle: "A Brief Demonstration of Data Summaries"
 date: "`r Sys.Date()`"
 description: "This vignette demonstrates exploratory data analyses."
 bibliography: ../references.bib
@@ -14,9 +14,9 @@ format:
     page-layout: full
 ---
 
-## Load packages
+## Load Packages
 
-```{r}
+```{r code-library-tidyverse}
 #| message: false
 library(tidyverse)
 library(lubridate)
@@ -33,7 +33,7 @@ library(gt) # for nice tables
 source(here::here("R", "map_theme.R"))
 ```
 
-```{r}
+```{r code-set-opentopo-key-cd52ef9b8b407a17fd417843e571fc27}
 #| echo: false
 #| eval: false
 # OpenTopography API
@@ -65,7 +65,7 @@ concentrations during spring months and the lowest during summer. SST
 also shows a seasonal trend, with highest SST during summer and the
 lowest during winter.
 
-## Rui's objectives
+## Rui's Objectives
 
 Our main objective is to interpret if Azorean waters are a migratory
 corridor for the four main baleen whale’s species sighted in the Azores
@@ -111,9 +111,9 @@ the migration? --> Timing question already addressed, but we can
     analyses of all variables (see @gonzalez2018multi), with data classified
     a priori into the subsets representing the three regions.
 
-## Load the whale sighting data
+## Load the Whale Sighting Data
 
-```{r}
+```{r code-sights-read-csv}
 #| message: false
 sights <- read_csv(
   here::here("data", "occurences_sampled.Mn.txt"),
@@ -128,40 +128,40 @@ sights <- sights |>
          yday = yday(date))
 ```
 
-## Explore the whale sighting data
+## Explore the Whale Sighting Data
 
 The time span of the study:
 
-```{r}
+```{r code-range-sights-date}
 range(sights$date)
 ```
 
-```{r}
+```{r code-yrs-max-year-sights}
 yrs <- max(year(sights$date)) - min(year(sights$date))
 ```
 
 The longitudinal and latitudinal range:
 
-```{r}
+```{r code-range-sights-lat}
 range(sights$lat)
 range(sights$lon)
 ```
 
-```{r}
+```{r code-median-sights-lat}
 median(sights$lat)
 median(sights$lon)
 ```
 
 There is one outlier which I will remove:
 
-```{r}
+```{r code-sights-sights}
 sights <- sights |> 
   filter(lat > min(lat))
 ```
 
 From here I define the spatial extent for the study region as:
 
-```{r}
+```{r code-ymin-min-sights-lat}
 # the extent of the full regional map
 # a region around the Azores
 
@@ -180,14 +180,14 @@ st_crs(area_sf) = 4326
 
 The bounding box for the study region is:
 
-```{r}
+```{r code-sights-bbox}
 sights_bbox
 ```
 
 Start preparing all the map layers by loading the Natural Earth data for
 the continent outlines:
 
-```{r}
+```{r code-world-ne-ne-countries}
 # Get countries
 world_ne <- ne_countries(
   scale = "large",
@@ -198,9 +198,8 @@ class(world_ne)
 
 A first stab plot of the region shows:
 
-```{r}
+```{r fig-basicmap}
 #| fig-cap: "The Azores Islands."
-#| label: fig-basicMap
 #| out-width: "90%"
 #| fig-width: 5
 
@@ -215,7 +214,7 @@ ggplot(data = world_ne) +
 
 Next we get a DEM of the region using **elevatr**:
 
-```{r}
+```{r code-dem-elevatr-get-elev-raster-locations}
 #| eval: false
 dem <- elevatr::get_elev_raster(locations = area_sf, z = 7, 
                                 src = "srtm15plus",
@@ -225,7 +224,7 @@ dem <- elevatr::get_elev_raster(locations = area_sf, z = 7,
 save(dem, file = here::here("data", "azores.dem"))
 ```
 
-```{r}
+```{r code-load-here-here-data}
 #| cache: false
 # re-use previously downloaded dem
 load(here::here("data", "azores.dem"))
@@ -235,7 +234,7 @@ dem_df <- as.data.frame(dem, xy = TRUE, na.rm = TRUE)
 colnames(dem_df)[3] <- "layer"
 ```
 
-## Mapping and plotting observations
+## Mapping and Plotting Observations
 
 Let us add all the map layer together:
 
@@ -243,9 +242,8 @@ i.  the bathymetry for the region,
 ii. the land area polygons around the above-water regions, and
 iii. all the whale sighting data.
 
-```{r}
+```{r fig-aggregatedsightings}
 #| fig-cap: "A view of the aggregated whale sigtings over the period 1989-08-20 to 2022-05-07."
-#| label: fig-aggregatedSightings
 #| out-width: "90%"
 #| fig-width: 5
 
@@ -279,9 +277,8 @@ Are there distribution differences across years? Difficult to see in the
 above figure, so I create an animation of pooled annual observations
 across years:
 
-```{r}
+```{r fig-animationsightings}
 #| fig-cap: "An animation of whale sigtings over the period 1989-08-20 to 2022-05-07."
-#| label: fig-animationSightings
 #| eval: false
 #| out-width: "90%"
 #| fig-width: 5
@@ -310,11 +307,11 @@ gganimate::anim_save(here::here("data", "sightings_anim.gif"))
 ```
 
 ![Animation of yearly whale
-sightings.](sightings_anim.gif){#fig-animationSightings}
+sightings.](sightings_anim.gif){#fig-animationsightings}
 
-## Annual chl-*a* climatology
+## Annual chl-*a* Climatology
 
-```{r}
+```{r code-chldir-users-ajsmit-documents}
 #| cache: false
 #| eval: false
 chlDir <- "/Users/ajsmit/Documents/R/R_in_Ocean_Science/_development/ERDDAP/"
@@ -328,9 +325,8 @@ chl_data <- chl_data |>
          yday = yday(time))
 ```
 
-```{r}
+```{r fig-aggregatechlorophyll}
 #| fig-cap: "Median chl-*a* concentrations over the period 2003-01-01 to 2022-07-27."
-#| label: fig-aggregateChlorophyll
 #| out-width: "90%"
 #| fig-width: 5
 #| cache: false
@@ -366,13 +362,12 @@ chl_data |>
   theme(legend.position = "bottom")
 ```
 
-## Monthly chl-*a* climatology
+## Monthly chl-*a* Climatology
 
 Plots for the full regional extent:
 
-```{r}
+```{r fig-monthlychlorophyll}
 #| fig-cap: "Monthly climatological median chl-*a* concentrations over the period 2003-01-01 to 2022-07-27."
-#| label: fig-monthlyChlorophyll
 #| out-width: "90%"
 #| fig-width: 5
 #| cache: false
@@ -412,7 +407,7 @@ I also plot the seasonal profile for the central (Ilha do Faial, Ilha do
 Pico, São Jorge, Graciosa, Ilha Terceira) and eastern-most (Ilha do São
 Miguel, São Pedro) island groups. The respective bounding boxes are:
 
-```{r}
+```{r code-c-lonmin}
 # center group
 c_lonmin <- -29
 c_lonmax <- -27.5
@@ -426,9 +421,8 @@ e_latmin <- 37.5
 e_latmax <- 38
 ```
 
-```{r}
+```{r fig-monthlycentralchlorophyll}
 #| fig-cap: "Monthly climatological median chl-*a* concentrations over the period 2003-01-01 to 2022-07-27 for the central island group comprised of Ilha do Faial, Ilha do Pico, São Jorge, Graciosa, and Ilha Terceira."
-#| label: fig-monthlyCentralChlorophyll
 #| out-width: "90%"
 #| fig-width: 5
 #| cache: false
@@ -480,9 +474,8 @@ chl_data |>
   facet_wrap(vars(month), ncol = 3)
 ```
 
-```{r}
+```{r fig-monthlyeasternchlorophyll}
 #| fig-cap: "Monthly climatological median chl-*a* concentrations over the period 2003-01-01 to 2022-07-27 for the eastern island group comprised of Ilha do São Miguel and São Pedro."
-#| label: fig-monthlyEasternChlorophyll
 #| out-width: "90%"
 #| fig-width: 5
 #| cache: false
@@ -544,7 +537,7 @@ chl_data |>
   facet_wrap(vars(month), ncol = 3)
 ```
 
-## 'Climatology' of whale sightings
+## 'Climatology' of Whale Sightings
 
 I create a histogram of Julian days (day of the year), which summarises
 the times during the year across the observational record when most
@@ -557,9 +550,8 @@ plots will then be displayed in an intuitive manner so that the time of
 highest chl-*a* concentration can be displayed next to the timing of
 whale sightings.
 
-```{r}
+```{r fn-timingsfigures}
 #| fig-cap: "The annual course of sightings (D-F) and the corresponding onset of the chlorophyll-*a* maximum (A-C)."
-#| label: fig-timingsFigures
 #| out-width: "90%"
 #| cache: false
 #| eval: false
@@ -710,7 +702,7 @@ positioned at a trophic position intermediate between phytoplankton and
 whales. Similar findings were obtained in this study (Table 1), although
 no distinction was made between cetacean species.
 
-```{r}
+```{r code-a-dat-layer-data-a}
 #| echo: false
 #| eval: false
 # day on which max sightings attained for full data extent:
@@ -732,7 +724,7 @@ c_max <- c_dat |>
   dplyr::select(x, count)
 ```
 
-```{r}
+```{r code-timings-data-frame}
 #| echo: false
 #| eval: false
 timings <- data.frame(
@@ -751,7 +743,7 @@ timings <- data.frame(
 )
 ```
 
-```{r}
+```{r code-timings-tbl-gt-timings-rownames-to-stub}
 #| echo: false
 #| eval: false
 timings_tbl <- gt(timings, rownames_to_stub = TRUE) |> 
@@ -777,7 +769,7 @@ timings_tbl <- gt(timings, rownames_to_stub = TRUE) |>
 timings_tbl
 ```
 
-## Finding the nearest chl-*a* pixels to the whale sightings
+## Finding the Nearest chl-*a* Pixels to the Whale Sightings
 
 This analysis is continued in [Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-*a* Data](../vignettes/chl_localisation.qmd).
 

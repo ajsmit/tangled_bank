@@ -1,5 +1,5 @@
 ---
-title: "Wavelet analysis of diatom time series"
+title: "Wavelet Analysis of Diatom Time Series"
 date: "3/4/2017"
 format:
   html:
@@ -10,13 +10,13 @@ format:
     page-layout: full
 ---
 
-```{r global_options, include = FALSE}
+```{r code-global-options, include = FALSE}
 knitr::opts_chunk$set(fig.align = 'center', fig.show = 'hold',
                       echo = TRUE, warning = FALSE, message = FALSE, tidy = FALSE, 
                       cache = TRUE, fig.path = 'figures/diatoms-')
 ```
 
-```{r load-pkg, include = FALSE}
+```{r code-load-pkg, include = FALSE}
 fpath <- "/Users/ajsmit/Library/Mobile Documents/com~apple~CloudDocs/R/papers/diatom_age/"
 
 library(data.table)
@@ -37,7 +37,7 @@ Palaeoclimatology, Palaeoecology, 496, 282-291.
 
 # Methodology
 
-## Data preparation
+## Data Preparation
 
 Wavelet analysis requires an evenly-spaced time series without missing
 values (NAs). To this end, we resampled the time series to the median
@@ -62,7 +62,7 @@ of interest. In the process, we also removed the linear trend from the
 data by applying a linear regression and taking the residuals, which
 became the new time series used in the subsequent analyses.
 
-## Wavelet decomposition
+## Wavelet Decomposition
 
 We apply the Morlet wavelet to decompose our time series into the
 time-frequency space (details given by Torrence and Compo, 1998;
@@ -84,7 +84,7 @@ provided by the **WaveletComp** package. This function returns the
 wavelet power spectrum as well as *p*-values testing the null hypothesis
 that a period is not-significant at a certain time.
 
-## Signal reconstruction and bandpass filtering
+## Signal Reconstruction and Bandpass Filtering
 
 We then used the `reconstruct()` function to reassemble a time series
 from its wavelet properties. We permit only a narrow range of
@@ -112,11 +112,11 @@ returned by wavelet analysis, bandpass filtering also allowed us to more
 closely evaluate which regions along the length of the time series were
 comprised of the major periodicities that were recovered.
 
-# The analyses
+# The Analyses
 
 ## Interpolation
 
-```{r interpolate-data, include = TRUE}
+```{r code-interpolate-data, include = TRUE}
 # read in the geochem data using a function from the data.table package
 geochem.raw <- fread(paste0(fpath, "geochem.csv"), sep = ";")
 
@@ -171,14 +171,14 @@ period that can be detected. Typically this limit is the
 
 I’ll continue the analysis using the geochem data, and later I’ll return to the diatom and PC time series. Now I am interested to know about the serial autocorrelation structure of the data. I use the **forcast** package’s `auto.arima()` function to automatically detect the Autoregressive Integrated Moving Averages (ARIMA) correlation structure. The outcome is printed below – we see that the geochem data have a ARIMA(1,1,3) correlation structure. The printout for the other data sets is not shown, but it is more-or-less the same. Knowing this is useful, because I need to remove this autocorrelation before I can continue. I’ll do this next.
 
-```{r auto-arima-geochem}
+```{r code-auto-arima-geochem}
 # check for autocorreltion using 'auto.arima()' in the 'forecast' package... 
 auto.arima(geochem.int$Si_Al, max.p = 3, max.q = 3, stationary = FALSE, 
            seasonal = FALSE)
 # ...yes, significant autocorrelation is present, i.e. ARIMA(1,1,3) in this case
 ```
 
-```{r auto-arima-diatoms, include = FALSE}
+```{r code-auto-arima-diatoms, include = FALSE}
 # now check the diatom and PC data
 # auto.arima(pc1.int$PC1_marine, max.p = 3, max.q = 3, stationary = FALSE, 
 #            seasonal = FALSE)
@@ -194,7 +194,7 @@ auto.arima(geochem.int$Si_Al, max.p = 3, max.q = 3, stationary = FALSE,
 
 Above I showed that the data are serially correlated. This is expected of time series. I should remove the autocorrelation before I do the wavelet analyses. One way to do this is to fit an ARIMA model and then continue with the rest of the workflow using the models’ residuals. Instead I will use the **astrochron** package’s `prewhiteAR()` function that does approximately the same, but just with a bit less fine control over how the model is specified. The result of this conditioning is that the only error (aside from measurement etc. error) that remains is white noise that’s superimposed on the signal of interest. A plot (below) also shows that the time serious is now detrended.
 
-```{r pre-white, warning = FALSE}
+```{r code-pre-white, warning = FALSE}
 # apply pre-whitening to the data; this effectively removes the above 
 # autocorrelation structure and the residuals are then used for the remainder 
 # of the analyses; this allows us to easily identify the embedded spectral 
@@ -225,7 +225,7 @@ What effect has this pre-whitening had on the appearance of the time
 series? Producing a plot of the data before (raw), interpolated and
 pre-whitening clearly shows the effect for the geochem data:
 
-```{r geochem-ts-plot, echo = TRUE, warning = FALSE}
+```{r fn-geochem-ts-plot, echo = TRUE, warning = FALSE}
 #| fig-height: 7
 source(paste0(fpath, "custom_theme.R"))
 library(ggplot2)
@@ -251,11 +251,11 @@ print(pl2, vp = vplayout(2,1))
 print(pl3, vp = vplayout(3,1))
 ```
 
-## Wavelet transformations
+## Wavelet Transformations
 
 Next I do a wavelet analysis using the `analyze.wavelet()` function this lives in the **WaveletComp** package. I test the null hypothesis that there is no periodicity in the time series using p-values obtained from a simulation to indicate any significant periodicities. Then I plot the wavelet power spectrum of a single time series using the `wt.image()` function in the same package. The $y$-axis shows the Fourier periods and the bottom shows time step counts. I also draw contours to outline the areas of significant wavelet power. This is where to find the wave periods of events that are captured by the data. It seems as if most of the periodicities are <50 years or so, but a weak period also occurs of 1,024 to 2,048 years around 6,000 to 8,000 years ago.
 
-```{r wavelet-geochem, echo = TRUE, include = TRUE}
+```{r fig-wavelet-geochem, echo = TRUE, include = TRUE}
 # ts.plot(geochem.int.w$Si_Al)
 # using modified function to stop annoying default behaviour 
 # (see inside 'functions.R')
@@ -274,7 +274,7 @@ wt.image(wl, siglvl = 0.05, col.contour = "black", color.key = "quantile",
 
 I now use the `reconstruct()` function to reassemble a time series from its wavelet properties extracted from the data series just analysed. I permit only a narrow range of frequencies (analogous to the bandpass filter later on) to feed into the reconstruction. These frequencies are further selected by using only those at a power greater than 0.02 and at a significance level of less than 0.05. The graph shows quite a good reconstruction – the reconstructed time series matches the original (interpolated, whitened and detrended) one very nicely. This shows that the events the drive the Si/Al ratios occur at periodicities of less than 50 years (i.e. frequencies of >0.02 per year).
 
-```{r wavelet-geochem-reconstruct}
+```{r code-wavelet-geochem-reconstruct}
 # using modified 'reconstruct' function to prevent plotting of sub-title
 reconstruct_(wl, plot.waves = FALSE, lwd = c(1.2, 0.8), legend.coords = "bottomleft",
             only.coi = TRUE, lvl = 0.02, sel.lower = 6, sel.upper = 50,
@@ -283,11 +283,11 @@ reconstruct_(wl, plot.waves = FALSE, lwd = c(1.2, 0.8), legend.coords = "bottoml
             verbose = FALSE)
 ```
 
-## Bandpass filters
+## Bandpass Filters
 
 The same outcome as above can be achieved using bandpass filters. Bandpass filters allow signals through that fall within a certain "band" of frequencies while discriminating against signals that are present at other frequencies. This particular bandpass filter (in the **astrochron** package) applies the filter within a tapered cosine window. Still using the geochem data, I filter the data to exclude everything below the low frequency of 0.2 (once every five years) and the high frequency of 0.02 (one in 50 years) and then I superimpose the filtered bands onto the original (interpolated, whitened and detrended) data. The signal that is permitted to pass through faithfully captures the frequency spectra present in the original data (the second of the two graphs is informative).
 
-```{r bp-1}
+```{r code-bp-1}
 #| fig-height: 7
 # Using the pre-whitened data, apply band-pass filters using a 
 # cosine-tapered window
@@ -296,7 +296,7 @@ bp1 <- bandpass_(geochem.int.w, demean = FALSE, detrend = TRUE, padfac = 500, wi
                 flow = 1/50, fhigh = 1/5, p = .1, verbose = FALSE, output = 1)
 ```
 
-```{r}
+```{r code-str-bp1}
 str(bp1)
 head(bp1)
 ```
@@ -306,7 +306,7 @@ What happens if we narrow the band to range from once in five years
 to the original series, but more so at 8,000 years and less so from 0 to
 \~6000 years.
 
-```{r bp-2}
+```{r code-bp-2}
 #| fig-height: 7
 bp2 <- bandpass_(geochem.int.w, demean = FALSE, detrend = TRUE, padfac = 500, win = 2,
                flow = 1/10, fhigh = 1/5, p = .1, verbose = FALSE, output = 2)
@@ -319,7 +319,7 @@ frequencies through that's necessary to shape the signals present in the
 original geochem series---this is in fact what the first of the
 bandpass figures, above, does.
 
-```{r bp-3}
+```{r code-bp-3}
 #| fig-height: 7
 bp3 <- bandpass_(geochem.int.w, demean = FALSE, detrend = TRUE, padfac = 500, win = 2, 
                  flow = 1/50, fhigh = 1/10, p = .1, verbose = FALSE, output = 2)
@@ -331,25 +331,25 @@ to construct the geochem data. This is the same result as the wavelet
 analysis and the reconstruction of the data based on the wavelet
 properties of the original data.
 
-```{r bp-4}
+```{r code-bp-4}
 #| fig-height: 7
 bp4 <- bandpass_(geochem.int.w, demean = FALSE, detrend = TRUE, padfac = 500, win = 2,
                 flow = 1/100, fhigh = 1/50, p = .1, verbose = FALSE, output = 2)
 ```
 
-# Diatoms and the PC axes
+# Diatoms and the PC Axes
 
 Now I take a look at the wavelets and pass bands of the diatoms and PC
 axes. I'll just show the results here, and hopefully this is sufficient
 to draw one's own conclusions.
 
-## The first Principal Components axis
+## The First Principal Components Axis
 
 First I do a wavelet analysis as before with the geochem data. The
 parameters that go into the equation are somewhat different to
 accommodate the different nature of these data.
 
-```{r wavelet-pc1, echo = TRUE}
+```{r fig-wavelet-pc1, echo = TRUE}
 # ts.plot(pc1.int.w$pc1)
 w2 <- analyze.wavelet_(pc1.int.w, "pc1", loess.span = 0, dt = 39.2, 
                       dj = 1/50, lowerPeriod = 40, make.pval = TRUE, n.sim = 50, 
@@ -364,7 +364,7 @@ wt.image(w2, siglvl = 0.05, col.contour = "black", color.key = "quantile",
 And here are two bandpass filters applied to the data (note the
 frequencies specified in the equations):
 
-```{r pc1.1-bp}
+```{r code-pc1-bp-bandpass-pc1, pc1.1-bp}
 #| fig-height: 7
 pc1.bp <- bandpass_(pc1.int.w, demean = FALSE, detrend = TRUE, padfac = 500, 
                     win = 2, flow = 1/550, fhigh = 1/50, p = .1, 
@@ -372,74 +372,74 @@ pc1.bp <- bandpass_(pc1.int.w, demean = FALSE, detrend = TRUE, padfac = 500,
 
 ```
 
-```{r pc1.2-bp}
+```{r code-pc1-bp-bandpass-pc1-2, pc1.2-bp}
 #| fig-height: 7
 pc1.2.bp <- bandpass_(pc1.int.w, demean = FALSE, detrend = TRUE, padfac = 500, 
                       win = 2, flow = 1/550, fhigh = 1/250, p = .1, 
                       verbose = FALSE, output = 2)
 ```
 
-## The second Principal Components axis
+## The Second Principal Components Axis
 
 Here and further down I omit the bandpass filters. These can easily be
 done using the code provided.
 
-```{r wavelet-pc2, echo = TRUE}
+```{r fig-wavelet-pc2, echo = TRUE}
 # ts.plot(pc2.int.w$pc2)
 w3 <- analyze.wavelet_(pc2.int.w, "pc2", loess.span = 0, dt = 39.2, 
                       dj = 1/50, lowerPeriod = 40, make.pval = TRUE, n.sim = 50, 
                       method = "white.noise", verbose = FALSE)
 ```
 
-```{r wavelet-pc2-plot, echo = TRUE}
+```{r code-wavelet-pc2-plot, echo = TRUE}
 wt.image(w3, siglvl = 0.05, col.contour = "black", color.key = "quantile", 
          legend.params = list(lab = "wavelet power levels", label.digits = 2, 
                               shrink = 1.0), timelab = "Years", 
          periodlab = "Period", lwd = 1, plot.ridge = FALSE)
 ```
 
-## *Paralia sulcata*
+## *Paralia Sulcata*
 
-```{r wavelet-paralia, echo = TRUE}
+```{r fig-wavelet-paralia, echo = TRUE}
 # ts.plot(paralia.int.w$paralia)
 w3 <- analyze.wavelet_(paralia.int.w, "paralia", loess.span = 0, dt = 39.2, 
                       dj = 1/50, lowerPeriod = 40, make.pval = TRUE, n.sim = 50, 
                       method = "white.noise", verbose = FALSE)
 ```
 
-```{r wavelet-paralia-plot, echo = TRUE}
+```{r code-wavelet-paralia-plot, echo = TRUE}
 wt.image(w3, siglvl = 0.05, col.contour = "black", color.key = "quantile", 
          legend.params = list(lab = "wavelet power levels", label.digits = 2, 
                               shrink = 1.0), timelab = "Years", 
          periodlab = "Period", lwd = 1, plot.ridge = FALSE)
 ```
 
-## Dilute benthics
+## Dilute Benthics
 
-```{r wavelet-benthics, echo = TRUE}
+```{r fig-wavelet-benthics, echo = TRUE}
 # ts.plot(benthics.int.w$benthics)
 w4 <- analyze.wavelet_(benthics.int.w, "benthics", loess.span = 0, dt = 39.2, 
                       dj = 1/50, lowerPeriod = 40, make.pval = TRUE, n.sim = 50, 
                       method = "white.noise", verbose = FALSE)
 ```
 
-```{r wavelet-benthics-plot, echo = TRUE}
+```{r code-wavelet-benthics-plot, echo = TRUE}
 wt.image(w4, siglvl = 0.05, col.contour = "black", color.key = "quantile", 
          legend.params = list(lab = "wavelet power levels", label.digits = 2, 
                               shrink = 1.0), timelab = "Years", 
          periodlab = "Period", lwd = 1, plot.ridge = FALSE)
 ```
 
-## Marine offshore
+## Marine Offshore
 
-```{r wavelet-offshore, echo = TRUE}
+```{r fig-wavelet-offshore, echo = TRUE}
 # ts.plot(offshore.int.w$offshore)
 w5 <- analyze.wavelet_(offshore.int.w, "offshore", loess.span = 0, dt = 39.2, 
                       dj = 1/50, lowerPeriod = 40, make.pval = TRUE, n.sim = 50, 
                       method = "white.noise", verbose = FALSE)
 ```
 
-```{r wavelet-offshore-plot, echo = TRUE}
+```{r code-wavelet-offshore-plot, echo = TRUE}
 wt.image(w5, siglvl = 0.05, col.contour = "black", color.key = "quantile", 
          legend.params = list(lab = "wavelet power levels", label.digits = 2, 
                               shrink = 1.0), timelab = "Years", 

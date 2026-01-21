@@ -6,7 +6,7 @@ title: "nMDS: Mayombo's Diatom Data"
 <!-- # Topic 11: nMDS of the diatom data in Mayombo et al. (2019) -->
 
 ::: callout-tip
-## **Material required for this chapter**
+## **Material Required for This Chapter**
 
 | Type           | Name                                     | Link                                                                              |
 |----------------|------------------------------------------|-----------------------------------------------------------------------------------|
@@ -41,7 +41,7 @@ Useful when the range of data values is very large. Data are square root transfo
 
 ## Set-Up the Analysis Environment
 
-```{r}
+```{r code-library-tidyverse}
 library(tidyverse)
 library(vegan)
 library(plyr)
@@ -62,7 +62,7 @@ The diatom species data include the following:
 
 where `host_size` is `A` for adult kelp plant (host), `J` for juvenile kelp plant (host), `host_spp` is `Lp` for kelp species *Laminaria pallida* (host), `Em` for kelp plant *Ecklonia maxima* (host), `plant` is the unique number identifying a specific kelp plant, and `rep` is the replicate tissue sample from each kelp host plant from which the diatoms were extracted.
 
-```{r}
+```{r code-spp-read-csv-here}
 # with shortened name to fix nMDS overplotting
 spp <- read.csv(here::here("data", "diatoms", "PB_data_matrix_abrev.csv"),
                 row.names = "Replicate", sep = ",", header = TRUE)
@@ -80,16 +80,16 @@ colnames(spp2) <- str_replace(colnames(spp2), "\\.spp", "")
 
 Logarithmic transformation as suggested by @anderson2006distance: $log_{b}(x) + 1$ for $x > 0$, where $b$ is the base of the logarithm; zeros are left as zeros. Higher bases give less weight to quantities and more to presences.
 
-```{r}
+```{r code-spp-log-decostand-spp}
 spp.log <- decostand(spp, method = "log")
 spp.log.dis <- vegdist(spp.log, method = "bray")
 ```
 
-### The Predictors
+### The predictors
 
 The content is described above; these variables are categorical vars — they are not actually 'environmental' data, but their purpose in the analysis is analogous to true environmental data; it is simply data that describe where the samples were taken from.
 
-```{r}
+```{r code-env-tibble-read-csv}
 env <- tibble(read.csv(here::here("data", "diatoms", "PB_diat_env.csv")),
               sep = ",", header = TRUE)
 env$plant <- as.factor(env$plant)
@@ -114,21 +114,21 @@ Before doing the PERMANOVA (testing differences between means), first check to s
 
 So, we test the $H_{0}$ that the dispersion (variance) in diatom community structure does not differ between the two host species:
 
-```{r}
+```{r code-mod-spp-with-env}
 (mod.spp <- with(env, betadisper(spp.log.dis, host_spp)))
 anova(mod.spp)
 ```
 
 There is no difference in dispersion between the diatom communities on the two host species. Apply the same procedure to see if host size has an effect:
 
-```{r}
+```{r code-mod-size-with-env}
 (mod.size <- with(env, betadisper(spp.log.dis, host_size)))
 anova(mod.size)
 ```
 
 No, it does not have an effect either. Make some plots to visualise the patterns:
 
-```{r}
+```{r fig-par-mfrow-c}
 #| fig-width: 8
 #| fig-height: 6
 par(mfrow = c(2, 2))
@@ -141,7 +141,7 @@ boxplot(mod.size)
 
 Optionally, we can confirm the above analysis with the `permutest()` function. `permutest()` is a permutational ANOVA-like test that tests the $H_{0}$ that there is no difference in the multivariate dispersion of diatom community structure between *Ecklonia maxima* and *Laminaria pallida*, and between adult and juvenile plants:
 
-```{r}
+```{r code-permutest-mod-spp-there}
 permutest(mod.spp) # there is in fact no difference
 
 permutest(mod.size) # nope...
@@ -155,7 +155,7 @@ Permutational Multivariate Analysis of Variance (PERMANOVA; @anderson2013permano
 
 Note that nestedness should be stated in the blocks (plants): "If you have a nested error structure, so that you do not want your data be shuffled over classes (blocks), you should define blocks in your permutation" — Jari Oksannen
 
-```{r}
+```{r code-perm-how-nperm}
 # the permutational structure captures the nesting of replicates within plant
 perm <- how(nperm = 1000)
 setBlocks(perm) <- with(env, plant)
@@ -171,7 +171,7 @@ There is no effect resulting from host species, host size, or interactions betwe
 
 Do the nMDS and assemble the figures:
 
-```{r}
+```{r code-spp-nmds-metamds-spp}
 spp.nmds <- metaMDS(spp.log, k = 2,trymax = 100, trace = 0,
                     distance = "bray", wascores = TRUE)
 
@@ -180,7 +180,7 @@ spp.nmds <- metaMDS(spp.log, k = 2,trymax = 100, trace = 0,
 # scores(spp.nmds, display = "sites")
 ```
 
-```{r}
+```{r fig-col-c-indianred3-steelblue4}
 #| fig-width: 8
 #| fig-height: 6
 col <- c("indianred3", "steelblue4")
@@ -254,14 +254,14 @@ par(opar)
 
 What follows is an example of 'Model-based Multivariate Analyses.' I will not discuss this method here, but merely repeat the code as used in the Mayombo et al. (2019) paper. For background to the Multivariate abundance using Generalised Linear Models approach, refer to @wang2012mvabund and @wang2017mvabund.
 
-```{r}
+```{r code-library-mvabund}
 library(mvabund)
 diat_spp <- mvabund(spp2)
 ```
 
 Look at the spread of the data using the boxplot function. The figure is not used in paper:
 
-```{r}
+```{r code-par-mar-c-adjusts}
 #| fig-width: 8
 #| fig-height: 6
 par(mar = c(2, 10, 2, 2)) # adjusts the margins
@@ -270,7 +270,7 @@ boxplot(spp, horizontal = TRUE, las = 2, main = "Abundance", col = "indianred")
 
 Check the mean-variance relationship:
 
-```{r}
+```{r fig-meanvar-plot-diat-spp}
 #| fig-width: 8
 meanvar.plot(diat_spp)
 ```
@@ -284,7 +284,7 @@ The above plot shows that spp with a high mean also have a high variance.
 
 Scale manually for `ggplot2()` custom plot. Create a scale function:
 
-```{r}
+```{r fn-log-fun-function-x}
 log_fun <- function(x) {
   min_x <- min(x[x != 0], na.rm = TRUE)
   a <- log(x) / min_x
@@ -295,7 +295,7 @@ log_fun <- function(x) {
 
 Make a plot that shows which diatoms species are responsible for differences between adult and juvenile kelps:
 
-```{r}
+```{r fig-spp2}
 #| fig-width: 8
 #| fig-height: 6
 spp2 %>%
@@ -334,7 +334,7 @@ spp2 %>%
 
 I settle on a negative binomial distribution for the species data. This will be provided to the `manyglm()` function:
 
-```{r}
+```{r fig-size-mod2-manyglm-diat-spp-env}
 #| fig-width: 8
 #| fig-height: 6
 size_mod2 <- manyglm(diat_spp ~ (env$host_spp * env$host_size) / env$plant,
@@ -342,7 +342,7 @@ size_mod2 <- manyglm(diat_spp ~ (env$host_spp * env$host_size) / env$plant,
 plot(size_mod2) # better residuals...
 ```
 
-```{r}
+```{r code-out-anova-size-mod2-p}
 # anova(size_mod2, test = "wald")
 out <- anova(size_mod2, p.uni = "adjusted", test = "wald")
 out$table
@@ -350,7 +350,7 @@ out$table
 
 What is the proportional contribution of some important species to juvenile and adult plants?
 
-```{r}
+```{r code-prop-contrib-data-frame}
 prop.contrib <- data.frame(spp = colnames(out$uni.test),
                            prop = out$uni.test[3, ],
                            row.names = NULL)

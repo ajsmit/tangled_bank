@@ -28,7 +28,7 @@ format:
 :::
 
 ::: callout-tip
-## Data For This Lab
+## Data for This Lab
 
 The seaweed [@smit2017seaweeds] and toy data are at the links below:
 
@@ -62,12 +62,12 @@ One of the datasets, $Y$ (in the file `SeaweedSpp.csv`),
 comprises updated distribution records of 847 macroalgal species within each of 58 × 50 km-long sections of the South African coast [@bolton2002seaweed]. The dataset captures *ca*. 90% of the known seaweed flora of South Africa, but excludes some very small and/or very rare species for which data are insufficient. The data are from verifiable literature sources and John Bolton and Rob Anderson's collections, assembled from information collected by teams of phycologists over three decades [@bolton1986marine; @stegenga1997seaweeds; @bolton2002seaweed; @de2005guide]. Another file, $E$ (in `env.csv`), is a dataset of *in situ* coastal seawater temperatures derived from daily
 measurements over 40 years [@smit2013coastal].
 
-## Setting Up the Analysis Environment
+## Setting up the Analysis Environment
 
 We will use **R**, so first, we must find, install and load various packages. Some packages will be available on CRAN and can be accessed and installed the usual way, but you will need to download others from [R Forge](https://r-forge.r-project.org/R/?group_id=195).
 
 
-```{r setup}
+```{r code-setup}
 library(tidyverse)
 library(vegan)
 library(betapart)
@@ -77,7 +77,7 @@ library(betapart)
 
 Let's load the data and see how it is structured:
 
-```{r}
+```{r code-spp-read-csv-here}
 spp <- read.csv(here::here("data", "seaweed", "SeaweedSpp.csv"))
 spp <- dplyr::select(spp, -1)
 
@@ -88,13 +88,13 @@ dim(spp)
 We see that our dataset has 58 rows and 847 columns. What is in the
 columns and rows? Start with the first five rows and five columns:
 
-```{r}
+```{r code-spp}
 spp[1:5, 1:5]
 ```
 
 Now the last five rows and five columns:
 
-```{r}
+```{r code-spp-nrow-spp-nrow}
 spp[(nrow(spp) - 5):nrow(spp), (ncol(spp) - 5):ncol(spp)]
 ```
 
@@ -123,7 +123,7 @@ Here we look at the various measures of biodiversity, viz. $\alpha$-, $\gamma$- 
 
 <!--- # Topic 2: Measures of biodiversity --->
 
-# Three Measures of Biodiversity: $\alpha$-, $\gamma$-, $\beta$-Diversity
+# Three Measures of Biodiversity: $\Alpha$-, $\Gamma$-, $\beta$-Diversity
 
 @whittaker1972evolution coined three measures of biodiversity, and the concepts were ‘modernised’ by @jurasinski2009inventory. The concepts
 represent the measurement of biodiversity *across different spatial
@@ -147,7 +147,7 @@ We can represent $\alpha$-diversity in three ways:
 
 We will work through each in turn.
 
-### Species Richness, $S$
+### Species richness, $S$
 
 First, is species richness, which we denote by the symbol $S$. This is the simplest measure of $\alpha$-diversity, counting the number of species (or another taxonomic level) present in a given community or sample. It doesn't consider the abundance of species.
 
@@ -156,14 +156,14 @@ In the seaweed biodiversity data, I count the number of species within each of t
 The preferred option for calculating species richness is the
 `specnumber()` function in **vegan**:
 
-```{r}
+```{r code-specnumber-spp-margin}
 specnumber(spp, MARGIN = 1) # <1>
 ```
 1. The `MARGIN = 1` argument tells R to calculate the number of species within each row (site).
 
 The data output is easier to understand if we display it as a `tibble()`:
 
-```{r}
+```{r code-spp-richness-tibble-section}
 spp_richness <- tibble(section = 1:58,
   richness = specnumber(spp, MARGIN = 1))
 head(spp_richness)
@@ -171,9 +171,8 @@ head(spp_richness)
 
 Now we make a plot seen in @fig-species-richness:
 
-```{r}
+```{r fig-species-richness}
 #| fig-cap: "The seaweed species richness, $S$, within each of the coastal sections along the shore of South Africa."
-#| label: fig-species-richness
 ggplot(data = spp_richness, (aes(x = 1:58, y = richness))) +
   geom_line(size = 1.2, colour = "indianred") +
   xlab("Coastal section, west to east") +
@@ -185,12 +184,12 @@ In other instances, it makes more sense to calculate the mean species richness o
 
 In the seaweed study, the mean ± SD species richness across all of the 58 coastal sections is:
 
-```{r}
+```{r code-round-mean-spp-richness-richness}
 round(mean(spp_richness$richness), 2)
 round(sd(spp_richness$richness), 2)
 ```
 
-### Univariate Diversity Indices
+### Univariate diversity indices
 
 The second way we can express $\alpha$-diversity is to use one of the univariate diversity indices. The choice of which index to use should be informed by the extent to which one wants to emphasise richness or evenness. Species
 richness, $S$, does not consider evenness as it is all about richness (obviously). Simpson's $\lambda$ emphasises evenness a lot more. Shannon's $H'$ is somewhere in the middle.
@@ -213,14 +212,14 @@ where $S$ is the species richness and $p_{i}$ is the relative abundance of the $
 
 Except for Fisher's-$\alpha$, we cannot calculate these for the seaweed data, because, in order to do so, we require abundance data---the seaweed data are presence-absence only. Let us load a fictitious dataset of the diversity of three different communities of plants, with each community corresponding to a different light environment (dim, mid, and high light):
 
-```{r}
+```{r code-light-read-csv-here}
 light <- read.csv(here::here("data", "light_levels.csv"))
 light
 ```
 
 We can see above that instead of having data with 1s and 0s for presence-absence, here we have some values that indicate the relative number of individuals belonging to each of the species in the three light environments. We calculate species richness (as before), and also the Shannon and Simpson indices using **vegan**'s `diversity()` function:
 
-```{r}
+```{r code-light-div-tibble}
 light_div <- tibble(
   site = c("low_light", "mid_light", "high_light"),
   richness = specnumber(light[, 2:7], MARGIN = 1),
@@ -254,7 +253,7 @@ where $H'$ is Shannon's diversity index, and $S$ the number of species
 To calculate Pielou's evenness index for the `light` data, we can do
 this:
 
-```{r}
+```{r code-h-diversity-light-margin}
 H <- diversity(light[, 2:7], MARGIN = 1, index = "shannon")
 
 J <- H/log(specnumber(light[, 2:7]))
@@ -272,14 +271,14 @@ where $N_{max}$ is the number of individuals of the most common species and $N$ 
 
 Returning to the seaweed data, $Y$, let us now look at $\gamma$-diversity---this would be the total number of species along the South African coastline in all 58 coastal sections. Since each column represents one species, and the dataset contains data collected at each of the 58 sites (the number of rows), we can do:
 
-```{r}
+```{r code-ncol-spp}
 ncol(spp) # <1>`
 ```
 1. The number of columns gives the total number of species in this example.
 
 We can also use the `specnumber()` function to calculate $\gamma$-diversity by applying it to columns where the `sum > 0`:
 
-```{r, eval=TRUE}
+```{r code-richness-pooled-specnumber-colsums-spp, eval=TRUE}
 richness_pooled <- specnumber(colSums(spp > 0))
 richness_pooled
 ```
@@ -300,9 +299,8 @@ Think before you calculate $\gamma$-diversity for your own data as it might not 
 
 The first measure of $\beta$-diversity comes from @whittaker1960vegetation and is called *true $\beta$-diversity*. In this instance, divide the $\gamma$-diversity for the region by the $\alpha$-diversity for a specific coastal section. We can calculate it all at once for the whole dataset and make a graph (@fig-true-beta):
 
-```{r}
+```{r fig-true-beta}
 #| fig-cap: "Whittaker’s true β-diversity shown in the seaweed data."
-#| label: fig-true-beta
 true_beta <- data.frame(
   beta = specnumber(spp, MARGIN = 1) / ncol(spp),
   section_no = c(1:58)
@@ -317,9 +315,8 @@ ggplot(data = true_beta, (aes(x = section_no, y = beta))) +
 
 The second measure of $\beta$-diversity is *absolute species turnover*, and to calculate this, we subtract $\alpha$-diversity for each  section from the region's $\gamma$-diversity (@fig-abs-beta):
 
-```{r}
+```{r fig-abs-beta}
 #| fig-cap: "Whittaker’s absolute species turnover shown in action in the seaweed data."
-#| label: fig-abs-beta
 abs_beta <- data.frame(
   beta = ncol(spp) - specnumber(spp, MARGIN = 1),
   section_no = c(1:58)
@@ -332,7 +329,7 @@ ggplot(data = abs_beta, (aes(x = section_no, y = beta))) +
   theme_linedraw()
 ```
 
-### Contemporary Definitions $\beta$-Diversity
+### Contemporary definitions $\beta$-Diversity
 
 Contemporary definitions of $\beta$-diversity are anchored in [pairwise *dissimilarity indices*](Lec-04-biodiversity.qmd#sec-dissimilarity-indices) such as Bray–Curtis, Jaccard, or Sørensen dissimilarities—see @koleff2003measuring for a broader catalogue, and consult `?vegdist` for implementation details.
 
@@ -360,7 +357,7 @@ Here, $a$ denotes the species common to both sites, while $b$ and $c$ capture th
 
 In practice, the vegan function `vegdist()` provides access to a range of dissimilarity indices, including Sørensen, which we apply to the species table to generate the full pairwise matrix.
 
-```{r}
+```{r code-sor-vegdist-spp-binary}
 sor <- vegdist(spp, binary = TRUE) # makes the lower triangle matrix
 sor_df <- round(as.matrix(sor), 4)
 dim(sor_df)
@@ -376,7 +373,7 @@ iv. the matrix is symmetrical---it is comprised of symetrical upper and lower tr
 
 To continue using the dissimilarity matrix, it helps if we convert it to `data.frame`. This makes the matrix more amenable to a host of subsequent manipulations, including using it for plotting:
 
-```{r}
+```{r code-sor-df-data-frame-round}
 sor_df <- data.frame(round(as.matrix(sor), 4))
 ```
 
@@ -404,7 +401,7 @@ These questions concern matrices produced from species data using any of the ind
 
 There are different interpretations linked to $\beta$-diversity, each telling us something different about community formation processes. 
 
-#### Species turnover and nestedness-resultant $\beta$-diversity
+### Species turnover and nestedness-resultant $\beta$-diversity
 
 There are two principal forms of $\beta$-diversity: [species turnover and nestedness-resultant $\beta$-diversity](Lec-04-biodiversity.qmd#sec-beta-diversity). Turnover reflects species replacement between sites, whereas nestedness-resultant $\beta$-diversity reflects ordered species loss or gain. The Sørensen index, $\beta_\text{sør}$, can be partitioned into these two components.
 
@@ -412,7 +409,7 @@ To calculate them, we rely on the **betapart** package [@baselga2022betapart], w
 
 Once obtained, these matrices can serve as the basis for subsequent multivariate analyses—for instance, principal components analysis (PCA) or related ordination techniques applied to $Y$ to identify dominant community patterns. We will pursue such analyses in [BCB743](../BCB743/BCB743_index.qmd).
 
-```{r}
+```{r code-y-core-betapart-core}
 # Decompose total Sørensen dissimilarity into turnover and nestedness-resultant
 # components:
 Y.core <- betapart.core(spp)
@@ -426,18 +423,18 @@ Y2 <- data.frame(round(as.matrix(Y.pair$beta.sne), 3))
 ```
 
 A portion of the turnover component matrix:
-```{r}
+```{r code-y1}
 Y1[1:10, 1:10]
 ```
 
 A portion of the nestedness-resultant matrix:
-```{r}
+```{r code-y2}
 Y2[1:10, 1:10]
 ```
 
 A portion of the nestedness-resultant matrix reformatted as a `tibble()`^[Note that the rows are no longer numbered in the tibble view, but it can easily be recreated by `seq(1:58)`.], which is a modern take on a dataframe.:
 
-```{r}
+```{r code-y2-tib-as-tibble-y2}
 Y2_tib <- as_tibble(Y2)
 head(Y2_tib)
 
@@ -448,7 +445,7 @@ head(Y2_df)[, 1:13]
 
 
 ::: callout-important
-## Lab 3 (continue)
+## Lab 3 (Continue)
 (To be reviewed by BCB743 student but not for marks)
 
 8. Plot species turnover as a function of Section number, and provide a mechanistic explanation for the pattern observed.

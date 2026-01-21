@@ -12,7 +12,7 @@ format:
 > — Anon.
 
 ::: {.callout-important appearance="simple"}
-## Tasks to complete in this chapter
+## Tasks to Complete in This Chapter
 
 * [Task D 2--5](tasks/Task_D.qmd)
 :::
@@ -35,7 +35,7 @@ Let us explore the WHO/SDG dataset using the `pam()` function.
 
 ## Set-Up the Analysis Environment
 
-```{r}
+```{r code-library-tidyverse}
 library(tidyverse) 
 library(cluster)
 library(ggcorrplot)
@@ -50,26 +50,26 @@ library(ggpubr)
 
 I load the combined dataset that already had their missing values imputed (as per the [PCA](PCA_SDG_example.qmd) example).
 
-```{r}
+```{r code-sdgs-read-csv-here-here}
 SDGs <- read_csv(here::here("data", "WHO", "SDG_complete.csv"))
 SDGs[1:5, 1:8]
 ```
 
 The parent locations:
 
-```{r}
+```{r code-unique-sdgs-parentlocation}
 unique(SDGs$ParentLocation)
 ```
 
 The number of countries:
 
-```{r}
+```{r code-length-sdgs-location}
 length(SDGs$Location)
 ```
 
 As is often the case with measured variables, we can start our exploration with a correlation analysis to see the extent to which correlation between variable pairs is present:
 
-```{r}
+```{r code-corr-round-cor-sdgs}
 #| fig-width: 8
 #| fig-height: 6
 # a correalation matrix
@@ -83,7 +83,7 @@ We might decide to remove collinear variables. A useful approach to use here mig
 
 We need to standardise first to account for the different measurement scales of the variables. We can calculate Euclidean distances before running `pam()`, but it can also be specified within the function call. We do the latter:
 
-```{r}
+```{r code-sdgs-std-decostand-sdgs-ncol}
 SDGs_std <- decostand(SDGs[3:ncol(SDGs)], method = "standardize")
 # SDGs_euc <- vegdist(SDGs_std, method = "euclidean")
 rownames(SDGs_std) <- SDGs$Location # carry location names into output
@@ -91,7 +91,7 @@ rownames(SDGs_std) <- SDGs$Location # carry location names into output
 
 The frustrating thing with cluster analysis, which often confuses novice users, is that there is often an expectation that the clustering algorithm decides for the user how many clusters to use. However, this is a misconception that must be overcome. Although some numerical guidance can be obtained through 'silhouette,' 'within cluster sum of squares', or 'elbow' analysis, and 'gap statistic', in my experience they are no substitute for the power of human reasoning. Let us see what the **factoextra** package function `fviz_nbclust()` tells us about how many groups to use:
 
-```{r}
+```{r code-plt1-fviz-nbclust-sdgs-std-cluster}
 #| fig-width: 8
 #| fig-height: 6
 # using silhouette analysis
@@ -111,7 +111,7 @@ ggarrange(plt1, plt2, plt3, nrow = 3)
 
 Even with the supposedly objective assessment of what the optimal number of clusters should be, we see that each method still provides a different result. Much better to proceed with expert knowledge about the nature of the data, and the intent of the study. Let us proceed with three clusters as I think two clusters are insufficient for our purpose.
 
-```{r}
+```{r code-sdgs-pam-pam-sdgs-std-metric}
 #| fig-width: 8
 #| fig-height: 6
 SDGs_pam <- pam(SDGs_std, metric = "euclidean", k = 3)
@@ -124,7 +124,7 @@ fviz_cluster(SDGs_pam, geom = "point", ellipse.type = "convex",
 
 We cannot clearly see where SA is, so let us create a clearer plot:
 
-```{r}
+```{r code-sdgs-sdgs}
 #| fig-width: 8
 #| fig-height: 6
 # scale SA bigger for plotting
@@ -142,7 +142,7 @@ Note that `pam()`, unlike hierarchical or agglomerative clustering, does not pro
 
 Same as above, but showing a star plot, and numbers indicating the countries (their row numbers in `SDGs`):
 
-```{r}
+```{r code-fviz-cluster-sdgs-pam-palette-c}
 #| fig-width: 8
 #| fig-height: 6
 fviz_cluster(SDGs_pam, palette = c("#FC4E07", "violetred3", "deepskyblue3"),
@@ -153,7 +153,7 @@ fviz_cluster(SDGs_pam, palette = c("#FC4E07", "violetred3", "deepskyblue3"),
 
 Do a silhouette analysis to check cluster fidelity:
 
-```{r}
+```{r code-fviz-silhouette-sdgs-pam-palette-c}
 #| fig-width: 8
 #| fig-height: 6
 fviz_silhouette(SDGs_pam, palette = c("#FC4E07", "violetred3", "deepskyblue3"),
@@ -162,7 +162,7 @@ fviz_silhouette(SDGs_pam, palette = c("#FC4E07", "violetred3", "deepskyblue3"),
 
 Once happy with the number of clusters, find the median value for each cluster:
 
-```{r}
+```{r code-sdgs-centroids-sdgs}
 SDGs_centroids <- SDGs |> 
   mutate(cluster = SDGs_pam$clustering) |> 
   group_by(cluster) |> 
@@ -172,13 +172,13 @@ SDGs_centroids
 
 `pam()` can also provide the most representative example countries of each cluster. Note that the values inside are very different from that produced when we calculated the medians because `medoids` report the standardised data:
 
-```{r}
+```{r code-sdgs-pam-medoids}
 SDGs_pam$medoids
 ```
 
 We can do a coloured pairwise scatterplot to check data details. I limit it here to the pairs of the first 7 columns because of the large number of possible combinations:
 
-```{r}
+```{r code-pairs-sdgs}
 #| fig-width: 8
 #| fig-height: 8
 pairs(SDGs[, 3:10],

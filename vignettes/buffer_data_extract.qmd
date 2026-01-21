@@ -1,8 +1,8 @@
 ---
-title: "Extracting gridded data within a buffer"
+title: "Extracting Gridded Data Within a Buffer"
 ---
 
-```{r}
+```{r code-library-tidyverse}
 # Load necessary libraries
 library(tidyverse)
 library(sf)
@@ -14,7 +14,7 @@ library(lwgeom) # For st_split function
 
 Download the coastline data for the entire world:
 
-```{r}
+```{r code-world-coastline-ne-download-scale-large}
 world_coastline <- ne_download(scale = "large", type = "coastline", category = "physical", returnclass = "sf")
 world_countries <- ne_download(scale = "medium", type = "countries", category = "cultural", returnclass = "sf")
 africa_countries <- world_countries %>%
@@ -30,38 +30,38 @@ Throughout the analysis we must keep track of the coordinate reference system (C
 
 We get it from the world_coastline object; let's check it...
 
-```{r}
+```{r code-st-crs-world-coastline}
 st_crs(world_coastline)
 ```
 
 Define the bounding box for Africa so we can work with only the coastline data for the continent and not the whole world. We then crop the coastline data to this bounding box. 
 
-```{r}
+```{r code-africa-bbox-st-bbox-c-xmin}
 africa_bbox <- st_bbox(c(xmin = -20, ymin = -35, xmax = 52, ymax = 38), crs = st_crs(world_coastline))
 africa_coastline <- st_crop(world_coastline, africa_bbox)
 ```
 
 Now we define the BCLME region and extract a portion of coastline within this bounding box. We will use this section of coastline around which to create a buffer within which the data will be extracted. First, define the spatial extent of the BCLME region:
 
-```{r}
+```{r code-bclme-bbox-st-bbox-c-xmin}
 bclme_bbox <- st_bbox(c(xmin = 7.91755, ymin = -36.61979, xmax = 19.788742, ymax = -5.811113), crs = st_crs(world_coastline))
 ```
 
 Crop the coastline data to the bounding box:
 
-```{r}
+```{r code-bclme-coastline-st-crop-africa-coastline-bclme-bbox}
 bclme_coastline <- st_crop(africa_coastline, bclme_bbox)
 ```
 
 Create a buffer of 50 nautical miles (1 nautical mile = 1852 meters) around the portion of the coastline within the BCLME region:
 
-```{r}
+```{r code-buffer-50nm-st-make-valid-st-union-st-buffer}
 buffer_50nm <- st_make_valid(st_union(st_buffer(bclme_coastline, dist = 50 * 1852)))
 ```
 
 We need to ensure the coastline extends beyond buffer. I do this by creating a new bounding box that's slightly larger than the BCLME bbox (by 3 degrees in each direction). This new 'extended' coastline we will insersect the buffer 'ribbon' at both ends, effectively splitting it lengthwise. The extended bounding is:
 
-```{r}
+```{r code-extended-bbox-st-bbox-c-xmin}
 extended_bbox <- st_bbox(c(xmin = 7.91755 - 3,
                            ymin = -36.61979 - 3,
                            xmax = 19.788742 + 3,
@@ -71,20 +71,20 @@ extended_bbox <- st_bbox(c(xmin = 7.91755 - 3,
 
 Now crop the coastline data to the outer extended bbox:
 
-```{r}
+```{r code-extended-coastline-st-crop-africa-coastline-extended-bbox}
 extended_coastline <- st_crop(africa_coastline, extended_bbox)
 ```
 
 Convert the outer coastline to a single LINESTRING object else it cannot be used to split the buffer:
 
-```{r}
+```{r code-extended-coastline-line-st-union-st-cast-extended-coastline}
 extended_coastline_line <- st_union(st_cast(extended_coastline, "LINESTRING"))
 extended_coastline_line <- st_make_valid(extended_coastline_line)
 ```
 
 Now, use the extended coastline to split the buffer into the inland and offshore portions and extract the two portions:
 
-```{r}
+```{r code-split-buffers-st-split-buffer-50nm-extended-coastline-line}
 split_buffers <- st_split(buffer_50nm, extended_coastline_line)
 split_buffers_sf <- st_collection_extract(split_buffers)
 
@@ -95,14 +95,14 @@ inland_buffer <- split_buffers_sf[2, ]
 
 Ensure buffers are in the original CRS:
 
-```{r}
+```{r code-offshore-buffer-st-transform-offshore-buffer-crs}
 offshore_buffer <- st_transform(offshore_buffer, crs = st_crs(world_coastline))
 inland_buffer <- st_transform(inland_buffer, crs = st_crs(world_coastline))
 ```
 
 Make some simulate data that we can subset using the buffers:
 
-```{r}
+```{r code-xmin}
 # Create simulated gridded data to test the buffer splitting
 # Define the bounding box for the region
 xmin <- 7.91755
@@ -129,7 +129,7 @@ grid_sf <- st_as_sf(grid, coords = c("lon", "lat"), crs = st_crs(world_coastline
 
 Extract the points within the inland and offshore buffers:
 
-```{r}
+```{r code-points-in-inland-buffer-st-intersects-grid-sf-inland-buffer}
 # Extract points within the inland buffer
 points_in_inland_buffer <- st_intersects(grid_sf, inland_buffer, sparse = FALSE)
 inland_data <- grid[apply(points_in_inland_buffer, 1, any), ]
@@ -145,7 +145,7 @@ print(paste("Number of points in offshore buffer:", nrow(offshore_data)))
 
 Plot the offshore and inland buffers over the coastlines and simulated data:
 
-```{r}
+```{r fig-ggplot}
 #| fig.height: 7.5
 #| fig.width: 7.5
 #| fig.align: center

@@ -1,6 +1,6 @@
 ---
 date: "2021-01-01"
-title: "9. Mapping With **ggplot2**"
+title: "9. Mapping with **ggplot2**"
 ---
 
 ![](../../images/CleanShot 2023-12-27 at 08.24.21.png){width=75%}
@@ -13,7 +13,7 @@ title: "9. Mapping With **ggplot2**"
 >
 > — Unknown
 
-```{r map-opts, echo=FALSE}
+```{r code-map-opts, echo=FALSE}
 knitr::opts_chunk$set(
   comment = "R>", 
   warning = FALSE, 
@@ -28,11 +28,11 @@ Most of the work that you will perform as environmental/biological scientists in
 
 ![Today's goal.](../../images/map_complete.png)
 
-# Using prepared data
+# Using Prepared Data
 
 Before you begin let us go ahead and load the packages you will need, as well as the several dataframes required to make the final product.
 
-```{r map-load}
+```{r code-map-load}
 # Load libraries
 library(tidyverse)
 library(ggpubr)
@@ -54,31 +54,31 @@ cols11 <- c("#004dcd", "#0068db", "#007ddb", "#008dcf", "#009bbc",
             "#00a7a9", "#1bb298", "#6cba8f", "#9ac290", "#bec99a")
 ```
 
-# A new concept?
+# A New Concept?
 
 The idea of creating a map in R may be daunting to some, but remember that a basic map is nothing more than a simple figure with an *x*, *y* axis. We tend to think of maps as different from other scientific figures and whereas in reality they are created the exact same way. Let us compare a dot plot of the chicken weight data against a dot plot of the coastline of South Africa.
 
 Chicken dots:
 
-```{r map-point-1, fig.cap="Dot plot of chicken weight data."}
+```{r fig-map-point-1, fig.cap="Dot plot of chicken weight data."}
 ggplot(data = ChickWeight, aes(x = Time, y = weight)) +
   geom_point()
 ```
 
 South African coast dots:
 
-```{r map-point-2, fig.cap="Dot plot off South African coast."}
+```{r fig-map-point-2, fig.cap="Dot plot off South African coast."}
 ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   geom_point()
 ```
 
 Does that look familiar? Notice how the *x* and *y* axis tick labels look the same as any map you would see in an atlas. This is because they are. But this is not a great way to create a map. Rather it is better to represent the land mass with a polygon. With **ggplot2** this is a simple task.
 
-# Land mask
+# Land Mask
 
 Now that you have seen that a map is nothing more than a bunch of dots and shapes on specific points along the *x* and *y* axes you are going to look at the steps you would take to build a more complex map. Do not worry if this seems daunting at first. You are going to take this step by step and ensure that each step is made clear along the way. The first step is to create a polygon. Note that you create an aesthetic argument inside of `geom_polygon()` and not `ggplot()` because some of the steps you will take later on will not accept the `group` aesthetic. Remember, whatever aesthetic arguments we put inside of `ggplot()` will be inserted into all of our other `geom_...()` lines of code.
 
-```{r map-polygon, fig.cap="The map of South Africa. Now with province borders!"}
+```{r fig-map-polygon, fig.cap="The map of South Africa. Now with province borders!"}
 ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   geom_polygon(colour = "black", fill = "grey70", aes(group = group)) # The land mask
 ```
@@ -87,28 +87,28 @@ ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
 
 The first thing you will add is the province borders as seen in Figure \@ref(fig:map-goal). Notice how you only add one more line of code to do this.
 
-```{r map-province, fig.cap="The map of South Africa. Now with province borders!"}
+```{r fig-map-province, fig.cap="The map of South Africa. Now with province borders!"}
 ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   geom_polygon(colour = "black", fill = "grey70", aes(group = group)) +
   geom_path(data = sa_provinces, aes(group = group)) # The province borders
 ```
 
-# Force lon/lat extent
+# Force lon/lat Extent
 
 Unfortunately when you added our borders it increased the plotting area of our map past what you would like. To correct that you will need to explicitly state the borders you want.
 
-```{r map-expand, fig.cap="The map, but with the extra bits snipped off."}
+```{r fig-map-expand, fig.cap="The map, but with the extra bits snipped off."}
 ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   geom_polygon(colour = "black", fill = "grey70", aes(group = group)) +
   geom_path(data = sa_provinces, aes(group = group)) + 
   coord_equal(xlim = c(15, 34), ylim = c(-36, -26), expand = 0) # Force lon/lat extent
 ```
 
-# Ocean temperature
+# Ocean Temperature
 
 This is starting to look pretty fancy, but it would be nicer if there was some colour involved. So let us add the ocean temperature. Again, this will only require one more line of code. Starting to see a pattern? But what is different this time, why?
 
-```{r map-MUR, fig.cap="Ocean temperature (°C) visualised as an ice cream spill."}
+```{r fig-map-mur, fig.cap="Ocean temperature (°C) visualised as an ice cream spill."}
 ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   geom_raster(data = sst, aes(fill = bins)) + # The ocean temperatures
   geom_polygon(colour = "black", fill = "grey70", aes(group = group)) +
@@ -118,7 +118,7 @@ ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
 
 That looks... odd. Why do the colours look like someone melted a big bucket of ice cream in the ocean? This is because the colours you see in this figure are the default colours for discrete values in **ggplot2**. If you want to change them we may do so easily by adding yet one more line of code.
 
-```{r map-colour, fig.cap="Ocean temperatures (°C) around South Africa."}
+```{r fig-map-colour, fig.cap="Ocean temperatures (°C) around South Africa."}
 ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   geom_raster(data = sst, aes(fill = bins)) +
   geom_polygon(colour = "black", fill = "grey70", aes(group = group)) +
@@ -129,7 +129,7 @@ ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
 
 There is a colour palette that would make Jacques Cousteau swoon. When you set the colour palette for a figure in **ggplot2** you must use that colour palette for all other instances of those types of values, too. What this means is that any other discrete values that will be filled in, like the ocean colour above, must use the same colour palette (there are some technical exceptions to this rule that you will not cover in this course). You normally want **ggplot2** to use consistent colour palettes anyway, but it is important to note that this constraint exists. Let us see what I mean. Next you will add the coastal pixels to our figure with one more line of code. You will not change anything else. Note how **ggplot2** changes the colour of the coastal pixels to match the ocean colour automatically.
 
-```{r map-raster, fig.cap="Map of South Africa showing *in situ* temeperatures (°C) as pixels along the coast."}
+```{r fig-map-raster, fig.cap="Map of South Africa showing *in situ* temeperatures (°C) as pixels along the coast."}
 ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   geom_raster(data = sst, aes(fill = bins)) +
   geom_polygon(colour = "black", fill = "grey70", aes(group = group)) +
@@ -140,11 +140,11 @@ ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   coord_equal(xlim = c(15, 34), ylim = c(-36, -26), expand = 0)
 ```
 
-# Final touches
+# Final Touches
 
 You used `geom_tile()` instead of `geom_rast()` to add the coastal pixels above so that you could add those little white boxes around them. This figure is looking pretty great now. And it only took a few rows of code to put it all together! The last step is to add several more lines of code that will control for all of the little things you want to change about the appearance of the figure. Each little thing that is changed below is annotated for your convenience.
 
-```{r map-final, fig.cap="The cleaned up map of South Africa. Resplendent with coastal and ocean temperatures (°C)."}
+```{r fig-map-final, fig.cap="The cleaned up map of South Africa. Resplendent with coastal and ocean temperatures (°C)."}
 final_map <- ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   geom_raster(data = sst, aes(fill = bins)) +
   geom_polygon(colour = "black", fill = "grey70", aes(group = group)) +
@@ -167,7 +167,7 @@ final_map
 
 That is a very clean looking map so go ahead and save it on your local disk.
 
-```{r map-save, eval=FALSE}
+```{r code-map-save, eval=FALSE}
 ggsave(plot = final_map, "figures/map_complete.pdf", height = 6, width = 9)
 ```
 

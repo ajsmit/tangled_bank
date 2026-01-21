@@ -1,7 +1,7 @@
 ---
 author: "AJ Smit"
-title: "Regridding gridded data"
-subtitle: "Aligning and matching spatial grids"
+title: "Regridding Gridded Data"
+subtitle: "Aligning and Matching Spatial Grids"
 date: "`r Sys.Date()`"
 execute:
   eval: false
@@ -17,7 +17,7 @@ format:
     page-layout: full
 ---
 
-```{r}
+```{r code-library-tidyverse-a-staple}
 library(tidyverse) # A staple of modern data processing in R
 library(tidync) # For easily dealing with NetCDF data
 library(data.table)
@@ -57,7 +57,7 @@ library(doParallel) # For parallel processing
 
 First, I define the Benguela region and time extent of interest:
 
-```{r}
+```{r code-lats-c}
 lats <- c(-37.5, -20)
 lons <- c(15, 20)
 time <- c("2021-01-01", "2021-12-31")
@@ -65,22 +65,22 @@ time <- c("2021-01-01", "2021-12-31")
 
 Then I find some data.
 
-## VIIRS chlorophyll-*a* data
+## VIIRS chlorophyll-*a* Data
 
-```{r}
+```{r code-which-chl-ed-search-query-chlorophyll}
 which_chl <- ed_search(query = "Chlorophyll-a", which = "griddap")
 ```
 
 I select the VIIRS chl-*a* data. These data start in 2012 and it has a spatial resolution of ~4km lat/lon. The data, "VIIRSN, Suomi-NPP, Level-3 SMI, NASA, Global, 4km, Chlorophyll a, OCI Algorithm, R2018, 2012-present, Daily," were retrieved from [here](https://upwell.pfeg.noaa.gov/erddap/info/erdVH2018chla1day/index.html).
 
-```{r}
+```{r code-browse-erdvh2018chla1day}
 #| eval: false
 browse("erdVH2018chla1day")
 ```
 
 And now I download it for the region and time period specified earlier:
 
-```{r}
+```{r code-chl-griddap-datasetx-erdvh2018chla1day}
 #| eval: false
 chl <- griddap(datasetx = "erdVH2018chla1day", 
                url = "https://upwell.pfeg.noaa.gov/erddap/", 
@@ -92,18 +92,18 @@ chl <- griddap(datasetx = "erdVH2018chla1day",
   as.data.table()
 ```
 
-```{r}
+```{r code-save-chl-file-volumes}
 #| eval: false
 #| echo: false
 save(chl, file = "/Volumes/OceanData/VIIRS/VIIRS_chl.RData")
 ```
 
-```{r}
+```{r code-load-volumes-oceandata-viirs}
 #| echo: false
 load("/Volumes/OceanData/VIIRS/VIIRS_chl.RData")
 ```
 
-## ERA5 reanalysis wind data
+## ERA5 Reanalysis Wind Data
 
 I use the "ERA5 hourly data on single levels from 1940 to present" data, which come in at an hourly resolution for the whole world, starting in 1940. The spatial resolution is an unimpressive 0.25° × 0.25° lat/lon, far coarser than the chl-*a* data.
 
@@ -163,7 +163,7 @@ c.retrieve(
 
 The end product of the python download is a 52.3 Mb netCDF file, which I will now load and process to produce the daily temperature values to match the daily resolution of the VIIRS chl-*a* data:
 
-```{r}
+```{r code-origin-as-posixct-tz}
 # time units: hours since 1900-01-01 00:00:00.0
 origin <- as.POSIXct("1900-01-01 00:00:00", tz = "UTC")
 
@@ -185,7 +185,7 @@ Note that I coerce the data to a **date.table** object since the regridding step
 
 Let's check out their respective spatial resolutions:
 
-```{r}
+```{r code-head-unique-chl-longitude}
 head(unique(chl$longitude))
 sort(unique(era5$longitude))
 
@@ -199,14 +199,14 @@ There is a huge difference. It is seldom a good idea to go from a low resolution
 
 Define a new output grid. This will be the coarsest resolution one from ERA5:
 
-```{r}
+```{r code-lon-out-unique-era5}
 lon.out <- unique(era5$longitude)
 lat.out <- sort(unique(era5$latitude))
 ```
 
 Using the **metR** package and its `Interpolate()` function, interpolate the data to the new coarser resolution grid. I show two approaches: i) a method shown in the function's help file that uses **data.table**, and ii) a **dplyr** (tidyverse) method using the new `reframe()` function. What `reframe()` does when used within a **dplyr** data pipe is reveal the column names, which can then be given to the function of interest in the usual way; it then returns a dataframe or tibble of arbitrary length. `reframe()` also accommodates the grouping structure within the function itself through the use of the `.by = ` argument (i.e. no need for an *a priori* `group_by()`), making the syntax not dissimilar to that of **data.table**'s. A few years ago the **data.table** approach would have been faster, but it seems the new versions of **dplyr** have undergone some significant speed improvements. See the results of the `system.time()` function:
 
-```{r}
+```{r code-library-metr}
 library(metR)
 
 # using the data.table method
@@ -231,7 +231,7 @@ Note that daily chl-*a* data are very gappy and hence there are many `NA`s in th
 
 Let's verify that the output grids are now the same:
 
-```{r}
+```{r code-head-unique-interp-chl-longitude}
 head(unique(interp_chl$longitude))
 head(unique(era5$longitude))
 
@@ -245,7 +245,7 @@ These approaches seem to work... 'work' as in they don't fail. I have not tested
 
 Another commonly used function for interpolation lives in the **akima** package. The advantage of this package is that it can do spline interpolation in addition to linear interpolation (`Interpolate()` only does linear interpolation). The disadvantage is that is really does not like `NA`s. This is how it would work:
 
-```{r}
+```{r code-library-akima}
 #| eval: false
 # Assuming 'chl' is your data.frame and 'time', 'longitude', 'latitude' and 'chla' are your columns
 library(akima)
@@ -263,7 +263,7 @@ R spatial packages are experiencing a rapid evolution and the learning curve mig
 
 Make **stars** objects from the gridded data. Let's start with the chl-*a* data first:
 
-```{r}
+```{r code-library-stars}
 library(stars)
 library(sf)
 
@@ -278,7 +278,7 @@ chl_st <- chl |>
 
 Here are a few interrogation methods to see info about the data's spatial extent:
 
-```{r}
+```{r code-print-chl-st}
 print(chl_st)
 dim(chl_st)
 st_dimensions(chl_st)
@@ -287,14 +287,14 @@ st_bbox(chl_st)
 
 We can also plot the **stars** data directly; here I plot the data on the 34th day in the time series:
 
-```{r}
+```{r fig-plot-chl-st}
 # visualise a time step (day 34):
 plot(chl_st[, , , 34])
 ```
 
 Next we also need to get the ERA5 data into a **stars** format, and we print out some spatial info and make a basic map:
 
-```{r}
+```{r fig-era5-st-era5}
 era5_st <- era5 |>
   st_as_stars(dims = c("longitude", "latitude", "time"),
               raster = c("u10", "v10")) |>
@@ -308,13 +308,13 @@ plot(era5_st["u10", , , 34])
 
 All of this was to bring us to a point where we can do the actual regridding. This is done with the same `st_warp()` function. Previously it was used to make the data conform to a specific coordinate reference system (CRS) but here I use it to perform the regridding:
 
-```{r}
+```{r code-chl-st-regrid-st-warp-src-chl-st}
 chl_st_regrid <- st_warp(src = chl_st, dest = era5_st)
 ```
 
 Let us see if it worked as advertised:
 
-```{r}
+```{r fig-print-chl-st-regrid}
 print(chl_st_regrid)
 st_bbox(chl_st_regrid)
 
@@ -323,7 +323,7 @@ plot(chl_st_regrid[, , , 34])
 
 Convert the stars object back to a tibble if necessary:
 
-```{r}
+```{r code-chl-st-regrid-df-as-tibble-chl-st-regrid-xy}
 chl_st_regrid_df <- as_tibble(chl_st_regrid, xy = TRUE)
 chl_st_regrid_df
 ```

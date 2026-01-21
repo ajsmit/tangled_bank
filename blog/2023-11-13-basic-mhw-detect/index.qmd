@@ -1,6 +1,6 @@
 ---
 title: "Basic Detection and Visualisation of Marine Heatwaves"
-subtitle: "Marine heatwaves and cold spells as per Hobday et al (2016) and Schlegel et al (2017)."
+subtitle: "Marine Heatwaves and Cold Spells as per Hobday Et Al (2016) and Schlegel Et Al (2017)."
 description: "This vignette demonstrates the basic use of the heatwaveR package for the detection and visualisation of marine heatwaves."
 author:
   - name: Robert Schlegel
@@ -26,7 +26,7 @@ format:
     page-layout: full
 ---
 
-```{r global_options, include = FALSE}
+```{r code-global-options, include = FALSE}
 knitr::opts_chunk$set(fig.width = 8, fig.height = 3, fig.align = "center",
                       echo = TRUE, warning = FALSE, message = FALSE,
                       eval = TRUE, tidy = FALSE)
@@ -40,7 +40,7 @@ In the [previous post](../2023-11-23-heatwaver/index.qmd), we demonstrated how t
 
 The `detect_event()` function is the core of this package, and it expects to be fed the output of the second core function, `ts2clm()`. By default, `ts2clm()` wants to receive a two-column dataframe with one column labelled `t` containing all of the date values, and a second column `temp` containing all of the temperature values. Please note that the date format it expects is "YYYY-MM-DD". For example, please see the top five rows of one of the datasets included with the __`heatwaveR`__ package:
 
-```{r file-structure}
+```{r code-file-structure}
 head(heatwaveR::sst_WA)
 ```
 
@@ -48,11 +48,11 @@ It is possible to use different column names other than `t` and `temp` with whic
 
 Loading ones data from a `.csv` file or other text based format is the easiest approach for the calculation of events, assuming one is not working with gridded data (e.g. NetCDF). Please see [this vignette](https://robwschlegel.github.io/heatwaveR/articles/gridded_event_detection.html) for a detailed walkthrough on using the functions in this package with gridded data.
 
-## Calculating marine heatwaves (MHWs)
+## Calculating Marine Heatwaves (MHWs)
 
 Here are the `ts2clm()` and `detect_event()` function applied to the Western Australia test data included with this package (`sst_WA`), which are also discussed by Hobday et al. (2016):
 
-```{r detect-example1}
+```{r code-detect-example1}
 library(tidyverse)
 library(ggplot2)
 library(heatwaveR)
@@ -69,13 +69,13 @@ mhw$event |>
   head(5)
 ```
 
-## Visualising marine heatwaves (MHWs)
+## Visualising Marine Heatwaves (MHWs)
 
 ### Default MHW visuals
 
 One may use `event_line()` and `lolli_plot()` directly on the output of `detect_event()` in order to visualise MHWs. Here are the functions being used to visualise the massive Western Australian heatwave of 2011:
 
-```{r fig-example1, echo = TRUE, eval = FALSE}
+```{r code-example1, echo = TRUE, eval = FALSE}
 event_line(mhw, spread = 180, metric = "intensity_max", 
            start_date = "1982-01-01", end_date = "2014-12-31")
 
@@ -137,7 +137,7 @@ ggplot(data = mhw2, aes(x = t)) +
 
 It is also worth pointing out that when we use `geom_flame()` directly like this, but we don't want to highlight events greater less than our standard five day length, allowing for a two day gap, we want to use the arguments `n` and `n_gap` respectively.
 
-```{r flame_gaps}
+```{r fig-flame-gaps}
 mhw3 <- mhw$climatology |> 
   slice(850:950)
 
@@ -163,11 +163,11 @@ ggplot(mhw$event, aes(x = date_peak, y = intensity_max)) +
 
 Because these are simple **`ggplot2`** geoms possibilities are nearly infinite.
 
-## Calculating marine cold-spells (MCSs)
+## Calculating Marine cold-spells (MCSs)
 
 The calculation and visualisation of cold-spells is also provided for within this package. The data to be fed into the functions is the same as for MHWs. The main difference is that one is now calculating the 10th percentile threshold, rather than the 90th percentile threshold. Here are the top five cold-spells (cumulative intensity) detected in the OISST data for Western Australia:
 
-```{r detect-example2}
+```{r code-detect-example2}
 # First calculate the cold-spells
 ts_10th <- ts2clm(sst_WA, climatologyPeriod = c("1982-01-01", "2011-12-31"), pctile = 10)
 mcs <- detect_event(ts_10th, coldSpells = TRUE)
@@ -181,13 +181,13 @@ mcs$event |>
   head(5)
 ```
 
-## Visualising marine cold-spells (MCSs)
+## Visualising Marine cold-spells (MCSs)
 
 ### Default MCS visuals
 
 The default plots showing cold-spells look like this:
 
-```{r fig-example5, echo = TRUE, eval = FALSE}
+```{r code-example5, echo = TRUE, eval = FALSE}
 event_line(mcs, spread = 200, metric = "intensity_cumulative",
            start_date = "1982-01-01", end_date = "2014-12-31")
 
@@ -246,13 +246,13 @@ ggplot(mcs$event, aes(x = date_start, y = intensity_cumulative)) +
 <!-- ![](vignettes/fig-example7-2.png) -->
 
 
-## Interactive visuals
+## Interactive Visuals
 
 As of __`heatwaveR`__ v0.3.6.9002, `geom_flame()` was also able to be used with __`plotly`__ to allow for interactive MHW visuals. Unfortunately around December of 2020 the __`plotly`__ packaged was orphaned and CRAN decided it didn't want packages to include it as an imported package. Therefore as of v0.4.4.9005 __`heatwaveR`__ no longer has built in support for using `geom_flame()` with __`plotly`__. It is however still possible with a bit of work and a simple working example is given below. It is not currently possible to use `geom_lolli()` with __`plotly`__. Rather one is advised to just create the dots and segments separately with `geom_point()` and `geom_segment()` respectively as these are already recognised by __`plotly`__.
 
 Note that the following code chunk is not run as it makes this vignette a bit too large.
 
-```{r plotly-example, eval=FALSE}
+```{r fn-plotly-example, eval=FALSE}
 # Must load plotly library first
 library(plotly)
 

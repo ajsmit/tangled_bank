@@ -1,6 +1,6 @@
 ---
 date: "2021-01-01"
-title: "11. Mapping With Natural Earth"
+title: "11. Mapping with Natural Earth"
 ---
 
 ![](../../images/thesaurus.jpg){width=75%}
@@ -13,12 +13,12 @@ title: "11. Mapping With Natural Earth"
 >
 > — Richard Dawkins
 
-# Web resources about R for Spatial Applications
+# Web Resources About R for Spatial Applications
 
 Now that we are upgrading to better, more powerful maps, you will need to refer to industrial-strength documentation for detailed help. Please refer to links below for information about the vast array of functions available for spatial computations, graphics.
 
 ::: {.callout-note appearance="simple"}
-## Web resources about spatial methods in R
+## Web Resources About Spatial Methods in R
 | AUTHOR                      | TITLE                                                                                                             |
 |-----------------------------|-------------------------------------------------------------------------------------------------------------------|
 | **Spatial R**               |                                                                                                                   |
@@ -32,7 +32,7 @@ Now that we are upgrading to better, more powerful maps, you will need to refer 
 
 
 
-```{r ggmap-opts, echo=FALSE}
+```{r code-ggmap-opts, echo=FALSE}
 #| eval: true
 knitr::opts_chunk$set(
   comment = "R>", 
@@ -41,7 +41,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# The **sf** package
+# The **Sf** Package
 
 The [**sf**](https://r-spatial.github.io/sf/) package in R is a package for handling and processing spatial data. In recent years it has become the *de facto* package to use for many mapping application, replacing older packages such as **sp**, including the C libraries GEOS 3 and GDAL, and PROJ. It provides classes for storing, manipulating simple feature geometries and functions for working with spatial data. 'Simple features' refer to a standardised way of encoding vector data, including points, lines, and polygons, that are widely used in geographic information systems (GIS).
 
@@ -61,9 +61,9 @@ One of the key benefits of Natural Earth is its public domain status, which mean
 
 In addition to its public domain status, Natural Earth is also regularly updated with new data to ensure that the maps remain accurate, up-to-date. This makes it a valuable resource for anyone who needs reliable and up-to-date geographic data.
 
-# Install packages and set things up
+# Install Packages and Set Things Up
 
-```{r}
+```{r code-library-tidyverse}
 #| eval: true
 #| message: false
 #| warning: false
@@ -80,7 +80,7 @@ sf_use_s2(FALSE)
 
 First, I define the extent of the map region:
 
-```{r}
+```{r code-xmin-ymin-xmax-ymax}
 #| eval: true
 # the full map extent:
 xmin <- 12; ymin <- -36.5; xmax <- 40.5; ymax <- -10
@@ -95,9 +95,9 @@ bbox <- st_bbox(c(xmin = xmin, ymin = ymin,
 xlim_zoom <- c(17.8, 19); ylim_zoom <- c(-34.5, -33.2)
 ```
 
-# Load the data and make maps
+# Load the Data and Make Maps
 
-```{r}
+```{r code-safrica-countries-ne-countries-returnclass-sf}
 #| eval: true
 # load the countries:
 safrica_countries <- ne_countries(returnclass = 'sf',
@@ -110,7 +110,7 @@ safrica_countries <- ne_countries(returnclass = 'sf',
 
 Let us see what is inside the `safrica_countries` object:
 
-```{r}
+```{r code-class-safrica-countries}
 #| eval: true
 class(safrica_countries)
 # safrica_countries
@@ -119,27 +119,27 @@ class(safrica_countries)
 As you can see, it is a `data.frame` and `tbl` (tibble), amongst other classes, and so you can apply many of the **tidyverse** functions to it, including `select()`, `filter()`, `summarise()` and so on. The `class()` argument additionally indicates that it has some *simple features* properties, so some functions provided by the **sf** package also becomes available to use. You can see some of these functions in action, below. 
 
 ::: {.callout-note appearance="simple"}
-## The `sf` class
+## The `sf` Class
 `sf` indicates that the object is of class *simple features*. In `sf` language, what would be called columns (variables) in normal **tidyverse** speak becomes known as attributes---these are the properties of the map *features*, with the features being the types of geometrical representations of geographical objects.
 :::
 
 Let us plot the entire `safrica_countries` object to see all the attributes of all of the features. This kind of figure a called a choropleth map:
 
-```{r}
+```{r fig-plot-safrica-countries}
 #| eval: true
 plot(safrica_countries)
 ```
 
 You probably do not want to plot all of them. Let us select one:
 
-```{r}
+```{r fig-plot-safrica-countries-sovereignt}
 #| eval: true
 plot(safrica_countries["sovereignt"])
 ```
 
 You might achieve the same in a more familiar way:
 
-```{r}
+```{r fig-safrica-countries}
 #| eval: true
 safrica_countries |> 
   select(sovereignt) |> 
@@ -148,7 +148,7 @@ safrica_countries |>
 
 Or you may want to plot the estimate of the population size, which is contained in the attribute `pop_est`:
 
-```{r}
+```{r fig-safrica-countries-2}
 #| eval: true
 safrica_countries |> 
   select(pop_est) |> 
@@ -157,7 +157,7 @@ safrica_countries |>
 
 The names of the countries are in the rows down the `safrica_countries` object, and so they become accessible with `filter()`. Let us only plot some attribute for South Africa:
 
-```{r}
+```{r fig-safrica-countries-3}
 #| eval: true
 safrica_countries |> 
   dplyr::filter(sovereignt == "South Africa") |> 
@@ -167,7 +167,7 @@ safrica_countries |>
 
 You can continue to add additional operations to create a new map:
 
-```{r}
+```{r fig-safrica-countries-new-safrica-countries}
 #| eval: true
 safrica_countries_new <- safrica_countries |> 
   group_by(continent) |> 
@@ -180,7 +180,7 @@ plot(safrica_countries_new)
 
 So far you have relied on the base R plot function made for the simple features. You can also plot the map in ggplot using a more familiar and more customisable interface:
 
-```{r}
+```{r fig-ggplot}
 #| eval: true
 ggplot() +
   geom_sf(data = safrica_countries,
@@ -191,7 +191,7 @@ ggplot() +
 
 Now you can layer another feature:
 
-```{r}
+```{r fig-buffer-safrica-countries-new}
 #| eval: true
 buffer <- safrica_countries_new %>%
   st_buffer(0.4)

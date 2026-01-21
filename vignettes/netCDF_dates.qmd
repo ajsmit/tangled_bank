@@ -1,6 +1,6 @@
 ---
 author: "AJ Smit"
-title: "Dates From netCDF Files: Two Approaches"
+title: "Dates from netCDF Files: Two Approaches"
 execute:
   eval: false
 date: "`r Sys.Date()`"
@@ -24,9 +24,9 @@ Working with dates in netCDF files can be tricky. Often netCDF files are distrib
 
 Let as look at each approach. 
 
-## Parse dates encoded within the filename
+## Parse Dates Encoded Within the Filename
 
-```{r}
+```{r code-library-tidyverse}
 # load the libraries
 library(tidyverse)
 library(lubridate)
@@ -39,13 +39,13 @@ SST_files <- dir(path = ncDir, full.names = TRUE)
 
 The number of netCDF files (one per day) is:
 
-```{r}
+```{r code-length-sst-files}
 length(SST_files)
 ```
 
 The full path and filenames are:
 
-```{r}
+```{r code-sst-files-showing-the-first}
 SST_files[1:5] # showing the first 5 files
 ```
 
@@ -53,13 +53,13 @@ Looking at the filenames, we see the first eight digits indicate the date in the
 
 The first file in the time series indicates the time series starts on `19810901`, or `1981-09-01`. The last date is `2019-12-31`:
 
-```{r}
+```{r code-basename-sst-files-length-sst-files}
 basename(SST_files[length(SST_files)]) # I removed the file path
 ```
 
 Now that we know where to find the dates in the filename, let us create a date from scratch.
 
-```{r}
+```{r code-fname-basename-sst-files-the}
 fName <- basename(SST_files[1]) # the filename without the file path
 fName
 
@@ -70,11 +70,11 @@ date <- as.Date(fDate, format = "%Y%m%d")
 date
 ```
 
-## Extract date information from the netCDF coordinate variable
+## Extract Date Information from the netCDF Coordinate Variable
 
 To use this approach, we must first open the netCDF file with one of the R netCDF libraries. Here I use **ncdf4**. Then we get the time coordinate variable's attribute and the content of the variable:
 
-```{r}
+```{r code-nc-nc-open-sst-files}
 # open one of the first file in the listing
 nc <- nc_open(SST_files[1])
 
@@ -89,7 +89,7 @@ time
 
 This is a strange value for a date! This is because each day is counted as the number of seconds from a predefined starting time, in this case, exactly midnight on `1981-01-01`. We convert this to something useful like this:
 
-```{r}
+```{r code-date-as-posixct-time}
 date <- as.POSIXct(time, origin = "1981-01-01 00:00:00")
 date
 ```
@@ -98,7 +98,7 @@ Note above... Why not exaclty midnight, `1981-09-01 00:00:00`? Instead, we have 
 
 To get rid of the `HH:MM:SS` we convert to a normal date class (not POSIXct).
 
-```{r}
+```{r code-date-as-date-date}
 date <- as.Date(date)
 date
 ```

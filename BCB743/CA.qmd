@@ -6,7 +6,7 @@ title: "Correspondence Analysis (CA)"
 <!--- # Topic 9: Correspondence Analysis (CA) --->
 
 ::: callout-tip
-## **Material required for this chapter**
+## **Material Required for This Chapter**
 
 | Type           | Name                                     | Link                                                                              |
 |----------------|------------------------------------------|-----------------------------------------------------------------------------------|
@@ -16,7 +16,7 @@ title: "Correspondence Analysis (CA)"
 :::
 
 ::: {.callout-important appearance="simple"}
-## Tasks to complete in this Chapter
+## Tasks to Complete in This Chapter
 
 * [Task E 1--4](tasks/Task_E.qmd)
 :::
@@ -41,7 +41,7 @@ As with all ordination techniques, interpreting CA results should be done with c
 
 ## Set-up the Analysis Environment
 
-```{r}
+```{r code-library-tidyverse}
 library(tidyverse)
 library(vegan)
 library(viridis)
@@ -53,7 +53,7 @@ library(viridis)
 
 In the PCA chapter we analysed the environmental data. This time we work with the species data.
 
-```{r}
+```{r code-load-here-here-data}
 load(here::here("data", "NEwR-2ed_code_data", "NEwR2-Data", "Doubs.RData"))
 head(spe, 8)
 ```
@@ -62,66 +62,65 @@ head(spe, 8)
 
 The **vegan** function `cca()` can be used for CA and Constrained Correspondence Analysis (CCA). When we do not specify constraints, as we do here, we will do a simple CA:
 
-```{r error=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+```{r code-spe-ca-cca-spe, error=TRUE, message=FALSE, warning=FALSE, include=TRUE}
 spe_ca <- cca(spe)
 ```
 
 Okay, so there is a problem. The error message says that at least one of the rows sums to 0. Which one?
 
-```{r}
+```{r code-apply-spe-sum}
 apply(spe, 1, sum)
 ```
 
 We see that the offending row is row 8, so we can omit it. This function will omit any row that sums to zero (or less):
 
-```{r}
+```{r code-spe-spe-rowsums-spe}
 spe <- spe[rowSums(spe) > 0, ]
 head(spe, 8)
 ```
 
 Now we are ready for the CA:
 
-```{r}
+```{r code-spe-ca-cca-spe-2}
 spe_ca <- cca(spe)
 spe_ca
 ```
 
 The more verbose `summary()` output:
 
-```{r}
+```{r code-summary-spe-ca}
 summary(spe_ca)
 ```
 
 The output looks similar to that of a PCA. The important things to note are the **inertia** (unconstrained and total inertia are the same), the **Eigenvalues for the unconstrained axes**, the **Species scores,**, and the **Site scores**. Their interpretation is the same as before, but we can reiterate. Let us calculate the total inertia:
 
-```{r}
+```{r code-round-sum-spe-ca-ca}
 round(sum(spe_ca$CA$eig), 5)
 ```
 
 The inertia for the first axis (CA1) is:
 
-```{r}
+```{r code-round-spe-ca-ca-eig}
 round(spe_ca$CA$eig[1], 5)
 ```
 
 The inertia of CA1 *and* CA2 is:
 
-```{r}
+```{r code-round-sum-spe-ca-ca-2}
 round(sum(spe_ca$CA$eig[1:2]), 5)
 ```
 
 The fraction of the variance explained by CA1 and CA2 is:
 
-```{r}
+```{r code-round-sum-spe-ca-ca-3}
 round(sum(spe_ca$CA$eig[1:2]) / sum(spe_ca$CA$eig) * 100, 2) # result in %
 ```
 
 Above, the value is the same one as in **Cumulative Proportion** in the `summary(spe_ca)` output under the CA2 column.
 
-```{r fig.height=4, fig.width=6}
+```{r fig-ca-screeplot, fig.height=4, fig.width=6}
 #| fig.align: center
 #| fig.cap: "Scree plot of the Doubs River environmental data PCA."
-#| label: fig-ca-screeplot
 
 # make a scree plot using the vegan function:
 screeplot(spe_ca, bstick = TRUE, type = "lines")
@@ -139,12 +138,11 @@ Please see *Numerical Ecology with R* (pp. 133 to 140). There you will find expl
 
 The biplots for the above ordination are given in @fig-ca-biplots.
 
-```{r}
+```{r fig-ca-biplots}
 #| fig-width: 10
 #| fig-height: 5.625 
 #| fig.align: center
 #| fig.cap: "CA ordination plot of the Doubs River species data showing site scaling (left) and species scaling (right)."
-#| label: fig-ca-biplots
 
 opar <- par(no.readonly = TRUE)
 par(mfrow = c(1, 2))
@@ -161,12 +159,11 @@ Below I provide biplots with site and species scores for four selected species (
 
 Additionally, I used the `envfit()` function to project biplot arrows for the continuous environmental variables into the ordination space. Each arrow points in the direction of the maximum increase of the variable. The length of the arrow is proportional to the correlation between the variable and the ordination axes. The significance of the correlation is tested by permutation, with significant vectors shown in red. The environmental variables are the same as those used in the PCA.
 
-```{r}
+```{r fig-ca-ordisurf2}
 #| fig-width: 10
 #| fig-height: 10.25 
 #| fig.align: center
 #| fig.cap: "CA ordination plots with species response surfaces of the Doubs River species data emphasising four species of fish: A) Satr, B) Scer, C) Teso, and D) Cogo. D) additionally has the environmental vectors projected on the plot, with the significant vectors shown in red."
-#| label: fig-ca-ordisurf2
 
 palette(viridis(8))
 opar <- par(no.readonly = TRUE)
