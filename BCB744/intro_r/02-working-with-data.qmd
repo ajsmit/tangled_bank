@@ -1,6 +1,6 @@
 ---
 date: "2021-01-01"
-title: "3. Working with Data & Code"
+title: "2. Working with Data & Code"
 ---
 
 ![](../../images/PhD_comics2.PNG){width=100%}
@@ -27,17 +27,146 @@ In this Chapter we will cover:
 
 # Introduction
 
-In today's rapidly evolving scientific fields, understanding the basic principles of coding and data handling has become indispensable. As the complexity and volume of data continue to grow, traditional manual data analysis methods are increasingly insufficient to handle the demands of modern research. By acquiring coding and data handling skills, you will unlock the full potential of computational tools and techniques, allowing you to analyse complex datasets, model integrated systems, and uncover hidden patterns that may not be apparent through conventional methods. Moreover, proficiency in coding and data handling will empower you to collaborate effectively with multidisciplinary teams, draw on data from various sources in different formats, bridge the gap between theoretical knowledge and practical applications, and contribute to the advancement of scientific knowledge in a transparent, meaningful, and efficient manner.
+In today's rapidly evolving scientific fields, understanding the basic principles of coding (also called scripting or programming) and data handling has become indispensable. The complexity and volume of data continue to grow, and traditional manual data analysis methods are no longer sufficient to deal with the demands of research as practised today. Coding and data manipulation skills will unlock the potential of your computer and allow you to analyse datasets, fit models, and reveal hidden patterns that may not be apparent through conventional methods. Proficiency in coding and data handling will help you to collaborate effectively with multidisciplinary teams (as is increasingly the case today), access data from various data sources in different formats, cross the gap between theory and practical applications, and contribute to the advancement of scientific knowledge in a transparent and efficient way.
 
-A useful way to understand the material in this chapter is to recognise that most failures in data analysis do not arise from advanced statistical methods, but from mismatches at the interface between how data are stored, how software interprets those representations, and how we interact with both. File formats encode assumptions, software enforces expectations, and analysts bring good and bad habits into that system. The topics that follow are organised around this view. Each section addresses a different point at which data can be misrepresented, misunderstood, or clarified, and the aim throughout is to make those points visible.
+A useful way to understand the material in this chapter is to recognise that most failures in data analysis do not arise from advanced statistical methods, but from mismatches at the interface between how and where data are stored, how software interprets those representations, and how we interact with both. File systems organise data, file formats encode assumptions, software enforces expectations, and you, the budding scientist, bring good and bad habits into that system. 
 
-Throughout this chapter, the discussion, there are a few underlying assumptions which organise the practical guidance that follows.
+Each section in this chapter addresses a different point at which data can be misrepresented, misunderstood, or clarified, and the aim throughout is to make those points visible.
+
+Throughout this discussion there are a few underlying assumptions which organise the practical guidance that follows.
 
 1. Data have structure independent of the software used to store or analyse them.
 2. Software necessarily imposes assumptions on that structure, whether explicitly or by default behaviour.
 3. Reproducibility is as much a property of workflows and data representations *and* of intention or care.
 
-Below, we focus on how they play out in routine analytical choices.
+Below, I focus on how they play out in routine analytical choices. First --- before we look at how data are stored --- let's look at *how* and *where* to find data and the outputs of your analyses once they reside on your computer.
+
+# Navigating the File System and the Working Directory
+
+Many analytical errors arise from confusion about where data and code actually live on a computer. Before software can read a file, the you must specify *where* that file is located. Where the file lives is not random, but poor understanding of how to navigate your computer's file system makes it feel haphazard at best or like a black box at worst. You *should store files deliberately in precisely known locations*. This requires a working grasp of the file system: how files are organised, how locations are described, and how software interprets those descriptions.
+
+So, before R can read data or write results, it must know where it is working. This sounds trivial but many failures you'll encounter in the early days on your journey to becoming a biostatistician or data analyst trace back to uncertainty about file locations rather than to coding errors. This section introduces the minimal concepts required to reason correctly about files, directories, and paths, and explains how R and RStudio use these ideas in practice.
+
+A **file system** is the hierarchical structure by which an operating system stores and organises files. At the top of this hierarchy sits a *root*, from which all folders (directories) and files descend. Every file therefore occupies a unique position within this structure, defined by the sequence of directories leading to it.
+
+A **directory** (or *folder*) is simply a container that can hold files and other directories. When a directory sits inside another directory, it is a **sub-directory**. This nesting can continue indefinitely, producing a tree-like structure. Although Windows, macOS, and Linux differ in visual presentation, this underlying structure is shared across all three systems.
+
+To refer to a file, we use a **file path**: a textual description of its location within the file system. You can observe these file paths within RStudio, near the top of the **Console**.
+
+An **absolute path** specifies a file’s location starting from the root of the file system. Because it begins at the root, it uniquely identifies the file regardless of the current working context.
+
+**Examples:**
+
+Windows:
+
+`C:\Users\Student\Documents\BCB744\data\kelp.csv`
+
+macOS / Linux:
+
+`/home/student/BCB744/data/kelp.csv`
+
+Notice that Windows uses backslashes `\` and maxOS and Linux use forward slashes `/`. This is a very important distinction between Windows and Unix-like operating systems.
+
+Absolute paths are unambiguous, but they are not very helpful when moving R (or other) scripts between different users. This is because they encode machine-specific details (usernames, drive letters) that differ between those users' computers.
+
+A **relative path** specifies a file’s location *relative to the current working directory*. It does not begin at the root, but instead assumes a starting point. Relative paths are shorter, portable, and central to reproducible workflows.
+
+Assume the current working directory is:
+
+* `BCB744/`
+
+Then:
+
+* `data/kelp.csv` refers to a file called `kelp.csv` inside the `data` sub-directory.
+* `scripts/analysis.R` refers to an R file named `analysis.R` inside the `scripts` sub-directory.
+
+Two special symbols appear frequently in relative paths:
+
+* `.` refers to the current directory.
+* `..` refers to the parent directory (one level up).
+
+Examples:
+
+* `../data/kelp.csv` means “go up one directory, then into `data`”.
+* `../../raw/sst.nc` means “go up two levels, then into `raw`”.
+
+## The Working Directory
+
+The **working directory** is the directory that R treats as its current location. All relative paths are interpreted with respect to this directory.
+
+You can think of the working directory as the answer to the question:
+  
+> “If I refer to a file without giving its full address, where will R look?”*
+  
+In R, the working directory can be inspected with:
+  
+* `getwd()`
+
+and (technically) changed with:
+  
+* `setwd("some/path")`
+
+Beginners sometimes try to fix file-not-found errors by repeatedly calling `setwd()`. This usually makes things worse. Changing the working directory inside scripts creates hidden assumptions about where the code is run and breaks reproducibility.
+
+The preferred solution is not to move the working directory around, but to **control it once**, deliberately.
+
+## RStudio Projects
+
+An **RStudio Project** defines a directory as the root of an analysis and sets it as the working directory whenever the project is opened. This has three consequences that are foundational for this course:
+  
+1. `getwd()` always returns the project root.
+2. All scripts, data, and outputs can be referenced using relative paths.
+3. Code runs the same way on different computers.
+
+A typical project structure might look like this:
+  
+* `BCB744_project/`
+
+With sub-folders specific to the different purposes:
+
+* `data/`
+* `scripts/`
+* `figures/`
+* `reports/`
+
+If this directory is an RStudio Project, then a script inside `scripts/` can read data using:
+  
+* `data/kelp.csv`
+
+without calling `setwd()`, and without caring where the project lives on the machine.
+
+This is why projects are treated as non-negotiable infrastructure in this course. They make file paths explicit, stable, and inspectable.
+
+Software such as R interprets all file paths relative to its **working directory**—the directory it currently considers as “here”. Confusion about file paths is therefore almost always confusion about the working directory. When files cannot be found, the problem is rarely the file itself; it is the path used to describe it.
+
+For this reason, analyses should be organised as **projects**, with a clear internal structure. A minimal example might look like this:
+
+* `BCB744/`
+
+  * `data/` ... (raw or cleaned data)
+  * `scripts/` ... (R scripts)
+  * `figures/` ... (output plots)
+  * `reports/` ... (Quarto or R Markdown documents)
+
+When code is run from the project root, all file access can use relative paths, avoiding hard-coded references to specific machines.
+
+## Exercises
+
+1. On your computer, create a directory called `filesystem_practice`. Inside it, create three sub-directories: `data`, `scripts`, and `output`. Place a small text file inside `data`.
+
+2. Place a small text or CSV file inside `data`. From the R Console, run `getwd()` and confirm that it points to the project root.
+
+3. From a script inside `scripts`, write the relative path needed to read the file in `data`. Then write the absolute path to the same file. Which one would still work on another computer?
+
+4. Deliberately break a path by misspelling a directory name. Observe the error message produced by the software. Correct the path and rerun the command.
+
+5. (Deliberately bad practice) Use setwd() to point R directly at the data directory. Now try running the script again from a different location. Explain why this approach fails as a general strategy.
+
+These exercises should help you to develop a form of spatial reasoning that underlies all your analyses 9and working with your computer in general --- good housekeeping stems from this! If you cannot reliably locate files you also cannot reason clearly about data provenance, reproducibility, or control over your analysis.
+
+Note: graphical file browsers hide structure behind icons and clicks. Code exposes structure explicitly. Learning to think in paths rather than windows is a necessary transition from consumer software use to scientific computing.
+
+Now that we know how and where to locate your data, let's take a look at how those data are represented.
 
 # Types of Data Files
 
@@ -54,6 +183,8 @@ CSV and TSV files optimise human readability.
 Delimited text files represent the simplest and most transparent way of storing tabular data. Both comma-separated value (CSV) files and tab-separated value (TSV) files encode tables as plain text, with rows separated by line breaks and columns separated by a designated delimiter. The distinction between them arises from how reliably the chosen delimiter can be distinguished from the data themselves.
 
 CSV files use commas to separate fields (columns), which makes them widely supported and easy to exchange across software and platforms. However, this choice becomes ambiguous when data values themselves contain commas, such as free text, lists, or numbers formatted with thousands separators. TSV files address this ambiguity by using tab characters as delimiters, which are far less likely to occur naturally within data values. In this sense, TSV files trade a small loss in visual familiarity for greater robustness during parsing.
+
+As such, CSV files are a simple and widely used format amongst biologists and ecologists, but they can become impractical for large datasets with complex structures or metadata.
 
 We will most frequently use the functions `read.csv()` and `readr::read_csv()` (and related forms) for reading in CSV data. We can write CSV files to disk with the `write.csv()` and `readr::write_csv()` commands. For very large datasets that might take a long time to read in or save, `data.table::fread()` and `data.table::fwrite()` are faster alternatives to the aforementioned base R or **tidyverse** options. Even faster options are `feather::read_feather()` and `feather::write_feather()`; although **feather** saves tabular data, the format is not actually an ASCII CSV, however.
 
@@ -139,17 +270,17 @@ When working with binary data files, it is important to be aware of the specific
 
 ## NetCDF, Grib, and HDF Files {#sec-netcdf}
 
-NetCDF, HDF, and GRIB are file formats commonly used in the scientific and research communities to store and share large and complex datasets. While CSV files are a simple and widely used format, they can become impractical for large datasets with complex structures or metadata. Here is a brief overview of each file format:
+NetCDF, HDF, and GRIB are file formats commonly used in the scientific and research communities to store and share large and complex datasets. These datasets are optimised for storing gridded (regular intervals in space and time) data that are interoperable amongst computing systems. Here is a brief overview of each file format:
 
 -   **NetCDF (Network Common Data Form)** is a binary file format that is designed for storing and sharing scientific data. It can store multidimensional arrays and metadata, such as variable names and units, in a self-describing format. NetCDF files are commonly used in fields such as atmospheric science, oceanography, and climate modelling.
 
--   **HDF (Hierarchical Data Format)** is a file format that is designed to store and organise large and complex data structures. It can store a wide variety of data types, including multidimensional arrays, tables, and hierarchical data. HDF files are commonly used in fields such as remote sensing, astronomy, and engineering.
+-   Like NetCDF files, **HDF (Hierarchical Data Format)** is a file format that is designed to store and organise large and complex data structures. It can store a wide variety of data types, including multidimensional arrays, tables, and hierarchical data. HDF files are commonly used in fields such as remote sensing, astronomy, and engineering.
 
--   **GRIB (GRIdded Binary)** is a binary file format used to store meteorological and oceanographic data. It can store gridded data, such as atmospheric and oceanic model output, in a compact and efficient binary format. GRIB files are commonly used by weather forecasting agencies and research organisations.
+-   Again, **GRIB (GRIdded Binary)** files are similar to NetCDF files. They are a binary file format used to store meteorological and oceanographic data. It can store gridded data, such as atmospheric and oceanic model output, in a compact and efficient binary format. GRIB files are commonly used by weather forecasting agencies and research organisations.
 
 Compared to CSV files, these file formats offer several benefits for storing, sharing complex datasets:
 
--   **Support for multidimensional arrays** These file formats can store and handle multidimensional arrays, which cannot be represented in a CSV file.
+-   **Support for multidimensional arrays** These file formats can store and handle multidimensional arrays, which cannot be represented in a CSV file. However, they can be *exported* as CSV files, often after subsetting the data, but the resultant CSV files consume significant amounts of disk space.
 
 -   **Efficient storage** Binary file formats can be more compact and efficient than text-based formats such as CSV files, which can save disk space and make it easier to share and transfer large datasets.
 
@@ -172,7 +303,7 @@ I will develop vignettes for these in the future. We will not use these in this 
 
 # File Extensions
 
-This section is about teaching you to value of knowing what to expect of a file, and how the data are represented inside it, by simply inspecting how it is named rather than relying on what software choose to display by default. File extensions are one of the simplest points at which this representation can be made either explicit or opaque, and they provide a real example of how small interface choices might affect analytical error.
+This section is about teaching you the value of knowing what to expect of a file, and how the data are represented inside it, by simply inspecting how it is named rather than relying on what software choose to display by default. File extensions are one of the simplest points at which this representation can be made either explicit or opaque, and they provide a real example of how small interface choices might affect analytical error.
 
 File extensions are three or four character suffixes added to the end of a filename, usually preceded by a period (e.g., `.txt`, `.jpg`, `.pdf`, `.csv`, `.xlsx`). These extensions indicate the format or type of the file, providing information about the content and structure of the data within the file. Some file extensions are particular to Windows (such as `.exe`) and others to MacOS (*e.g.*, `.dmg`), but many are transportable across operating systems. File extensions help both the operating system and applications recognise the file type and determine which program or application should be used to open, view, or edit the file.
 
@@ -279,3 +410,142 @@ One of the most famous examples of unclear communication is the Mars Climate Orb
 
 This incident highlights the importance of clear communication, proper data handling, and rigorous verification processes in mission-critical systems, including space missions. The event emphasises the need for using appropriate tools, software, and methodologies to minimise the risk of errors in complex engineering projects.
 :::
+
+# Exercise: From Excel to Delimited Files to R
+
+**Goal:** You will (i) create a small dataset in Excel, (ii) export it to three delimited text formats (CSV, TSV, and semicolon-delimited), (iii) save them into a known location inside an R Project folder using disciplined file naming, and (iv) read *one* of the exported files from a new R script in RStudio.
+
+## Part A — Create a Project folder with known locations
+
+1. In RStudio, create a new project: **File → New Project → New Directory → New Project**.
+   Name it `bcb744_file_formats_exercise` and create it in a location you can find again (*e.g.*, Documents).
+
+2. In the Files pane in RStudio (bottom right), confirm you can see the project folder and that it contains an `.Rproj` file.
+
+3. Inside the project folder, create these subfolders:
+
+   * `data-raw/`
+   * `data/`
+   * `scripts/`
+
+   (You can do this in the Files pane: **New Folder**.)
+
+4. Decide on a file naming pattern you will follow for exports in this exercise (later, not now). Use this pattern exactly:
+
+   * `survey_demo_YYYYMMDD_v01.csv`
+   * `survey_demo_YYYYMMDD_v01.tsv`
+   * `survey_demo_YYYYMMDD_v01.scsv`
+
+   Replace `YYYYMMDD` with today’s date. Keep `v01` as written.
+
+   *Note:* `.scsv` here is just a human-visible label meaning “semicolon CSV”; it is still a plain text file.
+
+## Part B — Create a small dataset in Excel
+
+5. Open Excel and create a new blank workbook.
+
+6. In row 1, enter these column names (exact spelling):
+
+   * `id`
+   * `species`
+   * `site`
+   * `temp_C`
+   * `notes`
+
+7. Enter at least **10 rows** of data. Include the following features on purpose:
+
+   * at least one missing value (leave one cell blank in `temp_C`)
+   * at least one `notes` cell that contains a comma (*e.g.*, `juvenile, small`)
+   * at least one `notes` cell that contains a semicolon (*e.g.*, `recheck; uncertain`)
+
+8. Save the Excel workbook into your project folder under `data-raw/` with this name:
+
+   * `survey_demo_YYYYMMDD_source.xlsx`
+
+## Part C — Export three delimited text files into the project
+
+Your target location for *all exports* is:
+
+* `bcb744_file_formats_exercise/data/`
+
+9. Export to **CSV (comma delimited)** using the naming scheme defined above:
+
+   * Use **File → Save As** (or **Save a Copy**) and choose **CSV (Comma delimited)**.
+   * Save into the project’s `data/` folder as:
+     `survey_demo_YYYYMMDD_v01.csv`
+
+10. Export to **TSV (tab delimited)**:
+
+* Use **Save As** and choose **Text (Tab delimited)** (or equivalent).
+* Save into the project’s `data/` folder as:
+  `survey_demo_YYYYMMDD_v01.tsv`
+
+11. Export to **semicolon-delimited** (“semi-colon derived derivative”):
+
+* If your Excel offers a direct **CSV (Semicolon delimited)** option, use it and save as:
+  `survey_demo_YYYYMMDD_v01.scsv`
+* If it does *not* offer that option, do this instead:
+
+  1. Open the saved CSV file (`survey_demo_YYYYMMDD_v01.csv`) in a plain text editor (Notepad / TextEdit / VS Code).
+  2. Save a new copy into the same `data/` folder named `survey_demo_YYYYMMDD_v01.scsv`.
+  3. In that `.scsv` copy, replace field separators **commas that function as delimiters** with semicolons.
+     Do not alter commas inside quoted text fields (your `notes` column will reveal why this matters).
+
+12. In your file explorer (Windows Explorer / Finder), navigate to the project’s `data/` folder and confirm that these three files exist there:
+
+* `survey_demo_YYYYMMDD_v01.csv`
+* `survey_demo_YYYYMMDD_v01.tsv`
+* `survey_demo_YYYYMMDD_v01.scsv`
+
+## Part D — Read one exported file from a new R script in RStudio
+
+13. In RStudio, create a new script: **File → New File → R Script**.
+
+14. Save the script into `scripts/` with this name:
+
+* `01_read_delimited_files.R`
+
+15. Copy and run the following lines **one at a time**, top to bottom.
+
+```{r eval=FALSE}
+# 1) Confirm you are working inside the project
+getwd()
+
+# 2) List the exported files (you should see your three exports)
+list.files("data")
+
+# 3) Choose ONE file to read first (edit the filename to match your date)
+file_csv  <- "data/survey_demo_YYYYMMDD_v01.csv"
+file_tsv  <- "data/survey_demo_YYYYMMDD_v01.tsv"
+file_scsv <- "data/survey_demo_YYYYMMDD_v01.scsv"
+
+# 4) Read one of them (start with TSV to avoid comma ambiguity in notes)
+dat <- read.delim(file_tsv, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+
+# 5) Inspect what you imported
+str(dat)
+head(dat, 3)
+
+# 6) Basic checks: dimensions and missingness
+dim(dat)
+colSums(is.na(dat))
+
+# 7) Now read the comma CSV version and compare
+dat_csv <- read.csv(file_csv, header = TRUE, stringsAsFactors = FALSE)
+identical(names(dat), names(dat_csv))
+
+# 8) Read the semicolon-delimited version explicitly
+dat_scsv <- read.delim(file_scsv, sep = ";", header = TRUE, stringsAsFactors = FALSE)
+
+# 9) Compare what happened to the notes column across imports
+head(dat$notes, 3)
+head(dat_csv$notes, 3)
+head(dat_scsv$notes, 3)
+```
+
+16. When you are done, answer these questions in a short paragraph in your notebook or as comments at the bottom of the script:
+
+a) Which file type imported with the least friction, and why?
+b) Did any import alter the `notes` column in a way you did not expect? What does that suggest about delimiter choice?
+c) Which steps in your workflow made it easy to locate the files again without clicking through folders?
+
