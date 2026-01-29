@@ -25,6 +25,8 @@ knitr::opts_chunk$set(
 
 Now that you have learned the basics of creating a beautiful map in **`ggplot2`** it is time to look at some of the more particular things you will need to make your maps extra stylish. There are also a few more things you need to learn how to do before your maps can be truly publication quality.
 
+At this point, it is crucial to remember that **style is not decoration; it is constraint**. Maps are arguments, not illustrations. Every stylistic choice should help the reader orient themselves, interpret the data honestly, and see the intended message without confusion.
+
 If we have not yet loaded the **`tidyverse`** let us do so.
 
 ```{r code-maps-load}
@@ -42,6 +44,11 @@ load(here::here("data", "africa_map.RData"))
 
 In order to access the default maps included with the **`tidyverse`** we will use the function `borders()`.
 
+::: {.callout-note appearance="simple"}
+## Borders vs Shapefiles
+`borders()` is convenient and quick, but it is coarse and imprecise. Use it for rough context or exploratory work. For publishable maps or analysis, load proper spatial data (e.g. shapefiles or **sf** objects) with correct boundaries and metadata.
+:::
+
 ```{r fig-maps-world, fig.cap="The built in global shape file."}
 #| eval: true
 ggplot() +
@@ -51,6 +58,11 @@ ggplot() +
 
 Jikes! It is as simple as that to load a map of the whole planet. Usually you are not going to want to make a map of the entire planet, so let us see how to focus on just the area around South Africa.
 
+::: {.callout-warning appearance="simple"}
+## Aspect Ratio Matters
+`coord_equal()` preserves a 1:1 relationship between x and y units. Without it, the map can look fine but be **geometrically misleading**.
+:::
+
 ```{r fig-maps-sa-1, fig.cap="A better way to get the map of South Africa."}
 #| eval: true
 sa_1 <- ggplot() +
@@ -59,11 +71,19 @@ sa_1 <- ggplot() +
 sa_1
 ```
 
-That is a very tidy looking map of South(ern) Africa without needing to load any files.
+That is a very tidy looking map of South(ern) Africa without needing to load any files. The extent values (`xlim`, `ylim`) are a design decision: too tight and you clip context; too loose and you lose focus. Use the scientific question to guide the bounds.
 
 # Specific Labels
 
 A map is almost always going to need some labels and other visual cues. You saw in the previous section how to add site labels. The following code chunk shows how this differs if yoou want to add just one label at a time. This can be useful if each label needs to be different from all other labels for whatever reason. You may also see that the text labels we are creating have `\n` in them. When R sees these two characters together like this it reads this as an instruction to return down a line. Let us run the code to make sure you see what this means.
+
+Label placement is one of the hardest problems in cartography. A few rules you should break only deliberately:
+
+-   Avoid overlaps and do not obscure the data.
+-   Respect visual hierarchy: water bodies should not visually overpower land, and context labels should not dominate the data.
+-   Use style (size, colour, angle) **only** to encode meaning, not decoration.
+
+Also note the distinction between **manual labels** (a small number of contextual labels) and **data-driven labels** (labels generated from your data). Manual labels are appropriate for oceans, regions, and context; data-driven labels should be automated and consistent.
 
 ```{r fig-maps-labels, fig.cap="Map of southern Africa with specific labels."}
 #| eval: true
@@ -91,7 +111,13 @@ sa_2
 
 # Scale Bars
 
-With your fancy labels added, let us insert a scale bar next. There is no default scale bar function in the **`tidyverse`**, which is why you have loaded the **`ggsn`** package. This package is devoted to adding scale bars and North arrows to **`ggplot2`** figures. There are heaps of options so you will just focus on one of them for now. It is a bit finicky so to get it looking exactly how you want it requires some guessing and checking. Please feel free to play around with the coordinates below. You may see the list of available North arrow shapes by running `northSymbols()`.
+With your fancy labels added, let us insert a scale bar next. There is no default scale bar function in the **`tidyverse`**, which is why you have loaded **`ggspatial`**. This package is devoted to adding scale bars and North arrows to **`ggplot2`** figures. There are heaps of options so you will just focus on one of them for now. It is a bit finicky so to get it looking exactly how you want it requires some guessing and checking. Please feel free to play around with the coordinates below.
+
+Decision rules:
+
+-   **Include a scale bar** when distances matter to interpretation.
+-   **Omit it** on very small-scale maps or when it adds clutter without value.
+-   **Use a north arrow** only if orientation is ambiguous or non-standard.
 
 ```{r fig-maps-scale, fig.cap="Map of southern Africa with labels and a scale bar."}
 #| eval: true
@@ -116,64 +142,78 @@ sa_3 <- sa_2 +
 sa_3
 ```
 
-<!-- # Insetting -->
+# Advanced Styling: Insets and Coordinate Labels
 
-<!-- In order to inset a smaller map inside of a larger map we must first create the smaller map. We have already loaded just such a map of Africa so we will use that for this example. -->
+Inset maps, coordinate labels, and export are not optional niceties — they are often what distinguishes a competent map from a careless one. If your main map needs geographic context, use an inset.
 
-<!-- ```{r maps-mini, fig.align = "center"} -->
+```{r maps-mini}
+#| fig.cap: "Inset map of Africa (context)."
+africa_map
+```
 
-<!-- africa_map -->
+We can add the inset using a grob. This is a controlled way to place an entire plot inside another plot.
 
-<!-- ``` -->
+```{r maps-inset}
+#| fig.cap: "Map of southern Africa with labels, scale bar, and an inset map of Africa."
+sa_4 <- sa_3 +
+  annotation_custom(
+    grob = ggplotGrob(africa_map),
+    xmin = 20.9, xmax = 26.9,
+    ymin = -30, ymax = -24
+  )
+sa_4
+```
 
-<!-- And now to inset this map of Africa into our map of southern Africa we will need to learn how to create a 'grob'. This is very simple and does not require any extra work on our part. Remember that **`ggplot2`** objects are different from normal objects (i.e. dataframes), and that they have their own way of storing, accessing data. In order to convert any sort of thing into a format that ggplot understands we convert it into a grob and as shown below. Once converted, we may then plop it onto our figure/map wherever we please. Both of these steps are accomplished with the single function `annotation_custom()`. This is also a good way to add logos or any other sort of image to a map/figure. You can really go completely bananas. It is even possible to add GIFs. Such happy. Much excite. Very wonderment. -->
+Now tweak coordinate labels for cartographic conventions:
 
-<!-- ```{r maps-inset, fig.cap="Map of southern Africa, with labels, scale bar, and an inset map of Africa."} -->
+```{r maps-final}
+#| fig.cap: "The final map with coordinate labels."
+sa_final <- sa_4 +
+  scale_x_continuous(
+    breaks = seq(16, 32, 4),
+    labels = c("16°E", "20°E", "24°E", "28°E", "32°E"),
+    position = "bottom"
+  ) +
+  scale_y_continuous(
+    breaks = seq(-36, -24, 4),
+    labels = c("36.0°S", "32.0°S", "28.0°S", "24.0°S"),
+    position = "right"
+  ) +
+  labs(x = "", y = "")
+sa_final
+```
 
-<!-- sa_4 <- sa_3 + -->
+Export with intention — size, aspect ratio, and resolution must match the medium.
 
-<!--   annotation_custom(grob = ggplotGrob(africa_map), -->
+```{r maps-final-save}
+#| eval: false
+ggsave(
+  plot = sa_final,
+  filename = "figures/southern_africa_final.pdf",
+  height = 6,
+  width = 8,
+  dpi = 300
+)
+```
 
-<!--                     xmin = 20.9, xmax = 26.9, -->
+::: {.callout-note appearance="simple"}
+## Map Sanity Checklist
+-   Clear title and legend?
+-   Coordinate system and aspect ratio appropriate?
+-   Labels readable and not obscuring data?
+-   Scale bar or north arrow included only when needed?
+-   Export size and resolution appropriate for the audience?
+:::
 
-<!--                     ymin = -30, ymax = -24) -->
+::: {.callout-warning appearance="simple"}
+## Common Student Errors
+-   Over‑labelling and visual clutter
+-   Decorative colours that imply meaning
+-   Cropping boundaries in ways that mislead
+-   Using default borders when precision is required
+:::
 
-<!-- sa_4 -->
-
-<!-- ``` -->
-
-<!-- # Rounding it out -->
-
-<!-- There are a lot of exciting things going on in our figure now. To round out our adventures in mapping let us tweak the lon/lat labels to a more prestigious convention. There are two ways to do this. One of which requires us to install the **`scales`** package. Do not worry, it is a small one! -->
-
-<!-- ```{r maps-final, fig.cap="The final map with all of the bells and whistles."} -->
-
-<!-- sa_final <- sa_4 + -->
-
-<!--   scale_x_continuous(breaks = seq(16, 32, 4), -->
-
-<!--                      labels = c("16°E", "20°E", "24°E", "28°E", "32°E"), -->
-
-<!--                      position = "bottom") + -->
-
-<!--   scale_y_continuous(breaks = seq(-36, -24, 4), -->
-
-<!--                      labels = c("36.0°S", "32.0°S", "28.0°S", "24.0°S"), -->
-
-<!--                      position = "right") + -->
-
-<!--   labs(x = "", y = "") -->
-
-<!-- sa_final -->
-
-<!-- ``` -->
-
-<!-- And lastly we save the fruits of our labours. -->
-
-<!-- ```{r maps-final-save, eval=FALSE} -->
-
-<!-- ggsave(plot = sa_final, filename = "figures/southern_africa_final.pdf",  -->
-
-<!--        height = 6, width = 8) -->
-
-<!-- ``` -->
+::: {.callout-note appearance="simple"}
+## Analytic vs Illustrative Maps
+Analytic maps emphasise data integrity and scale; illustrative maps prioritise narrative and clarity. Decide which you are making before you style.
+:::
