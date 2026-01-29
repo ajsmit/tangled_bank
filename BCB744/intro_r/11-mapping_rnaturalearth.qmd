@@ -5,6 +5,26 @@ title: "11. Mapping with Natural Earth"
 
 ![](../../images/thesaurus.jpg){width=75%}
 
+```{r code-brewing-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "R>", 
+  warning = FALSE, 
+  message = FALSE,
+  fig.width = 4.5,
+  fig.height = 2.625,
+  out.width = "75%",
+  fig.asp = NULL, # control via width/height
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 8)
+)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 8)
+)
+```
+
 > "*In the beginning there was nothing, which exploded.*"
 >
 > --- Terry Pratchett
@@ -13,14 +33,32 @@ title: "11. Mapping with Natural Earth"
 >
 > --- Richard Dawkins
 
-# Web Resources About R for Spatial Applications
+# Orientation: what you are here to learn
 
-Now that we are upgrading to better, more powerful maps, you will need to refer to industrial-strength documentation for detailed help. Please refer to links below for information about the vast array of functions available for spatial computations, graphics.
+Up to now, your maps have likely been *drawn* rather than *reasoned about*. This chapter shifts you from decorative mapping to spatial reasoning with data structures that carry geometry, scale, and assumptions. The goal is to make them more defensible.
+
+## Learning goals
+By the end of this chapter you should be able to:
+
+1. Explain what an `sf` object is (features, attributes, geometry column, CRS).
+2. Subset and transform spatial features without losing geometry.
+3. Produce layered maps in base R and **ggplot2** with explicit spatial choices.
+
+## Workflow overview
+When you are working independently, aim for this repeatable sequence:
+
+1. Load data and inspect the geometry and CRS.
+2. Subset features (rows) and attributes (columns) intentionally.
+3. Crop or transform geometry only when you mean to.
+4. Plot in base R or **ggplot2**, then refine.
+
+## Web resources for spatial work in R
+These are reference texts, not required reading. Use them as technical back-up when you get stuck or want to go deeper.
 
 ::: {.callout-note appearance="simple"}
-## Web Resources About Spatial Methods in R
-| AUTHOR                      | TITLE                                                                                                             |
-| --- --- --- --- --- --- --- --- --- --| --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- -|
+## Web resources about spatial methods in R
+| Author                      | Title                                                                                                             |
+|:---------------------------|:------------------------------------------------------------------------------------------------------------------|
 | **Spatial R**               |                                                                                                                   |
 | Edzer Pebesma               | [Simple Features for R](https://r-spatial.github.io/sf/index.html)                                                |
 | Edzer Pebesma, Roger Bivand | [Spatial Data Science with applications in R](https://r-spatial.org/book/)                                        |
@@ -41,27 +79,27 @@ knitr::opts_chunk$set(
 )
 ```
 
-# The **Sf** Package
+# The **sf** package
 
-The [**sf**](https://r-spatial.github.io/sf/) package in R is a package for handling and processing spatial data. In recent years it has become the *de facto* package to use for many mapping application, replacing older packages such as **sp**, including the C libraries GEOS 3 and GDAL, and PROJ. It provides classes for storing, manipulating simple feature geometries and functions for working with spatial data. 'Simple features' refer to a standardised way of encoding vector data, including points, lines, and polygons, that are widely used in geographic information systems (GIS).
+At this point you need data structures that carry geometry and behave sensibly under spatial operations. The [**sf**](https://r-spatial.github.io/sf/) package provides exactly that, and it has become the *de facto* tool for many mapping applications, replacing older packages such as **sp**. It provides classes for storing and manipulating simple feature geometries and functions for working with spatial data. *Simple features* refer to a standardised way of encoding vector data --- points, lines, and polygons --- used widely in GIS.
 
-The **sf** package was created to provide a fast and efficient way to work with vector data in R, and it is designed to integrate with other packages in the **tidyverse**, such as **dplyr**, **ggplot2** and allowing for seamless processing and visualisation of spatial data. The package provides a variety of functions for data import, transformation, manipulation, and analysis, making it a valuable tool for working with spatial data in R.
+The **sf** package was created to provide a fast and efficient way to work with vector data in R. It integrates with other **tidyverse** packages, such as **dplyr** and **ggplot2**, allowing for seamless processing and visualisation of spatial data. The package provides a variety of functions for data import, transformation, manipulation, and analysis, making it a valuable tool for working with spatial data in R.
 
 In addition to its core functionality, the **sf** package also provides a set of methods for converting between different data representations, such as data frames, matrices, and lists, making it a versatile tool for working with spatial data in a variety of formats.
 
-While **sf** works with vector data, raster data require the well-known but old [**raster**](https://rspatial.org/raster/pkg/index.html) package, or its modern replacements [**terra**](https://rspatial.org/pkg/index.html), [**stars**](https://r-spatial.github.io/stars/). I will not work with raster data in this Chapter.
+While **sf** works with vector data, raster data require the well-known but older [**raster**](https://rspatial.org/raster/pkg/index.html) package, or its modern replacements [**terra**](https://rspatial.org/pkg/index.html), [**stars**](https://r-spatial.github.io/stars/). I will not work with raster data in this chapter.
 
-# Maps with `rnaturalearth`
+# Maps with **rnaturalearth**
 
-[Natural Earth](https://www.naturalearthdata.com/) is a public domain map dataset that provides high-quality, general-purpose base maps for the world at various scales. It was designed to be a visually pleasing alternative to other public domain datasets, and its creators aim to provide the data in a form that is useful for a wide range of applications, to make it easy to use and integrate with other data.
+[Natural Earth](https://www.naturalearthdata.com/) is a public domain map dataset that provides high-quality, general-purpose base maps for the world at various scales. It is an ideal stepping stone when `map_data()` and hand-drawn polygons become too crude or too brittle for serious work. It was designed to be a visually pleasing alternative to other public domain datasets, and its creators aim to provide the data in a form that is useful for a wide range of applications, to make it easy to use and integrate with other data.
 
-The dataset includes a variety of geographic features, including coastlines, rivers, lakes, and political boundaries, as well as cultural features like cities, roads, and railways. The data are available in several different formats, including vector, raster and it can be used with a variety of software, including GIS, mapping applications. Within R we can access these map layers using the [**rnaturalearth**](https://cran.r-project.org/web/packages/rnaturalearth/vignettes/rnaturalearth.html) package.
+The dataset includes a variety of geographic features, including coastlines, rivers, lakes, and political boundaries, as well as cultural features like cities, roads, and railways. The data are available in several formats, including vector and raster, and they can be used with a variety of software, including GIS and mapping applications. Within R we can access these map layers using the [**rnaturalearth**](https://cran.r-project.org/web/packages/rnaturalearth/vignettes/rnaturalearth.html) package.
 
 One of the key benefits of Natural Earth is its public domain status, which means that anyone can use, distribute the data without restrictions or licensing fees. This makes it an ideal choice for individuals who need high-quality base maps for their projects but may not have the resources or expertise to create them from scratch. I am not convinced that students actually read this. The first person to send me a WhatsApp mentioning the phrase "Know your maps" will get a Lindt chocolate.
 
-In addition to its public domain status, Natural Earth is also regularly updated with new data to ensure that the maps remain accurate, up-to-date. This makes it a valuable resource for anyone who needs reliable and up-to-date geographic data.
+In addition to its public domain status, Natural Earth is regularly updated with new data to ensure that the maps remain accurate and up to date. This makes it a valuable resource for anyone who needs reliable geographic data.
 
-# Install Packages and Set Things Up
+# Install packages and set things up
 
 ```{r code-library-tidyverse}
 #| eval: true
@@ -78,6 +116,12 @@ library(rnaturalearthdata)
 sf_use_s2(FALSE)
 ```
 
+::: {.callout-warning appearance="simple"}
+## Geometry assumptions and `sf_use_s2()`
+The `s2` engine treats the Earth as a sphere. Some operations --- notably buffering --- behave differently under spherical versus planar assumptions. Turning `s2` off can be useful for small regional maps, but it does **not** make distances in degrees suddenly meaningful. If you need accurate distances, use a projected CRS and keep `s2` on.
+:::
+
+## Define a working extent
 First, I define the extent of the map region:
 
 ```{r code-xmin-ymin-xmax-ymax}
@@ -95,7 +139,13 @@ bbox <- st_bbox(c(xmin = xmin, ymin = ymin,
 xlim_zoom <- c(17.8, 19); ylim_zoom <- c(-34.5, -33.2)
 ```
 
-# Load the Data and Make Maps
+Choosing bounds is a cartographic decision. If you clip too tightly you can hide relevant context; if you clip too loosely you dilute the focus of the map. Cropping can also cut features that cross the boundary (and cuase complications, which are very difficult to rectify), so use it deliberately.
+
+# Create and inspect an `sf` object
+
+Before we draw anything, we will load a spatial object, then *inspect* it. This is the point where your thinking should shift from "plots" to "features with geometry".
+
+## Load features from Natural Earth
 
 ```{r code-safrica-countries-ne-countries-returnclass-sf}
 #| eval: true
@@ -108,7 +158,10 @@ safrica_countries <- ne_countries(returnclass = 'sf',
   scale = "large")
 ```
 
-Let us see what is inside the `safrica_countries` object:
+The object now contains *features* (rows) with *attributes* (columns) plus a geometry column that stores the spatial shapes. That geometry persists unless you explicitly alter it.
+
+## Inspect the geometry and CRS
+Pause here and check what makes this different from a normal tibble.
 
 ```{r code-class-safrica-countries}
 #| eval: true
@@ -116,19 +169,36 @@ class(safrica_countries)
 # safrica_countries
 ```
 
-As you can see, it is a `data.frame` and `tbl` (tibble), amongst other classes, and so you can apply many of the **tidyverse** functions to it, including `select()`, `filter()`, `summarise()` and so on. The `class()` argument additionally indicates that it has some *simple features* properties, so some functions provided by the **sf** package also becomes available to use. You can see some of these functions in action, below. 
-
 ::: {.callout-note appearance="simple"}
 ## The `sf` Class
-`sf` indicates that the object is of class *simple features*. In `sf` language, what would be called columns (variables) in normal **tidyverse** speak becomes known as attributes --- these are the properties of the map *features*, with the features being the types of geometrical representations of geographical objects.
+`sf` indicates that the object is of class *simple features*. In **sf** language, what would be called columns (variables) in normal **tidyverse** speak becomes known as *attributes* --- these are the properties of the map *features*. The geometry column stores the shapes; the CRS stores the spatial reference system.
 :::
 
-Let us plot the entire `safrica_countries` object to see all the attributes of all of the features. This kind of figure a called a choropleth map:
+```{r code-inspect-safrica-countries}
+#| eval: false
+
+# Run this on your PC... the output is too volumnous for here
+glimpse(safrica_countries)
+st_crs(safrica_countries)
+unique(st_geometry_type(safrica_countries))
+```
+
+The CRS tells you how the coordinates should be interpreted. You do not need to manipulate CRS yet, but you do need to be aware that distance and area calculations depend on it.
+
+As you can see, it is a `data.frame` and `tbl` (tibble), amongst other classes, and so you can apply many of the **tidyverse** functions to it, including `select()`, `filter()`, `summarise()` and so on. These verbs act on *attributes* unless you explicitly change geometry with **sf** functions.
+
+## Plot quickly in base R
+Let us plot the entire `safrica_countries` object to see all the attributes of all of the features. This kind of figure is called a choropleth map:
 
 ```{r fig-plot-safrica-countries}
 #| eval: true
 plot(safrica_countries)
 ```
+
+::: {.callout-tip appearance="simple"}
+## Attributes vs features (select vs filter)
+Use `select()` to choose *attributes* (columns). Use `filter()` to choose *features* (rows). Neither operation recalculates geometry; the shapes persist unless you explicitly transform them.
+:::
 
 You probably do not want to plot all of them. Let us select one:
 
@@ -155,7 +225,7 @@ safrica_countries |>
   plot()
 ```
 
-The names of the countries are in the rows down the `safrica_countries` object, and so they become accessible with `filter()`. Let us only plot some attribute for South Africa:
+The names of the countries are in the rows of the `safrica_countries` object, and so they become accessible with `filter()`. Let us only plot some attribute for South Africa:
 
 ```{r fig-safrica-countries-3}
 #| eval: true
@@ -164,6 +234,16 @@ safrica_countries |>
   select(sovereignt) |> 
   plot()
 ```
+
+## Dissolve and crop features (geometry changes)
+The following sequence is dense, so here is the logic before the code:
+
+1. `group_by(continent)` groups features so that later operations can dissolve borders.
+2. `summarise()` collapses grouped features into a single geometry per group.
+3. `st_crop(bbox)` clips the geometry to your bounding box. This can *cut* features at the boundary.
+4. `st_combine()` merges the pieces into a single multipart feature.
+
+Cropping is a geometric operation, but sometimes it may be used as a visual zoom. Features that fall partly inside the box will be clipped.
 
 You can continue to add additional operations to create a new map:
 
@@ -178,7 +258,7 @@ safrica_countries_new <- safrica_countries |>
 plot(safrica_countries_new)
 ```
 
-So far you have relied on the base R plot function made for the simple features. You can also plot the map in ggplot using a more familiar and more customisable interface:
+So far you have relied on the base R plot function made for simple features. You can also plot the map in **ggplot2** using `ggplot()`, which treats geometry as data rather than annotation. Here, `geom_sf()` draws the features and `coord_sf()` manages the spatial coordinates and aspect ratio. This is why `coord_sf()` is preferred to `coord_cartesian()` for maps.
 
 ```{r fig-ggplot}
 #| eval: true
@@ -189,7 +269,8 @@ ggplot() +
            ylim = ylim)
 ```
 
-Now you can layer another feature:
+## Buffering and geometry assumptions
+Now you can layer another feature. This is also where geometry assumptions matter: buffering in degrees is only a rough approximation for local maps.
 
 ```{r fig-buffer-safrica-countries-new}
 #| eval: true
@@ -202,7 +283,28 @@ ggplot() +
   theme_minimal()
 ```
 
+::: {.callout-warning appearance="simple"}
+## Distances are not degrees
+If a buffer value "looks right" in degrees, that is an accident of scale. For accurate distances, project your data first and buffer in metres.
+:::
+
+# A reusable workflow
+When you start from scratch, use this quick recipe:
+
+1. Load spatial data and check `st_crs()` and geometry types.
+2. Filter features (rows) and select attributes (columns) deliberately.
+3. Crop or transform geometry only when you intend to change shape.
+4. Plot with `plot()` or **ggplot2**; add layers and styling last.
+
+::: {.callout-caution appearance="simple"}
+## Common pitfalls to watch for
+- Buffering or measuring in degrees instead of projected units.
+- Cropping after styling, which hides clipped features or labels.
+- Assuming `select()` or `summarise()` recalculates geometry.
+- Using `coord_cartesian()` for maps and silently distorting aspect ratio.
+- Treating Natural Earth borders as definitive boundaries when precision matters.
+:::
+
 # Example
 
 Here are examples that use the built-in [Fiji earthquake data](12-mapping_quakes.qmd) or the [Kaggle earthquake data](../../pages/kaggle_earthquakes.qmd).
-

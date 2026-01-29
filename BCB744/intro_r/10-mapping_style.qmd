@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 
 Now that you have learned the basics of creating a beautiful map in **`ggplot2`** it is time to look at some of the more particular things you will need to make your maps extra stylish. There are also a few more things you need to learn how to do before your maps can be truly publication quality.
 
-At this point, it is crucial to remember that **style is not decoration; it is constraint**. Maps are arguments, not illustrations. Every stylistic choice should help the reader orient themselves, interpret the data honestly, and see the intended message without confusion.
+At this point, it is important to remember that **style is not decoration; it is constraint**. Maps are arguments, not illustrations. Every stylistic choice should help the reader orient themselves, interpret the data honestly, and see the intended message without confusion.
 
 If we have not yet loaded the **`tidyverse`** let us do so.
 
@@ -46,7 +46,7 @@ In order to access the default maps included with the **`tidyverse`** we will us
 
 ::: {.callout-note appearance="simple"}
 ## Borders vs Shapefiles
-`borders()` is convenient and quick, but it is coarse and imprecise. Use it for rough context or exploratory work. For publishable maps or analysis, load proper spatial data (e.g. shapefiles or **sf** objects) with correct boundaries and metadata.
+`borders()` is convenient and quick, but it is coarse and imprecise. Use it for rough context or exploratory work. For publishable maps or analysis, load proper spatial data (*e.g.*, shapefiles or **sf** objects) with correct boundaries and metadata.
 :::
 
 ```{r fig-maps-world, fig.cap="The built in global shape file."}
@@ -63,6 +63,8 @@ Jikes! It is as simple as that to load a map of the whole planet. Usually you ar
 `coord_equal()` preserves a 1:1 relationship between x and y units. Without it, the map can look fine but be **geometrically misleading**.
 :::
 
+Here is the next iteration. What is different about the code that causes the map to look very different?
+
 ```{r fig-maps-sa-1, fig.cap="A better way to get the map of South Africa."}
 #| eval: true
 sa_1 <- ggplot() +
@@ -75,7 +77,7 @@ That is a very tidy looking map of South(ern) Africa without needing to load any
 
 # Specific Labels
 
-A map is almost always going to need some labels and other visual cues. You saw in the previous section how to add site labels. The following code chunk shows how this differs if yoou want to add just one label at a time. This can be useful if each label needs to be different from all other labels for whatever reason. You may also see that the text labels we are creating have `\n` in them. When R sees these two characters together like this it reads this as an instruction to return down a line. Let us run the code to make sure you see what this means.
+A map is almost always going to need some labels and other visual cues. You saw in the previous section how to add site labels. The following code chunk shows how this differs if you want to add just one label at a time. This can be useful if each label needs to be different from all other labels for whatever reason. You may also see that the text labels we are creating have `\n` in them. When R sees these two characters together like this it reads this as an instruction to return down a line. Let us run the code to make sure you see what this means.
 
 Label placement is one of the hardest problems in cartography. A few rules you should break only deliberately:
 
@@ -144,20 +146,25 @@ sa_3
 
 # Advanced Styling: Insets and Coordinate Labels
 
-Inset maps, coordinate labels, and export are not optional niceties — they are often what distinguishes a competent map from a careless one. If your main map needs geographic context, use an inset.
+Inset maps, coordinate labels, and export are not optional niceties — they are often what distinguishes a competent map from a careless one. If your main map needs geographic context, use an inset. Here we build a simple Africa inset using `borders()` so it stays lightweight and reliable.
 
 ```{r maps-mini}
 #| fig.cap: "Inset map of Africa (context)."
-africa_map
+africa_inset <- ggplot() +
+  borders(colour = "black", fill = "cornsilk", size = 0.2) +
+  coord_equal(xlim = c(-20, 55), ylim = c(-36, 38), expand = 0)
+africa_inset
 ```
 
 We can add the inset using a grob. This is a controlled way to place an entire plot inside another plot.
 
 ```{r maps-inset}
 #| fig.cap: "Map of southern Africa with labels, scale bar, and an inset map of Africa."
+africa_grob <- ggplotGrob(africa_inset)
+
 sa_4 <- sa_3 +
   annotation_custom(
-    grob = ggplotGrob(africa_map),
+    grob = africa_grob,
     xmin = 20.9, xmax = 26.9,
     ymin = -30, ymax = -24
   )
