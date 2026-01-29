@@ -7,25 +7,37 @@ title: "6. Graphics with **ggplot2**"
 
 > "*The greatest value of a picture is when it forces us to notice what we never expected to see.*"
 >
-> — John Tukey
+> --- John Tukey
   
 > "*If I cannot picture it, I cannot understand it.*"
 >
-> — Albert Einstein
+> --- Albert Einstein
 
-```{r code-graphics-opts, echo=FALSE}
+```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
   comment = "R>", 
   warning = FALSE, 
-  message = FALSE
+  message = FALSE,
+  fig.width = 4.5,
+  fig.height = 2.625,
+  out.width = "75%",
+  fig.asp = NULL, # control via width/height
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 8)
+)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 8)
 )
 ```
 
 # Introduction
 
-Though it may have started as statistical software, R has moved far beyond its mundane origins. The language is now capable of a wide range of applications, some of which you have already seen, and some others you will see over the rest of this course. For the first half of Day 2 we are going to jump straight into data visualisation.
+Though it may have started as statistical software, R has moved far beyond its origins. The language is now capable of a wide range of applications, some of which you have already seen, and some others you will see over the rest of this course. For the second half of Day 2 we are going to jump straight into data visualisation.
 
-R has a rich library of graphics packages and functions, which allows for creation of various types of plots and graphs for visualising data in meaningful ways. Some of the interesting features of R graphics include:
+R has a diverse library of graphics packages and functions, which allows for creation of various types of plots and graphs for visualising data in meaningful ways. Some of the interesting features of R graphics include:
 
 -   **Customisability** Plots can be highly customised, from axis labels and titles to colours, markers, and themes.
 
@@ -68,15 +80,23 @@ Just to whet the appetite, below is provided a small selection of the figures th
 
 ![Current velcoties of Western Boundary Currents.](../../images/Fig01_AvisoMeanVelocityMean.png)
 
-# ggplot2
+# **ggplot2**, ggplot, and `ggplot()`
 
-R comes with basic graphing capability, known colloquially (by nerds like me) as 'Base R'. The syntax used for this method of creating graphics is often difficult to interpret as there are few human words in the code. In addition to this issue, Base R also does not allow the user enough control over the look of the final product to satisfy the demands of many publishers. This means that the figures tend not to look professional enough (but still much better than Excel). To solve both of these problems, and others, the **ggplot2** package was born. **ggplot2** is a widely used, popular graphics package in R, based on Leland Wilkinson's [The Grammar of Graphics](https://link.springer.com/book/10.1007/0-387-28695-0).
+R comes with basic graphing capability, known colloquially (by nerds like me) as base R graphics. The syntax used for this method of creating graphics is often difficult to interpret as there are few human words in the code. In addition to this issue, base R graphics also does not allow the user enough control over the look of the final product to satisfy the demands of many publishers. This means that the figures tend not to look professional enough (but still much better than Excel). To solve both of these problems, and others, the **ggplot2** package was born. **ggplot2** is a widely used, popular graphics package in R, based on Leland Wilkinson's [The Grammar of Graphics](https://link.springer.com/book/10.1007/0-387-28695-0).
 
-Although there are many advantages to using **ggplot2** over Base R, people do at times raise a few issues with the package. These are criticisms I see mentioned on the internet from time to time, but my opinion differs, and I add my own views in square brackets after each point:
+To avoid confusion, I will distinguish between three related ideas: **ggplot2** (the package), ggplot (the system for building graphics), and `ggplot()` (the function that starts a plot).
 
--   **Learning curve** The package can have a steep learning curve for beginners, as it employs a different syntax and logic compared to base R graphics. Users may need to invest time and effort to become proficient in using **ggplot2** effectively. [I think it is mainly long-time R users that hold this view. My view is that for first-time users, it may be easier to learn compared to Base R Graphics.]
+Before we dive into syntax, here are three mental models that will keep you oriented as we move through examples:
 
--   **Customisation limitations** Although **ggplot2** provides extensive customization options, there are certain cases where users might find it difficult to achieve the desired level of customization for their plots. In some instances, base R graphics or other specialised packages might offer better control over specific plot elements. [Maybe, in specialised instances only. I will think of a few such instances and put them here. But I think recent development of many add-on packages have largely eliminated many of the shortfalls people experienced early on. See for example the [various extensions](https://exts.ggplot2.tidyverse.org/gallery/) available.]
+1.  **ggplot builds plots by accumulation, not transformation.** You start with a base layer and add components.
+2.  **Aesthetics are either data-driven or constant --- never both.** If it comes from data, it belongs inside `aes()`. If it is a fixed value, it belongs outside.
+3.  **Grouping is not decoration; it is data identity.** It tells ggplot which observations belong together.
+
+Although there are many advantages to using **ggplot2** over base R graphics, people do at times raise a few issues with the package. These are criticisms I see mentioned on the internet from time to time, but my opinion differs, and I add my own views in square brackets after each point:
+
+-   **Learning curve** The package can have a steep learning curve for beginners, as it employs a different syntax and logic compared to base R graphics. Users may need to invest time and effort to become proficient in using **ggplot2** effectively. [I think it is mainly long-time R users that hold this view. My view is that for first-time users, it may be easier to learn compared to base R graphics.]
+
+-   **Customisation limitations** Although **ggplot2** provides extensive customisation options, there are certain cases where users might find it difficult to achieve the desired level of customisation for their plots. In some instances, base R graphics or other specialised packages might offer better control over specific plot elements. [Maybe, in specialised instances only. I will think of a few such instances and put them here. But I think recent development of many add-on packages have largely eliminated many of the shortfalls people experienced early on. See for example the [various extensions](https://exts.ggplot2.tidyverse.org/gallery/) available.]
 
 -   **Performance** Drawing figures made with **ggplot2** (not the coding but the computational speed) can be slower than base R graphics, especially when dealing with large datasets, producing a high number of plots. This may not be ideal for users who require fast, real-time plotting or are working with limited computational resources.
 
@@ -84,22 +104,35 @@ Although there are many advantages to using **ggplot2** over Base R, people do a
 
 -   **Less suitable for 3D plotting** It is true that **ggplot2** is primarily designed for creating 2D graphics. It is possible to create 3D plots with some workarounds, but **ggplot2** may not be the best choice for users who frequently work with 3D data visualisation. Other packages, such as **lattice**, **scatterplot3d**, or **rayshader**, may be better suited for these purposes.
 
--   **Layered approach complexity** The layered approach of **ggplot2**, while powerful and flexible, can become complex and verbose when building more intricate plots. This might lead to less readable and maintainable code in some cases. [I disagree. I personally find the code more readable, and very intuitive to understand. It is true that it can be quite verbose, that simple graphs can be quickly constructed in Base R with fewer lines of code.]
+-   **Layered approach complexity** The layered approach of **ggplot2**, while powerful and flexible, can become complex and verbose when building more intricate plots. This might lead to less readable and maintainable code in some cases. [I disagree. I personally find the code more readable, and very intuitive to understand. It is true that it can be quite verbose, that simple graphs can be quickly constructed in base R graphics with fewer lines of code.]
 
-Nevertheless, **ggplot2** remains a highly popular, versatile package for data visualisation in R. Its strengths in creating beautiful (but not always by default!), customisable, and complex graphics often outweigh its limitations. It is also less cluttered with non-nonsensical jargon terms, the vocabulary is easier to understand by mere humans---most of the package's functions are English verbs. So, let us look at the basic concepts in some detail---I will do so mostly by working through numerous examples.
+Nevertheless, **ggplot2** remains a highly popular, versatile package for data visualisation in R. Its strengths in creating beautiful (but not always by default!), customisable, and complex graphics often outweigh its limitations. It is also less cluttered with non-nonsensical jargon terms, the vocabulary is easier to understand by mere humans --- most of the package's functions are English verbs. So, let us look at the basic concepts in some detail --- I will do so mostly by working through numerous examples.
 
 ## `geom_*()`, the Pipe (`%>%` or `|>`), and the `+` Sign
-As part of the **tidyverse** (as we saw briefly on Day 1, and will go into in depth on Day 4), the **ggplot2** package endeavours to use a clean, easy for humans to understand syntax that relies heavily on functions that do what they say. For example, the function `geom_point()` makes points on a figure. Need a line plot? `geom_line()` is the way to go! Need both at the same time? No problem. In **ggplot2** we may seamlessly merge a nearly limitless number of objects together to create startlingly sophisticated figures. Before we go over the code below, it is very important to note the use of the `+` signs. This is different from the pipe symbol (`|>` or `%>%`) used elsewhere in the tidyverse. The `+` sign indicates that one set of geometric features is added to another, each building on top of what came before. In other words, we add one geometry on top of the next, and in such a way we can arrive at complex graphical representations of data. Effectively, each line of code represents one new geometric feature with its own aesthetic appearance of the figure. It is designed this way so as to make it easier for the human eye to read through the code. 
+Transition: we now move from ggplot as a system to `ggplot()` as syntax. Keep the first mental model in mind, that is, *ggplot builds plots by accumulation*. 
+
+As part of the **tidyverse** (as we saw briefly on Day 1, and will go into in depth on Day 4), the **ggplot2** package endeavours to use a clean, easy for humans to understand syntax that relies heavily on functions that do what they say. For example, the function `geom_point()` makes points on a figure. Need a line plot? `geom_line()` is the way to go! Need both at the same time? No problem. In ggplot we may seamlessly merge a nearly limitless number of objects together to create startlingly sophisticated figures.
+
+Before we go over the code below, it is very important to note the use of the `+` signs. This is different from the pipe symbol (`|>` or `%>%`) used elsewhere in the tidyverse. The `+` sign indicates that one set of geometric features is added to another, each building on top of what came before. In other words, we add one geometry on top of the next, and in such a way we can arrive at complex graphical representations of data. Effectively, each line of code represents one new geometric feature with its own aesthetic appearance of the figure. It is designed this way so as to make it easier for the human eye to read through the code. 
 
 ::: {.callout-note appearance="simple"}
 ## `+` Signs in `ggplot()` Code
 One may see below that the code naturally indents itself if the previous line ended with a `+` sign. This is because R knows that the top line is the parent line and the indented lines are its children. This is a concept that will come up again when we learn about tidying data. What we need to know now is that a block of code that has `+` signs, like the one below, must be run together. As long as lines of code end in `+`, R will assume that you want to keep adding lines of code (more geometric features). If we are not mindful of what we are doing we may tell R to do something it cannot and we will see in the console that R keeps expecting more `+` signs. If this happens, click inside the console window and press the `Esc` button to cancel the chain of code you are trying to enter.
 :::
 
-## `aes()`
-Another recurring function within the parent `ggplot()` function or the associated `geom_*()` is `aes()`. The `aes()` function in **ggplot2** is used to specify the mapping between variables in a dataframe and visual properties of a plot. `aes()` stands for 'aesthetic,' which refers to the visual elements of a plot, such as colour, size, shape, etc. In **ggplot2**, the aesthetics of a plot are defined inside the `aes()` function, which is passed as an argument to the base `ggplot()` function or its associated geometry.
+::: {.callout-note appearance="simple"}
+## Debugging ggplot Messages
+Most **ggplot2** errors and warnings point to a specific layer or aesthetic. Read them as clues about *which* layer failed and *why*. If the message mentions an unknown aesthetic or object, check spelling and whether the variable exists in your data. If it mentions a problem with a scale, check whether you accidentally mapped a constant inside `aes()` or mixed mapped and constant aesthetics across layers.
+:::
 
-For example, if you have a dataframe with two variables `x` and `y`, you can create a scatterplot of `x` against `y` by calling `ggplot(data, aes(x, y)) + geom_point()`. The `aes(x, y)` function maps the variables (columns) in the dataframe to the *x* and *y* positions of the points in the scatterplot. Similarly, we can map variables in the dataframe to aesthetic properties of the geometric features, such as colour (e.g. a colour might be more intense as the magnitude of the values in a column increase), size (larger symbols for bigger values), transparency, etc.
+## `aes()`
+Transition: we now move from **accumulation** to **aesthetic mapping**. Keep the second mental model in view: *aesthetics are data-driven or constant*. 
+
+Another recurring function within the parent `ggplot()` function or the associated `geom_*()` is `aes()`. The `aes()` function in **ggplot2** is used to specify the mapping between variables in a dataframe and visual properties of a plot. `aes()` stands for 'aesthetic,' which refers to the visual elements of a plot, such as colour, size, shape, etc. In ggplot, the aesthetics of a plot are defined inside the `aes()` function, which is passed as an argument to the base `ggplot()` function or its associated geometry.
+
+It helps to separate **positional aesthetics** from **non-positional aesthetics**. Positional aesthetics (`x`, `y`) place data in the coordinate system and always create scales. Non-positional aesthetics (`colour`, `size`, `shape`, `alpha`, `group`) change how the geometry is drawn, and they may or may not create a scale depending on whether you map them to data.
+
+For example, if you have a dataframe with two variables `x` and `y`, you can create a scatterplot of `x` against `y` by calling `ggplot(data, aes(x, y)) + geom_point()`. The `aes(x, y)` function maps the variables (columns) in the dataframe to the *x* and *y* positions of the points in the scatterplot. Similarly, we can map variables in the dataframe to non-positional aesthetics, such as colour (*e.g.*, a colour might be more intense as the magnitude of the values in a column increase), size (larger symbols for bigger values), transparency, or grouping.
 
 # The `ChickWeight` Dataset
 
@@ -138,7 +171,7 @@ Use ‘data(package = .packages(all.available = TRUE))’
 to list the data sets in all *available* packages.
 ```
 
-A particular dataset can be loaded as follow:
+A particular dataset can be loaded as follows:
 
 ```{r code-data-acacia-package-ade4}
 #| eval: false
@@ -146,7 +179,9 @@ data(acacia, package = "ade4") # the package name is listed also in the data() d
 ```
 :::
 
-The `ChickWeight` dataset can be seen in the list above. We will load and use it now.
+The `ChickWeight` dataset can be seen in the list above. Before plotting any dataset, take a quick look at its structure so you know what variables you have and how they are stored. A fast way to do this is `glimpse(ChickWeight)`.
+
+We will load and use it now.
 
 ```{r fig-basic-1, message=FALSE}
 # Load libraries
@@ -161,15 +196,25 @@ ggplot(data = ChickWeight, aes(x = Time, y = weight)) +
   geom_line(aes(group = Chick))
 ```
 
-So what is that code doing? We may see from the figure that it is creating a little black dot for every data point, with the `Time` of sampling on the *x* axis, and the `weight` of the chicken during that time on the *y* axis. It then connects the dots for each chicken in the dataset. Let us break this code down line for line to get a better idea of what it is doing.
+## How to Read This Code
+
+Read the plot like a sentence with grammar: **subject → verb → modifiers**. The subject is the data (`ChickWeight`), the verb is the geometric action (`geom_point()` or `geom_line()`), and the modifiers are the aesthetic mappings (`aes(...)`) that tell ggplot *how* to draw. The `ggplot(...)` line sets the stage (data + core mappings), and each `geom_*()` line adds a new clause. The `+` sign means “and then add another clause.”
+
+So what is that code doing? We may see from the figure that it is creating a little black dot for every data point, with the `Time` of sampling on the *x* axis, and the `weight` of the chicken during that time on the *y* axis. It then connects the dots for each chicken in the dataset. Let us break this code down line for line to get a better idea of what it is doing. 
+
+As a workflow, it is perfectly normal to build plots incrementally: start with a minimal plot, confirm the axes are correct, then add layers one at a time. Partial plots are not failures; they are thinking tools.
 
 The first line of code is telling R that we want to create a ggplot figure. We know this because we are using the `ggplot()` function. Inside of that function we are telling R which dataframe (or tibble) we want to create a figure from. Lastly, with the `aes()` function we tell R what the necessary parts of the figure will be. This is also known as 'mapping' (variables map to the visual appearance and arrangement of figure elements).
 
-The second line of code then takes all of that information and makes points (dots) out of it, added as a layer on the set of axes created by the `aes()` argument provided within `ggplot(...)`---in other words, we add a 'geometry' layer, and hence the name of the kind of 'shape' we want to plot the data as is prefixed by `geom_`.
+The second line of code then takes all of that information and makes points (dots) out of it, added as a layer on the set of axes created by the `aes()` argument provided within `ggplot(...)` --- in other words, we add a 'geometry' layer, and hence the name of the kind of 'shape' we want to plot the data as is prefixed by `geom_`.
 
-The third line takes the same information and creates lines from it---it adds yet another layer on top of the pre-existing one. Notice in the third line that we have provided another mapping argument by telling R to group the data by `Chick`. This is how R knows to draw an individual line for each chicken, and not just one big messy jagged line. Try running this code without the group argument for `geom_line()` and see what happens.
+The third line takes the same information and creates lines from it --- it adds yet another layer on top of the pre-existing one. Notice in the third line that we have provided another mapping argument by telling R to group the data by `Chick`. This is the third mental model: grouping is a statement about data identity, not decoration. It tells ggplot which observations belong together, so it draws an individual line for each chicken rather than one big jagged line.
 
-This figure does not look like much yet. We saw some examples above that show how sophisticated figures may become. This is a remarkably straight forward task. But do not take my word for it, let us see for ourselves. By adding one more aesthetic to the code above we will now show each `Diet` as a different colour.
+If you remove `group = Chick`, ggplot defaults to a single group for the whole dataset. That default makes ggplot connect points in the order they appear in the data frame, which produces the jagged line that jumps across different chicks. The problem is not “a bad line,” it is a missing identity rule for the data.
+
+Try running this code without the group argument for `geom_line()` and see what happens.
+
+This figure does not look like much yet. We saw some examples above that show how sophisticated figures may become. This is a remarkably straightforward task. But do not take my word for it, let us see for ourselves. By adding one more aesthetic to the code above we will now show each `Diet` as a different colour.
 
 ```{r fig-basic-3}
 ggplot(data = ChickWeight, aes(x = Time, y = weight, colour = Diet)) +
@@ -189,7 +234,11 @@ How is a linear model calculated? What patterns do we see in the data now? If yo
 
 # To `aes()` or Not to `aes()`, That Is the Question
 
+Transition: we now move from **mapping** to **setting**, which explains why legends appear (or disappear). Keep the second mental model in view.
+
 The astute eye will have noticed by now that most arguments we have added to the code have been inside of the `aes()` function. So what exactly is that `aes()` function doing sitting inside of the other functions? The reason for the `aes()` function is that it controls the look of the other functions dynamically based on the variables you provide it. If we want to change the look of the plot by some static value we would do this by passing the argument for that variable to the geom of our choosing _outside_ of the `aes()` function. Let us see what this looks like by changing the colour of the dots.
+
+Why does ggplot need this distinction at all? Because it builds a **mapping object** before it draws anything. That mapping object tells ggplot which variables drive scales, legends, and warnings. Mapped aesthetics (inside `aes()`) are treated as data-driven and get scales and legends; constant aesthetics (outside `aes()`) are treated as fixed settings and do not.
 
 ```{r fig-basic-6}
 ggplot(data = ChickWeight, aes(x = Time, y = weight)) +
@@ -198,6 +247,13 @@ ggplot(data = ChickWeight, aes(x = Time, y = weight)) +
 ```
 
 Why are the points blue, but the lines are salmon with a legend that says they are 'blue'? We may see that in the line responsible for the points (`geom_point()`) we did not put the colour argument inside of the `aes()` function, but for the lines (`geom_line()`) we did. If we know that we want some aspect of our figure to be a static value we set this value outside of the `aes()` function. If we want some aspect of our figure to reflect some part of the data in our dataframe, we must set that inside of `aes()`. Let us see an example where we set the size of the dots to equal the weight of the chicken and the thickness of the linear model lines to one static value.
+
+::: callout-warning
+## Pitfalls to Watch For
+-   Mixing mapped and constant aesthetics of the same type across layers (*e.g.*, mapping `colour` in one layer and setting `colour = "blue"` in another) often creates duplicated legends, literal labels, or confusing warnings.
+-   If a legend appears unexpectedly, check whether you accidentally mapped a constant value inside `aes()` (*e.g.*, `aes(colour = "blue")`).
+-   If a legend is missing, check whether you set the aesthetic outside `aes()` when you meant to map it to data.
+:::
 
 ```{r fig-basic-8}
 ggplot(data = ChickWeight, aes(x = Time, y = weight, colour = Diet)) +
@@ -209,7 +265,13 @@ Notice that we have set the size of the points and the lines, but one is within 
 
 # Changing Labels
 
-When we use **ggplot2** we have control over every minute aspect of our figures if we so wish. What we want to do next is put the legend on the bottom of our figure with a horizontal orientation and change the axis labels so that they show the units of measurement. To change the labels we will need the `labs()` function. To change the position of the legend we need the `theme()` function as it is within this function that all of the little tweaks are performed. This is best placed at the end of your block of **ggplot2** code.
+Transition: we now move from **mapping vs setting** to **labels and legends**. Labels are set explicitly; legend titles follow the aesthetics you mapped.
+
+When we use **ggplot2** we have control over every minute aspect of our figures if we so wish. The point of that control is not decoration, but communication. A simple heuristic is: **reduce cognitive friction, make units explicit, and align legend semantics with the mapped variable**. Labels and themes operationalise that heuristic. Clear axis labels remove guesswork, and thoughtful legend placement reduces the effort required to scan the figure.
+
+`labs()` changes text that clarifies meaning (axis labels, legend titles, captions). `theme()` controls layout and emphasis (*e.g.*, legend position, text size). When you need to change how data values are converted into visual properties, you will use scale functions such as `scale_colour_*()` or `scale_size_*()`. These are the bridge between aesthetics and interpretation, and we will return to them later.
+
+What we want to do next is put the legend on the bottom of our figure with a horizontal orientation and change the axis labels so that they show the units of measurement. To change the labels we will need the `labs()` function. To change the position of the legend we need the `theme()` function as it is within this function that all of the little tweaks are performed. This is best placed at the end of your block of **ggplot2** code.
 
 ```{r fig-basic-4}
 ggplot(data = ChickWeight, aes(x = Time, y = weight, colour = Diet)) +

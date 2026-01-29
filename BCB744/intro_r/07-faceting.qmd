@@ -7,21 +7,43 @@ title: "7. Faceting Figures"
 
 > "*But let the mind beware, that though the flesh be bugged, the circumstances of existence are pretty glorious.*"
 >
-> — Kurt Vonnegut, Player Piano
+> --- Kurt Vonnegut, Player Piano
   
 > "*You miss 100% of the shots you do not take.*"
 >
-> — Wayne Gretzky
+> --- Wayne Gretzky
 
-```{r code-faceting-opts, echo=FALSE}
+```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
   comment = "R>", 
   warning = FALSE, 
-  message = FALSE
+  message = FALSE,
+  fig.width = 4.5,
+  fig.height = 2.625,
+  out.width = "75%",
+  fig.asp = NULL, # control via width/height
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 8)
+)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 8)
 )
 ```
 
-So far we have only looked at single panel figures. But as you may have guessed by now, **ggplot2** is capable of creating any sort of data visualisation that a human mind could conceive. This may seem like a grandiose assertion, but we will see if we cannot convince you of it by the end of this course. For now however, let us just take our understanding of the usability of **ggplot2** two steps further by first learning how to facet a single figure, and then stitch different types of figures together into a grid. In order to aid us in this process we will make use of an additional package, **ggpubr**. The purpose of this package is to provide a bevy of additional tools that researchers commonly make use of in order to produce publication quality figures. Note that `library(ggpubr)` will not work on your computer if you have not yet installed the package.
+So far we have only looked at single panel figures. But as you may have guessed by now, **ggplot2** is capable of creating any sort of data visualisation that a human mind could conceive. This may seem like a grandiose assertion, but we will see if we cannot convince you of it by the end of this course. For now however, let us just take our understanding of the usability of **ggplot2** two steps further by first learning how to facet a single figure, and then stitch different types of figures together into a grid. In order to aid us in this process we will make use of an additional package, **ggpubr**. The purpose of this package is to provide a bevy of additional tools that researchers commonly make use of in order to produce publication-quality figures. Note that `library(ggpubr)` will not work on your computer if you have not yet installed the package.
+
+# When to Facet, Overlay, or Grid
+
+Before we write code, we need a simple decision rule:
+
+-   **Facet** when you want to compare subgroups within the same coordinate system and scales (*e.g.*, Diet A vs Diet B).
+-   **Overlay** when the comparisons are most meaningful in a single panel (*e.g.*, two groups sharing one trend line).
+-   **Grid** when you want to compare different summaries or perspectives side-by-side (*e.g.*, time series, histogram, and boxplot together).
+
+If you need shared scales and legends across panels, plan the composition early. It is easier to align meaning first and code second.
 
 ```{r code-facet-load}
 # Load libraries
@@ -31,9 +53,22 @@ library(ggpubr)
 
 # Faceting One Figure
 
-Faceting a single figure is built into **ggplot2** from the ground up and will work with virtually anything that could be passed to the `aes()` function. Here we see how to create an individual facet for each `Diet` within the `ChickWeight` dataset.
+Faceting a single figure is built into **ggplot2** from the ground up and will work with virtually anything that could be passed to the `aes()` function. The key idea is that faceting **splits the data into panels before any geometry or statistics are calculated**. This means each panel gets its own model fit, summary, or smoothing line, based only on the subset of data in that panel.
 
-```{r fig-facet-1, fig.cap="Simple faceted figure showing a linear model applied to each diet."}
+Here we see how to create an individual facet for each `Diet` within the `ChickWeight` dataset.
+
+::: {.callout-note appearance="simple"}
+## `facet_wrap()` vs `facet_grid()`
+Use `facet_wrap()` when you have one faceting variable (one-dimensional). Use `facet_grid()` when you want a two-dimensional layout across rows and columns (*e.g.*, `facet_grid(sex ~ diet)`).
+:::
+
+::: {.callout-warning appearance="simple"}
+## Shared Scales
+By default, facets **share scales**. This is often desirable for comparison, but it can mislead if one group is much larger or smaller than the others. If needed, allow free scales with `scales = "free"` so each panel can use its own axis ranges.
+:::
+
+```{r fig-facet-1}
+#| fig.cap: "Simple faceted figure showing a linear model applied to each diet."
 # Load data
 ChickWeight <- datasets::ChickWeight
 
@@ -47,7 +82,14 @@ ggplot(data = ChickWeight, aes(x = Time, y = weight, colour = Diet)) +
 
 # New Figure Types
 
-Before we can create a gridded figure of several smaller figures, we need to learn how to create a few new types of figures first. The code for these different types is shown below. Some of the figure types we will learn how to use now do not work well with the full `ChickWeight` dataset. Rather we will want only the weights from the final day of collection. To filter only these data we will need to use a bit of the 'tidy' code we saw on Day 1.
+This section takes the current ideas forward:
+
+1.  **Designing individual plots as reusable objects** so they can be combined later.
+2.  **Choosing plot types that match specific questions**, which sometimes requires filtering or reshaping the data.
+
+Before we can create a gridded figure of several smaller figures, we need to learn how to create a few new types of figures first. The code for these different types is shown below. Notice that we **assign each plot to an object** (*e.g.*, `line_1`, `histogram_1`). This is the standard workflow for composing multi-panel figures.
+
+Some plot types are best suited to specific questions. For example, if you want to compare **final weights by diet**, it makes sense to filter to the final day. That is why we create a filtered dataset for the histogram and boxplot.
 
 ```{r code-facet-tidy}
 ChickLast <- ChickWeight %>% 
@@ -56,7 +98,8 @@ ChickLast <- ChickWeight %>%
 
 ## Line Graph
 
-```{r fig-facet-line, fig.cap="Line graph for the progression of chicken weights (g) over time (days) based on four different diets."}
+```{r fig-facet-line}
+#| fig.cap: "Line graph for the progression of chicken weights (g) over time (days) based on four different diets."
 line_1 <- ggplot(data = ChickWeight, aes(x = Time, y = weight, colour = Diet)) +
   geom_point() +
   geom_line(aes(group = Chick)) +
@@ -65,9 +108,15 @@ line_1 <- ggplot(data = ChickWeight, aes(x = Time, y = weight, colour = Diet)) +
 line_1
 ```
 
+::: {.callout-note appearance="simple"}
+## Faceting vs Grouping
+Grouping (`group = Chick`) keeps all data in one panel and tells **ggplot2** which observations belong together for a geometry. Faceting (`facet_wrap(~Diet)`) splits the data into multiple panels before drawing anything. Use grouping when the comparison is clearest in a single coordinate system. Use faceting when each subgroup deserves its own panel, and you want direct visual comparison across panels.
+:::
+
 ## Smooth (GAM) Model
 
-```{r fig-facet-lm, fig.cap="Linear models for the progression of chicken weights (g) over time (days) based on four different diets."}
+```{r fig-facet-lm}
+#| fig.cap: "GAM smooths for the progression of chicken weights (g) over time (days) based on four different diets."
 lm_1 <- ggplot(data = ChickWeight, aes(x = Time, y = weight, colour = Diet)) +
   geom_point() +
   geom_smooth(method = "gam") +
@@ -78,7 +127,9 @@ lm_1
 
 ## Histogram
 
-```{r fig-facet-hist, message=FALSE, fig.cap="Histogram showing final chicken weights (g) by diet."}
+```{r fig-facet-hist}
+#| message: false
+#| fig.cap: "Histogram showing final chicken weights (g) by diet."
 # Note that we are using 'ChickLast', not 'ChickWeight'
 histogram_1 <- ggplot(data = ChickLast, aes(x = weight)) +
   geom_histogram(aes(fill = Diet), position = "dodge", binwidth = 100) +
@@ -89,7 +140,8 @@ histogram_1
 
 ## Boxplot
 
-```{r fig-facet-box, fig.cap="Violin plot showing the distribution of final chicken weights (g) by diet."}
+```{r fig-facet-box}
+#| fig.cap: "Violin plot showing the distribution of final chicken weights (g) by diet."
 # Note that we are using 'ChickLast', not 'ChickWeight'
 box_1 <- ggplot(data = ChickLast, aes(x = Diet, y = weight)) +
   geom_boxplot(aes(fill = Diet)) +
@@ -100,20 +152,41 @@ box_1
 
 # Gridding Figures
 
-With these four different figures created we may now look at how to combine them. By visualising the data in different ways they are able to tell us different parts of the same story. What do we see from the figures below that we may not have seen when looking at each figure individually?
+With these four different figures created we may now look at how to combine them. By visualising the data in different ways they are able to tell us different parts of the same story. For example, the line plot shows individual growth trajectories, the GAM emphasises overall trends, and the histogram and boxplot summarise final weights and their spread. These are different views of the same data, and together they reduce interpretive blind spots.
 
-```{r fig-facet-grid, warning=FALSE, message=FALSE, fig.cap="All four of our figures gridded together with an automagically created common legend."}
+**Composition is an analytic decision**: grid plots that answer complementary questions, not just those that look good side-by-side.
+
+```{r fig-facet-grid}
+#| warning: false
+#| message: false
+#| fig.cap: "All four of our figures gridded together with an automagically created common legend."
 ggarrange(line_1, lm_1, histogram_1, box_1, 
           ncol = 2, nrow = 2, # Set number of rows and columns
           labels = c("A", "B", "C", "D"), # Label each figure
           common.legend = TRUE) # Create common legend
 ```
 
-The above figure looks great, so let us save a copy of it as a PDF to our computer. In order to do so we will need to assign our figure to an object, then use the`ggsave()` function on that object.
+::: {.callout-note appearance="simple"}
+## Legend Logic
+`common.legend = TRUE` works when plots map the **same aesthetic to the same variable** (*e.g.*, `colour = Diet`). If legends duplicate or disappear, check whether each plot uses consistent mappings and scales.
+:::
 
-```{r code-facet-save, eval=FALSE}
+::: {.callout-warning appearance="simple"}
+## Alignment and Scale Mismatches
+Gridded plots can mislead if themes, factor levels, or scales differ between panels. If plots do not align or legends look odd, check that factor levels match and consider using a shared theme.
+:::
+
+::: {.callout-note appearance="simple"}
+## Why **ggpubr**?
+We use **ggpubr** because it provides a straightforward `ggarrange()` function. Other tools exist (*e.g.*, **patchwork**), so think of this as a choice within the ecosystem, not the only path.
+:::
+
+The above figure looks great, so let us save a copy of it as a PDF to our computer. In order to do so we will need to assign our figure to an object, then use the `ggsave()` function on that object.
+
+```{r code-facet-save}
+#| eval: false
 # First we must assign the code to an object name
-grid_1 <- ggarrange(lm_1, histogram_1, density_1, violin_1, 
+grid_1 <- ggarrange(line_1, lm_1, histogram_1, box_1, 
                     ncol = 2, nrow = 2, 
                     labels = c("A", "B", "C", "D"),
                     common.legend = TRUE)
@@ -122,10 +195,15 @@ grid_1 <- ggarrange(lm_1, histogram_1, density_1, violin_1,
 ggsave(plot = grid_1, filename = "figures/grid_1.pdf")
 ```
 
+When saving figures, remember that **size and resolution matter**. `ggsave()` will inherit the size of the last plot unless you specify `width`, `height`, and `units`. If you are exporting for print or assessment, add `dpi = 300` (or higher). Also note that the path `figures/grid_1.pdf` is relative to your project root — make sure that folder exists.
+
+::: {.callout-note appearance="simple"}
+## Debugging Composition
+If `ggarrange()` fails or legends duplicate, start by printing each plot object on its own. Check that all plots use the same aesthetic mappings and that factor levels are aligned. If something looks wrong in the grid but fine alone, the issue is usually a mismatched scale or theme.
+:::
 :::{.callout-important}
 ## Do This Now
 Create four new graphical data summaries that we have not seen before and create a faceted layout with the `ggarrange()` function  as we have seen in the example provided in this chapter.
 
 Make sure the above assignment is included within a Quarto file rendered to .html. Include some textual information to inform the reader of the intent of the plots and what patterns are visible.
 :::
-
