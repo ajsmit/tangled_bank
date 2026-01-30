@@ -68,7 +68,7 @@ library(rnaturalearthhires)
 
 # Load the Natural Earth Map
 
-The **rnaturalearth** package has the `ne_countries()` function which we use to load borders of all the countries in the world. I load the medium resolution dataset and make sure the data are of class **sf**, i.e. a *simple features collection*.
+The **rnaturalearth** package has the `ne_countries()` function which we use to load borders of all the countries in the world. I load the medium resolution dataset and make sure the data are of class **sf**, *i.e.* a *simple features collection*.
 
 ::: {.callout-note appearance="simple"}
 ## I'm assuming (but should probably tell you)
@@ -121,6 +121,7 @@ More information about the map data is available with the `head(world)` function
 A very quick map looks like this:
 
 ```{r fig-ggplot}
+#| fig-cap: "World map in WGS84 using Natural Earth countries."
 #| eval: true
 ggplot() +
   geom_sf(data = world, colour = "black", fill = "grey70")
@@ -130,6 +131,7 @@ You can see above that Africa is centrally positioned. However, I want to focus 
 ](https://epsg.io/53077), the Natural Earth projection) to it. The "rotation" is accomplished by setting `lon_0=170` in the proj-string.
 
 ```{r fig-ne-proj-proj-natearth-lon-0}
+#| fig-cap: "Natural Earth projection centred on 170E showing anti-meridian artefacts."
 #| eval: true
 NE_proj <- "+proj=natearth +lon_0=170 "
 
@@ -151,6 +153,7 @@ To separate the ideas:
 This is why we must fix topology *before* projection. I can fix it using `st_break_antimeridian()`, but to do so I must start with unprojected data, and only *then* apply this function.
 
 ```{r fig-world-1-ne-countries-returnclass-sf}
+#| fig-cap: "Natural Earth projection after anti-meridian repair."
 #| eval: true
 #| warning: false
 world_1 <- ne_countries(returnclass = 'sf',
@@ -187,9 +190,10 @@ Here is the quick decision logic:
 
 # Selecting Areas of Interest
 
-I am interested only in the "continent" called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region, not a continent. It is comprised of Australasia and Melanesia, Micronesia, and Polynesia which span the Eastern and Western Hemispheres.
+I am interested only in the "continent" called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it is a geographical region, not a continent. It is comprised of Australasia and Melanesia, Micronesia, and Polynesia which span the Eastern and Western Hemispheres.
 
 ```{r fig-oceania-world-1-world-1-continent}
+#| fig-cap: "Oceania subset from the repaired world map."
 #| eval: true
 oceania <- world_1[world_1$continent == 'Oceania',]
 ggplot() +
@@ -210,6 +214,7 @@ This region + dissolve workflow is *advanced*. You do not need to memorise it. L
 :::
 
 ```{r fig-library-countrycode}
+#| fig-cap: "Southwest Pacific regions dissolved using UN classifications."
 #| eval: true
 #| warning: false
 library(countrycode)
@@ -240,6 +245,7 @@ Important! The coordinates in the `quakes` data are provided in WGS84, so I need
 Why this is a good habit: a data-derived bounding box keeps your map **honest**. It is reproducible, it adapts if the data change, and it prevents you from "hand-drawing" an extent that hides inconvenient points.
 
 ```{r fig-quakes-as-tibble-datasets-quakes}
+#| fig-cap: "Data-derived bounding box used to crop the Southwest Pacific map."
 #| eval: true
 #| echo: true
 #| warning: false
@@ -270,6 +276,7 @@ The third approach to get closer to the region of interest is to use the full ma
 To do this, I start with the `bbox_sf_trans` object, which was obtained by first specifying the coordinates marking the extent of the map in the WGS84 coordinate system, then transforming them to Natural Earth. We can extract the transformed limits with`st_coordinates()` and supply them to the map.
 
 ```{r fig-bbox-trans-coord-st-coordinates-bbox-trans}
+#| fig-cap: "World map windowed by transformed bounding box coordinates."
 #| eval: true
 bbox_trans_coord <- st_coordinates(bbox_trans)
 
@@ -287,6 +294,7 @@ Great! This works well. Note that the coordinates on the graticule are in degree
 :::
 
 ```{r fig-ggplot-2}
+#| fig-cap: "Natural Earth map with projected graticule via coord_sf."
 #| eval: true
 ggplot() +
   geom_sf(data = world_1, colour = "black", fill = "grey70") +
@@ -335,6 +343,7 @@ Stylistic choices (these are not defaults):
 - **The size legend is suppressed** to avoid repeating the same information twice.
 
 ```{r fig-ggplot-3}
+#| fig-cap: "Fiji region with earthquake points sized and coloured by magnitude."
 #| eval: true
 #| echo: true
 ggplot() +
@@ -359,6 +368,7 @@ Why this is a *better* choice here:
 - **It matches the question** (regional patterns in the SW Pacific), not just global aesthetics.
 
 ```{r fig-niwa-albers-proj-proj-aea-lat-0}
+#| fig-cap: "Fiji region in NIWA Albers projection with earthquake magnitudes."
 #| eval: true
 #| echo: true
 #| fig-width: 12
