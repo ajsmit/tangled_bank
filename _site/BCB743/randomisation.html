@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.26">
+<meta name="generator" content="quarto-1.8.27">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -76,7 +76,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-597958c53c93a607afca12fd375c57ed.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-37d9842ca13b32c9c58adfc4ed5d9451.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -879,41 +879,61 @@ Smit, A. J. (2025) Randomisation of Rows in a Data Frame. <a href="http://tangle
 <span id="cb2-5"><a href="#cb2-5"></a><span class="co">  html: default</span></span>
 <span id="cb2-6"><a href="#cb2-6"></a><span class="co">---</span></span>
 <span id="cb2-7"><a href="#cb2-7"></a></span>
-<span id="cb2-8"><a href="#cb2-8"></a>Randomising the order of observations is effectively a permutation of the data.frame's (row) index vector. Because R stores a data.frame as a list of equal-length vectors, shuffling the rows amounts to reordering each vector simultaneously according to a single, randomly drawn permutation. </span>
-<span id="cb2-9"><a href="#cb2-9"></a></span>
-<span id="cb2-10"><a href="#cb2-10"></a><span class="fu">## Base-R</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a></span>
-<span id="cb2-12"><a href="#cb2-12"></a><span class="in">```{r code-set-seed, eval=FALSE}</span></span>
-<span id="cb2-13"><a href="#cb2-13"></a><span class="fu">set.seed</span>(<span class="dv">42</span>) <span class="co"># &lt;1&gt; </span></span>
-<span id="cb2-14"><a href="#cb2-14"></a>df_perm <span class="ot">&lt;-</span> df[<span class="fu">sample</span>(<span class="fu">nrow</span>(df)), ] <span class="co"># &lt;2&gt;</span></span>
-<span id="cb2-15"><a href="#cb2-15"></a><span class="fu">row.names</span>(df_perm) <span class="ot">&lt;-</span> <span class="cn">NULL</span> <span class="co"># &lt;3&gt;</span></span>
-<span id="cb2-16"><a href="#cb2-16"></a><span class="in">```</span></span>
-<span id="cb2-17"><a href="#cb2-17"></a><span class="ss">1. </span>Fix the RNG for reproducibility when needed</span>
-<span id="cb2-18"><a href="#cb2-18"></a><span class="ss">2. </span><span class="in">`sample()`</span> without the <span class="in">`replace`</span> argument returns a permutation</span>
-<span id="cb2-19"><a href="#cb2-19"></a><span class="ss">3. </span>(Optional) drop the original row indices</span>
-<span id="cb2-20"><a href="#cb2-20"></a></span>
-<span id="cb2-21"><a href="#cb2-21"></a><span class="in">`sample(nrow(df))`</span> results in a vector <span class="in">`1:n`</span> rearranged into a fresh random order, so subsetting the data.frame with that vector coerces every column to follow suit. The row names stay attached unless one removes them.</span>
-<span id="cb2-22"><a href="#cb2-22"></a></span>
-<span id="cb2-23"><a href="#cb2-23"></a><span class="fu">## Tidyverse</span></span>
-<span id="cb2-24"><a href="#cb2-24"></a></span>
-<span id="cb2-25"><a href="#cb2-25"></a><span class="in">```{r code-library-dplyr, eval=FALSE}</span></span>
-<span id="cb2-26"><a href="#cb2-26"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb2-8"><a href="#cb2-8"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb2-10"><a href="#cb2-10"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>, </span>
+<span id="cb2-11"><a href="#cb2-11"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb2-12"><a href="#cb2-12"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb2-13"><a href="#cb2-13"></a>  <span class="at">fig.width =</span> <span class="fl">4.5</span>,</span>
+<span id="cb2-14"><a href="#cb2-14"></a>  <span class="at">fig.height =</span> <span class="fl">2.625</span>,</span>
+<span id="cb2-15"><a href="#cb2-15"></a>  <span class="at">out.width =</span> <span class="st">"75%"</span>,</span>
+<span id="cb2-16"><a href="#cb2-16"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>, <span class="co"># control via width/height</span></span>
+<span id="cb2-17"><a href="#cb2-17"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb2-18"><a href="#cb2-18"></a>)</span>
+<span id="cb2-19"><a href="#cb2-19"></a></span>
+<span id="cb2-20"><a href="#cb2-20"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb2-21"><a href="#cb2-21"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb2-22"><a href="#cb2-22"></a>)</span>
+<span id="cb2-23"><a href="#cb2-23"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb2-24"><a href="#cb2-24"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb2-25"><a href="#cb2-25"></a>)</span>
+<span id="cb2-26"><a href="#cb2-26"></a><span class="in">```</span></span>
 <span id="cb2-27"><a href="#cb2-27"></a></span>
-<span id="cb2-28"><a href="#cb2-28"></a>df_perm <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
-<span id="cb2-29"><a href="#cb2-29"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="fu">nrow</span>(.))</span>
-<span id="cb2-30"><a href="#cb2-30"></a></span>
-<span id="cb2-31"><a href="#cb2-31"></a><span class="co"># or, predating slice_sample():</span></span>
-<span id="cb2-32"><a href="#cb2-32"></a>df_perm <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
-<span id="cb2-33"><a href="#cb2-33"></a>  <span class="fu">sample_frac</span>(<span class="dv">1</span>)</span>
-<span id="cb2-34"><a href="#cb2-34"></a><span class="in">```</span></span>
-<span id="cb2-35"><a href="#cb2-35"></a></span>
-<span id="cb2-36"><a href="#cb2-36"></a><span class="in">`slice_sample()`</span> accepts an optional <span class="in">`weight_by`</span> argument, permitting unequal permutation weights should the null hypothesis require them. By contrast, <span class="in">`sample_frac(1)`</span> asks to “take a 100 % sample”, and, being fraction-based, it sidesteps the need to compute <span class="in">`nrow(df)`</span>.</span>
-<span id="cb2-37"><a href="#cb2-37"></a></span>
-<span id="cb2-38"><a href="#cb2-38"></a><span class="fu">## Statistical Context</span></span>
-<span id="cb2-39"><a href="#cb2-39"></a></span>
-<span id="cb2-40"><a href="#cb2-40"></a>Within permutation-based inference, randomising rows removes any systematic linkage between predictor and response variables but it conserves the empirical marginal distributions. Recomputing a test statistic over many such reshufflings results in distributions that approximate the data's sampling distribution under the null hypothesis of no association. One call to <span class="in">`sample()`</span> is sufficient to create one permutation. By placing that call inside <span class="in">`replicate()`</span> or <span class="in">`purrr::rerun()`</span> supplies the Monte-Carlo ensemble.</span>
-<span id="cb2-41"><a href="#cb2-41"></a></span>
-<span id="cb2-42"><a href="#cb2-42"></a>Randomisation of rows presupposes exchangeability. If one's data carry temporal, spatial, or hierarchical strata, a naïve global shuffle may void the null model’s statistical validity. In such cases one would confine <span class="in">`sample()`</span> to blocks delineated by the relevant grouping variable, for example via <span class="in">`dplyr::group_modify(~ .x[sample(nrow(.x)), ])`</span>, and so restrict permutations to contextually relevant partitions.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb2-28"><a href="#cb2-28"></a>Randomising the order of observations is effectively a permutation of the data.frame's (row) index vector. Because R stores a data.frame as a list of equal-length vectors, shuffling the rows amounts to reordering each vector simultaneously according to a single, randomly drawn permutation. </span>
+<span id="cb2-29"><a href="#cb2-29"></a></span>
+<span id="cb2-30"><a href="#cb2-30"></a><span class="fu">## Base-R</span></span>
+<span id="cb2-31"><a href="#cb2-31"></a></span>
+<span id="cb2-32"><a href="#cb2-32"></a><span class="in">```{r code-set-seed, eval=FALSE}</span></span>
+<span id="cb2-33"><a href="#cb2-33"></a><span class="fu">set.seed</span>(<span class="dv">42</span>) <span class="co"># &lt;1&gt; </span></span>
+<span id="cb2-34"><a href="#cb2-34"></a>df_perm <span class="ot">&lt;-</span> df[<span class="fu">sample</span>(<span class="fu">nrow</span>(df)), ] <span class="co"># &lt;2&gt;</span></span>
+<span id="cb2-35"><a href="#cb2-35"></a><span class="fu">row.names</span>(df_perm) <span class="ot">&lt;-</span> <span class="cn">NULL</span> <span class="co"># &lt;3&gt;</span></span>
+<span id="cb2-36"><a href="#cb2-36"></a><span class="in">```</span></span>
+<span id="cb2-37"><a href="#cb2-37"></a><span class="ss">1. </span>Fix the RNG for reproducibility when needed</span>
+<span id="cb2-38"><a href="#cb2-38"></a><span class="ss">2. </span><span class="in">`sample()`</span> without the <span class="in">`replace`</span> argument returns a permutation</span>
+<span id="cb2-39"><a href="#cb2-39"></a><span class="ss">3. </span>(Optional) drop the original row indices</span>
+<span id="cb2-40"><a href="#cb2-40"></a></span>
+<span id="cb2-41"><a href="#cb2-41"></a><span class="in">`sample(nrow(df))`</span> results in a vector <span class="in">`1:n`</span> rearranged into a fresh random order, so subsetting the data.frame with that vector coerces every column to follow suit. The row names stay attached unless one removes them.</span>
+<span id="cb2-42"><a href="#cb2-42"></a></span>
+<span id="cb2-43"><a href="#cb2-43"></a><span class="fu">## Tidyverse</span></span>
+<span id="cb2-44"><a href="#cb2-44"></a></span>
+<span id="cb2-45"><a href="#cb2-45"></a><span class="in">```{r code-library-dplyr, eval=FALSE}</span></span>
+<span id="cb2-46"><a href="#cb2-46"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb2-47"><a href="#cb2-47"></a></span>
+<span id="cb2-48"><a href="#cb2-48"></a>df_perm <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
+<span id="cb2-49"><a href="#cb2-49"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="fu">nrow</span>(.))</span>
+<span id="cb2-50"><a href="#cb2-50"></a></span>
+<span id="cb2-51"><a href="#cb2-51"></a><span class="co"># or, predating slice_sample():</span></span>
+<span id="cb2-52"><a href="#cb2-52"></a>df_perm <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
+<span id="cb2-53"><a href="#cb2-53"></a>  <span class="fu">sample_frac</span>(<span class="dv">1</span>)</span>
+<span id="cb2-54"><a href="#cb2-54"></a><span class="in">```</span></span>
+<span id="cb2-55"><a href="#cb2-55"></a></span>
+<span id="cb2-56"><a href="#cb2-56"></a><span class="in">`slice_sample()`</span> accepts an optional <span class="in">`weight_by`</span> argument, permitting unequal permutation weights should the null hypothesis require them. By contrast, <span class="in">`sample_frac(1)`</span> asks to “take a 100 % sample”, and, being fraction-based, it sidesteps the need to compute <span class="in">`nrow(df)`</span>.</span>
+<span id="cb2-57"><a href="#cb2-57"></a></span>
+<span id="cb2-58"><a href="#cb2-58"></a><span class="fu">## Statistical Context</span></span>
+<span id="cb2-59"><a href="#cb2-59"></a></span>
+<span id="cb2-60"><a href="#cb2-60"></a>Within permutation-based inference, randomising rows removes any systematic linkage between predictor and response variables but it conserves the empirical marginal distributions. Recomputing a test statistic over many such reshufflings results in distributions that approximate the data's sampling distribution under the null hypothesis of no association. One call to <span class="in">`sample()`</span> is sufficient to create one permutation. By placing that call inside <span class="in">`replicate()`</span> or <span class="in">`purrr::rerun()`</span> supplies the Monte-Carlo ensemble.</span>
+<span id="cb2-61"><a href="#cb2-61"></a></span>
+<span id="cb2-62"><a href="#cb2-62"></a>Randomisation of rows presupposes exchangeability. If one's data carry temporal, spatial, or hierarchical strata, a naïve global shuffle may void the null model’s statistical validity. In such cases one would confine <span class="in">`sample()`</span> to blocks delineated by the relevant grouping variable, for example via <span class="in">`dplyr::group_modify(~ .x[sample(nrow(.x)), ])`</span>, and so restrict permutations to contextually relevant partitions.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer">

@@ -1808,244 +1808,257 @@ Smit, A. J. (2021) 14. Tidier Data. <a href="http://tangledbank.netlify.app/BCB7
 <span id="cb22-3"><a href="#cb22-3"></a><span class="an">title:</span><span class="co"> "14. Tidier Data"</span></span>
 <span id="cb22-4"><a href="#cb22-4"></a><span class="co">---</span></span>
 <span id="cb22-5"><a href="#cb22-5"></a></span>
-<span id="cb22-6"><a href="#cb22-6"></a><span class="at">&gt; "*Knowing where things are, and why, is essential to rational decision making.*"</span></span>
-<span id="cb22-7"><a href="#cb22-7"></a><span class="at">&gt;</span></span>
-<span id="cb22-8"><a href="#cb22-8"></a><span class="at">&gt; --- Jack Dangermond</span></span>
-<span id="cb22-9"><a href="#cb22-9"></a>  </span>
-<span id="cb22-10"><a href="#cb22-10"></a><span class="at">&gt; "*The mind commands the body and it obeys. The mind orders itself and meets resistance.*"</span></span>
-<span id="cb22-11"><a href="#cb22-11"></a><span class="at">&gt;</span></span>
-<span id="cb22-12"><a href="#cb22-12"></a><span class="at">&gt; --- Frank Herbert, Dune</span></span>
-<span id="cb22-13"><a href="#cb22-13"></a></span>
-<span id="cb22-14"><a href="#cb22-14"></a><span class="in">```{r code-tidier-opts, echo=FALSE}</span></span>
-<span id="cb22-15"><a href="#cb22-15"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
-<span id="cb22-16"><a href="#cb22-16"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>, </span>
-<span id="cb22-17"><a href="#cb22-17"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>, </span>
-<span id="cb22-18"><a href="#cb22-18"></a>  <span class="at">message =</span> <span class="cn">FALSE</span></span>
-<span id="cb22-19"><a href="#cb22-19"></a>)</span>
-<span id="cb22-20"><a href="#cb22-20"></a><span class="in">```</span></span>
-<span id="cb22-21"><a href="#cb22-21"></a></span>
-<span id="cb22-22"><a href="#cb22-22"></a>On Day 1 already you worked through a tidy workflow. You saw how to import data, how to manipulate it, run a quick analysis, two and create figures. In the previous session you filled in the missing piece of the workflow by also learning how to tidy up your data within R. For the remainder of today you will be revisiting the 'transform' portion of the tidy workflow. In this session you are going to go into more depth on what you learned in Day 1, and in the last session you will learn some new tricks. Over these two sessions you will also become more comfortable with the *pipe* command <span class="in">`%&gt;%`</span>, while practising writing tidy code.</span>
-<span id="cb22-23"><a href="#cb22-23"></a></span>
-<span id="cb22-24"><a href="#cb22-24"></a>There are five primary data transformation functions that you will focus on here:  </span>
+<span id="cb22-6"><a href="#cb22-6"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
+<span id="cb22-7"><a href="#cb22-7"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb22-8"><a href="#cb22-8"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>, </span>
+<span id="cb22-9"><a href="#cb22-9"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb22-10"><a href="#cb22-10"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb22-11"><a href="#cb22-11"></a>  <span class="at">fig.width =</span> <span class="fl">4.5</span>,</span>
+<span id="cb22-12"><a href="#cb22-12"></a>  <span class="at">fig.height =</span> <span class="fl">2.625</span>,</span>
+<span id="cb22-13"><a href="#cb22-13"></a>  <span class="at">out.width =</span> <span class="st">"75%"</span>,</span>
+<span id="cb22-14"><a href="#cb22-14"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>, <span class="co"># control via width/height</span></span>
+<span id="cb22-15"><a href="#cb22-15"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb22-16"><a href="#cb22-16"></a>)</span>
+<span id="cb22-17"><a href="#cb22-17"></a></span>
+<span id="cb22-18"><a href="#cb22-18"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb22-19"><a href="#cb22-19"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb22-20"><a href="#cb22-20"></a>)</span>
+<span id="cb22-21"><a href="#cb22-21"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb22-22"><a href="#cb22-22"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb22-23"><a href="#cb22-23"></a>)</span>
+<span id="cb22-24"><a href="#cb22-24"></a><span class="in">```</span></span>
 <span id="cb22-25"><a href="#cb22-25"></a></span>
-<span id="cb22-26"><a href="#cb22-26"></a><span class="ss">* </span>Arrange observations (rows)  with <span class="in">`arrange()`</span>  </span>
-<span id="cb22-27"><a href="#cb22-27"></a><span class="ss">* </span>Filter observations (rows) with <span class="in">`filter()`</span>  </span>
-<span id="cb22-28"><a href="#cb22-28"></a><span class="ss">* </span>Select variables (columns) with <span class="in">`select()`</span>  </span>
-<span id="cb22-29"><a href="#cb22-29"></a><span class="ss">* </span>Create new variables (columns) with <span class="in">`mutate()`</span>  </span>
-<span id="cb22-30"><a href="#cb22-30"></a><span class="ss">* </span>Summarise variables (columns) with <span class="in">`summarise()`</span>  </span>
-<span id="cb22-31"><a href="#cb22-31"></a></span>
-<span id="cb22-32"><a href="#cb22-32"></a>You will use the full South African Coastal Temperature Network dataset for these exercises. Before you begin, however, you will need to cover two new concepts.</span>
+<span id="cb22-26"><a href="#cb22-26"></a><span class="at">&gt; "*Knowing where things are, and why, is essential to rational decision making.*"</span></span>
+<span id="cb22-27"><a href="#cb22-27"></a><span class="at">&gt;</span></span>
+<span id="cb22-28"><a href="#cb22-28"></a><span class="at">&gt; --- Jack Dangermond</span></span>
+<span id="cb22-29"><a href="#cb22-29"></a>  </span>
+<span id="cb22-30"><a href="#cb22-30"></a><span class="at">&gt; "*The mind commands the body and it obeys. The mind orders itself and meets resistance.*"</span></span>
+<span id="cb22-31"><a href="#cb22-31"></a><span class="at">&gt;</span></span>
+<span id="cb22-32"><a href="#cb22-32"></a><span class="at">&gt; --- Frank Herbert, Dune</span></span>
 <span id="cb22-33"><a href="#cb22-33"></a></span>
-<span id="cb22-34"><a href="#cb22-34"></a><span class="in">```{r code-tidier-load}</span></span>
-<span id="cb22-35"><a href="#cb22-35"></a><span class="co"># Load libraries</span></span>
-<span id="cb22-36"><a href="#cb22-36"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb22-37"><a href="#cb22-37"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb22-34"><a href="#cb22-34"></a></span>
+<span id="cb22-35"><a href="#cb22-35"></a>On Day 1 already you worked through a tidy workflow. You saw how to import data, how to manipulate it, run a quick analysis, two and create figures. In the previous session you filled in the missing piece of the workflow by also learning how to tidy up your data within R. For the remainder of today you will be revisiting the 'transform' portion of the tidy workflow. In this session you are going to go into more depth on what you learned in Day 1, and in the last session you will learn some new tricks. Over these two sessions you will also become more comfortable with the *pipe* command <span class="in">`%&gt;%`</span>, while practising writing tidy code.</span>
+<span id="cb22-36"><a href="#cb22-36"></a></span>
+<span id="cb22-37"><a href="#cb22-37"></a>There are five primary data transformation functions that you will focus on here:  </span>
 <span id="cb22-38"><a href="#cb22-38"></a></span>
-<span id="cb22-39"><a href="#cb22-39"></a><span class="co"># Load the data from a .RData file</span></span>
-<span id="cb22-40"><a href="#cb22-40"></a><span class="fu">load</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"SACTNmonthly_v4.0.RData"</span>))</span>
-<span id="cb22-41"><a href="#cb22-41"></a></span>
-<span id="cb22-42"><a href="#cb22-42"></a><span class="co"># Copy the data as a dataframe with a shorter name</span></span>
-<span id="cb22-43"><a href="#cb22-43"></a>SACTN <span class="ot">&lt;-</span> SACTNmonthly_v4<span class="fl">.0</span></span>
+<span id="cb22-39"><a href="#cb22-39"></a><span class="ss">* </span>Arrange observations (rows)  with <span class="in">`arrange()`</span>  </span>
+<span id="cb22-40"><a href="#cb22-40"></a><span class="ss">* </span>Filter observations (rows) with <span class="in">`filter()`</span>  </span>
+<span id="cb22-41"><a href="#cb22-41"></a><span class="ss">* </span>Select variables (columns) with <span class="in">`select()`</span>  </span>
+<span id="cb22-42"><a href="#cb22-42"></a><span class="ss">* </span>Create new variables (columns) with <span class="in">`mutate()`</span>  </span>
+<span id="cb22-43"><a href="#cb22-43"></a><span class="ss">* </span>Summarise variables (columns) with <span class="in">`summarise()`</span>  </span>
 <span id="cb22-44"><a href="#cb22-44"></a></span>
-<span id="cb22-45"><a href="#cb22-45"></a><span class="co"># Remove the original</span></span>
-<span id="cb22-46"><a href="#cb22-46"></a><span class="fu">rm</span>(SACTNmonthly_v4<span class="fl">.0</span>)</span>
-<span id="cb22-47"><a href="#cb22-47"></a><span class="in">```</span></span>
-<span id="cb22-48"><a href="#cb22-48"></a></span>
-<span id="cb22-49"><a href="#cb22-49"></a><span class="fu"># Comparison and Logical (Boolean) Operators</span></span>
-<span id="cb22-50"><a href="#cb22-50"></a></span>
-<span id="cb22-51"><a href="#cb22-51"></a>The assignment operator (<span class="in">`&lt;-`</span>) is a symbol that we use to assign some bit of code to an object in your environment. Likewise, **comparison operators** are symbols we use to compare different objects. This is how you tell R how to decide to do many different things. You will see these symbols often out in the 'real world' so let us spend a moment now getting to know them better. Most of these should be very familiar to you already:  </span>
-<span id="cb22-52"><a href="#cb22-52"></a></span>
-<span id="cb22-53"><a href="#cb22-53"></a><span class="ss">* </span><span class="in">`&gt;`</span>: Greater than  </span>
-<span id="cb22-54"><a href="#cb22-54"></a><span class="ss">* </span><span class="in">`&gt;=`</span>: Greater than or equal to</span>
-<span id="cb22-55"><a href="#cb22-55"></a><span class="ss">* </span><span class="in">`&lt;`</span>: Less than</span>
-<span id="cb22-56"><a href="#cb22-56"></a><span class="ss">* </span><span class="in">`&lt;=`</span>: Less than or equal to</span>
-<span id="cb22-57"><a href="#cb22-57"></a><span class="ss">* </span><span class="in">`==`</span>: Equal to</span>
-<span id="cb22-58"><a href="#cb22-58"></a><span class="ss">* </span><span class="in">`!=`</span> Not equal to</span>
-<span id="cb22-59"><a href="#cb22-59"></a></span>
-<span id="cb22-60"><a href="#cb22-60"></a>It is important here to note that <span class="in">`==`</span> is for comparisons<span class="in">`=`</span> is for maths. They are *not* interchangeable, as we may see in the following code chunk. This is one of the more common mistakes one makes when writing code. Luckily the error message this creates should provide us with the clues we need to figure out that we have made this specific mistake.</span>
+<span id="cb22-45"><a href="#cb22-45"></a>You will use the full South African Coastal Temperature Network dataset for these exercises. Before you begin, however, you will need to cover two new concepts.</span>
+<span id="cb22-46"><a href="#cb22-46"></a></span>
+<span id="cb22-47"><a href="#cb22-47"></a><span class="in">```{r code-tidier-load}</span></span>
+<span id="cb22-48"><a href="#cb22-48"></a><span class="co"># Load libraries</span></span>
+<span id="cb22-49"><a href="#cb22-49"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb22-50"><a href="#cb22-50"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb22-51"><a href="#cb22-51"></a></span>
+<span id="cb22-52"><a href="#cb22-52"></a><span class="co"># Load the data from a .RData file</span></span>
+<span id="cb22-53"><a href="#cb22-53"></a><span class="fu">load</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"SACTNmonthly_v4.0.RData"</span>))</span>
+<span id="cb22-54"><a href="#cb22-54"></a></span>
+<span id="cb22-55"><a href="#cb22-55"></a><span class="co"># Copy the data as a dataframe with a shorter name</span></span>
+<span id="cb22-56"><a href="#cb22-56"></a>SACTN <span class="ot">&lt;-</span> SACTNmonthly_v4<span class="fl">.0</span></span>
+<span id="cb22-57"><a href="#cb22-57"></a></span>
+<span id="cb22-58"><a href="#cb22-58"></a><span class="co"># Remove the original</span></span>
+<span id="cb22-59"><a href="#cb22-59"></a><span class="fu">rm</span>(SACTNmonthly_v4<span class="fl">.0</span>)</span>
+<span id="cb22-60"><a href="#cb22-60"></a><span class="in">```</span></span>
 <span id="cb22-61"><a href="#cb22-61"></a></span>
-<span id="cb22-62"><a href="#cb22-62"></a><span class="in">```{r code-tidier-comp, error=TRUE}</span></span>
-<span id="cb22-63"><a href="#cb22-63"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-64"><a href="#cb22-64"></a>  <span class="fu">filter</span>(<span class="at">site =</span> <span class="st">"Amanzimtoti"</span>)</span>
-<span id="cb22-65"><a href="#cb22-65"></a><span class="in">```</span></span>
-<span id="cb22-66"><a href="#cb22-66"></a></span>
-<span id="cb22-67"><a href="#cb22-67"></a>The comparison operators are often used together with **Boolean operators**. Boolean operators are used for logical operations and can compare values, resulting in either <span class="in">`TRUE`</span> and <span class="in">`FALSE`</span>. Here they are:</span>
-<span id="cb22-68"><a href="#cb22-68"></a></span>
-<span id="cb22-69"><a href="#cb22-69"></a><span class="ss">* </span><span class="in">`!`</span>: NOT - Negates a true value to false, and a false value to true.</span>
-<span id="cb22-70"><a href="#cb22-70"></a><span class="ss">* </span><span class="in">`&amp;`</span>: AND - Returns <span class="in">`TRUE`</span> if both operands are true, <span class="in">`FALSE`</span> otherwise.</span>
-<span id="cb22-71"><a href="#cb22-71"></a><span class="ss">* </span><span class="in">`|`</span>: OR - Returns <span class="in">`TRUE`</span> if at least one of the operands is true.</span>
-<span id="cb22-72"><a href="#cb22-72"></a><span class="ss">* </span><span class="in">`&amp;&amp;`</span>: AND (element-wise for vectors) - Similar to <span class="in">`&amp;`</span>, but it only evaluates the first element of each vector operand.</span>
-<span id="cb22-73"><a href="#cb22-73"></a><span class="ss">* </span><span class="in">`||`</span>: OR (element-wise for vectors) - Similar to <span class="in">`|`</span>, but it only evaluates the first element of each vector operand.</span>
+<span id="cb22-62"><a href="#cb22-62"></a><span class="fu"># Comparison and Logical (Boolean) Operators</span></span>
+<span id="cb22-63"><a href="#cb22-63"></a></span>
+<span id="cb22-64"><a href="#cb22-64"></a>The assignment operator (<span class="in">`&lt;-`</span>) is a symbol that we use to assign some bit of code to an object in your environment. Likewise, **comparison operators** are symbols we use to compare different objects. This is how you tell R how to decide to do many different things. You will see these symbols often out in the 'real world' so let us spend a moment now getting to know them better. Most of these should be very familiar to you already:  </span>
+<span id="cb22-65"><a href="#cb22-65"></a></span>
+<span id="cb22-66"><a href="#cb22-66"></a><span class="ss">* </span><span class="in">`&gt;`</span>: Greater than  </span>
+<span id="cb22-67"><a href="#cb22-67"></a><span class="ss">* </span><span class="in">`&gt;=`</span>: Greater than or equal to</span>
+<span id="cb22-68"><a href="#cb22-68"></a><span class="ss">* </span><span class="in">`&lt;`</span>: Less than</span>
+<span id="cb22-69"><a href="#cb22-69"></a><span class="ss">* </span><span class="in">`&lt;=`</span>: Less than or equal to</span>
+<span id="cb22-70"><a href="#cb22-70"></a><span class="ss">* </span><span class="in">`==`</span>: Equal to</span>
+<span id="cb22-71"><a href="#cb22-71"></a><span class="ss">* </span><span class="in">`!=`</span> Not equal to</span>
+<span id="cb22-72"><a href="#cb22-72"></a></span>
+<span id="cb22-73"><a href="#cb22-73"></a>It is important here to note that <span class="in">`==`</span> is for comparisons<span class="in">`=`</span> is for maths. They are *not* interchangeable, as we may see in the following code chunk. This is one of the more common mistakes one makes when writing code. Luckily the error message this creates should provide us with the clues we need to figure out that we have made this specific mistake.</span>
 <span id="cb22-74"><a href="#cb22-74"></a></span>
-<span id="cb22-75"><a href="#cb22-75"></a>The <span class="in">`%in%`</span> operator in R is a special operator used to test if elements of a vector or data object are contained in another vector or data object. It returns a Boolean vector (<span class="in">`TRUE`</span> and <span class="in">`FALSE`</span>) indicating whether each element of the first vector is found in the second vector. This operator is particularly useful for subsetting or filtering data based on matching values. For example, <span class="in">`x %in% y`</span> will check for each element of <span class="in">`x`</span> if there is a match in <span class="in">`y`</span>, and return a logical vector indicating the presence or absence of each <span class="in">`x`</span> element in <span class="in">`y`</span>.</span>
-<span id="cb22-76"><a href="#cb22-76"></a></span>
-<span id="cb22-77"><a href="#cb22-77"></a>So, comparison operators are used to make direct comparisons between specific things, but logical operators are used more broadly when making logical arguments. Logic is central to most computing so it is worth taking the time to cover these symbols explicitly here. R makes use of the same *Boolean logic* symbols as many other platforms, including Google, so some (or all) of these will likely be familiar.</span>
-<span id="cb22-78"><a href="#cb22-78"></a>  </span>
-<span id="cb22-79"><a href="#cb22-79"></a>When writing a line of tidy code you tend to use these logical operator to combine two or more arguments that use comparison operators. For example, the following code chunk uses the <span class="in">`filter()`</span> function to find all temperatures recorded at Pollock Beach during December *or* January. Do not worry if the following line of code is difficult to piece out, but make sure you can locate which symbols are comparison operators, which are logical operators. Please note that for purposes of brevity all of the outputs in this section are limited to ten lines but when you run these code chunks on your own computer they will be much longer.</span>
-<span id="cb22-80"><a href="#cb22-80"></a></span>
-<span id="cb22-81"><a href="#cb22-81"></a><span class="in">```{r code-tidier-logic-1, eval=FALSE}</span></span>
-<span id="cb22-82"><a href="#cb22-82"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-83"><a href="#cb22-83"></a>  <span class="fu">filter</span>(site <span class="sc">==</span> <span class="st">"Pollock Beach"</span>, <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">12</span> <span class="sc">|</span> <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb22-84"><a href="#cb22-84"></a><span class="in">```</span></span>
-<span id="cb22-85"><a href="#cb22-85"></a><span class="in">```{r code-tidier-logic-1-ghost, echo=FALSE}</span></span>
-<span id="cb22-86"><a href="#cb22-86"></a><span class="fu">filter</span>(SACTN, site <span class="sc">==</span> <span class="st">"Pollock Beach"</span>, <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">12</span> <span class="sc">|</span> <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">1</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
-<span id="cb22-87"><a href="#cb22-87"></a><span class="in">```</span></span>
-<span id="cb22-88"><a href="#cb22-88"></a></span>
-<span id="cb22-89"><a href="#cb22-89"></a>You will look at the interplay between comparison and logical operators in more depth in the following session after you have reacquainted yourself with the main transformation functions you need to know.</span>
-<span id="cb22-90"><a href="#cb22-90"></a></span>
-<span id="cb22-91"><a href="#cb22-91"></a><span class="fu"># Arrange Observations (Rows)  with `arrange()`</span></span>
-<span id="cb22-92"><a href="#cb22-92"></a></span>
-<span id="cb22-93"><a href="#cb22-93"></a>First up in our greatest hits reunion tour is the function <span class="in">`arrange()`</span>. This very simply arranges the observations (rows) in a dataframe based on the variables (columns) it is given. If you are concerned with ties in the ordering of our data you provide additional columns to <span class="in">`arrange()`</span>. The importance of the columns for arranging the rows is given in order from left to right.</span>
-<span id="cb22-94"><a href="#cb22-94"></a></span>
-<span id="cb22-95"><a href="#cb22-95"></a><span class="in">```{r code-tidier-arrange, eval=FALSE}</span></span>
-<span id="cb22-96"><a href="#cb22-96"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-97"><a href="#cb22-97"></a>  <span class="fu">arrange</span>(depth, temp)</span>
-<span id="cb22-98"><a href="#cb22-98"></a><span class="in">```</span></span>
-<span id="cb22-99"><a href="#cb22-99"></a><span class="in">```{r code-tidier-arrange-ghost, echo=FALSE}</span></span>
-<span id="cb22-100"><a href="#cb22-100"></a><span class="fu">arrange</span>(SACTN, depth, temp)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
-<span id="cb22-101"><a href="#cb22-101"></a><span class="in">```</span></span>
-<span id="cb22-102"><a href="#cb22-102"></a></span>
-<span id="cb22-103"><a href="#cb22-103"></a>If you would rather arrange your data in descending order, as is perhaps more often the case, you simply wrap the column name you are arranging by with the <span class="in">`desc()`</span> function as shown below.</span>
-<span id="cb22-104"><a href="#cb22-104"></a></span>
-<span id="cb22-105"><a href="#cb22-105"></a><span class="in">```{r code-tidier-desc, eval=FALSE}</span></span>
-<span id="cb22-106"><a href="#cb22-106"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-107"><a href="#cb22-107"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(temp))</span>
-<span id="cb22-108"><a href="#cb22-108"></a><span class="in">```</span></span>
-<span id="cb22-109"><a href="#cb22-109"></a><span class="in">```{r code-tidier-desc-ghost, echo=FALSE}</span></span>
-<span id="cb22-110"><a href="#cb22-110"></a><span class="fu">arrange</span>(SACTN, <span class="fu">desc</span>(temp))[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
+<span id="cb22-75"><a href="#cb22-75"></a><span class="in">```{r code-tidier-comp, error=TRUE}</span></span>
+<span id="cb22-76"><a href="#cb22-76"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-77"><a href="#cb22-77"></a>  <span class="fu">filter</span>(<span class="at">site =</span> <span class="st">"Amanzimtoti"</span>)</span>
+<span id="cb22-78"><a href="#cb22-78"></a><span class="in">```</span></span>
+<span id="cb22-79"><a href="#cb22-79"></a></span>
+<span id="cb22-80"><a href="#cb22-80"></a>The comparison operators are often used together with **Boolean operators**. Boolean operators are used for logical operations and can compare values, resulting in either <span class="in">`TRUE`</span> and <span class="in">`FALSE`</span>. Here they are:</span>
+<span id="cb22-81"><a href="#cb22-81"></a></span>
+<span id="cb22-82"><a href="#cb22-82"></a><span class="ss">* </span><span class="in">`!`</span>: NOT - Negates a true value to false, and a false value to true.</span>
+<span id="cb22-83"><a href="#cb22-83"></a><span class="ss">* </span><span class="in">`&amp;`</span>: AND - Returns <span class="in">`TRUE`</span> if both operands are true, <span class="in">`FALSE`</span> otherwise.</span>
+<span id="cb22-84"><a href="#cb22-84"></a><span class="ss">* </span><span class="in">`|`</span>: OR - Returns <span class="in">`TRUE`</span> if at least one of the operands is true.</span>
+<span id="cb22-85"><a href="#cb22-85"></a><span class="ss">* </span><span class="in">`&amp;&amp;`</span>: AND (element-wise for vectors) - Similar to <span class="in">`&amp;`</span>, but it only evaluates the first element of each vector operand.</span>
+<span id="cb22-86"><a href="#cb22-86"></a><span class="ss">* </span><span class="in">`||`</span>: OR (element-wise for vectors) - Similar to <span class="in">`|`</span>, but it only evaluates the first element of each vector operand.</span>
+<span id="cb22-87"><a href="#cb22-87"></a></span>
+<span id="cb22-88"><a href="#cb22-88"></a>The <span class="in">`%in%`</span> operator in R is a special operator used to test if elements of a vector or data object are contained in another vector or data object. It returns a Boolean vector (<span class="in">`TRUE`</span> and <span class="in">`FALSE`</span>) indicating whether each element of the first vector is found in the second vector. This operator is particularly useful for subsetting or filtering data based on matching values. For example, <span class="in">`x %in% y`</span> will check for each element of <span class="in">`x`</span> if there is a match in <span class="in">`y`</span>, and return a logical vector indicating the presence or absence of each <span class="in">`x`</span> element in <span class="in">`y`</span>.</span>
+<span id="cb22-89"><a href="#cb22-89"></a></span>
+<span id="cb22-90"><a href="#cb22-90"></a>So, comparison operators are used to make direct comparisons between specific things, but logical operators are used more broadly when making logical arguments. Logic is central to most computing so it is worth taking the time to cover these symbols explicitly here. R makes use of the same *Boolean logic* symbols as many other platforms, including Google, so some (or all) of these will likely be familiar.</span>
+<span id="cb22-91"><a href="#cb22-91"></a>  </span>
+<span id="cb22-92"><a href="#cb22-92"></a>When writing a line of tidy code you tend to use these logical operator to combine two or more arguments that use comparison operators. For example, the following code chunk uses the <span class="in">`filter()`</span> function to find all temperatures recorded at Pollock Beach during December *or* January. Do not worry if the following line of code is difficult to piece out, but make sure you can locate which symbols are comparison operators, which are logical operators. Please note that for purposes of brevity all of the outputs in this section are limited to ten lines but when you run these code chunks on your own computer they will be much longer.</span>
+<span id="cb22-93"><a href="#cb22-93"></a></span>
+<span id="cb22-94"><a href="#cb22-94"></a><span class="in">```{r code-tidier-logic-1, eval=FALSE}</span></span>
+<span id="cb22-95"><a href="#cb22-95"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-96"><a href="#cb22-96"></a>  <span class="fu">filter</span>(site <span class="sc">==</span> <span class="st">"Pollock Beach"</span>, <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">12</span> <span class="sc">|</span> <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb22-97"><a href="#cb22-97"></a><span class="in">```</span></span>
+<span id="cb22-98"><a href="#cb22-98"></a><span class="in">```{r code-tidier-logic-1-ghost, echo=FALSE}</span></span>
+<span id="cb22-99"><a href="#cb22-99"></a><span class="fu">filter</span>(SACTN, site <span class="sc">==</span> <span class="st">"Pollock Beach"</span>, <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">12</span> <span class="sc">|</span> <span class="fu">month</span>(date) <span class="sc">==</span> <span class="dv">1</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
+<span id="cb22-100"><a href="#cb22-100"></a><span class="in">```</span></span>
+<span id="cb22-101"><a href="#cb22-101"></a></span>
+<span id="cb22-102"><a href="#cb22-102"></a>You will look at the interplay between comparison and logical operators in more depth in the following session after you have reacquainted yourself with the main transformation functions you need to know.</span>
+<span id="cb22-103"><a href="#cb22-103"></a></span>
+<span id="cb22-104"><a href="#cb22-104"></a><span class="fu"># Arrange Observations (Rows)  with `arrange()`</span></span>
+<span id="cb22-105"><a href="#cb22-105"></a></span>
+<span id="cb22-106"><a href="#cb22-106"></a>First up in our greatest hits reunion tour is the function <span class="in">`arrange()`</span>. This very simply arranges the observations (rows) in a dataframe based on the variables (columns) it is given. If you are concerned with ties in the ordering of our data you provide additional columns to <span class="in">`arrange()`</span>. The importance of the columns for arranging the rows is given in order from left to right.</span>
+<span id="cb22-107"><a href="#cb22-107"></a></span>
+<span id="cb22-108"><a href="#cb22-108"></a><span class="in">```{r code-tidier-arrange, eval=FALSE}</span></span>
+<span id="cb22-109"><a href="#cb22-109"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-110"><a href="#cb22-110"></a>  <span class="fu">arrange</span>(depth, temp)</span>
 <span id="cb22-111"><a href="#cb22-111"></a><span class="in">```</span></span>
-<span id="cb22-112"><a href="#cb22-112"></a></span>
-<span id="cb22-113"><a href="#cb22-113"></a>It must also be noted that when arranging data in this way, any rows with <span class="in">`NA`</span> values will be sent to the bottom of the dataframe. This is not always ideal and so must be kept in mind.</span>
-<span id="cb22-114"><a href="#cb22-114"></a></span>
-<span id="cb22-115"><a href="#cb22-115"></a><span class="fu"># Filter Observations (Rows) with `filter()`</span></span>
-<span id="cb22-116"><a href="#cb22-116"></a></span>
-<span id="cb22-117"><a href="#cb22-117"></a>When simply arranging data is not enough, and you need to remove rows of data you do not want, <span class="in">`filter()`</span> is the tool to use. For example, you can select all monthly temperatures recorded at the <span class="in">`site`</span> Humewood during the <span class="in">`year`</span> 1990 with the following code chunk:</span>
-<span id="cb22-118"><a href="#cb22-118"></a></span>
-<span id="cb22-119"><a href="#cb22-119"></a><span class="in">```{r code-tidier-filter, eval=FALSE}</span></span>
-<span id="cb22-120"><a href="#cb22-120"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-121"><a href="#cb22-121"></a>  <span class="fu">filter</span>(site <span class="sc">==</span> <span class="st">"Humewood"</span>, <span class="fu">year</span>(date) <span class="sc">==</span> <span class="dv">1990</span>)</span>
-<span id="cb22-122"><a href="#cb22-122"></a><span class="in">```</span></span>
-<span id="cb22-123"><a href="#cb22-123"></a><span class="in">```{r code-tidier-filter-ghost, echo=FALSE}</span></span>
-<span id="cb22-124"><a href="#cb22-124"></a><span class="fu">filter</span>(SACTN, site <span class="sc">==</span> <span class="st">"Humewood"</span>, <span class="fu">year</span>(date) <span class="sc">==</span> <span class="dv">1990</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
-<span id="cb22-125"><a href="#cb22-125"></a><span class="in">```</span></span>
-<span id="cb22-126"><a href="#cb22-126"></a></span>
-<span id="cb22-127"><a href="#cb22-127"></a>Remember to use the assignment operator (<span class="in">`&lt;-`</span>, keyboard shortcut **alt -**) if you want to create an object in the environment with the new results.</span>
-<span id="cb22-128"><a href="#cb22-128"></a></span>
-<span id="cb22-129"><a href="#cb22-129"></a><span class="in">```{r code-tidier-filter-assign, eval=FALSE}</span></span>
-<span id="cb22-130"><a href="#cb22-130"></a>humewood_90s <span class="ot">&lt;-</span> SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-131"><a href="#cb22-131"></a>  <span class="fu">filter</span>(site <span class="sc">==</span> <span class="st">"Humewood"</span>, <span class="fu">year</span>(date) <span class="sc">%in%</span> <span class="fu">seq</span>(<span class="dv">1990</span>, <span class="dv">1999</span>, <span class="dv">1</span>))</span>
-<span id="cb22-132"><a href="#cb22-132"></a><span class="in">```</span></span>
-<span id="cb22-133"><a href="#cb22-133"></a></span>
-<span id="cb22-134"><a href="#cb22-134"></a>It must be mentioned that <span class="in">`filter()`</span> also automatically removes any rows in the filtering column that contain <span class="in">`NA`</span> values. Should you want to keep rows that contain missing values, insert the <span class="in">`is.na()`</span> function into the line of code in question. To illustrate this let us filter the temperatures for the Port Nolloth data collected by the DEA that were at or below 11°C or were missing values. You will put each argument on a separate line to help keep things clear. Note how R automatically indents the last line in this chunk to help remind you that they are in fact part of the same argument. Also note how I have put the last bracket at the end of this argument on its own line. This is not required, but I like to do so as it is a very common mistake to forget the last bracket.</span>
-<span id="cb22-135"><a href="#cb22-135"></a></span>
-<span id="cb22-136"><a href="#cb22-136"></a><span class="in">```{r code-tidier-filter-na, eval=FALSE}</span></span>
-<span id="cb22-137"><a href="#cb22-137"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-138"><a href="#cb22-138"></a>  <span class="fu">filter</span>(site <span class="sc">==</span> <span class="st">"Port Nolloth"</span>, <span class="co"># First give the site to filter</span></span>
-<span id="cb22-139"><a href="#cb22-139"></a>         src <span class="sc">==</span> <span class="st">"DEA"</span>, <span class="co"># Then specify the source</span></span>
-<span id="cb22-140"><a href="#cb22-140"></a>         temp <span class="sc">&lt;=</span> <span class="dv">11</span> <span class="sc">|</span> <span class="co"># Temperatures at or below 11°C OR</span></span>
-<span id="cb22-141"><a href="#cb22-141"></a>           <span class="fu">is.na</span>(temp) <span class="co"># Include missing values</span></span>
-<span id="cb22-142"><a href="#cb22-142"></a>         )</span>
-<span id="cb22-143"><a href="#cb22-143"></a><span class="in">```</span></span>
-<span id="cb22-144"><a href="#cb22-144"></a></span>
-<span id="cb22-145"><a href="#cb22-145"></a><span class="fu"># Select Variables (Columns) With`select()`</span></span>
+<span id="cb22-112"><a href="#cb22-112"></a><span class="in">```{r code-tidier-arrange-ghost, echo=FALSE}</span></span>
+<span id="cb22-113"><a href="#cb22-113"></a><span class="fu">arrange</span>(SACTN, depth, temp)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
+<span id="cb22-114"><a href="#cb22-114"></a><span class="in">```</span></span>
+<span id="cb22-115"><a href="#cb22-115"></a></span>
+<span id="cb22-116"><a href="#cb22-116"></a>If you would rather arrange your data in descending order, as is perhaps more often the case, you simply wrap the column name you are arranging by with the <span class="in">`desc()`</span> function as shown below.</span>
+<span id="cb22-117"><a href="#cb22-117"></a></span>
+<span id="cb22-118"><a href="#cb22-118"></a><span class="in">```{r code-tidier-desc, eval=FALSE}</span></span>
+<span id="cb22-119"><a href="#cb22-119"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-120"><a href="#cb22-120"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(temp))</span>
+<span id="cb22-121"><a href="#cb22-121"></a><span class="in">```</span></span>
+<span id="cb22-122"><a href="#cb22-122"></a><span class="in">```{r code-tidier-desc-ghost, echo=FALSE}</span></span>
+<span id="cb22-123"><a href="#cb22-123"></a><span class="fu">arrange</span>(SACTN, <span class="fu">desc</span>(temp))[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
+<span id="cb22-124"><a href="#cb22-124"></a><span class="in">```</span></span>
+<span id="cb22-125"><a href="#cb22-125"></a></span>
+<span id="cb22-126"><a href="#cb22-126"></a>It must also be noted that when arranging data in this way, any rows with <span class="in">`NA`</span> values will be sent to the bottom of the dataframe. This is not always ideal and so must be kept in mind.</span>
+<span id="cb22-127"><a href="#cb22-127"></a></span>
+<span id="cb22-128"><a href="#cb22-128"></a><span class="fu"># Filter Observations (Rows) with `filter()`</span></span>
+<span id="cb22-129"><a href="#cb22-129"></a></span>
+<span id="cb22-130"><a href="#cb22-130"></a>When simply arranging data is not enough, and you need to remove rows of data you do not want, <span class="in">`filter()`</span> is the tool to use. For example, you can select all monthly temperatures recorded at the <span class="in">`site`</span> Humewood during the <span class="in">`year`</span> 1990 with the following code chunk:</span>
+<span id="cb22-131"><a href="#cb22-131"></a></span>
+<span id="cb22-132"><a href="#cb22-132"></a><span class="in">```{r code-tidier-filter, eval=FALSE}</span></span>
+<span id="cb22-133"><a href="#cb22-133"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-134"><a href="#cb22-134"></a>  <span class="fu">filter</span>(site <span class="sc">==</span> <span class="st">"Humewood"</span>, <span class="fu">year</span>(date) <span class="sc">==</span> <span class="dv">1990</span>)</span>
+<span id="cb22-135"><a href="#cb22-135"></a><span class="in">```</span></span>
+<span id="cb22-136"><a href="#cb22-136"></a><span class="in">```{r code-tidier-filter-ghost, echo=FALSE}</span></span>
+<span id="cb22-137"><a href="#cb22-137"></a><span class="fu">filter</span>(SACTN, site <span class="sc">==</span> <span class="st">"Humewood"</span>, <span class="fu">year</span>(date) <span class="sc">==</span> <span class="dv">1990</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
+<span id="cb22-138"><a href="#cb22-138"></a><span class="in">```</span></span>
+<span id="cb22-139"><a href="#cb22-139"></a></span>
+<span id="cb22-140"><a href="#cb22-140"></a>Remember to use the assignment operator (<span class="in">`&lt;-`</span>, keyboard shortcut **alt -**) if you want to create an object in the environment with the new results.</span>
+<span id="cb22-141"><a href="#cb22-141"></a></span>
+<span id="cb22-142"><a href="#cb22-142"></a><span class="in">```{r code-tidier-filter-assign, eval=FALSE}</span></span>
+<span id="cb22-143"><a href="#cb22-143"></a>humewood_90s <span class="ot">&lt;-</span> SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-144"><a href="#cb22-144"></a>  <span class="fu">filter</span>(site <span class="sc">==</span> <span class="st">"Humewood"</span>, <span class="fu">year</span>(date) <span class="sc">%in%</span> <span class="fu">seq</span>(<span class="dv">1990</span>, <span class="dv">1999</span>, <span class="dv">1</span>))</span>
+<span id="cb22-145"><a href="#cb22-145"></a><span class="in">```</span></span>
 <span id="cb22-146"><a href="#cb22-146"></a></span>
-<span id="cb22-147"><a href="#cb22-147"></a>When you load a dataset that contains more columns than will be useful or required, it is preferable to shave off the excess. You do this with the <span class="in">`select()`</span> function. In the following four examples you are going to remove the <span class="in">`depth`</span> and <span class="in">`type`</span> columns. There are many ways to do this and none are technically better or faster. So it is up to the user to find a favourite technique.</span>
+<span id="cb22-147"><a href="#cb22-147"></a>It must be mentioned that <span class="in">`filter()`</span> also automatically removes any rows in the filtering column that contain <span class="in">`NA`</span> values. Should you want to keep rows that contain missing values, insert the <span class="in">`is.na()`</span> function into the line of code in question. To illustrate this let us filter the temperatures for the Port Nolloth data collected by the DEA that were at or below 11°C or were missing values. You will put each argument on a separate line to help keep things clear. Note how R automatically indents the last line in this chunk to help remind you that they are in fact part of the same argument. Also note how I have put the last bracket at the end of this argument on its own line. This is not required, but I like to do so as it is a very common mistake to forget the last bracket.</span>
 <span id="cb22-148"><a href="#cb22-148"></a></span>
-<span id="cb22-149"><a href="#cb22-149"></a><span class="in">```{r code-tidier-sect-1, eval=FALSE}</span></span>
-<span id="cb22-150"><a href="#cb22-150"></a><span class="co"># Select columns individually by name</span></span>
-<span id="cb22-151"><a href="#cb22-151"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-152"><a href="#cb22-152"></a>  <span class="fu">select</span>(site, src, date, temp)</span>
-<span id="cb22-153"><a href="#cb22-153"></a></span>
-<span id="cb22-154"><a href="#cb22-154"></a><span class="co"># Select all columns between site and temp like a sequence</span></span>
-<span id="cb22-155"><a href="#cb22-155"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-156"><a href="#cb22-156"></a>  <span class="fu">select</span>(site<span class="sc">:</span>temp)</span>
+<span id="cb22-149"><a href="#cb22-149"></a><span class="in">```{r code-tidier-filter-na, eval=FALSE}</span></span>
+<span id="cb22-150"><a href="#cb22-150"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-151"><a href="#cb22-151"></a>  <span class="fu">filter</span>(site <span class="sc">==</span> <span class="st">"Port Nolloth"</span>, <span class="co"># First give the site to filter</span></span>
+<span id="cb22-152"><a href="#cb22-152"></a>         src <span class="sc">==</span> <span class="st">"DEA"</span>, <span class="co"># Then specify the source</span></span>
+<span id="cb22-153"><a href="#cb22-153"></a>         temp <span class="sc">&lt;=</span> <span class="dv">11</span> <span class="sc">|</span> <span class="co"># Temperatures at or below 11°C OR</span></span>
+<span id="cb22-154"><a href="#cb22-154"></a>           <span class="fu">is.na</span>(temp) <span class="co"># Include missing values</span></span>
+<span id="cb22-155"><a href="#cb22-155"></a>         )</span>
+<span id="cb22-156"><a href="#cb22-156"></a><span class="in">```</span></span>
 <span id="cb22-157"><a href="#cb22-157"></a></span>
-<span id="cb22-158"><a href="#cb22-158"></a><span class="co"># Select all columns except those stated individually</span></span>
-<span id="cb22-159"><a href="#cb22-159"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-160"><a href="#cb22-160"></a>  <span class="fu">select</span>(<span class="sc">-</span>date, <span class="sc">-</span>depth)</span>
+<span id="cb22-158"><a href="#cb22-158"></a><span class="fu"># Select Variables (Columns) With`select()`</span></span>
+<span id="cb22-159"><a href="#cb22-159"></a></span>
+<span id="cb22-160"><a href="#cb22-160"></a>When you load a dataset that contains more columns than will be useful or required, it is preferable to shave off the excess. You do this with the <span class="in">`select()`</span> function. In the following four examples you are going to remove the <span class="in">`depth`</span> and <span class="in">`type`</span> columns. There are many ways to do this and none are technically better or faster. So it is up to the user to find a favourite technique.</span>
 <span id="cb22-161"><a href="#cb22-161"></a></span>
-<span id="cb22-162"><a href="#cb22-162"></a><span class="co"># Select all columns except those within a given sequence</span></span>
-<span id="cb22-163"><a href="#cb22-163"></a>  <span class="co"># Note that the '-' goes outside of a new set of brackets</span></span>
-<span id="cb22-164"><a href="#cb22-164"></a>  <span class="co"># that are wrapped around the sequence of columns to remove</span></span>
-<span id="cb22-165"><a href="#cb22-165"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-166"><a href="#cb22-166"></a>  <span class="fu">select</span>(<span class="sc">-</span>(date<span class="sc">:</span>depth))</span>
-<span id="cb22-167"><a href="#cb22-167"></a><span class="in">```</span></span>
-<span id="cb22-168"><a href="#cb22-168"></a></span>
-<span id="cb22-169"><a href="#cb22-169"></a>You may also use <span class="in">`select()`</span> to reorder the columns in a dataframe. In this case the inclusion of the <span class="in">`everything()`</span> function may be a useful shortcut as illustrated below.</span>
+<span id="cb22-162"><a href="#cb22-162"></a><span class="in">```{r code-tidier-sect-1, eval=FALSE}</span></span>
+<span id="cb22-163"><a href="#cb22-163"></a><span class="co"># Select columns individually by name</span></span>
+<span id="cb22-164"><a href="#cb22-164"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-165"><a href="#cb22-165"></a>  <span class="fu">select</span>(site, src, date, temp)</span>
+<span id="cb22-166"><a href="#cb22-166"></a></span>
+<span id="cb22-167"><a href="#cb22-167"></a><span class="co"># Select all columns between site and temp like a sequence</span></span>
+<span id="cb22-168"><a href="#cb22-168"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-169"><a href="#cb22-169"></a>  <span class="fu">select</span>(site<span class="sc">:</span>temp)</span>
 <span id="cb22-170"><a href="#cb22-170"></a></span>
-<span id="cb22-171"><a href="#cb22-171"></a><span class="in">```{r code-tidier-select-2, eval=FALSE}</span></span>
-<span id="cb22-172"><a href="#cb22-172"></a><span class="co"># Change up order by specifying individual columns</span></span>
-<span id="cb22-173"><a href="#cb22-173"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-174"><a href="#cb22-174"></a>  <span class="fu">select</span>(temp, src, date, site)</span>
-<span id="cb22-175"><a href="#cb22-175"></a></span>
-<span id="cb22-176"><a href="#cb22-176"></a><span class="co"># Use the everything function to grab all columns </span></span>
-<span id="cb22-177"><a href="#cb22-177"></a><span class="co"># not already specified</span></span>
+<span id="cb22-171"><a href="#cb22-171"></a><span class="co"># Select all columns except those stated individually</span></span>
+<span id="cb22-172"><a href="#cb22-172"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-173"><a href="#cb22-173"></a>  <span class="fu">select</span>(<span class="sc">-</span>date, <span class="sc">-</span>depth)</span>
+<span id="cb22-174"><a href="#cb22-174"></a></span>
+<span id="cb22-175"><a href="#cb22-175"></a><span class="co"># Select all columns except those within a given sequence</span></span>
+<span id="cb22-176"><a href="#cb22-176"></a>  <span class="co"># Note that the '-' goes outside of a new set of brackets</span></span>
+<span id="cb22-177"><a href="#cb22-177"></a>  <span class="co"># that are wrapped around the sequence of columns to remove</span></span>
 <span id="cb22-178"><a href="#cb22-178"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-179"><a href="#cb22-179"></a>  <span class="fu">select</span>(type, src, <span class="fu">everything</span>())</span>
-<span id="cb22-180"><a href="#cb22-180"></a></span>
-<span id="cb22-181"><a href="#cb22-181"></a><span class="co"># Or go bananas and use all of the rules at once</span></span>
-<span id="cb22-182"><a href="#cb22-182"></a>  <span class="co"># Remember, when dealing with tidy data,</span></span>
-<span id="cb22-183"><a href="#cb22-183"></a>  <span class="co"># everything may be interchanged</span></span>
-<span id="cb22-184"><a href="#cb22-184"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-185"><a href="#cb22-185"></a>  <span class="fu">select</span>(temp<span class="sc">:</span>type, <span class="fu">everything</span>(), <span class="sc">-</span>src)</span>
-<span id="cb22-186"><a href="#cb22-186"></a><span class="in">```</span></span>
-<span id="cb22-187"><a href="#cb22-187"></a></span>
-<span id="cb22-188"><a href="#cb22-188"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb22-189"><a href="#cb22-189"></a><span class="fu">## The Square Bracket `[]` Notation</span></span>
-<span id="cb22-190"><a href="#cb22-190"></a></span>
-<span id="cb22-191"><a href="#cb22-191"></a>The square bracket <span class="in">`[]`</span> notation may also be used for indexing and subsetting data structures such as vectors, matrices, data frames, and lists. Before **tidyverse** existed, this was the only way to do so. Square brackets allows you to select elements from these data structures based on their positions, conditions, or names. The use of square brackets can vary slightly depending on the data structure being accessed. Here is a brief overview:</span>
-<span id="cb22-192"><a href="#cb22-192"></a></span>
-<span id="cb22-193"><a href="#cb22-193"></a><span class="ss">1. </span>**Vectors**: When used with vectors, square brackets allow you to select elements by their numeric position, a logical vector indicating which elements to select. For example<span class="in">`vector[c(1, 3)]`</span> returns the first and third elements of the vector.</span>
-<span id="cb22-194"><a href="#cb22-194"></a></span>
-<span id="cb22-195"><a href="#cb22-195"></a><span class="ss">2. </span>**Matrices**: For matrices, square brackets take two dimensions <span class="in">`[row, column]`</span> to select elements. You can select entire rows, columns, or individual elements. Specifying a row, column as empty (e.g.<span class="in">`[,]`</span>) selects everything in that dimension.</span>
-<span id="cb22-196"><a href="#cb22-196"></a></span>
-<span id="cb22-197"><a href="#cb22-197"></a><span class="ss">3. </span>**Dataframes**: Similar to matrices, square brackets can be used to subset data frames by row, column. However and since dataframes can have column names, you can also use these names for selection, e.g., <span class="in">`df[1,]`</span> selects the first row of the dataframe, <span class="in">`df[, "columnName"]`</span> selects all rows of a specific column.</span>
-<span id="cb22-198"><a href="#cb22-198"></a></span>
-<span id="cb22-199"><a href="#cb22-199"></a><span class="ss">4. </span>**Lists**: Lists can be subsetted by numeric or character indices corresponding to their elements. For example, <span class="in">`list[[1]]`</span> selects the first element of the list. Note the double brackets, which are used to extract elements from a list directly. Single brackets, e.g., <span class="in">`list[1]`</span>, return a sublist containing the first element.</span>
-<span id="cb22-200"><a href="#cb22-200"></a>:::</span>
-<span id="cb22-201"><a href="#cb22-201"></a></span>
-<span id="cb22-202"><a href="#cb22-202"></a>::: {.callout-important}</span>
-<span id="cb22-203"><a href="#cb22-203"></a><span class="fu">## Data Structures and Square Brackets</span></span>
-<span id="cb22-204"><a href="#cb22-204"></a></span>
-<span id="cb22-205"><a href="#cb22-205"></a>Do this now: provide examples of i) the various data structures available in R, and ii) how to use square brackets to subset each of them. You may use any of the built-in datasets to do so.</span>
-<span id="cb22-206"><a href="#cb22-206"></a>:::</span>
+<span id="cb22-179"><a href="#cb22-179"></a>  <span class="fu">select</span>(<span class="sc">-</span>(date<span class="sc">:</span>depth))</span>
+<span id="cb22-180"><a href="#cb22-180"></a><span class="in">```</span></span>
+<span id="cb22-181"><a href="#cb22-181"></a></span>
+<span id="cb22-182"><a href="#cb22-182"></a>You may also use <span class="in">`select()`</span> to reorder the columns in a dataframe. In this case the inclusion of the <span class="in">`everything()`</span> function may be a useful shortcut as illustrated below.</span>
+<span id="cb22-183"><a href="#cb22-183"></a></span>
+<span id="cb22-184"><a href="#cb22-184"></a><span class="in">```{r code-tidier-select-2, eval=FALSE}</span></span>
+<span id="cb22-185"><a href="#cb22-185"></a><span class="co"># Change up order by specifying individual columns</span></span>
+<span id="cb22-186"><a href="#cb22-186"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-187"><a href="#cb22-187"></a>  <span class="fu">select</span>(temp, src, date, site)</span>
+<span id="cb22-188"><a href="#cb22-188"></a></span>
+<span id="cb22-189"><a href="#cb22-189"></a><span class="co"># Use the everything function to grab all columns </span></span>
+<span id="cb22-190"><a href="#cb22-190"></a><span class="co"># not already specified</span></span>
+<span id="cb22-191"><a href="#cb22-191"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-192"><a href="#cb22-192"></a>  <span class="fu">select</span>(type, src, <span class="fu">everything</span>())</span>
+<span id="cb22-193"><a href="#cb22-193"></a></span>
+<span id="cb22-194"><a href="#cb22-194"></a><span class="co"># Or go bananas and use all of the rules at once</span></span>
+<span id="cb22-195"><a href="#cb22-195"></a>  <span class="co"># Remember, when dealing with tidy data,</span></span>
+<span id="cb22-196"><a href="#cb22-196"></a>  <span class="co"># everything may be interchanged</span></span>
+<span id="cb22-197"><a href="#cb22-197"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-198"><a href="#cb22-198"></a>  <span class="fu">select</span>(temp<span class="sc">:</span>type, <span class="fu">everything</span>(), <span class="sc">-</span>src)</span>
+<span id="cb22-199"><a href="#cb22-199"></a><span class="in">```</span></span>
+<span id="cb22-200"><a href="#cb22-200"></a></span>
+<span id="cb22-201"><a href="#cb22-201"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb22-202"><a href="#cb22-202"></a><span class="fu">## The Square Bracket `[]` Notation</span></span>
+<span id="cb22-203"><a href="#cb22-203"></a></span>
+<span id="cb22-204"><a href="#cb22-204"></a>The square bracket <span class="in">`[]`</span> notation may also be used for indexing and subsetting data structures such as vectors, matrices, data frames, and lists. Before **tidyverse** existed, this was the only way to do so. Square brackets allows you to select elements from these data structures based on their positions, conditions, or names. The use of square brackets can vary slightly depending on the data structure being accessed. Here is a brief overview:</span>
+<span id="cb22-205"><a href="#cb22-205"></a></span>
+<span id="cb22-206"><a href="#cb22-206"></a><span class="ss">1. </span>**Vectors**: When used with vectors, square brackets allow you to select elements by their numeric position, a logical vector indicating which elements to select. For example<span class="in">`vector[c(1, 3)]`</span> returns the first and third elements of the vector.</span>
 <span id="cb22-207"><a href="#cb22-207"></a></span>
-<span id="cb22-208"><a href="#cb22-208"></a></span>
-<span id="cb22-209"><a href="#cb22-209"></a><span class="fu"># Create New Variables (Columns) with `mutate()`</span></span>
-<span id="cb22-210"><a href="#cb22-210"></a></span>
-<span id="cb22-211"><a href="#cb22-211"></a>When you are performing data analysis/statistics in R this is likely because it is necessary to create some new values that did not exist in the raw data. The previous three functions you looked at (<span class="in">`arrange()`</span>, <span class="in">`filter()`</span>, <span class="in">`select()`</span>) will prepare you to create new data, but do not do so themselves. This is when you need to use <span class="in">`mutate()`</span>. You must however be very mindful that <span class="in">`mutate()`</span> is only useful if we want to create new variables (columns) that are a function of one or more *existing* columns (well, that is how it is mainly used). Any new column you create with <span class="in">`mutate()`</span> must always have the same number of rows as the dataframe you are working with. In order to create a new column you must first tell R what the name of the column will be, in this case let us create a column named <span class="in">`kelvin`</span>. The second step is to then tell R what to put in the new column. As you may have guessed, you are going to convert the <span class="in">`temp`</span> column which contains degrees Celsius (°K) into Kelvin (°K) by adding 273.15 to every row.</span>
-<span id="cb22-212"><a href="#cb22-212"></a></span>
-<span id="cb22-213"><a href="#cb22-213"></a><span class="in">```{r code-tidier-mutate-1, eval=FALSE}</span></span>
-<span id="cb22-214"><a href="#cb22-214"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-215"><a href="#cb22-215"></a>  <span class="fu">mutate</span>(<span class="at">kelvin =</span> temp <span class="sc">+</span> <span class="fl">273.15</span>)<span class="er">)</span></span>
-<span id="cb22-216"><a href="#cb22-216"></a><span class="in">```</span></span>
-<span id="cb22-217"><a href="#cb22-217"></a><span class="in">```{r code-tidier-mutate-1-ghost, echo=FALSE}</span></span>
-<span id="cb22-218"><a href="#cb22-218"></a><span class="fu">mutate</span>(SACTN, <span class="at">kelvin =</span> temp <span class="sc">+</span> <span class="fl">273.15</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
-<span id="cb22-219"><a href="#cb22-219"></a><span class="in">```</span></span>
+<span id="cb22-208"><a href="#cb22-208"></a><span class="ss">2. </span>**Matrices**: For matrices, square brackets take two dimensions <span class="in">`[row, column]`</span> to select elements. You can select entire rows, columns, or individual elements. Specifying a row, column as empty (e.g.<span class="in">`[,]`</span>) selects everything in that dimension.</span>
+<span id="cb22-209"><a href="#cb22-209"></a></span>
+<span id="cb22-210"><a href="#cb22-210"></a><span class="ss">3. </span>**Dataframes**: Similar to matrices, square brackets can be used to subset data frames by row, column. However and since dataframes can have column names, you can also use these names for selection, e.g., <span class="in">`df[1,]`</span> selects the first row of the dataframe, <span class="in">`df[, "columnName"]`</span> selects all rows of a specific column.</span>
+<span id="cb22-211"><a href="#cb22-211"></a></span>
+<span id="cb22-212"><a href="#cb22-212"></a><span class="ss">4. </span>**Lists**: Lists can be subsetted by numeric or character indices corresponding to their elements. For example, <span class="in">`list[[1]]`</span> selects the first element of the list. Note the double brackets, which are used to extract elements from a list directly. Single brackets, e.g., <span class="in">`list[1]`</span>, return a sublist containing the first element.</span>
+<span id="cb22-213"><a href="#cb22-213"></a>:::</span>
+<span id="cb22-214"><a href="#cb22-214"></a></span>
+<span id="cb22-215"><a href="#cb22-215"></a>::: {.callout-important}</span>
+<span id="cb22-216"><a href="#cb22-216"></a><span class="fu">## Data Structures and Square Brackets</span></span>
+<span id="cb22-217"><a href="#cb22-217"></a></span>
+<span id="cb22-218"><a href="#cb22-218"></a>Do this now: provide examples of i) the various data structures available in R, and ii) how to use square brackets to subset each of them. You may use any of the built-in datasets to do so.</span>
+<span id="cb22-219"><a href="#cb22-219"></a>:::</span>
 <span id="cb22-220"><a href="#cb22-220"></a></span>
-<span id="cb22-221"><a href="#cb22-221"></a>This is a very basic example<span class="in">`mutate()`</span> is capable of much more than simple addition. You will get into some more exciting examples during the next session.</span>
-<span id="cb22-222"><a href="#cb22-222"></a></span>
-<span id="cb22-223"><a href="#cb22-223"></a><span class="fu"># Summarise Variables (Columns) with `summarise()`</span></span>
-<span id="cb22-224"><a href="#cb22-224"></a></span>
-<span id="cb22-225"><a href="#cb22-225"></a>Finally this brings you to the last tool for this section. To create new columns you use <span class="in">`mutate()`</span>, but to calculate any sort of summary/statistic from a column that will return fewer rows than the dataframe has you will use <span class="in">`summarise()`</span>. This makes <span class="in">`summarise()`</span> much more powerful than the other functions in this section, but because it is able to do more, it can also be more unpredictable, making its use potentially more challenging. You will almost always end up using this function in our workflows. The following chunk very simply calculates the overall mean temperature for the entire SACTN.</span>
-<span id="cb22-226"><a href="#cb22-226"></a></span>
-<span id="cb22-227"><a href="#cb22-227"></a><span class="in">```{r code-tidier-summarise-1}</span></span>
-<span id="cb22-228"><a href="#cb22-228"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-229"><a href="#cb22-229"></a>  <span class="fu">summarise</span>(<span class="at">mean_temp =</span> <span class="fu">mean</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb22-230"><a href="#cb22-230"></a><span class="in">```</span></span>
-<span id="cb22-231"><a href="#cb22-231"></a></span>
-<span id="cb22-232"><a href="#cb22-232"></a>Note how the above chunk created a new dataframe. This is done because it cannot add this one result to the previous dataframe due to the mismatch in the number of rows. If you were to create additional columns with other summaries, you may do so within the same <span class="in">`summarise()`</span> function. These multiple summaries are displayed on individual lines in the following chunk to help keep things clear.</span>
+<span id="cb22-221"><a href="#cb22-221"></a></span>
+<span id="cb22-222"><a href="#cb22-222"></a><span class="fu"># Create New Variables (Columns) with `mutate()`</span></span>
+<span id="cb22-223"><a href="#cb22-223"></a></span>
+<span id="cb22-224"><a href="#cb22-224"></a>When you are performing data analysis/statistics in R this is likely because it is necessary to create some new values that did not exist in the raw data. The previous three functions you looked at (<span class="in">`arrange()`</span>, <span class="in">`filter()`</span>, <span class="in">`select()`</span>) will prepare you to create new data, but do not do so themselves. This is when you need to use <span class="in">`mutate()`</span>. You must however be very mindful that <span class="in">`mutate()`</span> is only useful if we want to create new variables (columns) that are a function of one or more *existing* columns (well, that is how it is mainly used). Any new column you create with <span class="in">`mutate()`</span> must always have the same number of rows as the dataframe you are working with. In order to create a new column you must first tell R what the name of the column will be, in this case let us create a column named <span class="in">`kelvin`</span>. The second step is to then tell R what to put in the new column. As you may have guessed, you are going to convert the <span class="in">`temp`</span> column which contains degrees Celsius (°K) into Kelvin (°K) by adding 273.15 to every row.</span>
+<span id="cb22-225"><a href="#cb22-225"></a></span>
+<span id="cb22-226"><a href="#cb22-226"></a><span class="in">```{r code-tidier-mutate-1, eval=FALSE}</span></span>
+<span id="cb22-227"><a href="#cb22-227"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-228"><a href="#cb22-228"></a>  <span class="fu">mutate</span>(<span class="at">kelvin =</span> temp <span class="sc">+</span> <span class="fl">273.15</span>)<span class="er">)</span></span>
+<span id="cb22-229"><a href="#cb22-229"></a><span class="in">```</span></span>
+<span id="cb22-230"><a href="#cb22-230"></a><span class="in">```{r code-tidier-mutate-1-ghost, echo=FALSE}</span></span>
+<span id="cb22-231"><a href="#cb22-231"></a><span class="fu">mutate</span>(SACTN, <span class="at">kelvin =</span> temp <span class="sc">+</span> <span class="fl">273.15</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,]</span>
+<span id="cb22-232"><a href="#cb22-232"></a><span class="in">```</span></span>
 <span id="cb22-233"><a href="#cb22-233"></a></span>
-<span id="cb22-234"><a href="#cb22-234"></a><span class="in">```{r code-tidier-summarise-2}</span></span>
-<span id="cb22-235"><a href="#cb22-235"></a>SACTN <span class="sc">%&gt;%</span> </span>
-<span id="cb22-236"><a href="#cb22-236"></a>  <span class="fu">summarise</span>(<span class="at">mean_temp =</span> <span class="fu">mean</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb22-237"><a href="#cb22-237"></a>            <span class="at">sd_temp =</span> <span class="fu">sd</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb22-238"><a href="#cb22-238"></a>            <span class="at">min_temp =</span> <span class="fu">min</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb22-239"><a href="#cb22-239"></a>            <span class="at">max_temp =</span> <span class="fu">max</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb22-240"><a href="#cb22-240"></a>            )</span>
-<span id="cb22-241"><a href="#cb22-241"></a><span class="in">```</span></span>
-<span id="cb22-242"><a href="#cb22-242"></a></span>
-<span id="cb22-243"><a href="#cb22-243"></a>Creating summaries of the *entire* SACTN dataset in this way is not appropriate as you should not be combining time series from such different parts of the coast. In order to calculate summaries within variables you will need to learn how to use <span class="in">`group_by()`</span>, which in turn will first require you to learn how to chain multiple functions together within a pipe (<span class="in">`%&gt;%`</span>). That is how you will begin the next session for today. You will finishing with several tips on how to make your data the tidiest that it may be.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb22-234"><a href="#cb22-234"></a>This is a very basic example<span class="in">`mutate()`</span> is capable of much more than simple addition. You will get into some more exciting examples during the next session.</span>
+<span id="cb22-235"><a href="#cb22-235"></a></span>
+<span id="cb22-236"><a href="#cb22-236"></a><span class="fu"># Summarise Variables (Columns) with `summarise()`</span></span>
+<span id="cb22-237"><a href="#cb22-237"></a></span>
+<span id="cb22-238"><a href="#cb22-238"></a>Finally this brings you to the last tool for this section. To create new columns you use <span class="in">`mutate()`</span>, but to calculate any sort of summary/statistic from a column that will return fewer rows than the dataframe has you will use <span class="in">`summarise()`</span>. This makes <span class="in">`summarise()`</span> much more powerful than the other functions in this section, but because it is able to do more, it can also be more unpredictable, making its use potentially more challenging. You will almost always end up using this function in our workflows. The following chunk very simply calculates the overall mean temperature for the entire SACTN.</span>
+<span id="cb22-239"><a href="#cb22-239"></a></span>
+<span id="cb22-240"><a href="#cb22-240"></a><span class="in">```{r code-tidier-summarise-1}</span></span>
+<span id="cb22-241"><a href="#cb22-241"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-242"><a href="#cb22-242"></a>  <span class="fu">summarise</span>(<span class="at">mean_temp =</span> <span class="fu">mean</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb22-243"><a href="#cb22-243"></a><span class="in">```</span></span>
+<span id="cb22-244"><a href="#cb22-244"></a></span>
+<span id="cb22-245"><a href="#cb22-245"></a>Note how the above chunk created a new dataframe. This is done because it cannot add this one result to the previous dataframe due to the mismatch in the number of rows. If you were to create additional columns with other summaries, you may do so within the same <span class="in">`summarise()`</span> function. These multiple summaries are displayed on individual lines in the following chunk to help keep things clear.</span>
+<span id="cb22-246"><a href="#cb22-246"></a></span>
+<span id="cb22-247"><a href="#cb22-247"></a><span class="in">```{r code-tidier-summarise-2}</span></span>
+<span id="cb22-248"><a href="#cb22-248"></a>SACTN <span class="sc">%&gt;%</span> </span>
+<span id="cb22-249"><a href="#cb22-249"></a>  <span class="fu">summarise</span>(<span class="at">mean_temp =</span> <span class="fu">mean</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-250"><a href="#cb22-250"></a>            <span class="at">sd_temp =</span> <span class="fu">sd</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-251"><a href="#cb22-251"></a>            <span class="at">min_temp =</span> <span class="fu">min</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb22-252"><a href="#cb22-252"></a>            <span class="at">max_temp =</span> <span class="fu">max</span>(temp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-253"><a href="#cb22-253"></a>            )</span>
+<span id="cb22-254"><a href="#cb22-254"></a><span class="in">```</span></span>
+<span id="cb22-255"><a href="#cb22-255"></a></span>
+<span id="cb22-256"><a href="#cb22-256"></a>Creating summaries of the *entire* SACTN dataset in this way is not appropriate as you should not be combining time series from such different parts of the coast. In order to calculate summaries within variables you will need to learn how to use <span class="in">`group_by()`</span>, which in turn will first require you to learn how to chain multiple functions together within a pipe (<span class="in">`%&gt;%`</span>). That is how you will begin the next session for today. You will finishing with several tips on how to make your data the tidiest that it may be.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
