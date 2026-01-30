@@ -32,7 +32,16 @@ ggplot2::theme_set(
 > --- Ronald Coase
 
 
-In the previous session you covered the five main transformation functions you would use in a typical tidy workflow. But to really unlock their power you need to learn how to use them with `group_by()`. This is how you may calculate statistics based on the different grouping variables within your data, such as sites, species or soil types or for example. Let us begin by loading the **tidyverse** package and the SACTN data if you have not already.
+In the previous session you covered the five main transformation functions you would use in a typical tidy workflow. But to really unlock their power you need to learn how to use them with `group_by()`. This is how you calculate statistics based on grouping variables within your data, such as sites, species, or soil types, for example. Let us begin by loading the **tidyverse** package and the SACTN data if you have not already.
+
+Grouped data are not a different kind of object. A grouped tibble is a regular data frame with **grouping metadata attached**. That metadata changes how verbs like `summarise()`, `mutate()`, and `filter()` behave.
+
+::: {.callout-tip appearance="simple"}
+## Pipes as a thinking tool
+Each line should answer one question:
+"What rows do I want?" -> "How should I group them?" -> "What summary do I need?"
+If a pipeline feels confusing, run it stepwise and inspect intermediate outputs.
+:::
 
 ```{r code-tidiest-load}
 # Load libraries
@@ -51,12 +60,18 @@ rm(SACTNmonthly_v4.0)
 
 # Group Observations (Rows) by Variables (Columns) with `group_by()`
 
-With the SACTN dataset loaded you will now look at the effect that `group_by` has on other `tidyverse` functions. First you will create a new object called `SACTN_depth`. If you look at this object in the RStudio GUI it will not appear to be any different from `SACTN`. You may think of `group_by()` as working behind the scenes in order to better support the five main functions. You will see that `group_by()` is working as intended when you create summaries from the `SACTN_depth` dataframe. Remember that you do not need to put the last bracket on its own line. I like to do so in order to reduce the chances that I will forget to type it after the final argument within the last function in the code chunk.
+With the SACTN dataset loaded you will now look at the effect that `group_by()` has on other `tidyverse` functions. First you will create a new object called `SACTN_depth`. If you look at this object in the RStudio GUI it will not appear to be any different from `SACTN`. That is the danger: grouping is **invisible** unless you check it. You will see that `group_by()` is working as intended when you create summaries from the `SACTN_depth` dataframe.
+
+Remember that you do not need to put the last bracket on its own line. I like to do so in order to reduce the chances that I will forget to type it after the final argument within the last function in the code chunk.
 
 ```{r code-tidiest-group-1}
 # Group by depth
 SACTN_depth <- SACTN %>% 
   group_by(depth)
+
+# Check grouping explicitly
+group_vars(SACTN_depth)
+group_keys(SACTN_depth)[1:5,]
 
 # Calculate mean temperature by depth
 SACTN_depth_mean <- SACTN_depth %>% 
@@ -68,6 +83,13 @@ SACTN_depth_mean <- SACTN_depth %>%
 SACTN_depth_mean
 ```
 
+::: {.callout-note appearance="simple"}
+## Before you continue: grouping checkpoint
+- How many groups do you have?
+- Which variables define them?
+- Do you expect many rows per group or one?
+:::
+
 Let us visualise the newly created summary dataframe and see what we get there.
 
 ```{r fig-tidiest-group-2, fig.cap="Relationship between depth and mean temperature."}
@@ -76,6 +98,12 @@ ggplot(data = SACTN_depth_mean, mapping = aes(x = depth, y = mean_temp)) +
   geom_point(aes(size = count), alpha = 1/3) +
   geom_smooth(se = FALSE)
 ```
+
+::: {.callout-tip appearance="simple"}
+## Row-wise vs group-wise thinking
+`group_by()` changes the unit of work from **rows** to **groups**.  
+`summarise()` collapses each group to fewer rows; `mutate()` keeps row count but uses group-wise calculations.
+:::
 
 ## Grouping by Multiple Variables
 
@@ -97,22 +125,26 @@ SACTN_date_group <- SACTN %>%
 
 Now that you have created some grouped dataframes, let us think of some ways to summarise these data.
 
+Why tidyverse grouping? It keeps your data in tidy shape, fits naturally into pipelines, and makes your assumptions about groups explicit. Base alternatives exist, but `group_by() + summarise()` is usually easier to read and audit.
+
 ## Ungrouping
 
-Once you level up our **tidyverse** skills you will routinely be grouping variables while calculating statistics. This then poses the problem of losing track of which dataframes are grouped and which are not. Happily, to remove any grouping we just use `ungroup()`. No arguments required, just the empty function by itself. Too easy. 
+Once you level up our **tidyverse** skills you will routinely be grouping variables while calculating statistics. This then poses the problem of losing track of which dataframes are grouped and which are not. **Grouping persists** until you remove it, and that persistence can surprise you in later steps. Happily, to remove any grouping we just use `ungroup()`. No arguments required, just the empty function by itself. Too easy. 
 
 ```{r code-tidiest-group-4, eval=FALSE}
 SACTN_ungroup <- SACTN_date_group %>% 
   ungroup()
 ```
 
+Tip: if you are done summarising, `ungroup()` immediately so that later steps do not inherit group structure by accident.
+
 # Chain Functions with the Pipe (`%>%`)
 
-This now brings you to the last major concept you need to become confident with for this workshop. Everything you have learned thus far builds on everything else in a modular way, with most concepts, steps therein being interchangeable. The pipe takes all of the things we have learned and takes them to the next level. And the best part about it is that it requires us to learn nothing new. You have been doing it all along and perhaps without even realising it. Let us see what I mean. The following chunk does in one command what the first chunk in the previous section took two steps. This is not only faster, but saves you from having to create intermediate dataframes that only slow down our computer, clog up your environment.
+This now brings you to the last major concept you need to become confident with for this workshop. Everything you have learned thus far builds on everything else in a modular way, with most concepts and steps being interchangeable. The pipe takes all of the things we have learned and takes them to the next level. And the best part about it is that it requires us to learn nothing new. You have been doing it all along, perhaps without even realising it. Let us see what I mean. The following chunk does in one command what the first chunk in the previous section took two steps. This is not only faster, but saves you from having to create intermediate dataframes that only slow down our computer and clog up your environment.
 
 ```{r code-tidiest-group-5, eval=FALSE}
 SACTN_depth_mean_2 <- SACTN %>% # Choose a base dataframe
-  group_by(depth) %>% # Group by thedepth column
+  group_by(depth) %>% # Group by the depth column
   summarise(mean_temp = mean(temp, na.rm = TRUE), # Calculate means
   count = n() # Count observations
 ) # Safety measure
@@ -151,6 +183,23 @@ SACTN_anom <- SACTN %>%
   ungroup()
 ```
 
+::: {.callout-note appearance="simple"}
+## Thinking aloud: why each step?
+```{r code-tidiest-thinking, eval=FALSE}
+SACTN %>% 
+  # 1) Choose the rows we care about
+  filter(site %in% c("Paternoster", "Oudekraal")) %>%
+  # 2) Declare the grouping logic
+  group_by(site, src) %>%
+  # 3) Compute a group-wise summary
+  summarise(mean_temp = mean(temp, na.rm = TRUE),
+            sd_temp = sd(temp, na.rm = TRUE)) %>%
+  # 4) Drop grouping once we are done
+  ungroup()
+```
+Each line answers a single question. If you can explain each line, the pipeline is doing the right thing.
+:::
+
 Now, let us select only two sites, calculate their mean and standard deviations. Note how whichever columns you give to`group_by()` will be carried over into the new dataframe created by `summarise()`.
 
 ```{r code-tidiest-group-8}
@@ -160,6 +209,8 @@ SACTN %>%
   summarise(mean_temp = mean(temp, na.rm = TRUE), 
             sd_temp = sd(temp, na.rm = TRUE))
 ```
+
+Remember: grouping choices encode scientific assumptions. Summarising across the wrong groups is not just "statistically odd" -- it can be conceptually invalid.
 
 # Going Deeper
 
@@ -175,6 +226,12 @@ SACTN %>%
 ```
 
 Oh no, you broke it! This is a common error while learning to write code so do try to keep this rule in mind as it can cause a lot of headaches. An easy way to spot this problem is if your line of code has more logical operators than comparison operators you are probably going to have a bad time. This is doubly unfortunate as you would need to write less code if this were not so. Happily, there is a shortcut for just this problem, `%in%`. Whenever you want to use operators to filter by more than two things, it is most convenient to create an object that contains the names, numbers that you want to filter by. You then replace your comparison and logical operators with that one simple symbol (`%in%`). 
+
+::: {.callout-warning appearance="simple"}
+## Common pitfall rule of thumb
+If you see a **standalone character string** inside `filter()`, something is almost certainly wrong.  
+Use `%in%` when you want to match against a list of values.
+:::
 
 ```{r code-tidiest-logic-2}
 # First create a character vector containing the desired sites
@@ -199,6 +256,14 @@ SACTN %>%
 ```
 
 As you may imagine, performing intricate logical arguments like this may get out of hand rather quickly. It is advisable to save intermediate steps in a complex workflow to avoid too much heartache. Where exactly these 'fire breaks' should be made is up to the person writing the code.
+
+::: {.callout-warning appearance="simple"}
+## Common pitfalls to watch for
+- Forgetting to `ungroup()` and getting unexpected multiple rows.
+- Using `|` instead of `%in%` for multi-value matches.
+- Using `n()` without grouping and assuming it is per-group.
+- Using `slice()` as if it were stable over time.
+:::
 
 # Pipe into **ggplot2**
 
@@ -270,7 +335,15 @@ SACTN_trans[1:10,]
 
 ## Count Observations (Rows) with `n()`
 
-You have already seen this function sneak it is way into a few of the code chunks in the previous session. You use `n()` to count any grouped variable automatically. It is not able to be given any arguments, so you must organise our dataframe in order to satisfy it is needs. It is the diva function of the **tidyverse**; however, it is terribly useful as you usually want to know how many observations your summary stats are based. First you will run some stats, create a figure without documenting`n`. Then you will include `n` and see how that changes your conclusions.
+You have already seen this function sneak its way into a few of the code chunks in the previous session. You use `n()` to count any grouped variable automatically. It cannot be given any arguments, so you must organise our dataframe in order to satisfy its needs. It is the diva function of the **tidyverse**; however, it is terribly useful as you usually want to know how many observations your summary stats are based on.
+
+::: {.callout-tip appearance="simple"}
+## Read grouped output carefully
+If you see multiple rows after `summarise()`, you are still grouped.  
+If you use `n()` without grouping, it counts **all** rows.
+:::
+
+First you will run some stats, create a figure without documenting `n`. Then you will include `n` and see how that changes your conclusions.
 
 ```{r fig-tidiest-n-1, fig.cap="Dot plot showing range of mean temperatures for the time series in the SACTN dataset."}
  SACTN_n <- SACTN %>% 
@@ -344,6 +417,8 @@ SACTN %>%
 
 It is discouraged to use slice to remove or select specific rows of data as this does not discriminate against any possible future changes in ones data. Meaning that if at some point in the future new data are added to a dataset, re-running this code will likely no longer be selecting the correct rows. This is why `filter()` is a main function, `slice()` is not. This auxiliary function can however still be quite useful when combined with arrange.
 
+Rule of thumb: if you care about **reproducibility**, prefer `filter()` over `slice()`.
+
 ```{r code-tidiest-slice-2}
 # The top 5 variable sites as measured by SD
 SACTN %>% 
@@ -367,6 +442,8 @@ SACTN %>%
   mutate(prop_15 = count_15/count) %>% 
   arrange(prop_15)
 ```
+
+The output of grouped summaries like this is the **shape most modelling and statistical functions expect**: one row per unit, one column per variable. Keep that endpoint in mind as you design your pipelines.
 
 # The New Age *Redux*
 
