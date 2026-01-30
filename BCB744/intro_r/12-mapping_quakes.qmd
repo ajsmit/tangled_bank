@@ -1,6 +1,6 @@
 ---
 date: "2021-01-01"
-title: "12. the Fiji Earthquake Data"
+title: "12. The Fiji Earthquake Data"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -30,7 +30,7 @@ Here I will plot the built-in earthquake dataset (`datasets::quakes`).
 For a global map of earthquakes, see my plot of the [Kaggle earthquake data](../../pages/kaggle_earthquakes.qmd).
 :::
 
-Two new concepts will be introduced in the Chapter:
+Two new concepts will be introduced in the chapter:
 
 - Geographic Coordinate Systems
 - Projected Coordinate Systems
@@ -38,6 +38,18 @@ Two new concepts will be introduced in the Chapter:
 These are specified to the mapping / plotting functions via the Coordinate Reference System (CRS) through functionality built into the **sf** package.
 
 You will also learn how to deal with polygons that cross the dateline (0° wrapping back onto 360°) or the anti-meridian (-180° folding back onto +180°).
+
+# What will go wrong, and why that's useful
+
+Before we write any code, here is the promise of this chapter: **things will break, and that breakage is the lesson**. We will:
+
+1. Start with a sensible map that still hides problems.
+2. Reproject it and watch polygons break at the anti-meridian.
+3. Fix the topology *before* projecting, so the fix sticks.
+4. Compare three zooming strategies and learn when each one helps or hurts.
+5. End with a projection choice that is justified by the question, not habit or because it looks pretty.
+
+If a map looks strange along the way, assume that it is revealing a rule, not a mistake.
 
 # Load Packages and Data
 
@@ -56,7 +68,15 @@ library(rnaturalearthhires)
 
 # Load the Natural Earth Map
 
-The **rnaturalearth** package has the `ne_counties()` function which we use to load borders of all the countries in the world. I load the medium resolution dataset and make sure the data are of class **sf**, i.e. a *simple features collection*.
+The **rnaturalearth** package has the `ne_countries()` function which we use to load borders of all the countries in the world. I load the medium resolution dataset and make sure the data are of class **sf**, i.e. a *simple features collection*.
+
+::: {.callout-note appearance="simple"}
+## I'm assuming (but should probably tell you)
+- **Medium resolution** is a tradeoff: faster plotting, smaller files, and good enough for regional maps.
+- **Countries** are used here instead of coastlines so that later grouping and region selection are easy.
+- **sf** is chosen over **sp** because it plays well with the tidyverse and `ggplot2`.
+- **`sf_use_s2(FALSE)`** opts out of spherical geometry because we will do explicit projection steps and want predictable topology fixes.
+:::
 
 ```{r code-sf-use-s2-false}
 #| eval: true
@@ -87,7 +107,9 @@ CRS:           +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0
 5 South America MULTIPOLYGON (((-67.28475 -...
 ```
 
-Note that for the Natural Earth data the coordinate reference system (CRS) is in the dataset are longitude / latitude coordinates in degrees in a CRS called [WGS84](https://epsg.io/4326). This is the World Geodetic System 1984 commonly used in most GPS devices. The default unit of this CRS is in degrees longitude and latitude.
+**Make this a habit:** always ask *"What CRS am I in right now?"* You can check any object with `st_crs(world)`. If you skip this, you will eventually crop or measure in the wrong units.
+
+Note that for the Natural Earth data the coordinate reference system (CRS) is **longitude / latitude in degrees**, and it is stored as [WGS84](https://epsg.io/4326). This is the World Geodetic System 1984 commonly used in most GPS devices. The default unit of this CRS is in degrees longitude and latitude.
 
 For more information on CRS, see:
 
@@ -105,7 +127,7 @@ ggplot() +
 ```
 
 You can see above that Africa is centrally positioned. However, I want to focus on the western Pacific region. I am also going to apply a new projection ([ESRI:53077
-](https://epsg.io/53077), the Natural Earth projection) to it. The 'rotation' is accomplished by setting `lon_0=170` in the proj-string.
+](https://epsg.io/53077), the Natural Earth projection) to it. The "rotation" is accomplished by setting `lon_0=170` in the proj-string.
 
 ```{r fig-ne-proj-proj-natearth-lon-0}
 #| eval: true
@@ -118,7 +140,15 @@ ggplot() +
   geom_sf(data = world_0, colour = "black", fill = "grey70")
 ```
 
-The western Pacific is now focal, but the map looks strange to say the least. This is due to the break at the anti-meridian which causes the polygons to join up in odd, unexpected ways when the central longitude in the map is not displayed at exactly 0° (in my reprojection I made the focus on 170°E and it became the centre). I can fix it using`st_break_antimeridian()` but to do so I must start with unprojected data, and only *then* apply this function.
+The western Pacific is now focal, but the map looks strange to say the least. This is a **topological failure** caused by how polygons cross the anti-meridian.
+
+To separate the ideas:
+
+- **Projection choice:** Natural Earth is reasonable for global context.
+- **Central meridian choice:** setting `lon_0 = 170` is intentional to centre the Pacific.
+- **Topology failure:** polygons that cross the anti-meridian are now stitched together incorrectly.
+
+This is why we must fix topology *before* projection. I can fix it using `st_break_antimeridian()`, but to do so I must start with unprojected data, and only *then* apply this function.
 
 ```{r fig-world-1-ne-countries-returnclass-sf}
 #| eval: true
@@ -133,19 +163,31 @@ ggplot() +
   geom_sf(data = world_1, colour = "black", fill = "grey70")
 ```
 
+**Reusable rule:** *If polygons cross the anti-meridian, repair topology in geographic coordinates **before** you project.*
+
+**Silent failure warning:** many maps will still look "fine" after a bad projection, but the geometry will be wrong. Always fix topology first, or you will eventually crop, dissolve, or measure the wrong shapes.
+
 # Zooming In
 
 There are three options for focusing in on a particular area of the map (zooming in):
 
-- selecting only certain areas of interest from the spatial dataset (e.g. only certain countries / continent(s) / etc.);
+- selecting only certain areas of interest from the spatial dataset (*e.g.*, only certain countries / continent(s) / etc.);
 - cropping the geometries in the spatial dataset using `sf_crop()`;
 - restricting the display window via `coord_sf()`.
 
 I will look at each in some detail.
 
+Here is the quick decision logic:
+
+| Strategy | Best when... | Risk / downside |
+|---|---|---|
+| **Select features** | You want to keep whole countries/regions intact. | May exclude necessary context (*e.g.*, partial islands). |
+| **Crop geometry (`st_crop`)** | You want a tight, data-driven extent. | You are *modifying* the geometry (not just the view). |
+| **View window (`coord_sf`)** | You want to preserve original geometries. | Easy to hide geometry problems and mislead readers. |
+
 # Selecting Areas of Interest
 
-I am interested only in the 'continent' called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region, not a continent. It is comprised of Australasia and Melanesia, Micronesia, and Polynesia which span the Eastern, Western Hemispheres.
+I am interested only in the "continent" called Oceania, which includes the Pacific Islands, Australia, and New Zealand. More correctly, it a geographical region, not a continent. It is comprised of Australasia and Melanesia, Micronesia, and Polynesia which span the Eastern and Western Hemispheres.
 
 ```{r fig-oceania-world-1-world-1-continent}
 #| eval: true
@@ -157,6 +199,15 @@ ggplot() +
 Zooming in on only the group of nations included with Oceania reveals another problem. This is, only part of New Guinea is displayed: Papua New Guinea appears on the map but the western side of New Guinea, called Western New Guinea, is absent. This is because Papua New Guinea is part of Micronesia whereas West New Guinea is part of Indonesia (part of the South-eastern Asia region).
 
 There is no easy way to select the countries that constitute Australasia, Melanesia, Micronesia, Indonesia, and Polynesia --- unless I create an exhaustive list of these small island nations. But I can use the **countrycode** package to insert an attribute with the geographic [regional classification of the United Nations](https://unstats.un.org/unsd/methodology/m49/) in the `world_1` map. Now all the constituent countries belonging to these regions will be correctly classified to the UN regional classification scheme. Note that I also collapse the countries into their continents by merging all polygons belonging to the same continent (the `group_by()` and `summarise()` functions) --- I do this because I do not want to display individual countries. 
+
+::: {.callout-tip appearance="simple"}
+## Advanced pattern (recognition > memorisation)
+This region + dissolve workflow is *advanced*. You do not need to memorise it. Learn to **recognise** when you need:
+
+- a classification table (UN regions),
+- an attribute join,
+- and a dissolve (`group_by()` + `summarise()`).
+:::
 
 ```{r fig-library-countrycode}
 #| eval: true
@@ -182,9 +233,11 @@ As we can see above, by including the South-eastern Asia region I complete the m
 
 The above map is good but not perfect. I have in mind zooming in a bit more into the region around Fiji where the earthquake monitoring network is located. One way to do this is to crop the extent of the study region using a bounding box whose boundaries are defined by the extent of the `quakes` datapoints.
 
-To start, I use the earthquake data, extract from there the study domain and increase the edges all round by a given margin --- this is so that the stations are not plotted right on the maps' edges.
+To start, I use the earthquake data, extract from there the study domain and increase the edges all round by a given margin --- this is so that the stations are not plotted right on the map's edges.
 
 Important! The coordinates in the `quakes` data are provided in WGS84, so I need to first specify them as such, then transform them to the same coordinate system used by the map.
+
+Why this is a good habit: a data-derived bounding box keeps your map **honest**. It is reproducible, it adapts if the data change, and it prevents you from "hand-drawing" an extent that hides inconvenient points.
 
 ```{r fig-quakes-as-tibble-datasets-quakes}
 #| eval: true
@@ -228,6 +281,11 @@ ggplot() +
 
 Great! This works well. Note that the coordinates on the graticule are in degrees longitude and latitude, the default for WGS84. By setting `datum = NE_proj` ensures the graticule is displayed in Natural Earth coordinate system units, which is meters. This might look strange at first, but it is not wrong.
 
+::: {.callout-warning appearance="simple"}
+## Pitfall: correct can still be confusing
+`coord_sf()` can show *correct* graticule units that are unfamiliar to readers. If your audience expects degrees, a meter-based graticule can mislead even if it is technically correct. Always decide for **communicative clarity**, not just mathematical correctness.
+:::
+
 ```{r fig-ggplot-2}
 #| eval: true
 ggplot() +
@@ -270,6 +328,12 @@ CRS:           +proj=natearth +lon_0=170
 
 I am going to make a map of the Fiji region and plot the spatial location of the earthquakes, and scale the points indicating the earthquakes' magnitude by their intensity (`mag`).
 
+Stylistic choices (these are not defaults):
+
+- **Star shapes** draw attention and visually separate points from land polygons.
+- **Colour and size both map to magnitude** to reinforce the same message (redundant encoding).
+- **The size legend is suppressed** to avoid repeating the same information twice.
+
 ```{r fig-ggplot-3}
 #| eval: true
 #| echo: true
@@ -286,7 +350,13 @@ ggplot() +
     subtitle = "Natural Earth")
 ```
 
-Now I apply a more appropriate CRS to the map. The **WGS 84 / NIWA Albers** projection ([EPSG:9191](https://epsg.io/9191)) is suitable for the southwestern Pacific Ocean and Southern Ocean areas surrounding New Zealand.
+Now I apply a more appropriate CRS to the map. This is the **WGS 84 / NIWA Albers** projection ([EPSG:9191](https://epsg.io/9191)), which is designed for the southwestern Pacific and the Southern Ocean around New Zealand.
+
+Why this is a *better* choice here:
+
+- **It is an equal-area projection**, so area comparisons are meaningful.
+- **It centres the region of interest**, reducing distortion where we care most.
+- **It matches the question** (regional patterns in the SW Pacific), not just global aesthetics.
 
 ```{r fig-niwa-albers-proj-proj-aea-lat-0}
 #| eval: true
@@ -310,4 +380,65 @@ ggplot() +
     title = "The Fiji Earthquake Data",
     subtitle = "WGS 84 / NIWA Albers") +
   theme_minimal() 
+```
+
+# CRS Decision Checklist
+
+Before writing mapping code, ask:
+
+- **What is my data's native CRS?** Check with `st_crs()`.
+- **Do I need metric units?** If yes, project before measuring/cropping.
+- **What should be preserved?** Area, distance, or shape?
+- **Where is my region of interest?** Choose a projection that minimises distortion there.
+
+# Explicit Failure Modes
+
+These are the mistakes that quietly ruin maps:
+
+- **Mismatched CRS** between layers (data align but are actually offset).
+- **Cropping in the wrong CRS** (degree-based bounds applied to projected data).
+- **Projection before topology repair** (anti-meridian polygons break).
+
+# Conceptual Summary
+
+This chapter is not just about *making maps*; it is about **reasoning with spatial data**. You learned to:
+
+- check CRS *as a habit*,
+- treat projection artefacts as topological problems,
+- choose zooming strategies intentionally,
+- and justify a projection based on the question you are asking.
+
+# CRS and Spatial Workflow Decision Tree
+
+Use this before you write a single line of mapping code:
+
+```
+Start
+ |
+ |-- What CRS is my data in? ----> st_crs()
+ |        |
+ |        |-- Geographic (degrees)? --> If you need metric units, project.
+ |        |-- Projected (meters)? ----> Ensure all layers match.
+ |
+ |-- Do polygons cross the anti-meridian?
+ |        |
+ |        |-- Yes --> Fix topology in geographic CRS (st_break_antimeridian)
+ |        |           THEN project.
+ |        |-- No  --> Continue.
+ |
+ |-- What is my goal?
+ |        |
+ |        |-- Preserve area? ----> Choose an equal-area projection.
+ |        |-- Preserve distance? -> Choose an equidistant projection.
+ |        |-- Preserve shape? ----> Choose a conformal projection.
+ |
+ |-- How to zoom?
+ |        |
+ |        |-- Need whole features? -> Select features.
+ |        |-- Need tight extent? ----> st_crop() (geometry changes).
+ |        |-- Need full geometry? ---> coord_sf() (view only).
+ |
+ |-- Final check
+          |
+          |-- Are layers aligned? Are units clear to readers?
 ```
