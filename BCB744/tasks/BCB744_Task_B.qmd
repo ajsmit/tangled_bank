@@ -4,7 +4,8 @@ format:
   html:
     fig-format: svg
     fig_retina: 2
-    fig-dpi: 400
+    fig-dpi: 300
+    number-sections: false
 params: 
   hide_answers: true
 execute:
@@ -50,7 +51,9 @@ library(ggthemes)
 
 # [[Assessment Sheet](BCB744_Task_B_Surname.xlsx)]{.my-highlight} {#sec-assessment}
 
-# 6. Faceting Figures
+# 6-8. Graphics With ggplot2, Faceting Figures, and Brewing Colours
+
+In these sets of tasks you will generate several figures. For every figure generated, also please provide a narrative explanation of the patterns shown within the figures (sometimes this is mentioned explicitely, but not always; describe your figure(s) in EVERY question).
 
 ## Question 1
 
@@ -135,49 +138,52 @@ ggarrange(adelie_biscoe, adelie_dream, adelie_torgersen, adelie_boxplot,
 
 ## Question 3
 
-Create a scatter plot of `flipper_length_mm` against `body_mass_g` and use `facet_wrap()` to create separate panels for each island (combine all species). Also indicate the effect of species. Add a best-fit straight line with 95% confidence intervals through the points, ignoring the effect of species. Take into account which variable best belongs on `x` and `y`. Describe your findings. **(/10)**
+Create a scatter plot of `flipper_length_mm` against `body_mass_g` and use `facet_wrap()` to create separate panels for each island (combine all species). Plot the three species as **distinct point shapes**, and map a **continuous colour scale** to `bill_length_mm`. Add a best‑fit straight line with 95% confidence intervals through the points, ignoring the effect of species. Take into account which variable best belongs on `x` and `y`. Describe your findings. **(/10)**
 
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
 **Answer**
 
 ```{r fig-penguins-x, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.65, out.width="60%", fig.align='center'}
-#| fig-cap: "Flipper length vs. body mass faceted by island and coloured by species."
-penguins %>% # ✓ x 6
+#| fig-cap: "Flipper length vs. body mass faceted by island with species shapes and bill-length colour scale."
+penguins %>% # ✓ x 7
   ggplot(aes(x = body_mass_g, y = flipper_length_mm)) + 
-  geom_point(aes(colour = species)) + 
+  geom_point(aes(shape = species, colour = bill_length_mm)) + 
+  scale_colour_viridis_c() +
   geom_smooth(method = "lm", se = TRUE) +
   facet_wrap(~island) + 
   labs(title = "Flipper Length vs Body Mass", 
        x = "Body Mass (g)",
-       y = "Flipper Length (mm)")
+       y = "Flipper Length (mm)",
+       colour = "Bill length (mm)")
 ```
 
 - The `body_mass_g` variable is best suited to the `x`-axis as it is the independent variable. The `flipper_length_mm` variable is best suited to the `y`-axis as it is the dependent variable.
 - ✓ For all penguin species, the `flipper_length_mm` and `body_mass_g` variables show a positive correlation, with larger penguins having longer flippers, higher body masses.
-- ✓ The `Adelie` penguins on `Biscoe` island have the shortest flippers and lowest body masses, while `Gentoo` penguins have the longest flippers and highest body masses.
-- ✓ `Chinstrap` and `Adelie` penguins are present on `Dream` island; these species' body masses and flipper lengths are difficult to distinguish from one-another.
-- ✓ Only `Adelie` penguins are present on `Torgersen` island. The `Adelie` penguins appear to have the same flipper length vs body mass relationship across all three islands.
+- ✓ The colour scale shows that bill length tends to increase with body mass, especially for Gentoo penguins.
+- ✓ Species are clearly separated by shape, and Gentoo penguins occupy the largest body‑mass and flipper‑length ranges.
 
 `r if (params$hide_answers) ":::"`
 
 ## Question 4
 
-Create a scatter plot of `bill_length_mm` and `body_mass_g` and use `facet_grid()` to create separate panels for each species and island. **(/6)**
+Create a scatter plot of `bill_length_mm` and `body_mass_g` and use `facet_grid()` to create separate panels for each species and island. Map `bill_length_mm` to a **continuous colour scale** that you customise yourself (do not use the default palette). **(/10)**
 
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
 **Answer**
 
 ```{r fig-grid-plt-penguins-x, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.65, out.width="60%", fig.align='center'}
-#| fig-cap: "Bill length vs. body mass faceted by species and island."
-grid_plt <-  penguins %>% # ✓ x 6
-  ggplot(aes(x = body_mass_g, y = bill_length_mm)) + 
+#| fig-cap: "Bill length vs. body mass faceted by species and island with a custom colour scale."
+grid_plt <-  penguins %>% # ✓ x 7
+  ggplot(aes(x = body_mass_g, y = bill_length_mm, colour = bill_length_mm)) + 
   geom_point() + 
+  scale_colour_gradient(low = "lightyellow", high = "darkred") +
   facet_grid(species ~ island) + 
   labs(title = "Bill Length vs Body Mass", 
        x = "Body Mass (g)",
-       y = "Bill Length (mm)")
+       y = "Bill Length (mm)",
+       colour = "Bill length (mm)")
 grid_plt
 ```
 
@@ -186,20 +192,20 @@ grid_plt
 
 ## Question 5
 
-Using the figure created in point 4, also show the effect of `sex` and add a best-fit straight line. Explain the findings. **(/9)**
+Using the figure created in point 4, also show the effect of `sex` and add a best-fit straight line. Explain the findings. **(/10)**
 
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
 **Answer**
 
 ```{r code-grid-plt-x, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.65, out.width="60%", fig.align='center'}
-grid_plt +  # ✓ x 6
-  geom_point(aes(col = sex)) +
+grid_plt +  # ✓ x 7
+  geom_point(aes(shape = sex)) +
   geom_smooth(method = "lm", se = TRUE, colour = "black")
 ```
 
 - ✓ The `bill_length_mm` and `body_mass_g` variables show a positive correlation, with larger penguins having longer bills, higher body masses.
-- ✓ The `sex` variable appear to have an effect on the relationship between `bill_length_mm` and `body_mass_g`, with male penguins tending to be heavier with longer bill lengths.
+- ✓ The `sex` variable appears to have an effect on the relationship between `bill_length_mm` and `body_mass_g`, with male penguins tending to be heavier with longer bill lengths.
 - ✓ There also appears to be differences in the relationship between `bill_length_mm` and `body_mass_g` between the different species and islands.
 
 `r if (params$hide_answers) ":::"`
@@ -215,5 +221,151 @@ What are the benefits of using faceting in data visualisation? **(/3)**
 - ✓ Faceting allows for the visualisation of multiple relationships in a single plot, making it easier to compare relationships between different groups.
 - ✓ Faceting can help to identify patterns and trends in the data that may not be immediately obvious when looking at the data as a whole.
 - ✓ Faceting can help to identify differences in relationships between different groups, such as species, islands or allowing for more detailed analysis of the data.
+
+`r if (params$hide_answers) ":::"`
+
+## Question 7
+
+Use the built-in `ToothGrowth` dataset (guinea pig tooth length) to create a scatter plot of `len` against `dose`, coloured by `supp`, and faceted by `supp`. Add a best‑fit straight line with a 95% confidence interval. **(/10)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r fig-toothgrowth-scatter, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.65, out.width="60%", fig.align='center'}
+#| fig-cap: "Tooth length vs. dose, coloured and faceted by supplement."
+data(ToothGrowth) # ✓
+
+ToothGrowth %>% # ✓ x 6
+  ggplot(aes(x = dose, y = len, colour = supp)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = TRUE) + 
+  facet_wrap(~supp) + 
+  labs(title = "Tooth Length vs Dose by Supplement",
+       x = "Dose (mg/day)",
+       y = "Tooth length")
+```
+
+- ✓ `dose` is the explanatory variable, so it belongs on the x‑axis; `len` is the response variable.
+- ✓ Tooth length increases with dose for both supplements.
+
+`r if (params$hide_answers) ":::"`
+
+## Question 8
+
+Create histograms of `len` for each `dose` (all supplements together) using `facet_wrap()`. **(/6)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r fig-toothgrowth-hist, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.65, out.width="60%", fig.align='center'}
+#| fig-cap: "Tooth length distributions by dose."
+ToothGrowth %>% # ✓ x 4
+  ggplot(aes(x = len)) + 
+  geom_histogram(bins = 8) + 
+  facet_wrap(~dose) + 
+  labs(title = "Tooth Length by Dose",
+       x = "Tooth length",
+       y = "Count")
+```
+
+`r if (params$hide_answers) ":::"`
+
+## Question 9
+
+Create boxplots of `len` by `dose` and facet by `supp` (one panel per supplement). **(/8)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r fig-toothgrowth-box, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.65, out.width="60%", fig.align='center'}
+#| fig-cap: "Tooth length by dose, separated by supplement."
+ToothGrowth %>% # ✓ x 5
+  ggplot(aes(x = factor(dose), y = len)) + 
+  geom_boxplot() + 
+  facet_grid(supp ~ .) + 
+  labs(title = "Tooth Length by Dose and Supplement",
+       x = "Dose (mg/day)",
+       y = "Tooth length")
+```
+
+`r if (params$hide_answers) ":::"`
+
+## Question 10
+
+Calculate the mean ± SD of `len` for each combination of `dose` and `supp`, then plot the means with error bars. **(/10)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r fig-toothgrowth-mean-sd, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.65, out.width="60%", fig.align='center'}
+#| fig-cap: "Mean tooth length ± SD by dose and supplement."
+tg_summary <- ToothGrowth %>% # ✓ x 7
+  group_by(dose, supp) %>% 
+  summarise(mean_len = mean(len),
+            sd_len = sd(len),
+            .groups = "drop")
+
+tg_summary %>% 
+  ggplot(aes(x = factor(dose), y = mean_len, colour = supp, group = supp)) + 
+  geom_point(size = 2) + 
+  geom_line() + 
+  geom_errorbar(aes(ymin = mean_len - sd_len, ymax = mean_len + sd_len), width = 0.15) + 
+  labs(title = "Mean Tooth Length ± SD",
+       x = "Dose (mg/day)",
+       y = "Mean tooth length")
+```
+
+`r if (params$hide_answers) ":::"`
+
+## Question 11
+
+Create a violin plot of `len` by `dose`, filled by `supp`, and facet by `supp`. **(/8)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r fig-toothgrowth-violin, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.65, out.width="60%", fig.align='center'}
+#| fig-cap: "Tooth length distributions by dose and supplement."
+ToothGrowth %>% # ✓ x 5
+  ggplot(aes(x = factor(dose), y = len, fill = supp)) + 
+  geom_violin(trim = FALSE) + 
+  facet_wrap(~supp) + 
+  labs(title = "Tooth Length Distributions by Dose",
+       x = "Dose (mg/day)",
+       y = "Tooth length")
+```
+
+`r if (params$hide_answers) ":::"`
+
+## Question 12
+
+Create a small summary table showing the number of observations for each combination of `dose` and `supp`. **(/6)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+```{r code-toothgrowth-count}
+ToothGrowth %>% # ✓ x 3
+  count(dose, supp)
+```
+
+`r if (params$hide_answers) ":::"`
+
+## Question 13
+
+Briefly describe two patterns you observe in any of the figures above. **(/4)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+- ✓ Tooth length increases as dose increases for both supplements.
+- ✓ At the same dose, the `OJ` supplement tends to have higher tooth lengths than `VC`, especially at lower doses.
 
 `r if (params$hide_answers) ":::"`
