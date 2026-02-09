@@ -11,7 +11,7 @@ execute:
 params: 
   # AJ renders Tasks with hide_answers: false in the Tasks YAML.
   # The wrappers below still allow hiding when needed (e.g., for a student version).
-  hide_answers: true
+  hide_answers: false
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -135,7 +135,7 @@ Using `ggplot2::diamonds`, create a new factor called `price_bin` with three lev
 - `mid`    : 1000 ≤ price < 5000
 - `expensive`: price ≥ 5000
 
-Then make a bar plot showing counts of diamonds by `price_bin`, filled by `cut`. **(/10)**
+Then make a faceted bar plot (faceted by `cut`) showing counts of diamonds by `price_bin`, filled by `cut`. **(/10)**
 
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
@@ -156,7 +156,8 @@ diamonds2 <- ggplot2::diamonds |>
 
 ggplot(diamonds2, aes(x = price_bin, fill = cut)) +
   geom_bar() +
-  labs(x = "Price bin", y = "Count")
+  facet_wrap(~cut) +
+  labs(x = "Price bin (US$)", y = "Count")
 ```
 
 `r if (params$hide_answers) ":::"`
@@ -165,11 +166,14 @@ ggplot(diamonds2, aes(x = price_bin, fill = cut)) +
 
 Using `dplyr::storms`, find the **top 5** storms (by name) with the highest **maximum wind**. Return a tibble with columns `name`, `year`, and `max_wind`, arranged from highest to lowest. **(/10)**
 
+For bonus marks, use the **gt** R package, create a beautiful table with the same information. Ensure it is of publication quality, for instance to suit the style of the journal *Marine Biology*. **(/5)**
+
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
 **Answer**
 
 ```{r taskD-q5, echo=TRUE, eval=TRUE}
+# Top 5 storms by maximum wind speed
 storms_top5 <- dplyr::storms |>
   group_by(name, year) |>
   summarise(max_wind = max(wind, na.rm = TRUE), .groups = "drop") |>
@@ -177,6 +181,49 @@ storms_top5 <- dplyr::storms |>
   slice_head(n = 5)
 
 storms_top5
+```
+
+**Bonus: publication-quality table (gt)**
+
+```{r tbl-taskD-q5-gt, echo=TRUE, eval=TRUE}
+# If gt isn't installed on your machine yet:
+# install.packages("gt")
+
+library(gt)
+
+storms_top5 |>
+  gt() |>
+  tab_header(
+    title = md("**Top 5 storms by maximum wind speed**"),
+    subtitle = md("From `dplyr::storms`")
+  ) |>
+  cols_label(
+    name = "Storm",
+    year = "Year",
+    max_wind = md("Max wind (kt)")
+  ) |>
+  fmt_number(columns = max_wind, decimals = 0) |>
+  cols_align(align = "left", columns = name) |>
+  cols_align(align = "center", columns = year) |>
+  cols_align(align = "right", columns = max_wind) |>
+  tab_options(
+    table.font.names = c("Times New Roman", "Times", "serif"),
+    table.font.size = px(12),
+    heading.title.font.size = px(14),
+    heading.subtitle.font.size = px(12),
+    table.width = pct(80),
+    column_labels.font.weight = "bold",
+    data_row.padding = px(3),
+    table.border.top.style = "solid",
+    table.border.top.width = px(1),
+    table.border.bottom.style = "solid",
+    table.border.bottom.width = px(1),
+    table_body.hlines.style = "none"
+  ) |>
+  tab_style(
+    style = cell_text(style = "italic"),
+    locations = cells_body(columns = name)
+  )
 ```
 
 `r if (params$hide_answers) ":::"`
