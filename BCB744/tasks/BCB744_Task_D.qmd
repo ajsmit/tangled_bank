@@ -230,26 +230,38 @@ storms_top5 |>
 
 ## Question 6
 
-Using the SACTN monthly data (`SACTNmonthly_v4.0.RData`), create a dataset that contains the **mean temperature** per `site` and `depth` (ignore `NA`s). Then plot mean temperature vs depth, with points coloured by `site`. **(/12)**
+Using the SACTN monthly data (`SACTNmonthly_v4.0.RData`), create a dataset that contains the **mean temperature** per `site` and `depth` (ignore `NA`s). 
+
+Because there are many sites, **restrict your plot to the top 8 sites** (by number of observations in the raw `SACTN` table). Then plot mean temperature vs depth, with points and lines coloured by `site`. **(/12)**
 
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
 **Answer**
 
-```{r fig-taskD-q6, echo=TRUE, eval=TRUE}
-#| fig-cap: "Mean SACTN temperature by site and depth."
+```{r fig-taskD-q6, echo=TRUE, eval=TRUE, fig.width=7, fig.height=4.2}
+#| fig-cap: "Mean SACTN temperature by site and depth (top 8 sites by data availability)."
 
 load(here::here("data", "BCB744", "SACTNmonthly_v4.0.RData"))
 SACTN <- SACTNmonthly_v4.0
 rm(SACTNmonthly_v4.0)
 
+# Pick a manageable number of sites for a legible legend
+sites_top8 <- SACTN |>
+  filter(!is.na(temp)) |>
+  count(site, sort = TRUE) |>
+  slice_head(n = 8) |>
+  pull(site)
+
 SACTN_site_depth <- SACTN |>
+  filter(site %in% sites_top8) |>
   group_by(site, depth) |>
   summarise(mean_temp = mean(temp, na.rm = TRUE), .groups = "drop")
 
-ggplot(SACTN_site_depth, aes(x = depth, y = mean_temp, colour = site)) +
-  geom_point(alpha = 0.8) +
-  labs(x = "Depth", y = "Mean temperature (°C)")
+ggplot(SACTN_site_depth, aes(x = depth, y = mean_temp, colour = site, group = site)) +
+  geom_line(alpha = 0.8, linewidth = 0.5) +
+  geom_point(alpha = 0.9, size = 1.6) +
+  labs(x = "Depth (m)", y = "Mean temperature (°C)", colour = "Site") +
+  theme(legend.position = "bottom")
 ```
 
 `r if (params$hide_answers) ":::"`
