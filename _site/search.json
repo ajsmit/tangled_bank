@@ -4997,14 +4997,14 @@
   {
     "objectID": "BCB744/tasks/BCB744_Task_D.html#question-1",
     "href": "BCB744/tasks/BCB744_Task_D.html#question-1",
-    "title": "BCB744 Bonus Task",
+    "title": "BCB744 Task D",
     "section": "\n2.1 Question 1",
     "text": "2.1 Question 1\nWhat are the key principles of tidy data? (/3)"
   },
   {
     "objectID": "BCB744/tasks/BCB744_Task_D.html#question-2",
     "href": "BCB744/tasks/BCB744_Task_D.html#question-2",
-    "title": "BCB744 Bonus Task",
+    "title": "BCB744 Task D",
     "section": "\n2.2 Question 2",
     "text": "2.2 Question 2\nUsing the untidy data (SACTN2) and the tidy data (SACTN2_tidy), create line graphs, one for each of DEA, SAWS, and KZNSB, showing a time series of temperature. Ensure you have a column of three figures (ncol = 1). Use the fewest number of lines of code possible. You should end up with two graphs, each with three panels. (/13)"
   },
@@ -13720,5 +13720,82 @@
     "title": "BCB744 Task D",
     "section": "\n2.2 Answers",
     "text": "2.2 Answers\n\n\n\n\n\n\nWarningHow to use this section\n\n\n\n\n\nThese worked solutions are collapsed by default so that (even when hide_answers: false) students won’t see them immediately.\n\n\n\n\n2.2.1 Answer 1\n\n\n\n\n\n\n\n✓ Each variable forms a column.\n✓ Each observation forms a row.\n✓ Each type of observational unit forms a table.\n\n\n\n\n\n2.2.2 Answer 2\n\n\n\n\n\n\n\nload(here::here(\"data\", \"BCB744\", \"SACTN_mangled.RData\"))\n\nSACTN2_tidy &lt;- pivot_longer(\n  SACTN2,\n  cols = c(\"DEA\", \"KZNSB\", \"SAWS\"),\n  names_to = \"src\",\n  values_to = \"temp\"\n)\n\n# Plot starting from the wide (untidy) data\np1 &lt;- SACTN2 |&gt;\n  pivot_longer(cols = c(\"DEA\", \"KZNSB\", \"SAWS\"), names_to = \"src\", values_to = \"temp\") |&gt;\n  ggplot(aes(x = date, y = temp)) +\n  geom_line(aes(colour = site, linetype = type)) +\n  facet_wrap(~ src, ncol = 1) +\n  labs(title = \"Untidy (wide) → pivot_longer()\", x = \"Date\", y = \"Temperature (°C)\")\n\n# Plot starting from the tidy data\np2 &lt;- ggplot(SACTN2_tidy, aes(x = date, y = temp)) +\n  geom_line(aes(colour = site, linetype = type)) +\n  facet_wrap(~ src, ncol = 1) +\n  labs(title = \"Tidy (long)\", x = \"Date\", y = \"Temperature (°C)\")\n\np1\np2\n\n\n\n\n\n\nFigure 1: SACTN2 temperature time series faceted by source (wide → long).\n\n\n\n\n\n\n\n\n\nFigure 2: SACTN2 temperature time series faceted by source (wide → long).\n\n\n\n\n\n\n\n\n2.2.3 Answer 3\n\n\n\n\n\n\n\nkelp &lt;- read_csv(here::here(\"data\", \"BCB744\", \"laminaria.csv\"))\n\nkelp_long &lt;- kelp |&gt;\n  pivot_longer(\n    cols = blade_weight:total_length,\n    names_to = \"measurement\",\n    values_to = \"value\"\n  )\n\nggplot(kelp_long, aes(x = measurement, y = value)) +\n  geom_boxplot(outlier.alpha = 0.3) +\n  coord_flip() +\n  labs(x = NULL, y = NULL)\n\n\n\n\n\n\nFigure 3: Laminaria measurements in long format (boxplots).\n\n\n\n\n\n\n\n\n2.2.4 Answer 4\n\n\n\n\n\n\n\ndiamonds2 &lt;- ggplot2::diamonds |&gt;\n  mutate(\n    price_bin = case_when(\n      price &lt; 1000 ~ \"cheap\",\n      price &lt; 5000 ~ \"mid\",\n      TRUE ~ \"expensive\"\n    ),\n    price_bin = factor(price_bin, levels = c(\"cheap\", \"mid\", \"expensive\"))\n  )\n\nggplot(diamonds2, aes(x = price_bin, fill = cut)) +\n  geom_bar() +\n  labs(x = \"Price bin\", y = \"Count\")\n\n\n\n\n\n\nFigure 4: Counts by price bin, filled by cut (diamonds).\n\n\n\n\n\n\n\n\n2.2.5 Answer 5\n\n\n\n\n\n\n\nstorms_top5 &lt;- dplyr::storms |&gt;\n  group_by(name, year) |&gt;\n  summarise(max_wind = max(wind, na.rm = TRUE), .groups = \"drop\") |&gt;\n  arrange(desc(max_wind)) |&gt;\n  slice_head(n = 5)\n\nstorms_top5\n\nR&gt; # A tibble: 5 × 3\nR&gt;   name     year max_wind\nR&gt;   &lt;chr&gt;   &lt;dbl&gt;    &lt;int&gt;\nR&gt; 1 Allen    1980      165\nR&gt; 2 Dorian   2019      160\nR&gt; 3 Gilbert  1988      160\nR&gt; 4 Wilma    2005      160\nR&gt; 5 Irma     2017      155\n\n\n\n\n\n\n2.2.6 Answer 6\n\n\n\n\n\n\n\nload(here::here(\"data\", \"BCB744\", \"SACTNmonthly_v4.0.RData\"))\nSACTN &lt;- SACTNmonthly_v4.0\nrm(SACTNmonthly_v4.0)\n\nSACTN_site_depth &lt;- SACTN |&gt;\n  group_by(site, depth) |&gt;\n  summarise(mean_temp = mean(temp, na.rm = TRUE), .groups = \"drop\")\n\nggplot(SACTN_site_depth, aes(x = depth, y = mean_temp, colour = site)) +\n  geom_point(alpha = 0.8) +\n  labs(x = \"Depth\", y = \"Mean temperature (°C)\")\n\n\n\n\n\n\nFigure 5: Mean SACTN temperature by site and depth.\n\n\n\n\n\n\n\n\n2.2.7 Answer 7\n\n\n\n\n\n\n\n# Ensure SACTN is loaded (from Answer 6); if not, load again.\nif (!exists(\"SACTN\")) {\n  load(here::here(\"data\", \"BCB744\", \"SACTNmonthly_v4.0.RData\"))\n  SACTN &lt;- SACTNmonthly_v4.0\n  rm(SACTNmonthly_v4.0)\n}\n\nSACTN2 &lt;- SACTN |&gt;\n  mutate(\n    month = factor(month(date, label = TRUE, abbr = TRUE),\n                   levels = month.abb, ordered = TRUE),\n    season = case_when(\n      month %in% c(\"Dec\", \"Jan\", \"Feb\") ~ \"DJF\",\n      month %in% c(\"Mar\", \"Apr\", \"May\") ~ \"MAM\",\n      month %in% c(\"Jun\", \"Jul\", \"Aug\") ~ \"JJA\",\n      TRUE ~ \"SON\"\n    ),\n    season = factor(season, levels = c(\"DJF\", \"MAM\", \"JJA\", \"SON\"))\n  )\n\nseason_depth &lt;- SACTN2 |&gt;\n  group_by(season, depth) |&gt;\n  summarise(mean_temp = mean(temp, na.rm = TRUE), .groups = \"drop\")\n\nggplot(season_depth, aes(x = depth, y = mean_temp, colour = season)) +\n  geom_line() +\n  geom_point() +\n  labs(x = \"Depth\", y = \"Mean temperature (°C)\")\n\n\n\n\n\n\nFigure 6: Seasonal mean temperature by depth.\n\n\n\n\n\n\n\n\n2.2.8 Answer 8\n\n\n\n\n\n\n\nsite_choice &lt;- \"Amanzimtoti\"  # choose any valid site name present in your data\n\nSACTN |&gt;\n  filter(site == site_choice) |&gt;\n  ggplot(aes(x = date, y = temp)) +\n  geom_line(alpha = 0.6) +\n  geom_smooth(se = FALSE, linewidth = 0.6) +\n  facet_wrap(~ depth, ncol = 1, scales = \"free_y\") +\n  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +\n  labs(title = paste(\"SACTN temperature:\", site_choice), x = \"Date\", y = \"Temperature (°C)\")\n\n\n\n\n\n\nFigure 7: Time series at one site, faceted by depth.\n\n\n\n\n\n\n\n\n2.2.9 Answer 9\n\n\n\n\n\n\n\nload(here::here(\"data\", \"BCB744\", \"SACTN_mangled.RData\"))\n\n# SACTN4a stores date + temp, but site/src are embedded in an `index` string.\nSACTN4a2 &lt;- SACTN4a |&gt;\n  mutate(date = as.Date(date)) |&gt;\n  tidyr::separate(index, into = c(\"site\", \"src\"), sep = \"/ \", remove = TRUE)\n\n# SACTN4b stores the identifiers as columns; rebuild `date`.\nSACTN4b2 &lt;- SACTN4b |&gt;\n  mutate(date = lubridate::make_date(year = year, month = as.integer(month), day = as.integer(day)))\n\n# Join to get one tidy table\nSACTN4 &lt;- SACTN4b2 |&gt;\n  left_join(SACTN4a2, by = c(\"site\", \"src\", \"date\"))\n\n# Plot\nSACTN4 |&gt;\n  ggplot(aes(x = date, y = temp, colour = site)) +\n  geom_line(alpha = 0.6) +\n  facet_wrap(~ src, ncol = 1) +\n  labs(x = \"Date\", y = \"Temperature (°C)\")\n\n\n\n\n\n\nFigure 8: SACTN4a + SACTN4b joined and plotted through time (faceted by src).\n\n\n\n\n\n\n\n\n2.2.10 Answer 10\n\n\n\n\n\n\n\nSACTN_anom &lt;- SACTN |&gt;\n  group_by(site) |&gt;\n  mutate(anom = temp - mean(temp, na.rm = TRUE)) |&gt;\n  ungroup()\n\nggplot(SACTN_anom, aes(x = anom)) +\n  geom_histogram(bins = 40, colour = \"white\") +\n  facet_wrap(~ src, ncol = 1) +\n  labs(x = \"Temperature anomaly (°C)\", y = \"Count\")\n\n\n\n\n\n\nFigure 9: Temperature anomalies by source (faceted).\n\n\n\n\n\n\n\n\n2.2.11 Answer 11 (complex)\n\n\n\n\n\n\n\nwarmest_tbl &lt;- SACTN |&gt;\n  mutate(month = month(date, label = TRUE, abbr = TRUE)) |&gt;\n  group_by(site, month) |&gt;\n  summarise(mean_temp = mean(temp, na.rm = TRUE), .groups = \"drop\") |&gt;\n  group_by(site) |&gt;\n  slice_max(order_by = mean_temp, n = 1, with_ties = FALSE) |&gt;\n  ungroup() |&gt;\n  rename(warmest_month = month) |&gt;\n  arrange(desc(mean_temp))\n\nwarmest_tbl\n\nR&gt; # A tibble: 106 × 3\nR&gt;    site           warmest_month mean_temp\nR&gt;    &lt;fct&gt;          &lt;ord&gt;             &lt;dbl&gt;\nR&gt;  1 Saxon          Feb                27.2\nR&gt;  2 Sodwana        Mar                26.9\nR&gt;  3 Leadsmanshoal  Feb                26.7\nR&gt;  4 Durban         Feb                24.6\nR&gt;  5 Scottburgh     Feb                24.5\nR&gt;  6 Park Rynie     Feb                24.5\nR&gt;  7 Brighton Beach Feb                24.5\nR&gt;  8 Salt Rock      Feb                24.4\nR&gt;  9 Umgababa       Feb                24.4\nR&gt; 10 Antsey's Beach Feb                24.4\nR&gt; # ℹ 96 more rows\n\n# Visualise\nwarmest_tbl |&gt;\n  mutate(site = fct_reorder(site, mean_temp)) |&gt;\n  ggplot(aes(x = mean_temp, y = site, colour = warmest_month)) +\n  geom_point(size = 2.4) +\n  labs(x = \"Mean temperature in warmest month (°C)\", y = NULL, colour = \"Warmest month\")\n\n\n\n\n\n\nFigure 10: Warmest month per site (dot plot).\n\n\n\n\n\n\n\n\n2.2.12 Answer 12 (complex)\n\n\n\n\n\n\n\nannual &lt;- SACTN |&gt;\n  mutate(year = year(date)) |&gt;\n  group_by(site, year) |&gt;\n  summarise(mean_temp = mean(temp, na.rm = TRUE), .groups = \"drop\")\n\n# Fit temp ~ year per site, extract slope\nslopes &lt;- annual |&gt;\n  group_by(site) |&gt;\n  summarise(\n    slope = coef(lm(mean_temp ~ year))[\"year\"],\n    .groups = \"drop\"\n  )\n\nslopes\n\nR&gt; # A tibble: 106 × 2\nR&gt;    site             slope\nR&gt;    &lt;fct&gt;            &lt;dbl&gt;\nR&gt;  1 Port Nolloth   0.0195 \nR&gt;  2 Hondeklipbaai  0.0574 \nR&gt;  3 Doringbaai     0.0496 \nR&gt;  4 Lamberts Bay   0.0143 \nR&gt;  5 Elands Bay     0.0938 \nR&gt;  6 St Helena Bay -0.0210 \nR&gt;  7 Paternoster    0.00530\nR&gt;  8 Saldanha Bay   0.0111 \nR&gt;  9 Dassen Island  0.0251 \nR&gt; 10 Yzerfontein    0.0255 \nR&gt; # ℹ 96 more rows\n\nslopes |&gt;\n  mutate(site = fct_reorder(site, slope)) |&gt;\n  ggplot(aes(x = slope, y = site)) +\n  geom_col() +\n  geom_vline(xintercept = 0, linetype = 2) +\n  labs(x = \"Slope (°C per year)\", y = NULL)\n\n\n\n\n\n\nFigure 11: Linear temperature trend (slope) per site.\n\n\n\n\n\n\n\n\n2.2.13 Answer 13 (complex)\n\n\n\n\n\n\n\n# One sensible definition of “variability through time” is the SD of monthly temps.\n# Compute SD per site-depth, then compare depths.\nvar_depth &lt;- SACTN |&gt;\n  group_by(site, depth) |&gt;\n  summarise(sd_temp = sd(temp, na.rm = TRUE), n = sum(!is.na(temp)), .groups = \"drop\")\n\n# Compare depths across all sites\nvar_depth |&gt;\n  ggplot(aes(x = depth, y = sd_temp)) +\n  geom_boxplot(outlier.alpha = 0.3) +\n  geom_jitter(width = 0.1, alpha = 0.4) +\n  labs(x = \"Depth\", y = \"SD of monthly temperature (°C)\")\n\n\n\n\n\n\nFigure 12: Variability of temperature through time by depth.\n\n\n\n\nInterpretation (example): Deeper temperatures generally show a lower spread (lower SD) than shallow temperatures, which is consistent with the idea that deeper water is more buffered against short-term atmospheric forcing. However, the pattern can vary by site (note the jittered site-level SDs), so depth is not the only driver—local oceanography and exposure also matter. A more formal analysis could model SD as a function of depth (and site) or compare IQRs to reduce sensitivity to outliers."
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-3",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-3",
+    "title": "BCB744 Task D",
+    "section": "\n2.3 Question 3",
+    "text": "2.3 Question 3\nLoad the laminaria.csv data (used in Chapter 13). Convert it to long format so that:\n\nmeasurement names are in a column called measurement\n\nthe numeric values are in a column called value\n\n\nThen make a boxplot of value by measurement and flip the axes (so measurements are on the y-axis). (/10)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-4",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-4",
+    "title": "BCB744 Task D",
+    "section": "\n2.4 Question 4",
+    "text": "2.4 Question 4\nUsing ggplot2::diamonds, create a new factor called price_bin with three levels:\n\n\ncheap : price &lt; 1000\n\nmid : 1000 ≤ price &lt; 5000\n\nexpensive: price ≥ 5000\n\nThen make a bar plot showing counts of diamonds by price_bin, filled by cut. (/10)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-5",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-5",
+    "title": "BCB744 Task D",
+    "section": "\n2.5 Question 5",
+    "text": "2.5 Question 5\nUsing dplyr::storms, find the top 5 storms (by name) with the highest maximum wind. Return a tibble with columns name, year, and max_wind, arranged from highest to lowest. (/10)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-6",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-6",
+    "title": "BCB744 Task D",
+    "section": "\n2.6 Question 6",
+    "text": "2.6 Question 6\nUsing the SACTN monthly data (SACTNmonthly_v4.0.RData), create a dataset that contains the mean temperature per site and depth (ignore NAs). Then plot mean temperature vs depth, with points coloured by site. (/12)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-7",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-7",
+    "title": "BCB744 Task D",
+    "section": "\n2.7 Question 7",
+    "text": "2.7 Question 7\nUsing SACTN, create a column called month (as an ordered factor: Jan → Dec) and a column called season (DJF, MAM, JJA, SON).\nThen calculate the mean temperature by season and depth and plot it as lines (x = depth, y = mean temp) with one line per season. (/15)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-8",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-8",
+    "title": "BCB744 Task D",
+    "section": "\n2.8 Question 8",
+    "text": "2.8 Question 8\nUsing SACTN, filter to one site of your choice and create a time series plot of temperature (x = date, y = temp).\n\nAdd a geom_smooth() (no SE ribbon)\nFacet by depth\n\nEnsure the x-axis tick labels are readable (rotate if needed)\n\n(/12)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-9",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-9",
+    "title": "BCB744 Task D",
+    "section": "\n2.9 Question 9",
+    "text": "2.9 Question 9\nThe object SACTN4a and SACTN4b (from SACTN_mangled.RData) store the same observations split across two tables.\n\nJoin them into a single tidy table.\nThen create a faceted plot (one facet per src) showing temp through time.\n\n(/15)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-10",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-10",
+    "title": "BCB744 Task D",
+    "section": "\n2.10 Question 10",
+    "text": "2.10 Question 10\nUsing SACTN, compute a temperature anomaly per site as:\n[ = temp - _{site} ]\nThen create a histogram of anomalies and facet by src. (/15)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-11-complex",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-11-complex",
+    "title": "BCB744 Task D",
+    "section": "\n2.11 Question 11 (complex)",
+    "text": "2.11 Question 11 (complex)\nUsing SACTN, identify (for each site) the warmest calendar month (based on mean temperature across all years).\nReturn a table with site, warmest_month, and mean_temp, arranged from warmest to coolest mean temperature.\nThen visualise the result as a dot plot of mean_temp by site, coloured by warmest_month. (/20)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-12-complex",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-12-complex",
+    "title": "BCB744 Task D",
+    "section": "\n2.12 Question 12 (complex)",
+    "text": "2.12 Question 12 (complex)\nUsing SACTN, compute the annual mean temperature per site (one value per site-year). Then:\n\nFit a simple linear trend (temperature ~ year) per site.\nExtract the slope (°C per year) for each site.\nPlot the slopes as a horizontal bar chart, ordered from the most negative to the most positive slope.\n\n(/25)"
+  },
+  {
+    "objectID": "BCB744/tasks/BCB744_Task_D.html#question-13-complex",
+    "href": "BCB744/tasks/BCB744_Task_D.html#question-13-complex",
+    "title": "BCB744 Task D",
+    "section": "\n2.13 Question 13 (complex)",
+    "text": "2.13 Question 13 (complex)\nUsing SACTN, create a figure that answers this question:\n\n“Do deeper temperatures vary less through time than shallow temperatures?”\n\nYour workflow must:\n\nsummarise variability (e.g., SD or IQR) in a tidy way\ncompare variability across depths (at least 3 depth levels)\nuse an informative plot (not a table)\ninclude a short written interpretation (2–4 sentences)\n\n(/30)"
   }
 ]
