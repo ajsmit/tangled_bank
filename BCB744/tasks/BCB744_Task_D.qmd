@@ -230,38 +230,53 @@ storms_top5 |>
 
 ## Question 6
 
-Using the SACTN monthly data (`SACTNmonthly_v4.0.RData`), create a dataset that contains the **mean temperature** per `site` and `depth` (ignore `NA`s). 
+The dataset `msleep` (in **ggplot2**) contains life-history and sleep traits for mammals.
 
-Because there are many sites, **restrict your plot to the top 8 sites** (by number of observations in the raw `SACTN` table). Then plot mean temperature vs depth, with points and lines coloured by `site`. **(/12)**
+1. Create a cleaned dataset that keeps only rows with a known `vore` (diet category) and non-missing `sleep_total`.
+2. For each `vore`, calculate:
+   - `n` (number of species)
+   - `mean_sleep` (mean of `sleep_total`)
+   - `sd_sleep` (SD of `sleep_total`)
+3. Make a publication-quality figure showing `mean_sleep` by `vore` with **error bars** (±1 SD).
+
+Order the `vore` categories from highest to lowest mean sleep. **(/12)**
 
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
 **Answer**
 
 ```{r fig-taskD-q6, echo=TRUE, eval=TRUE, fig.width=7, fig.height=4.2}
-#| fig-cap: "Mean SACTN temperature by site and depth (top 8 sites by data availability)."
+#| fig-cap: "Mean total sleep time by diet category (msleep), with ±1 SD."
 
-load(here::here("data", "BCB744", "SACTNmonthly_v4.0.RData"))
-SACTN <- SACTNmonthly_v4.0
-rm(SACTNmonthly_v4.0)
+data(msleep, package = "ggplot2")
 
-# Pick a manageable number of sites for a legible legend
-sites_top8 <- SACTN |>
-  filter(!is.na(temp)) |>
-  count(site, sort = TRUE) |>
-  slice_head(n = 8) |>
-  pull(site)
+msleep_clean <- msleep |>
+  filter(!is.na(vore), !is.na(sleep_total))
 
-SACTN_site_depth <- SACTN |>
-  filter(site %in% sites_top8) |>
-  group_by(site, depth) |>
-  summarise(mean_temp = mean(temp, na.rm = TRUE), .groups = "drop")
+sleep_vore <- msleep_clean |>
+  group_by(vore) |>
+  summarise(
+    n = n(),
+    mean_sleep = mean(sleep_total),
+    sd_sleep = sd(sleep_total),
+    .groups = "drop"
+  ) |>
+  arrange(desc(mean_sleep)) |>
+  mutate(vore = fct_inorder(vore))
 
-ggplot(SACTN_site_depth, aes(x = depth, y = mean_temp, colour = site, group = site)) +
-  geom_line(alpha = 0.8, linewidth = 0.5) +
-  geom_point(alpha = 0.9, size = 1.6) +
-  labs(x = "Depth (m)", y = "Mean temperature (°C)", colour = "Site") +
-  theme(legend.position = "bottom")
+sleep_vore
+
+ggplot(sleep_vore, aes(x = vore, y = mean_sleep)) +
+  geom_col(width = 0.7, fill = "grey70", colour = "grey20") +
+  geom_errorbar(
+    aes(ymin = mean_sleep - sd_sleep, ymax = mean_sleep + sd_sleep),
+    width = 0.15
+  ) +
+  coord_flip() +
+  labs(
+    x = "Diet category (vore)",
+    y = "Mean total sleep (hours/day)"
+  )
 ```
 
 `r if (params$hide_answers) ":::"`
