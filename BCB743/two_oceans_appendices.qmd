@@ -11,7 +11,7 @@ date: "19 March 2017"
 bibliography: ../references.bib
 format:
   html:
-    eval: false
+    eval: true
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -132,7 +132,7 @@ E1 <- dplyr::select(
 E1 <- decostand(E1, method = "standardize")
 
 # Load the coordinates of the coastal sections:
-sites <- read.csv(here::here("data", "BCB743", "sites.csv"))
+sites <- read.csv(here::here("data", "BCB743", "seaweed", "sites.csv"))
 sites <- sites[, c(2, 1)]
 
 # Load the bioregion definition:
@@ -396,10 +396,40 @@ scores(S.Y2.s2, display = "bp", choices = c(1:4))
 Now I make a visualisation to reveal the spatial arrangement of the MEMs used in the final db-RDA involving the spatial variables (*i.e.*, \texttt{S.Y1.s2} and \texttt{S.Y2.s2}). The spatial configuration relates to broad scales as seen in Fig. 3 in the paper. Here are plots of the site scores for the MEMs and $Y1$ and $Y2$ (a few panels belonging with Fig. 3):
 
 ```{r code-y1-y2-sa-score-plot}
+# Build a simple South Africa basemap using Natural Earth polygons.
+sa_basemap <- local({
+  sa_lats <- c(-35.5, -26)
+  sa_lons <- c(14, 34)
+  sa_bbox <- sf::st_bbox(
+    c(xmin = sa_lons[1], xmax = sa_lons[2], ymin = sa_lats[1], ymax = sa_lats[2]),
+    crs = sf::st_crs(4326)
+  )
+  sa_world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+  sa_world <- sf::st_crop(sa_world, sa_bbox)
+
+  function() {
+    ggplot() +
+      geom_sf(
+        data = sa_world,
+        fill = "#F9FAEC",
+        col = "#F9FAEC",
+        linewidth = 0.2,
+        show.legend = FALSE
+      ) +
+      coord_sf(xlim = sa_lons, ylim = sa_lats, expand = FALSE) +
+      xlab(NULL) +
+      ylab(NULL) +
+      theme(
+        strip.background = element_blank(),
+        strip.text = element_text(size = 10, hjust = 0)
+      )
+  }
+})
+
 # Plot the first canonical axis of the db-RDA with the significant MEMs for Y1;
 # (see Fig. 3):
 S.Y1.axes <- scores(S.Y1.s2, choices = c(1:3), display = "lc", scaling = 1)
-S.Y1.plt.axis1 <- ggmap() +
+S.Y1.plt.axis1 <- sa_basemap() +
   geom_point(
     data = sites,
     aes(
@@ -416,7 +446,7 @@ S.Y1.plt.axis1 <- ggmap() +
 
 # And the same for Y2 (see Fig. 3):
 S.Y2.axes <- scores(S.Y2.s2, choices = c(1:3), display = "lc", scaling = 1)
-S.Y2.plt.axis1 <- ggmap() +
+S.Y2.plt.axis1 <- sa_basemap() +
   geom_point(
     data = sites,
     aes(
@@ -656,7 +686,7 @@ Now I make the remaining panels of Fig. 3, these showing the spatial arrangement
 # Plot the two significant canonical axes of the
 # db-RDA with the significant MEMs. This part of Fig. 3:
 E.Y1.axes <- scores(E.Y1.cs2, choices = c(1:2), display = "lc", scaling = 1)
-E.Y1.plt.axis1 <- ggmap() +
+E.Y1.plt.axis1 <- sa_basemap() +
   geom_point(
     data = sites,
     aes(x = Longitude, y = Latitude, size = E.Y1.axes[, 1]),
@@ -666,7 +696,7 @@ E.Y1.plt.axis1 <- ggmap() +
   scale_size_continuous(guide = "none") +
   ggtitle(expression(paste("CAP1 of thermal variables, ", beta[sim])))
 
-E.Y1.plt.axis2 <- ggmap() +
+E.Y1.plt.axis2 <- sa_basemap() +
   geom_point(
     data = sites,
     aes(x = Longitude, y = Latitude, size = E.Y1.axes[, 2]),
@@ -678,7 +708,7 @@ E.Y1.plt.axis2 <- ggmap() +
 
 E.Y2.axes <- scores(E.Y2.cs2, choices = c(1:3), display = "lc", scaling = 1)
 
-E.Y2.plt.axis1 <- ggmap() +
+E.Y2.plt.axis1 <- sa_basemap() +
   geom_point(
     data = sites,
     aes(x = Longitude, y = Latitude, size = E.Y2.axes[, 1]),
@@ -868,62 +898,37 @@ par(mfrow = c(1, 1))
 
 # Now I test the significant fractions [a], [b] and [c]...
 ES.Y1.red <- cbind(E.Y1.red, S.Y1.red)
+S.Y1.mem_terms <- colnames(S.Y1.red)
+S.Y1.env_terms <- c("augMean", "febRange", "febSD", "augSD")
+S.Y1.formula.E_given_S <- as.formula(
+  paste0(
+    "Y1 ~ ",
+    paste(S.Y1.env_terms, collapse = " + "),
+    " + Condition(",
+    paste(S.Y1.mem_terms, collapse = " + "),
+    ")"
+  )
+)
+S.Y1.formula.S_given_E <- as.formula(
+  paste0(
+    "Y1 ~ ",
+    paste(S.Y1.mem_terms, collapse = " + "),
+    " + Condition(",
+    paste(S.Y1.env_terms, collapse = " + "),
+    ")"
+  )
+)
 
 # Fraction E | S; pure environmental, i.e. [a]:
 anova.cca(
-  capscale(
-    Y1 ~
-      augMean +
-        febRange +
-        febSD +
-        augSD +
-        Condition(
-          MEM1 +
-            MEM2 +
-            MEM3 +
-            MEM4 +
-            MEM5 +
-            MEM6 +
-            MEM7 +
-            MEM8 +
-            MEM9 +
-            MEM10 +
-            MEM13 +
-            MEM15 +
-            MEM16 +
-            MEM18 +
-            MEM19 +
-            MEM20
-        ),
-    data = ES.Y1.red
-  ),
+  capscale(S.Y1.formula.E_given_S, data = ES.Y1.red),
   parallel = 4,
   step = 1000
 )
 
 # Fraction S | E; pure spatial, i.e. [c]:
 anova.cca(
-  capscale(
-    Y1 ~
-      MEM1 +
-        MEM2 +
-        MEM3 +
-        MEM4 +
-        MEM5 +
-        MEM6 +
-        MEM7 +
-        MEM8 +
-        MEM9 +
-        MEM10 +
-        MEM13 +
-        MEM15 +
-        MEM16 +
-        MEM18 +
-        MEM19 +
-        MEM20 +
-        Condition(augMean + febRange + febSD + augSD),
-    data = ES.Y1.red
-  ),
+  capscale(S.Y1.formula.S_given_E, data = ES.Y1.red),
   parallel = 4,
   step = 1000
 )
@@ -1072,19 +1077,23 @@ Y2.sl.ECTZ <- Y2.sl %>%
   dplyr::filter(Y2 <= 0.5 & Y2 != 0) %>%
   dplyr::filter(from != to & from > 41)
 
-# Load coastline
-load(here::here("data", "BCB743", "coast.RData"))
-
 sa_lats <- c(-38, -26)
 sa_lons <- c(14, 34)
+sa_bbox <- sf::st_bbox(
+  c(xmin = sa_lons[1], xmax = sa_lons[2], ymin = sa_lats[1], ymax = sa_lats[2]),
+  crs = sf::st_crs(4326)
+)
+south_africa_coast <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+south_africa_coast <- sf::st_crop(south_africa_coast, sa_bbox)
 
 net.plot.Y1 <- function(dissim = NULL, title = NULL, col.seq = NULL) {
   ggplot(dissim, aes(lon.x, lat.x)) +
-    geom_polygon(
+    geom_sf(
       data = south_africa_coast,
-      aes(x = long, y = lat, group = group),
+      inherit.aes = FALSE,
       show.legend = FALSE,
-      fill = "#F9FAEC"
+      fill = "#F9FAEC",
+      col = "#F9FAEC"
     ) +
     geom_curve(
       aes(xend = lon.y, yend = lat.y, col = Y1, alpha = (1 - Y1) - 0.4),
@@ -1107,7 +1116,7 @@ net.plot.Y1 <- function(dissim = NULL, title = NULL, col.seq = NULL) {
       low = "antiquewhite4",
       high = "antiquewhite"
     ) +
-    coord_fixed(ratio = 1, expand = TRUE) +
+    coord_sf(xlim = sa_lons, ylim = sa_lats, expand = FALSE) +
     scale_x_continuous(labels = function(x) paste0(x, "°E")) +
     scale_y_continuous(labels = function(x) paste0(x, "°S")) +
     scale_alpha_continuous(guide = FALSE) +
