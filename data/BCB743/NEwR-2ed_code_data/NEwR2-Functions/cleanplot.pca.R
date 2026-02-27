@@ -48,7 +48,7 @@
 #                  an optimal combined representation of the sites and species.
 #                  The lengths of the species arrows can be further modified
 #                  using the arguments mult.spe.
-# move.origin      Move plot origin right-left and up-down. 
+# move.origin      Move plot origin right-left and up-down.
 #                  Default: move.origin = c(0,0).
 #                  Ex. move.origin = c(-1, 0.5) moves origin by 1 unit left and
 #                  0.5 unit up.
@@ -93,7 +93,7 @@
 # # contribution circle is not equal to sqrt(2/27) = 0.2721655 in that plot.
 # # It has this value in the left-hand graph.
 #
-# # Argument silent = FALSE provides additional information in the R console, 
+# # Argument silent = FALSE provides additional information in the R console,
 # # including the new circle radius.
 # cleanplot.pca(pca.out,
 #               scaling = 1,
@@ -137,7 +137,7 @@
 #
 # # Scaling 2
 # # Make the plots less crowded by only printing the best represented species
-# # Right-hand graph: selected species only, and also example of moving the 
+# # Right-hand graph: selected species only, and also example of moving the
 # # centroid of the points in the biplot.
 # dev.new(width = 12, height = 7, noRStudioGD = TRUE)
 # par(mfrow = c(1, 2))
@@ -155,24 +155,25 @@
 #          2016–2020
 
 'cleanplot.pca' <-
-  function(res.pca,
-           ax1 = 1,
-           ax2 = 2,
-           scaling = 1,
-           plot.sites = TRUE,
-           plot.spe = TRUE,
-           label.sites = TRUE,
-           label.spe = TRUE,
-           cex.char1 = 0.7,
-           pos.sites = 2,
-           pos.spe = 4,
-           mult.spe = 1,
-           select.spe = NULL,
-           mar.percent = 0.1,
-           optimum = TRUE,
-           move.origin = c(0, 0),
-           silent = TRUE) {
-    
+  function(
+    res.pca,
+    ax1 = 1,
+    ax2 = 2,
+    scaling = 1,
+    plot.sites = TRUE,
+    plot.spe = TRUE,
+    label.sites = TRUE,
+    label.spe = TRUE,
+    cex.char1 = 0.7,
+    pos.sites = 2,
+    pos.spe = 4,
+    mult.spe = 1,
+    select.spe = NULL,
+    mar.percent = 0.1,
+    optimum = TRUE,
+    move.origin = c(0, 0),
+    silent = TRUE
+  ) {
     ### Internal functions
     'stretch' <-
       function(sites, mat, ax1, ax2, n, silent = silent) {
@@ -182,9 +183,9 @@
         D <- dist(tmp1)
         target <- max(D[1:n])
         # Then, compute the longest distance to centroid for the species arrows
-        if("matrix" %in% class(mat)) {
-#        if (is.matrix(mat)) {
-          p <- nrow(mat)   # Number of species to be drawn
+        if ("matrix" %in% class(mat)) {
+          #        if (is.matrix(mat)) {
+          p <- nrow(mat) # Number of species to be drawn
           tmp2 <- rbind(c(0, 0), mat[, c(ax1, ax2)])
           D <- dist(tmp2)
           longest <- max(D[1:p])
@@ -192,51 +193,52 @@
           tmp2 <- rbind(c(0, 0), mat[c(ax1, ax2)])
           longest <- dist(tmp2)
           # print(tmp2)
-        }  # If a single row left in 'mat'
+        } # If a single row left in 'mat'
         #
-        if (!silent)
-          cat("target =",
-              target,
-              " longest =",
-              longest,
-              " fact =",
-              target / longest,
-              "\n")
+        if (!silent) {
+          cat(
+            "target =",
+            target,
+            " longest =",
+            longest,
+            " fact =",
+            target / longest,
+            "\n"
+          )
+        }
         fact <- target / longest
       }
-    
+
     'larger.plot' <-
-      function(sit.sc,
-               spe.sc,
-               percent,
-               move.origin,
-               ax1,
-               ax2) {
+      function(sit.sc, spe.sc, percent, move.origin, ax1, ax2) {
         # Internal function to expand plot limits (adapted from code by Pierre
         # Legendre)
         mat <- rbind(sit.sc, spe.sc)
         range.mat <- apply(mat, 2, range)
         rownames(range.mat) <- c("Min", "Max")
-        z <- apply(range.mat, 2, function(x)
-          x[2] - x[1])
-        range.mat[1,] <- range.mat[1,] - z * percent
-        range.mat[2,] <- range.mat[2,] + z * percent
-        if (move.origin[1] != 0)
+        z <- apply(range.mat, 2, function(x) {
+          x[2] - x[1]
+        })
+        range.mat[1, ] <- range.mat[1, ] - z * percent
+        range.mat[2, ] <- range.mat[2, ] + z * percent
+        if (move.origin[1] != 0) {
           range.mat[, ax1] <- range.mat[, ax1] - move.origin[1]
-        if (move.origin[2] != 0)
+        }
+        if (move.origin[2] != 0) {
           range.mat[, ax2] <- range.mat[, ax2] - move.origin[2]
+        }
         range.mat
       }
-    
+
     "pcacircle" <-
-      function (pca, mult.spe, fact.spe, silent = silent) {
+      function(pca, mult.spe, fact.spe, silent = silent) {
         # This function draws a circle of equilibrium contribution on a PCA plot
         # generated from the result file of a vegan rda() analysis.
         eigenv <- pca$CA$eig
         p <- length(eigenv)
         n <- nrow(pca$CA$u)
         tot <- sum(eigenv)
-        radius <- (2 / p) ^ 0.5 * mult.spe * fact.spe
+        radius <- (2 / p)^0.5 * mult.spe * fact.spe
         symbols(
           0,
           0,
@@ -253,7 +255,7 @@
           )
           cat(
             "\nThe radius of the equilibrium circle is thus",
-            (2 / p) ^ 0.5,
+            (2 / p)^0.5,
             "*",
             mult.spe,
             "*",
@@ -265,78 +267,88 @@
         }
       }
     ### End internal functions
-    
-    if (!class(res.pca)[1] == "rda")
-      stop("The input file is not a vegan output object of class 'rda'",
-           call. = FALSE)
-    if (!(is.null(res.pca$CCA)))
+
+    if (!class(res.pca)[1] == "rda") {
+      stop(
+        "The input file is not a vegan output object of class 'rda'",
+        call. = FALSE
+      )
+    }
+    if (!(is.null(res.pca$CCA))) {
       stop(
         "The input file contains an RDA, not a PCA result. ",
         "Use function triplot.rda from the NEwR (2018) book to produce an RDA triplot."
       )
-    if (scaling != 1 &
-        scaling != 2)
+    }
+    if (
+      scaling != 1 &
+        scaling != 2
+    ) {
       stop("Function only available for scaling 1 or 2", call. = FALSE)
-    
-    k <- length(res.pca$CA$eig)         # n. of PCA eigenvalues
-    n.sp <- length(res.pca$colsum)      # n. of species
-    ahead <- 0.05   # Length of arrow heads
-    aangle <- 30    # Angle of arrow heads
+    }
+
+    k <- length(res.pca$CA$eig) # n. of PCA eigenvalues
+    n.sp <- length(res.pca$colsum) # n. of species
+    ahead <- 0.05 # Length of arrow heads
+    aangle <- 30 # Angle of arrow heads
     # 'vec' will contain the selection of species to be drawn
     if (is.null(select.spe)) {
       vec <- 1:n.sp
     } else {
       vec <- select.spe
     }
-    
+
     # Scaling 1: the species scores have norms of 1
     # Scaling 1: the site scores are scaled to variances = can.eigenvalues
     # Scaling 2: the species scores have norms of sqrt(can.eigenvalues)
     # Scaling 2: the site scores are scaled to variances of 1
-    
+
     # This version reconstructs and uses the original RDA output of L&L 2012,
     # Section 11.1.3
-    
-    Tot.var = res.pca$tot.chi         # Total variance in response data Y
-    eig.val = res.pca$CA$eig          # Eigenvalues of Y-hat
-    Lambda = diag(eig.val)            # Diagonal matrix of eigenvalues
-    eig.val.rel = eig.val / Tot.var   # Relative eigenvalues of Y-hat
-    Diag = diag(sqrt(eig.val.rel))    # Diagonal matrix of sqrt(relative
-                                      # eigenvalues)
-    U.sc1 = res.pca$CA$v              # Species scores, scaling=1
-    U.sc2 = U.sc1 %*% Lambda ^ (0.5)  # Species scores, scaling=2
-    n = nrow(res.pca$CA$u)            # Number of observations
-    Z.sc2 = res.pca$CA$u * sqrt(n - 1)# Site scores, scaling=2
-    Z.sc1 = Z.sc2 %*% Lambda ^ (0.5)  # Site scores, scaling=1
-    
+
+    Tot.var = res.pca$tot.chi # Total variance in response data Y
+    eig.val = res.pca$CA$eig # Eigenvalues of Y-hat
+    Lambda = diag(eig.val) # Diagonal matrix of eigenvalues
+    eig.val.rel = eig.val / Tot.var # Relative eigenvalues of Y-hat
+    Diag = diag(sqrt(eig.val.rel)) # Diagonal matrix of sqrt(relative
+    # eigenvalues)
+    U.sc1 = res.pca$CA$v # Species scores, scaling=1
+    U.sc2 = U.sc1 %*% Lambda^(0.5) # Species scores, scaling=2
+    n = nrow(res.pca$CA$u) # Number of observations
+    Z.sc2 = res.pca$CA$u * sqrt(n - 1) # Site scores, scaling=2
+    Z.sc1 = Z.sc2 %*% Lambda^(0.5) # Site scores, scaling=1
+
     if (is.null(select.spe)) {
       vec <- 1:n.sp
     } else {
       vec <- select.spe
     }
-    
+
     if (scaling == 1) {
       sit.sc <- Z.sc1
-      spe.sc <- U.sc1[vec,]
+      spe.sc <- U.sc1[vec, ]
     } else {
       # For scaling=2
       sit.sc <- Z.sc2
-      spe.sc <- U.sc2[vec,]
+      spe.sc <- U.sc2[vec, ]
     }
-    if (is.null(rownames(sit.sc)))
+    if (is.null(rownames(sit.sc))) {
       rownames(sit.sc) <- paste("Site", 1:n, sep = "")
-    if (is.null(rownames(spe.sc)))
+    }
+    if (is.null(rownames(spe.sc))) {
       rownames(spe.sc) <- paste("Sp", 1:n.sp, sep = "")
-    
+    }
+
     fact.spe <- 1
     if (optimum) {
       fact.spe <-
         stretch(sit.sc[, 1:k], spe.sc[, 1:k], ax1, ax2, n, silent = silent)
     }
-    if (!silent)
+    if (!silent) {
       cat("fact.spe =", fact.spe, "\n\n")
+    }
     spe.sc <- spe.sc * fact.spe * mult.spe
-    
+
     lim <-
       larger.plot(
         sit.sc[, 1:k],
@@ -346,9 +358,10 @@
         ax1 = ax1,
         ax2 = ax2
       )
-    if (!silent)
+    if (!silent) {
       print(lim)
-    
+    }
+
     # Draw the main plot
     mat <- rbind(sit.sc[, 1:k], spe.sc[, 1:k])
     plot(
@@ -362,11 +375,11 @@
       asp = 1
     )
     abline(h = 0, v = 0, col = "grey60")
-    
+
     # Draw the site scores
     if (plot.sites) {
       points(sit.sc[, ax1], sit.sc[, ax2], pch = 20)
-      if (label.sites)
+      if (label.sites) {
         text(
           sit.sc[, ax1],
           sit.sc[, ax2],
@@ -375,8 +388,9 @@
           pos = pos.sites,
           cex = cex.char1
         )
+      }
     } else {
-      if (label.sites)
+      if (label.sites) {
         text(
           sit.sc[, ax1],
           sit.sc[, ax2],
@@ -385,8 +399,9 @@
           pos = NULL,
           cex = cex.char1
         )
+      }
     }
-    
+
     # Draw the species scores
     if (plot.spe) {
       arrows(
@@ -398,7 +413,7 @@
         angle = aangle,
         col = "red"
       )
-      if (label.spe)
+      if (label.spe) {
         text(
           spe.sc[, ax1],
           spe.sc[, ax2],
@@ -407,8 +422,9 @@
           pos = pos.spe,
           cex = cex.char1
         )
+      }
     } else {
-      if (label.spe)
+      if (label.spe) {
         text(
           spe.sc[, ax1],
           spe.sc[, ax2],
@@ -417,8 +433,9 @@
           pos = NULL,
           cex = cex.char1
         )
+      }
     }
-    
+
     # If scaling = 1 draw circle of equilibrium contribution
     if (scaling == 1) {
       pcacircle(
