@@ -47,16 +47,22 @@ Quantitative Ecology.**
 :::
 
 
-# Quantifying Diversity
+# What Biodiversity Means and Why We Quantify It
 
-When we talk about 'biodiversity,' we typically refer to the variety of life in a given area or ecosystem. This encompasses species diversity, genetic diversity within species, and the diversity of ecosystems or habitats. To quantify biodiversity, we use metrics that capture various aspects, including:
+When we talk about 'biodiversity,' we typically refer to the variety of life in a given area or ecosystem. This encompasses species diversity, genetic diversity within species, and the diversity of ecosystems or habitats.
 
-- The variability and characteristics of the environment.
-- The species present in a given area (species lists).
-- The relative abundance of each of the species.
-- The spatial distribution of species across different habitats or ecosystems.
+Biodiversity data typically include:
 
-In this lecture, we will explore some of the most common metrics used to quantify biodiversity. We'll delve into the concepts of species richness, evenness, and diversity, and how these metrics can be applied to compare different habitats or ecosystems.
+- Species identities (composition).
+- Species abundances.
+- Spatial location of samples.
+- Environmental variables associated with samples.
+
+These datasets allow us to calculate biodiversity metrics and compare communities across sites, habitats, and regions.
+
+In this lecture, we will explore some of the most common metrics used to quantify biodiversity. We begin with biodiversity partitioning across scales ($\alpha$, $\beta$, $\gamma$), then cover diversity indices, and finally move to multivariate resemblance analysis.
+
+Conceptually, this lecture follows directly from Lecture 3 on ecological gradients: Lecture 3 explains why communities differ, and Lecture 4 explains how we measure those differences.
 
 Biodiversity metrics can be broadly categorised into three groups based on the type of information they provide:
 
@@ -66,8 +72,15 @@ Biodiversity metrics can be broadly categorised into three groups based on the t
 
 The first two categories---biodiversity metrics and diversity indices---offer simplified representations of biodiversity through synthetic metrics or indices. In contrast, distance measures and dissimilarity indices provide more nuanced and detailed insights by exposing the full multivariate information within our datasets. This allows for a deeper examination of the processes driving community formation and the resulting structures that describe biodiversity patterns across landscapes.
 
+| Topic block | Core question | Typical data | Typical output |
+|---|---|---|---|
+| Biodiversity partitioning ($\alpha, \beta, \gamma$) | How is diversity distributed within and among communities? | Site-by-species data (presence-absence or abundance) | Local richness, turnover, regional diversity |
+| Diversity indices | How diverse is a community when richness and abundance are both considered? | Species abundances per site | Univariate index values (e.g., Shannon, Simpson, Margalef) |
+| Distance measures | How different are sites environmentally? | Site-by-environment table | Environmental distance matrix |
+| Species dissimilarities | How different are communities in composition? | Site-by-species table | Species dissimilarity matrix (e.g., Bray-Curtis) |
 
-# Biodiversity Metrics
+
+# Biodiversity Partitioning
 
 ## $\alpha$-Diversity (Species Richness)
 
@@ -77,13 +90,9 @@ There are several ways to represent $\alpha$-diversity. The simplest and most st
 
 ![Alpha-diversity in one sense is the simple expression of the average species richness (number of species) across a landscape.](/images/alpha-diversity.png){#fig-alphadiversity fig-align="center"}
 
-Species richness is easy to understand and implement, but it doesn't account for the relative abundance of each species within the community. To address this limitation we make use of **univariate indices**. Shannon's H' (Shannon's Diversity Index) and Simpson's $\lambda$ (Simpson's Diversity Index) are such univariate diversity indices. These indices place various amounts of emphasis on the abundance and evenness of species present.
+Species richness measures the number of species present, whereas diversity indices combine richness and relative abundance information.
 
-Choosing Shannon's or Simpson's is a bit controversial and it often depends on who is using it. According to Jari Oksanen, author of the **vegan** package in R, the choice between Shannon's and Simpson's index is a matter of personal preference. He writes:
-
-> Better stories can be told about Simpson's index than about Shannon's index, and still grander narratives about rarefaction (Hurlbert 1971). However, these indices are all very closely related (Hill 1973), and there is no reason to despise one more than others (but if you are a graduate student, don't drag me in, but obey your Professor's orders). In particular, the exponent of the Shannon index is linearly related to inverse Simpson (Hill 1973) although the former may be more sensitive to rare species.
-
-Both **Shannon's H'** or **Simpson's** $\lambda$ can be applied to the local scale, or averaged across multiple sites to get a regional scale measure of the average $\alpha$-diversity. We will revisit **Shannon's H'** or **Simpson's** $\lambda$ lower down in this section as they also crop up in under the heading of [Diversity Indices](#sec-diversity-indices) (another logical place to classify the same concepts).
+Species richness is easy to understand and implement, but it does not account for relative abundance. To include evenness and dominance, ecologists often use univariate indices such as Shannon's H' and Simpson's $\lambda$ (see [Diversity Indices](#sec-diversity-indices) below). These indices are closely related, and the choice between them is often pragmatic rather than absolute.
 
 ## $\beta$-Diversity (Variation in Diversity) {#sec-beta-diversity}
 
@@ -93,13 +102,17 @@ A related concept of diversity is one that considers the variation between sites
 
 $\beta$-diversity has a long history in ecology and has undergone several conceptual revisions over the years. The concept was first introduced by @whittaker1960vegetation to describe the variation in species composition between different sites.
 
-Whittaker's initial idea was that of **true** $\beta$-diversity (hence it sometimes being called Whittaker's $\beta$-diversity), which is often defined as the effective number of distinct communities in a region. It can be calculated as the ratio of $\gamma$-diversity to $\alpha$-diversity when these are expressed as Hill numbers or effective numbers of species. Mathematically, this is expressed as:
+### A. What $\beta$-diversity measures {.unnumbered}
+
+At its core, $\beta$-diversity links local and regional diversity: it describes how variation among local communities ($\alpha$) contributes to total regional diversity ($\gamma$).
+
+Whittaker's initial idea was that of **true** $\beta$-diversity (hence it sometimes being called Whittaker's $\beta$-diversity), often defined as the effective number of distinct communities in a region. It can be calculated as the ratio of $\gamma$-diversity to $\alpha$-diversity when these are expressed as Hill numbers or effective numbers of species:
 
 $$\beta = \frac{\gamma}{\alpha}$$
 
 where $\beta$ is true $\beta$-diversity, $\gamma$ is the total diversity of the region, and $\alpha$ is the mean diversity of the individual communities.
 
-Another approach is **absolute species turnover**, which is a measure of the total amount of species change between communities or along environmental gradients. It can be calculated in various ways, but one common approach is to use the **Whittaker's** $\beta$-diversity index:
+Another approach is **absolute species turnover**, a measure of the total amount of species change between communities or along environmental gradients. One common expression is Whittaker's $\beta$-diversity index:
 
 $$\beta_w = \frac{S}{\alpha} - 1$$
 
@@ -107,29 +120,37 @@ where $S$ is the total number of species in all communities combined ($\gamma$-d
 
 This measure of turnover ranges from 0 (when all communities have identical species composition) to a maximum value that depends on the number of communities being compared. It provides a quantitative measure of how much species composition changes across communities or sites.
 
-Contemporary views of $\beta$-diversity were developed by @nekola1999distance, @baselga2010partitioning, and @anderson2011navigating. This information is encapsulated with pairwise matrices of dissimilarity indices (see the section below on [dissimilarity indices](#sec-dissimilarity-indices) where the various dissimilarity indices are presented in more detail) calculated for each pair of sites within the studied system. The broad implication is the same as how it was traditionally applied: that is, $\beta$-diversity describes how species formation (into communities) measured within the ecosystem of interest vary from place to place, e.g. between the various transects or quadrats used to sample the ecosystem. But, these modern interpretations of $\beta$-diversity extract from these views of habitat heterogeneity some deeper insights about the mechanisms responsible for driving the community formation *process*, viz. the role of gradients (Process 1: niche theory) and stochastic processes (Process 2: neutral theory).
+Contemporary views of $\beta$-diversity [@nekola1999distance; @baselga2010partitioning; @anderson2011navigating] are often implemented with pairwise dissimilarity matrices (see [Species Dissimilarities](#sec-dissimilarity-indices)). These formulations separate two components: turnover and nestedness.
 
-**Process 1:** If a region comprises the species A, B, C, ..., M (i.e. $\gamma$-diversity is 13), a subset of the regional flora captured by one quadrat might be species **A**, **D**, E. In another quadrat species **A**, **D**, F might be present. $\alpha$-diversity is three in both instances, and heterogeneity (and hence $\beta$-diversity) results from the fact that the first quadrat has species E, but the other has species F. In other words, here, we have the same number of species in both quadrats, but only two of the species are the same. The process responsible for this form of $\beta$-diversity is species **turnover**, $\beta_\text{sim}$. Turnover refers to processes that cause communities to differ due to species being lost or gained from section to section, i.e. the species composition changes between sections without corresponding changes in $\alpha$-diversity. The function `beta()` in the R package **BAT** calls this form of $\beta$ diversity **replacement** and use the symbol $\beta_{repl}$ [@cardoso2015bat].
+**Turnover example:** If a region comprises species A, B, C, ..., M (i.e. $\gamma$-diversity is 13), one quadrat might contain **A**, **D**, E while another contains **A**, **D**, F. Here, $\alpha$-diversity is three in both quadrats, but composition differs by replacement (E vs F). This is species **turnover**, often denoted $\beta_\text{sim}$. The function `beta()` in **BAT** labels this component as **replacement** ($\beta_{repl}$) [@cardoso2015bat].
 
-**Process 2:** Consider again species A, B, C, ..., M. Now we have a quadrat with species **A**, **B**, C, D, **G**, H ($\alpha$-diversity is six) but another quadrat has a subset of these species, e.g. only species **A**, **B**, **G** ($\alpha$-diversity three). Here, $\beta$-diversity is high even though the quadrats share *some* species, but the number of species differs among the quadrats (i.e. from place to place) due to one quadrat capturing only a subset of species present in the other. This form of $\beta$-diversity is called **nestedness-resultant** $\beta$-diversity, $\beta_\text{sne}$, and it refers to processes that cause species to be gained or lost, and the community with the lowest $\alpha$-diversity is a subset of the richer community. The function `beta()` in the R package **BAT** calls this form of $\beta$ diversity **richness difference** and uses the symbol $\beta_{rich}$ [@cardoso2015bat].
+**Nestedness example:** Consider again species A, B, C, ..., M. One quadrat has **A**, **B**, C, D, **G**, H ($\alpha = 6$), while another has a subset (**A**, **B**, **G**; $\alpha = 3$). This is **nestedness-resultant** $\beta$-diversity, $\beta_\text{sne}$: the poorer community is a subset of the richer one. In **BAT**, this is labelled **richness difference** ($\beta_{rich}$) [@cardoso2015bat].
 
-The above two examples show that $\beta$-diversity is coupled not only with the identity of the species in the quadrats but also $\alpha$-diversity---with species richness in particular.
+Together, these examples show that $\beta$-diversity depends on both species identities and differences in local richness ($\alpha$-diversity).
 
-We express $\beta$-diversity as nestedness-resultant, $\beta_\text{sne}$, and turnover, $\beta_\text{sim}$, components to be able to distinguish between these two processes. It allows us to make inferences about the two possible drivers of $\beta$-diversity. Turnover refers to processes that cause communities to differ due to species being lost or gained from section to section, i.e. the species composition changes between sections without corresponding changes in $\alpha$-diversity. The nestedness-resultant component implies processes that cause species to be gained or lost without replacement, and the community with the lowest $\alpha$-diversity is a subset of the richer community.
+In summary, turnover occurs when species replace one another across sites while richness remains similar. Nestedness occurs when species-poor communities form subsets of richer communities.
 
-According to @nekola1999distance on p. 868, there are *two causes* of ecological distance decay. 'Ecological' is key to the first cause---it is environmental filtering results in a decrease in similarity as the distance between sites increases. We sometimes call this the **niche difference model**. Such patterns are typically visible along steep environmental gradients such as elevation slopes (mountains), latitude, or depth in the ocean, to name only three. It is also the dominant mechanism underlying island biogeography.
+### B. Mechanisms generating $\beta$-diversity {.unnumbered}
 
-The second cause of distance decay *sensu* @nekola1999distance involves aspects of the spatial configuration, context of the habitats, and some temporal considerations. Here, the evolutionary differences between species---specifically around those traits that affect their ability to disperse---are more at play and are the primary influences of distance decay rates that might vary between species. Let us first consider some properties of a hypothetical homogeneous landscape. The landscape creates some impediment (resistance) to the propagation of some species (hypothetically species A, B, and C) across its surface, but which are less effective in impeding others (D, E, and F). For argument's sake, all species (A, ..., F) share similar environmental tolerances to the prevailing environmental conditions, so one can argue that the niche difference model (environmental filtering) does not explain distributional patterns. Given a particular founding or disturbance event, species D, E, and F will, in a relatively shorter period, be able to become evenly distributed (relatively similar abundances everywhere) across this landscape. However, the less vagile (in terms of dispersal ability), species A, B, and C will develop a steeper gradient of decreasing species abundances away from the founding populations (resulting from, for example, adaptive radiation). They will require more time to become homogeneously dispersed across the landscape. In this regard, historical events set up striking distributional patterns that can be mistaken for gradients, which exist because insufficient time has passed to ensure complete dispersal. Studying the influence of such past events is called 'historical biogeography.' In reality, landscapes are seldom homogeneous in their spatial template (e.g. there are hills and valleys), and variable dispersal mechanisms and abilities will interact with this heterogeneous landscape to form interesting patterns of communities. The ecologist will have an exciting time figuring out the relative importance of actual gradients vs those that result from evolved traits that affect their dispersal ability and interact with the environment. I have not said anything about 'neutral theories' [but which are seen in the $\beta_\text{sne}$ form of $\beta$-diversity as in @smit2017seaweeds], nor biological interactions that might affect community structure.
+The metrics above describe *how much* communities differ. Mechanistic interpretation asks *why* they differ. A useful framing is the two causes of ecological distance decay described by @nekola1999distance.
+
+The first cause is **environmental filtering** (often framed as niche difference): similarity decreases with distance because environments differ more across space. This is common along strong gradients such as elevation, latitude, or depth, and is a dominant pattern in many island biogeographic settings.
+
+The second cause is **dispersal limitation**: species differ in dispersal ability, so distance decay can emerge even when environmental tolerances are similar. Historical contingencies can reinforce these patterns when communities are not yet at dispersal equilibrium, and real landscapes further modify outcomes through spatial heterogeneity.
 
 ## $\gamma$-Diversity (Regional Diversity)
 
 While $\alpha$-diversity focuses on the local scale, representing the species richness within a specific area or community, the concept of species richness changes as we broaden our scope of observation. This brings us to the concept of $\gamma$-diversity, which refers to the overall diversity of a larger area or region encompassing multiple local-scale units of observation or quantification (@fig-gammadiversity). The transition from $\alpha$- to $\gamma$-diversity occurs as we aggregate data from multiple sampling units or sites within a broader landscape or ecosystem. $\gamma$-diversity captures the total species diversity across all the local communities in a region. It is not merely the average $\alpha$-diversity or total $\alpha$-diversity aggregated over individual sites; rather, it reflects the combined diversity, including both the diversity within each local community ($\alpha$-diversity) and the diversity between communities ($\beta$-diversity).
 
+Stated directly, $\gamma$-diversity reflects both within-community diversity ($\alpha$) and turnover among communities ($\beta$).
+
 ![Gamma-diversity is the total species list (number of species) across a landscape taking into account all sampling units representative of that landscape.](/images/gamma-diversity.png){#fig-gammadiversity fig-align="center"}
 
 # Diversity Indices {#sec-diversity-indices}
 
-A diversity index is a metric that quantifies species diversity within a community. While species richness simply refers to the number of species present, diversity indices also consider the relative abundances of these species. For instance, consider two communities: community A comprises 10 individuals of each of 10 species (totalling 100 individuals) and community B has 9 species with 1 individual each, and a 10th species with 91 individuals (also totalling 100 individuals). Which community is more diverse? To address this, diversity indices incorporate both richness and evenness information and provides a more comprehensive assessment of diversity than species richness alone.
+A diversity index is a metric that quantifies species diversity within a community. While species richness counts how many species are present, diversity indices also account for relative abundances. For instance, consider two communities: community A comprises 10 individuals of each of 10 species (totalling 100 individuals) and community B has 9 species with 1 individual each, and a 10th species with 91 individuals (also totalling 100 individuals). Which community is more diverse? Diversity indices address this by combining richness and evenness information.
+
+For this course, the core indices are Shannon's and Simpson's (with Margalef as a richness-focused complement). The key idea is that different indices emphasise different aspects of community structure.
 
 ## Margalef's Index
 
@@ -189,27 +210,29 @@ Simpson's Indices are less sensitive to species richness and more sensitive to e
 
 ## Gini Index
 
-The Gini Index, or Gini Coefficient, should be fimiliar to all South Africans---South Africa is infamous for having the highest Gini Coefficient in the world. The Gini Index is a measure of inequality within a distribution, and is typically used in economics to assess income or wealth inequality. Since its purpose is to evaluate disparity, it is also suited to ecological systems because, here too, the distribution in abundance differs among species. The formula for the Gini Index is:
+The Gini Index (Gini Coefficient) is best known from economics as a measure of inequality. In ecology, it can be used to quantify inequality in species abundances (dominance vs evenness). The formula is:
 
 $$
 G = \frac{\sum_{i=1}^{N} \sum_{j=1}^{N} |x_i - x_j|}{2N^2 \bar{x}}
 $$
 
-where $N$ is the total number of observations, $x_i$ and $x_j$ are the values of the observations, and $\bar{x}$ is the mean of the values. In ecological studies, a high Gini Index indicates a large disparity in species abundances, with few species dominating the community, whereas a low Gini Index suggests a more even distribution of individuals among species.
+where $N$ is the total number of observations, $x_i$ and $x_j$ are the values of the observations, and $\bar{x}$ is the mean. In ecological applications, higher Gini values indicate greater dominance by a few species.
 
 ## Herfindahl-Hirschman Index (HHI)
 
-The Herfindahl-Hirschman Index (HHI) is a measure of market concentration commonly used in economics to assess the level of competition within an industry. It is calculated as the sum of the squares of the market shares of all firms in the market. Ecologists sometimes use the HHI to assess species dominance or the concentration of individuals within species. The formula for HHI is:
+The Herfindahl-Hirschman Index (HHI) is another concentration metric from economics. In ecology, it is used to summarise how strongly individuals are concentrated in a small number of species. The formula is:
 
 $$
 HHI = \sum_{i=1}^{N} s_i^2
 $$
 
-where $N$ is the total number of species, and $s_i$ is the proportion of individuals belonging to species $i$. Here, a higher HHI indicates a higher concentration of individuals in a few species, signifying lower diversity. Conversely, a lower HHI reflects a more even distribution of individuals across species, indicating higher diversity.
+where $N$ is the total number of species, and $s_i$ is the proportion of individuals belonging to species $i$. Higher HHI indicates stronger dominance (lower evenness).
 
-Here's a corrected and improved version of the text:
+## From Diversity Metrics to Multivariate Structure
 
-# Ecological Resemblance {#sec-resemblance-metrics}
+So far, we have focused on univariate summaries of biodiversity (single-number descriptors such as richness and diversity indices). We now shift to multivariate community structure, where pairwise resemblance among sites is represented with matrices derived from species and environmental tables.
+
+# Resemblance Matrices {#sec-resemblance-metrics}
 
 Resemblance matrices are mathematical representations used to quantify the similarity or dissimilarity between pairs of samples, communities, or ecological sampling units based on various criteria such as species composition, abundance, functional traits, phylogenetic relatedness, or environmental properties. Well-structured raw data about species composition typically come in the form of a table with rows representing sites or samples, and columns representing species. Similarly, data about environmental variables are structured as a table with rows representing sites or samples, and columns representing environmental variables.
 
@@ -235,15 +258,23 @@ In [**species dissimilarity matrices**](#sec-dissimilarity-indices) (species res
 
 @legendre2012numerical provide a full chapter (Chapter 7) on ecological resemblance, including an in-depth look at the various kinds of 'association coefficients,' which is what we will cover next. The next two sub-sections will thus introduce a few frequently used association coefficients to study species dissimilarity and environmental distances across the landscape.
 
-## Environmental Distance {#sec-distance-metrics}
+| Matrix type | Built from | Common metric examples | Typical range interpretation |
+|---|---|---|---|
+| Environmental distance matrix | Site-by-environment table | Euclidean, Manhattan, Gower | Lower values = more similar environments; higher values = more different environments |
+| Species dissimilarity matrix | Site-by-species table | Bray-Curtis, Jaccard, Sørensen | Values near 0 = similar communities; values near 1 = distinct communities |
+| Association/correlation matrix (Q-mode) | Species columns or environmental variable columns | Correlation/association coefficients | Higher absolute values = stronger associations |
+
+## Distance Measures {#sec-distance-metrics}
 
 Sometimes we need to quantify the environmental similarities or differences between sampling sites, such as plots, quadrats, or transects. This is typically achieved through the use of distance matrices (one kind of [resemblance matrix](#sec-resemblance-metrics)), which provide an overall view of how all the sites relate to one another. These matrices are derived from data tables containing information on environmental variables (sites in rows and variables in columns).
 
 There are several kinds of distance metrics available for use with environmental data. Regardless of which index one chooses, the resulting matrix provides pairwise differences (or distances) or similarities in a metric that relates to the ecological distance between all sites (and which might also link to their community composition, which is the thing we are trying to determine). Such pairwise matrices are foundational for various multivariate analyses and can reveal patterns in ecological data that might not be apparent from raw measurements of individual variables alone.
 
+Because environmental variables often have different units and ranges, they are commonly standardised before distance calculations.
+
 **Euclidean distance** is in my experience the commonly used in spatial analysis. It defined as the straight-line distance between two points in Euclidean space. In its simplest form, it applies to a planar area such as a graph with $x$- and $y$-axes, but it can be extended to higher dimensions. In two or three dimensions, it gives the Cartesian distance between points on a plane ($x$, $y$) or in a volume ($x$, $y$, $z$), and this concept can be further extended to higher-dimensional spaces. Euclidean distance conforms to our intuitive physical concept of distance, making it useful for applications like measuring short geographic distances between points on a map. However, over large distances on Earth's surface, Euclidean distance loses accuracy due to the Earth's spherical shape. In such cases, great circle distances, calculated using formulas like the Haversine formula, provide more accurate measurements.
 
-Mathematically, Euclidean distance is calculated using the Pythagorean theorem. This method squares the differences between coordinates, which means that single large differences become disproportionately important in the final distance calculation. While this property makes Euclidean distance useful for environmental data, where it effectively calculates the 'straight-line distance' between two points in multidimensional space (with each dimension representing an environmental variable), it is ill suited to species data.
+Mathematically, Euclidean distance is calculated using the Pythagorean theorem. This method squares the differences between coordinates, which means that single large differences become disproportionately important in the final distance calculation. While this property makes Euclidean distance useful for environmental data, where it effectively calculates the 'straight-line distance' between two points in multidimensional space (with each dimension representing an environmental variable), it is ill suited to species data because species tables are often sparse (many zeros) and relationships among species responses are frequently non-linear.
 
 The Euclidean distance between two points $A$ and $B$ in a $n$-dimensional space is calculated as:
 
@@ -274,7 +305,7 @@ $$
 
 where $x_{ij}$ and $x_{ik}$ are the abundances of species $i$ (the columns) at sites $j$ and $k$ (the rows) respectively. 
 
-For presence-absence data, the Bray-Curtis dissimilarity simplifies to:
+For presence-absence data, the Bray-Curtis dissimilarity simplifies to a form equivalent to Sørensen dissimilarity:
 
 $$
 d_{AB} = \frac{A+B-2J}{A+B-J}
@@ -282,7 +313,7 @@ $$
 
 where $J$ is the number of species present in both sites being compared, $A$ is the number unique to site A, and $B$ is the number unique to site B.
 
-The Bray-Curtis dissimilarity ranges from 0 (indicating identical species compositions) to 1 (indicating completely different compositions). This metric can be used to construct dissimilarity matrices for multivariate analyses, where each cell in the matrix represents the ecological distance between a pair of sites based on their species composition.
+The Bray-Curtis dissimilarity ranges from 0 to 1. Ecologically, values close to 0 indicate similar communities, while values close to 1 indicate distinct communities. This metric can be used to construct dissimilarity matrices for multivariate analyses, where each cell in the matrix represents the ecological distance between a pair of sites based on their species composition.
 
 In practice, these dissimilarity indices and distances can be calculated using the **vegan** R package's `vegdist()` function. Refer to `?vegan::vegdist` for information and a deeper look.
 
