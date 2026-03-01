@@ -165,7 +165,7 @@ Refer to the help files for the respective functions to see their differences.
 
 Here’s how to manually derive an SAD from a typical community dataset. Let's assume you have a site × species table, where rows are sampling sites and columns are species, with the cells containing counts (abundances).
 
-1. **Get Total Species Abundances**: Your first step is to get the total abundance for each species across all your sites. You do this by **summing each column**. This collapses your site × species matrix into a single list of numberswhich we call an "**abundance vector**;" here each number is the total count for one species.
+1. **Get Total Species Abundances**: Your first step is to get the total abundance for each species across all your sites. You do this by **summing each column**. This collapses your site × species matrix into a single list of numbers, which we call an "**abundance vector**;" here each number is the total count for one species.
 
 2. **Create a Frequency Table**: Now, you'll process this abundance vector. Count *how many* species have an abundance of 1, how many have an abundance of 2, and so on, for all abundance values present in your data. The result is a frequency table.
 
@@ -185,7 +185,7 @@ For example, if your abundance vector is `(1, 1, 5, 2, 8, 1, 2, 5)`, your freque
 Theory link: see [Core Pattern Families](Lec-06-unified-ecology.qmd#sec-lec06-patterns) and [From Measures to Models](Lec-06-unified-ecology.qmd#sec-lec06-measures-models) in [Lecture 6](Lec-06-unified-ecology.qmd).
 
 
-**Occupancy** refers to the number (or proportion) of sites in which a species is recorded as present. When linked with measures of abundance, it provides a way to examine the spatial distribution of species across a landscape. **Occupancy–abundance relationships** (OARs) reveal that species that are locally abundant at a given site tend also to be widespread across many sites in the region; conversely, species of low local abundance are more often restricted in their wider distribution. This empirical pattern has been so consistently observed that it has been described as verging on an ecological “law;” it tell us about the underlying processes of niche breadth, dispersal capacity, and environmental tolerance. OARs are therefore often used to infer degrees of niche specialisation, with generalists expected to show both high occupancy and high abundance, and specialists clustering toward low values of both measures (@fig-occupancy).
+**Occupancy** refers to the number (or proportion) of sites in which a species is recorded as present. When linked with measures of abundance, it provides a way to examine the spatial distribution of species across a landscape. **Occupancy–abundance relationships** (OARs) reveal that species that are locally abundant at a given site tend also to be widespread across many sites in the region; conversely, species of low local abundance are more often restricted in their wider distribution. This empirical pattern has been so consistently observed that it has been described as verging on an ecological “law;” it tells us about the underlying processes of niche breadth, dispersal capacity, and environmental tolerance. OARs are therefore often used to infer degrees of niche specialisation, with generalists expected to show both high occupancy and high abundance, and specialists clustering toward low values of both measures (@fig-occupancy).
 
 ```{r fig-occupancy}
 #| fig-cap: "Occupancy-abundance relationships seen in the BCI data."
@@ -200,8 +200,10 @@ count_fun <- function(x) {
   length(x[x > 0])
 }
 
-BCI_OA <- data.frame(occ = apply(BCI, MARGIN = 2, count_fun),
-                     ab = apply(BCI, MARGIN = 2, mean))
+BCI_OA <- data.frame(
+  occ = apply(BCI, MARGIN = 2, count_fun),
+  ab  = apply(BCI, MARGIN = 2, function(x) mean(x[x > 0]))
+)
 
 ggplot(BCI_OA, aes(x = ab, y = occ/max(occ))) +
   geom_point(colour = "indianred3") +
@@ -362,10 +364,9 @@ BCI_t <- list(BCI = t(BCI))
 
 BCI_out <- iNEXT(BCI_t, q = c(0, 1, 2), datatype = "incidence_raw")
 ggiNEXT(BCI_out, type = 1, color.var = "Order.q")
-## A warning is produced because the function expects incidence data
-## (presence-absence), but I'm feeding it abundance (count) data.
-## Nothing serious, as the function converts the abundance data to
-## incidences.
+## Note: iNEXT is run here with incidence settings for an abundance-origin dataset.
+## The function coerces data internally; interpret results as incidence-based outputs,
+## not abundance-based estimates from this input form.
 ```
 
 iNEXT focuses on three measures of Hill numbers of order q: species richness (q = 0), Shannon diversity (q = 1, the exponential of Shannon entropy) and Simpson diversity (q = 2, the inverse of Simpson concentration). For each diversity measure, iNEXT uses the observed sample of abundance or incidence data (called the “reference sample”) to compute diversity estimates and the associated 95% confidence intervals for the following two types of rarefaction and extrapolation (R/E):
@@ -417,9 +418,9 @@ This method, which is very similar to a species accumulation curve, estimates th
 Theory link: see [Distance-decay and ordination logic](Lec-06-unified-ecology.qmd#sec-lec06-ordination) and [Hypothesis-Testing Frame](Lec-06-unified-ecology.qmd#sec-lec06-testing) in [Lecture 6](Lec-06-unified-ecology.qmd).
 
 
-The principles of distance decay relationships are clearly captured in analyses of  [$\beta$-diversity](04-biodiversity.html#contemporary-definitions-%CE%B2-diversity)---see specifically **turnover**, $\beta_\text{sim}$. Distance decay is the primary explanation for the spatial pattern of $\beta$-diversity along the South African coast in @smit2017seaweeds. A deeper dive into distance decay calculation can be seen in [Deep Dive into Gradients](../BCB743/deep_dive.qmd).
+The principles of distance-decay relationships are closely linked to $\beta$-diversity turnover concepts introduced in Lecture 4 (especially turnover components). Distance decay is the primary explanation for the spatial pattern of $\beta$-diversity along the South African coast in @smit2017seaweeds. A deeper dive into distance-decay calculation can be seen in [Deep Dive into Gradients](../BCB743/deep_dive.qmd).
 
-In once sense, an elevation gradient can be seen as specific case of distance decay. The Doubs River dataset offers a nice example of data collected along an elevation gradient (which also happens to be a gradient along a river). Elevation gradients have many similarities with depth gradients (*e.g.*, down the ocean depths) and latitudinal gradients. 
+In one sense, an elevation gradient can be seen as specific case of distance decay. The Doubs River dataset offers a nice example of data collected along an elevation gradient (which also happens to be a gradient along a river). Elevation gradients have many similarities with depth gradients (*e.g.*, down the ocean depths) and latitudinal gradients. 
 
 ::: callout-note
 ## Interpretation Checklist {#sec-lab04-interpret}
