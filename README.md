@@ -7,20 +7,20 @@
 
 ## 📖 Overview
 
-The Tangled Bank is a comprehensive educational website built with [Quarto](https://quarto.org/) that serves the University of the Western Cape's Biodiversity and Conservation Biology Department. This repository contains academic materials for undergraduate and honours-level biology and statistics courses, all rich in [R](https://cran.r-project.org/) content.
+The Tangled Bank is a comprehensive educational website built with [Quarto](https://quarto.org/) that serves the University of the Western Cape's Biodiversity and Conservation Biology Department. This repository contains academic materials for undergraduate and honours-level biology and statistics modules, all rich in [R](https://cran.r-project.org/) content.
 
 **🌐 Live Website:** [tangledbank.netlify.app](http://tangledbank.netlify.app)
 
 ## 🎓 Academic Modules
 
-### Undergraduate Courses
+### Undergraduate Modules
 - **BDC223: Plant Ecophysiology** - Covers fundamental plant physiological processes, ecophysiological calculations, and environmental interactions
 - **BDC334: Biogeography & Global Ecology** - Explores biodiversity patterns, macroecology, environmental gradients, and global ecological processes
 
-### Honours Core Course  
+### Honours Core Module  
 - **BCB744: Introduction to R & Biostatistics** - Comprehensive introduction to R programming and statistical analysis for biological sciences
 
-### Honours Elective Course
+### Honours Elective Module
 - **BCB743: Quantitative Ecology** - Advanced multivariate statistics, ordination methods, and quantitative approaches in ecological research
 
 ## 🏗️ Repository Structure
@@ -152,7 +152,7 @@ quarto clean
 This is primarily an educational repository. For issues or suggestions:
 
 1. **Bug Reports:** Use GitHub Issues
-2. **Content Suggestions:** Contact the course instructor
+2. **Content Suggestions:** Contact the module instructor
 3. **Technical Issues:** Check Quarto documentation first
 
 ## 📄 License & Citation

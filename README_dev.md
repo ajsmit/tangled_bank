@@ -8,7 +8,7 @@ A second reason is theoretical clarity. Many statistical ideas in R map directly
 
 A third reason is robustness and longevity. The Tidyverse is stable and widely used, but base R has the strongest backward compatibility guarantees, and it is always available. In constrained environments (minimal installs, some HPC nodes, locked-down teaching labs), relying on base skills reduces friction. More importantly, base literacy reduces dependence on any single ecosystem’s design choices.
 
-That said, it’s usually a mistake to frame the course as “base versus Tidyverse,” or to teach base as a parallel alternative for every task. That approach increases cognitive load, creates style confusion, and often slows beginners down. A practical compromise is: teach one primary workflow for day-to-day data analysis (often Tidyverse), and teach a targeted base “core” that supports reading, debugging, and interfacing with the broader R ecosystem.
+That said, it’s usually a mistake to frame the module as “base versus Tidyverse,” or to teach base as a parallel alternative for every task. That approach increases cognitive load, creates style confusion, and often slows beginners down. A practical compromise is: teach one primary workflow for day-to-day data analysis (often Tidyverse), and teach a targeted base “core” that supports reading, debugging, and interfacing with the broader R ecosystem.
 
 A workable division of labour looks like this.
 
@@ -31,12 +31,12 @@ Then connect them explicitly:
 	•	When teaching modelling, show that many modelling functions return rich objects; use base extraction (coef, residuals, $, [[) to make those objects legible, even if you tidy outputs afterward.
 
 When might you lean more heavily into base from the start?
-	•	If the course is preparing students for methods-heavy statistics (simulation, matrix-based methods, custom estimators), where vectors/lists/matrices are constantly in play.
+	•	If the module is preparing students for methods-heavy statistics (simulation, matrix-based methods, custom estimators), where vectors/lists/matrices are constantly in play.
 	•	If students will maintain or extend existing codebases that are primarily base.
 	•	If teaching time is short but you need students to handle arbitrary package objects and error messages confidently (base inspection and indexing skills give high return per minute).
 
 When might you lean heavily into the Tidyverse with minimal base?
-	•	If the course is primarily “data analysis for domain scientists” with a strong emphasis on wrangling and visualisation, and you can rely on a consistent Tidyverse-based environment for all assignments.
+	•	If the module is primarily “data analysis for domain scientists” with a strong emphasis on wrangling and visualisation, and you can rely on a consistent Tidyverse-based environment for all assignments.
 	•	If the objective is rapid productivity and you can postpone deeper R mechanics to a later module.
 
 A concrete recommendation for first-time users: make the Tidyverse the visible workflow, and teach base R as the underlying mechanics in deliberately chosen moments. Students end up productive quickly, but they also learn how R behaves when the training wheels come off.
