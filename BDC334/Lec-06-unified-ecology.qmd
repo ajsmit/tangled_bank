@@ -51,32 +51,11 @@ By the end of this lecture, you should be able to:
 
 - explain why univariate diversity summaries are useful but insufficient for mechanistic ecological inference,
 - distinguish species-distribution pattern families and what ecological questions each can address,
-- connect alpha, beta, and gamma diversity ideas to broader multivariate pattern analysis,
+- connect $\alpha$-, $\beta$-, and $\gamma$-diversity ideas to broader multivariate pattern analysis,
 - evaluate assumptions and interpretation limits when fitting community-level pattern models, and
-- map conceptual decisions to practical implementation in [Lab 4](Lab-04-biodiversity.qmd).
+- map theory-based decisions to practical implementation in [Lab 4](Lab-04-biodiversity.qmd).
 
-# Why “Unified Ecology”? {#sec-lec06-why}
-
-Lecture 6 is a synthesis lecture. It integrates ideas developed in:
-
-- [Lecture 2. Overview of Ecosystems](Lec-02-ecosystems.qmd): biodiversity as the core ecological concept, scale dependence, and macroecological framing;
-- [Lecture 3. Ecological Gradients](Lec-03-gradients.qmd): individualistic species responses, niche structure, and turnover along environmental gradients;
-- [Lecture 4: Biodiversity Concepts](Lec-04-biodiversity.qmd): $\alpha$–$\beta$–$\gamma$ partitioning, diversity indices, and multivariate resemblance.
-
-The unifying argument is simple: **community data should be interpreted as one system viewed through multiple analytical lenses**. Richness, diversity indices, dissimilarity matrices, and species-distribution patterns are not competing alternatives. They are complementary representations of how ecological processes generate structure across sites and scales.
-
-A practical implication follows. If we report only one metric (for example Shannon diversity), we compress community structure into a single value and lose information needed for process-level inference. Different assembly processes can produce similar univariate outcomes. Strong inference therefore requires triangulation across pattern families.
-
-# From Macroecological Framing to Community Inference {#sec-lec06-macro-to-community}
-
-Lecture 2 highlighted that macroecology seeks general principles from large comparative datasets and linked local ecological mechanisms to broad-scale pattern. Lecture 6 applies that view directly to site × species tables. The goal is no longer only to describe local communities, but to determine whether recurring patterns are consistent with hypothesised process classes such as:
-
-- environmental filtering,
-- dispersal limitation,
-- stochastic demographic dynamics,
-- mixed deterministic–stochastic assembly.
-
-This transition from description to explanation is the core of unified ecology.
+In this lecture, *pattern families* are recurring classes of community-level patterns (e.g., SADs, OARs, rarefaction, and distance-decay), each representing a different transformation of the same site × species matrix.
 
 # Data Structure and Notation {#sec-lec06-notation}
 
@@ -93,8 +72,8 @@ From this matrix, define:
 - local richness: $\alpha_i = \sum_{j=1}^{S} I(y_{ij}>0)$,
 - mean local richness: $\bar{\alpha} = n^{-1}\sum_{i=1}^{n}\alpha_i$,
 - regional richness: $\gamma = \sum_{j=1}^{S} I\!\left(\sum_{i=1}^{n}y_{ij}>0\right)$,
-- additive beta diversity: $\beta_A = \gamma - \bar{\alpha}$,
-- multiplicative beta diversity: $\beta_M = \gamma/\bar{\alpha}$.
+- additive $\beta$-diversity: $\beta_A = \gamma - \bar{\alpha}$,
+- multiplicative $\beta$-diversity: $\beta_M = \gamma/\bar{\alpha}$.
 
 For relative abundance $p_{ij}=y_{ij}/\sum_j y_{ij}$, common Lecture 4 indices follow as:
 
@@ -103,24 +82,80 @@ H'_i = -\sum_{j=1}^{S} p_{ij}\ln(p_{ij}),\qquad
 \lambda_i = \sum_{j=1}^{S} p_{ij}^2.
 $$
 
-This notation is useful because each analysis in Lab 4 can be interpreted as a structured transformation of $\mathbf{Y}$.
+This notation is useful because we can interpret each analysis in Lab 4 as a structured transformation of $\mathbf{Y}$.
 
-# Connecting Lecture 3 Gradient Logic to Lecture 6 Patterns {#sec-lec06-gradient-link}
+```{mermaid}
+%%| echo: false
+%%| fig-cap: "Matrix transformations: multiple pattern analyses from one site × species matrix."
+flowchart TD
+    A["Site × species matrix (Y)"] --> B["Species totals"]
+    B --> C["Species-abundance distribution(SAD)"]
+    A --> D["Site occupancy"]
+    D --> E["Occupancy-abundance relationship (OAR)"]
+    A --> F["Cumulative sampling"]
+    F --> G["Species accumulation curve"]
+    A --> H["Resampling"]
+    H --> I["Rarefaction curve"]
+    A --> J["Pairwise dissimilarity"]
+    J --> K["Distance-decay function"]
+```
 
-Lecture 3 showed that species often display unimodal responses across gradients (coenocline logic), with different optima and tolerance ranges and with realised distributions constrained by biotic interactions. At the community level, overlapping species responses generate compositional turnover. Lecture 6 extends this by asking:
+## How Pattern Families Transform the Same Matrix {.unnumbered}
+
+The main idea that is presented in this lecture is that each pattern family is a different transformation of the same site × species matrix $\mathbf{Y}$.
+
+| Pattern family | Transformation of $\mathbf{Y}$ | Typical computation |
+|---|---|---|
+| SADs | Aggregate by species: $N_j=\sum_i y_{ij}$, then relative abundance $q_j=N_j/\sum_j N_j$ | Sort $q_j$ (or $N_j$) to evaluate abundance-distribution shape |
+| OARs | For each species: occupancy $O_j=\sum_i I(y_{ij}>0)$ and conditional abundance $\bar{A}_j=\sum_i y_{ij}/O_j$ | Regress or correlate $\bar{A}_j$ against $O_j$ (often on log scale) |
+| Species accumulation / area curves | Cumulative richness over ordered/accumulated sites: $S(m)=\left|\bigcup_{i=1}^{m}\{j:y_{ij}>0\}\right|$ | Compute $S(m)$ across random permutations or spatially ordered additions |
+| Rarefaction / extrapolation | Standardise to comparable effort from pooled counts | Estimate expected richness at fixed sample size/coverage |
+| Distance-decay | Build community dissimilarity matrix from rows of $\mathbf{Y}$: $D^{(Y)}_{ik}=d(\mathbf{y}_{i*},\mathbf{y}_{k*})$, compare to geographic/environmental distance $d_{ik}$ | Model similarity (or dissimilarity) as a function of distance |
+| Directional turnover | Order sites along gradient $g_i$, then evaluate pairwise/community change along that ordering | Compute dissimilarity along gradient position or adjacent-site contrasts |
+
+This is what the code is doing in Lab 4: each workflow selects a transformation of $\mathbf{Y}$, estimates a pattern, and then evaluates whether the pattern supports a process-level interpretation.
+
+# Why “Unified Ecology”? {#sec-lec06-why}
+
+Lecture 6 is a synthesis lecture. It integrates ideas developed in:
+
+- [Lecture 2. Overview of Ecosystems](Lec-02-ecosystems.qmd): biodiversity is the core ecological concept; it has scale dependence and leads to a macroecological framing;
+- [Lecture 3. Ecological Gradients](Lec-03-gradients.qmd): species responses are individualistic, have niche (and neutral) structure, and result in turnover along environmental gradients;
+- [Lecture 4: Biodiversity Concepts](Lec-04-biodiversity.qmd): $\alpha$–$\beta$–$\gamma$ partitioning, diversity indices, and multivariate resemblance.
+
+The unifying argument is that **community data should be interpreted as one system viewed through multiple ways of analysing the same data**. Richness, diversity indices, dissimilarity matrices, and species-distribution patterns are complementary representations of how ecological processes generate structure across sites and scales.
+
+A practical implication follows. If we report only one metric (for example Shannon diversity), we compress community structure into a single value and lose information needed for process-level inference. Different assembly processes can produce similar univariate outcomes. Strong inference therefore requires triangulation across pattern families.
+
+# Macroecological Principles → Community Inference {#sec-lec06-macro-to-community}
+
+Lecture 2 highlighted that macroecology seeks general principles from large comparative datasets and linked local ecological mechanisms to broad-scale pattern. Lecture 6 applies that view directly to site × species tables. The goal is to describe local communities *and* to determine whether recurring patterns are consistent with hypothesised process classes such as:
+
+- environmental filtering (niche),
+- dispersal limitation and/or stochastic demographic dynamics (neutral),
+- mixed deterministic–stochastic assembly.
+
+This transition from description to explanation is the core of unified ecology.
+
+# Gradient → Patterns {#sec-lec06-gradient-link}
+
+Lecture 3 showed that species often display unimodal responses across gradients (coenoclines), with different optima and tolerance ranges and with realised distributions constrained by biotic interactions. At the community level, overlapping species responses generate compositional turnover. Lecture 6 extends this by asking:
 
 - how turnover appears in dissimilarity and distance-decay space,
 - whether occupancy and abundance co-vary with gradient position,
 - whether observed richness trajectories reflect ecological structure or sampling effects.
 
-Thus, gradient ecology provides the mechanistic interpretation layer for the pattern families in this lecture.
+So, gradient ecology provides the mechanistic interpretation layer for the pattern families in this lecture.
+Concisely, Lecture 3 focussed on why communities differ, whereas this lecture focusses on how those differences appear across complementary pattern analyses.
 
-# From Measures to Models {#sec-lec06-measures-models}
+# Measures → Models {#sec-lec06-measures-models}
 
-A critical distinction is between **descriptive measures** and **inferential models**.
+We must recognise an important distinction between **descriptive measures** and **inferential models**.
 
 - Measures (e.g., richness, Shannon, Bray-Curtis) describe observed structure.
 - Models evaluate whether candidate mechanisms could plausibly generate that structure.
+
+For example, two communities can have similar Shannon diversity but different structure: Community A may contain many moderately common species, whereas Community B may contain one dominant species and many rare species. SAD analysis can separate these structures, while Shannon alone cannot.
 
 Pattern description is necessary, but it is not causal proof. Mechanistic interpretation requires:
 
@@ -129,7 +164,7 @@ Pattern description is necessary, but it is not causal proof. Mechanistic interp
 3. assumptions that are stated and checked,
 4. uncertainty reporting and sensitivity checks.
 
-This distinction mirrors the progression from Lectures 2–4: conceptual framing → pattern quantification → constrained inference.
+This distinction is captured by the progression from Lecture 2 → Lecture 4: theoretical underpinning → pattern quantification → constrained inference.
 
 # Core Pattern Families from One Matrix {#sec-lec06-patterns}
 
@@ -142,38 +177,94 @@ Following @shade2018macroecology, one site × species table can support multiple
 - distance-decay functions,
 - directional turnover along environmental gradients.
 
+```{mermaid}
+%%| echo: false
+%%| fig-cap: "Analytical flow from data object to ecological inference."
+flowchart LR
+    A["Site × species matrix (Y)"] --> B["Pattern families"]
+    B --> C["Ecological inference"]
+```
+
+| Pattern family | Primary ecological focus | Typical interpretive use |
+|---|---|---|
+| Species-abundance distributions (SADs) | Dominance, commonness, rarity | Diagnose abundance structure and candidate assembly regimes |
+| Occupancy-abundance relationships (OARs) | Coupling between site occupancy and local abundance | Evaluate range-abundance structure and detectability-aware interpretation |
+| Species accumulation / species-area curves | Richness growth with effort or area | Assess sampling completeness and scaling behaviour |
+| Rarefaction / extrapolation | Richness under standardised sampling effort | Make fair diversity comparisons under unequal sample sizes |
+| Distance-decay functions | Similarity loss with geographic/environmental distance | Evaluate turnover intensity and possible filtering/dispersion processes |
+| Directional turnover along gradients | Compositional change along ordered environmental axes | Link pattern shifts to gradient-based mechanisms from Lecture 3 |
+
 Each family preserves a different part of community structure. Inferential strength increases when conclusions are consistent across more than one family.
 
 # Linking Alpha, Beta, and Gamma to Pattern Analysis {#sec-lec06-abg}
 
-Lecture 4 established biodiversity partitioning and resemblance-based thinking as a conceptual backbone. In unified ecology, partitioning becomes an interpretation scaffold.
+In Lecture 4 we developed biodiversity partitioning and resemblance-based approaches as a theoretical foundation. In the unified ecological framework, partitioning becomes a means to derive interpretations.
 
 - $\alpha$ reflects local assembly outcomes (dominance, evenness, local constraints).
 - $\beta$ reflects among-site replacement and nestedness structure.
 - $\gamma$ reflects the size of the regional species pool and its historical/environmental constraints.
 
-Patterns in Lab 4 can be interpreted through this scaffold. For example, steep SADs and high dominance often align with low local evenness ($\alpha$ structure), while strong distance-decay typically signals elevated compositional turnover ($\beta$ structure).
+| Pattern family | Biodiversity component emphasised |
+|---|---|
+| SAD | $\alpha$ structure (evenness, dominance) |
+| OAR | Population distribution across sites (occupancy-abundance structure) |
+| Species accumulation | $\gamma$ estimation |
+| Rarefaction | Standardised $\alpha$ comparison |
+| Distance-decay | $\beta$ turnover |
+
+This first table is a high-level guide to the dominant biodiversity component each pattern family emphasises. The next table adds detail by showing how each family can still carry secondary $\alpha$-, $\beta$-, and $\gamma$-signals that matter during interpretation.
+
+| Pattern family | Dominant $\alpha$ signal | Dominant $\beta$ signal | Dominant $\gamma$ signal |
+|---|---|---|---|
+| SADs | Local dominance/evenness structure within sites | Indirect (via among-site shifts in dominance profiles) | Constrained by size/composition of regional species pool |
+| OARs | Mean local abundance of occupied species | Occupancy variation among sites | Upper occupancy-abundance envelope shaped by regional pool |
+| Species accumulation / area curves | Early slope reflects local richness contribution | Rate of new-species appearance across sites (turnover) | Asymptote approaches regional richness |
+| Rarefaction / extrapolation | Standardised local richness/evenness comparisons | Limited direct signal | Extrapolated richness constrained by regional pool and sampling domain |
+| Distance-decay | Indirect local contribution through within-site composition | Primary signal: compositional turnover with distance | Regional context sets maximum attainable dissimilarity structure |
+| Directional turnover along gradients | Local composition at each gradient position | Primary signal: replacement/nestedness along ordered gradient | Regional pool determines which taxa can enter/exit along gradient |
+
+The patterns we will uncover in Lab 4 can be interpreted through the views stemming from these two tables. For example, steep SADs and high dominance often align with low local evenness ($\alpha$ structure), while strong distance-decay typically signals elevated compositional turnover ($\beta$ structure).
 
 # Practical Integration with Lab 4 Workflow {#sec-lec06-lab-workflow}
 
 [Lab 4](Lab-04-biodiversity.qmd) is the implementation companion to this lecture. Use the same decision sequence in each practical:
 
-1. define the ecological question,
-2. choose the most informative pattern family,
-3. standardise/transform data appropriately,
-4. fit and visualise,
-5. interpret against assumptions,
-6. cross-validate interpretation with at least one additional pattern family.
+1. define the ecological question (e.g. do communities become more dissimilar with increasing environmental distance?),
+2. choose the most informative pattern family (e.g. distance-decay analysis),
+3. standardise/transform data appropriately (e.g. transform species abundances when required),
+4. fit and visualise (e.g. fit an exponential decay model to dissimilarity vs distance),
+5. interpret against assumptions (e.g. check spatial autocorrelation and sampling comparability),
+6. cross-validate interpretation with at least one additional pattern family (e.g. compare with turnover along measured gradients).
 
 ## A. Species-Abundance Distributions (Practical A)
 
 See [Practical A](Lab-04-biodiversity.qmd#sec-lab04-sad).
 
-SADs describe dominance structure, commonness, and rarity. Model families (log-series, log-normal, Zipf, Mandelbrot) should be treated as competing statistical representations of shape. A low AIC is useful, but ecological interpretation should also consider plausibility and robustness to data handling.
+::: {.callout-note}
+**Theory:** The species-abundance distribution describes the frequency distribution of species abundances.
+
+**Statistical object:** Distribution of column sums of $\mathbf{Y}$, i.e. $N_j=\sum_i y_{ij}$.
+
+**Lab implementation:** Species counts are extracted from the site × species matrix and ranked or grouped to estimate abundance-distribution shape.
+
+**Example tools in R:** `vegan::radfit()`, `vegan::radlattice()`, `vegan::fisherfit()`, `vegan::prestondistr()`.
+:::
+
+SADs describe dominance structure, commonness, and rarity. For this lecture, use log-series and log-normal as the two core model examples (with other forms treated as extensions). A low AIC is useful, but ecological interpretation should also consider plausibility and robustness to data handling.
 
 ## B. Occupancy-Abundance Relationships (Practical B)
 
 See [Practical B](Lab-04-biodiversity.qmd#sec-lab04-oar).
+
+::: {.callout-note}
+**Theory:** Occupancy-abundance analysis tests whether widespread species are also locally abundant.
+
+**Statistical object:** Relationship between column occupancy $O_j=\sum_i I(y_{ij}>0)$ and column mean abundance $\bar{A}_j=\sum_i y_{ij}/O_j$.
+
+**Lab implementation:** Compute occupancy and conditional mean abundance per species, then model/plot their association (often on log scale).
+
+**Example tools in R:** `colSums()`, `dplyr`, `ggplot2::geom_point()`, `stats::lm()`.
+:::
 
 Define occupancy for species $j$ as:
 
@@ -193,6 +284,16 @@ The OAR is usually positive but can deviate under strong habitat specificity, fr
 
 See [Practical C](Lab-04-biodiversity.qmd#sec-lab04-accum).
 
+::: {.callout-note}
+**Theory:** Species accumulation/area curves describe how observed richness increases as sampling units or sampled area increase.
+
+**Statistical object:** Cumulative richness function over added sites, $S(m)=\left|\bigcup_{i=1}^{m}\{j:y_{ij}>0\}\right|$.
+
+**Lab implementation:** Add sites in specified order(s), recompute cumulative richness, and summarise with envelopes or fitted forms.
+
+**Example tools in R:** `vegan::specaccum()`, `vegan::fitspecaccum()`.
+:::
+
 These analyses quantify how richness grows with sampling effort and area. Initial slope reflects discovery rate; flattening indicates diminishing returns. Permutation envelopes are not optional decoration—they are the uncertainty structure of the curve.
 
 Where fitted models such as Arrhenius ($S=cA^z$) are used, compare $z$ across systems cautiously and in context of sampling design and spatial grain.
@@ -201,7 +302,17 @@ Where fitted models such as Arrhenius ($S=cA^z$) are used, compare $z$ across sy
 
 See [Practical D](Lab-04-biodiversity.qmd#sec-lab04-rare).
 
-Rarefaction standardises effort and enables fair comparisons among samples with unequal counts. Keep the conceptual distinction explicit:
+::: {.callout-note}
+**Theory:** Rarefaction/extrapolation standardises biodiversity comparison to common effort or sample completeness.
+
+**Statistical object:** Expected richness (or Hill diversity) conditional on standardised sample size/coverage from $\mathbf{Y}$.
+
+**Lab implementation:** Re-sample observed communities to estimate expected diversity at matched effort, then compare curves with uncertainty.
+
+**Example tools in R:** `vegan::rarecurve()`, `vegan::rarefy()`, `iNEXT::iNEXT()`.
+:::
+
+Rarefaction standardises effort and enables fair comparisons among samples with unequal counts. Keep the methodological distinction explicit:
 
 - accumulation traces observed discovery as effort increases,
 - rarefaction estimates expected richness under standardised effort.
@@ -212,6 +323,16 @@ Failing to separate these leads to one of the most common interpretation errors 
 
 See [Practical E](Lab-04-biodiversity.qmd#sec-lab04-dd).
 
+::: {.callout-note}
+**Theory:** Distance-decay quantifies how community similarity declines with increasing geographic or environmental separation.
+
+**Statistical object:** Regression of a community dissimilarity matrix against a geographic/environmental distance matrix.
+
+**Lab implementation:** Compute pairwise community dissimilarities from rows of $\mathbf{Y}$, pair with site-distance values, and estimate decay rate.
+
+**Example tools in R:** `vegan::vegdist()`, `stats::dist()`, `stats::lm()`, `vegan::mantel()`.
+:::
+
 Distance-decay can be represented as:
 
 $$
@@ -220,9 +341,11 @@ $$
 
 where $d_{ij}$ is geographic or environmental distance and $b$ is decay rate.
 
-Interpretation should follow Lecture 3 logic: gradients are often proxy axes. Species respond to proximate environmental factors covarying with elevation, latitude, depth, or spatial separation. Distance-decay patterns should therefore be interpreted alongside environmental-distance structure (Lecture 4) rather than in geographic space alone.
+In practice, similarity is typically derived from species dissimilarity matrices (Lecture 4), commonly using Bray-Curtis for abundance data or Jaccard/Sørensen for presence-absence data.
 
-# Assumptions, Diagnostics, and Interpretation Discipline {#sec-lec06-assumptions}
+Interpretation should follow Lecture 3 ideas: gradients are often proxy axes. Species respond to proximate environmental factors covarying with elevation, latitude, depth, or spatial separation. Distance-decay patterns should therefore be interpreted alongside environmental-distance structure (Lecture 4) rather than in geographic space alone.
+
+# Assumptions, Diagnostics, and Interpretation {#sec-lec06-assumptions}
 
 Inference quality depends less on software choice than on assumption handling. A minimum checklist is:
 
@@ -247,13 +370,13 @@ A defensible sequence is:
 
 This prevents over-interpretation and aligns with the module’s broader quantitative philosophy.
 
-# Common Failure Modes (and How to Avoid Them) {#sec-lec06-fail}
+# Common Failures {#sec-lec06-fail}
 
 Frequent errors include:
 
 - treating descriptive outputs as causal proof,
 - comparing raw richness under unequal effort,
-- mixing incidence and abundance logic without clarification,
+- mixing incidence and abundance frameworks without clarification,
 - over-interpreting ordination geometry,
 - selecting “best” models on AIC alone without ecological diagnostics.
 
@@ -288,9 +411,9 @@ A robust reporting structure for tests/exams is:
 
 a) Explain how macroecological framing from Lecture 2 motivates the use of multiple pattern families for one community dataset. (5)
 
-b) Explain how gradient logic from Lecture 3 informs interpretation of distance-decay and occupancy-abundance relationships. (7)
+b) Explain how the gradient framework from Lecture 3 informs interpretation of distance-decay and occupancy-abundance relationships. (7)
 
-c) Show how alpha, beta, and gamma diversity from Lecture 4 can be used to interpret species-distribution patterns in Lab 4. (8)
+c) Show how $\alpha$-, $\beta$-, and $\gamma$-diversity from Lecture 4 can be used to interpret species-distribution patterns in Lab 4. (8)
 
 Total: **20 marks**
 
@@ -323,4 +446,4 @@ Total: **20 marks**
 
 # Summary {#sec-lec06-summary}
 
-Unified ecology is the coordinated interpretation of biodiversity partitioning, gradient structure, and species-distribution pattern families within one inferential workflow. The objective is not to maximise the number of indices reported, but to produce explanations that are transparent, testable, and ecologically defensible. [Lab 4](Lab-04-biodiversity.qmd) operationalises this framework through reproducible pattern analyses and interpretation discipline.
+Unified ecology is the coordinated interpretation of biodiversity partitioning, gradient structure, and species-distribution pattern families within one inferential workflow. The objective is to produce explanations that are transparent, testable, and ecologically defensible, rather than to maximise the number of indices reported. [Lab 4](Lab-04-biodiversity.qmd) operationalises this framework through reproducible pattern analyses and interpretation discipline.
