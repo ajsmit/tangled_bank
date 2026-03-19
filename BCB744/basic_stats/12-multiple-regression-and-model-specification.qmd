@@ -1,0 +1,224 @@
+---
+title: "12. Multiple Regression and Model Specification"
+subtitle: "From Biological Hypotheses to Statistical Models"
+author: "A. J. Smit"
+date: last-modified
+date-format: "YYYY/MM/DD"
+reference-location: margin
+---
+
+```{r code-brewing-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 6.5,
+  fig.height = 4.5,
+  out.width = "88%",
+  fig.asp = NULL,
+  fig.align = "center",
+  fig.retina = 2,
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 8)
+)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 8)
+)
+```
+
+```{r code-knitr-opts-chunk-set, echo=FALSE}
+library(tidyverse)
+```
+
+::: {.callout-note appearance="simple"}
+## In This Chapter
+
+-   Why simple regression is often not enough
+-   The structure of a multiple linear regression
+-   Matching predictors to biological hypotheses
+-   Functional form, omitted variables, and interactions
+-   A workflow for specifying models before fitting them
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to Complete in This Chapter
+
+-   None
+:::
+
+# Introduction
+
+Biological systems are rarely driven by a single variable. A response such as growth, abundance, diversity, or disease prevalence usually reflects the combined influence of several environmental, physiological, or experimental factors. Multiple regression extends the simple linear model to this more realistic setting.
+
+But adding more predictors is not merely a technical convenience. It creates a more demanding scientific problem: **which predictors belong in the model, and why?**
+
+This chapter therefore combines two topics that should not be separated:
+
+1. **multiple regression** as a modelling framework, and
+2. **model specification** as the translation of biological ideas into statistical structure.
+
+# Key Concepts
+
+The chapter turns on the following ideas.
+
+-   **Multiple regression** models a response using several predictors at once.
+-   **Holding other predictors constant** is what gives partial coefficients their meaning.
+-   **Model specification** translates biological reasoning into a statistical formula.
+-   **Omitted variables and functional form** can distort interpretation even when a model fits.
+-   **Predictor choice** should be theory-driven rather than data-convenience driven.
+
+# The Multiple Linear Model
+
+The multiple linear regression model is:
+
+$$
+Y_i = \alpha + \beta_1 X_{i1} + \beta_2 X_{i2} + \cdots + \beta_k X_{ik} + \epsilon_i
+$$
+
+where:
+
+-   $Y_i$ is the response for observation $i$,
+-   $X_{i1}, X_{i2}, \ldots, X_{ik}$ are the predictor variables,
+-   $\alpha$ is the intercept,
+-   $\beta_1, \beta_2, \ldots, \beta_k$ are the coefficients, and
+-   $\epsilon_i$ is the residual error.
+
+Each coefficient estimates the expected change in the response associated with a one-unit change in its predictor, **holding the other predictors constant**.
+
+That last phrase is what makes multiple regression powerful and difficult at the same time.
+
+# Why Model Specification Matters
+
+In simple regression, the modelling decision is often obvious: one response, one predictor. In multiple regression, the structure of the model becomes part of the scientific argument.
+
+The important questions are:
+
+-   Which variables represent the hypothesised process?
+-   Which variables are potential confounders that must be controlled?
+-   Which variables are only proxies for a harder-to-measure mechanism?
+-   Should the relationship be linear, transformed, or non-linear?
+-   Does the effect of one predictor depend on another?
+
+Model specification therefore comes before model fitting. If the biological logic is weak, the fitted model is likely to be weak as well.
+
+# Matching Predictors to Processes
+
+A predictor should not enter a model simply because it is available in the dataset. It should have a defensible connection to the response.
+
+Good model specification asks:
+
+-   Is the predictor mechanistically plausible?
+-   Is it measured at the right scale?
+-   Is it a direct driver or only a proxy?
+-   Does including it help isolate the process of interest?
+
+For example, altitude may be included in a model of plant growth, but altitude is rarely the mechanism itself. It is usually a proxy for temperature, moisture, radiation, or oxygen availability. That affects how the coefficient should be interpreted.
+
+# Omitted Variables and Bias
+
+Leaving out an important predictor can bias the coefficients of those that remain in the model. This is especially serious when the omitted variable affects both:
+
+-   the response, and
+-   one or more included predictors.
+
+In such cases, the fitted coefficient of an included predictor may partially absorb the effect of the missing variable. This is one reason why biological theory must guide model structure.
+
+# Functional Form
+
+Model specification is not only about which variables to include. It is also about **how** they should enter the model.
+
+Questions of functional form include:
+
+-   Is the relationship approximately linear?
+-   Would a transformation improve interpretability or fit?
+-   Is a polynomial term justified?
+-   Should an interaction term be included?
+
+The linear model is flexible, but not infinitely so. Biological processes are often non-linear, and pretending otherwise can distort inference.
+
+# Interactions
+
+An **interaction** means that the effect of one predictor depends on the level of another predictor.
+
+For example:
+
+-   the effect of nutrient supply on growth may depend on temperature,
+-   the effect of disturbance may depend on habitat type, or
+-   the effect of treatment may differ between sexes or populations.
+
+Interactions should be introduced because the biology suggests them, not because every possible product term can be generated mechanically.
+
+# Categorical Predictors
+
+Multiple regression can include both continuous and categorical predictors. In R, categorical predictors are usually included as factors, and `lm()` handles the dummy-variable coding automatically.
+
+```{r}
+#| eval: false
+lm(response ~ temperature + nutrient + factor(site), data = df)
+```
+
+This is one reason multiple regression and ANOVA are closely connected: many analyses of group differences can be written as linear models.
+
+# A Practical Workflow for Model Specification
+
+Before fitting a multiple regression, work through the following sequence:
+
+1. State the biological question clearly.
+2. Define the response variable.
+3. List predictors that directly represent the hypothesised mechanisms.
+4. Identify potential confounders that need to be controlled.
+5. Decide whether any variables are proxies and note the interpretive limits.
+6. Decide whether interactions or transformations are biologically justified.
+7. Fit only models that you can explain in words.
+
+This workflow prevents the model from becoming a purely algorithmic exercise.
+
+# Fitting a Multiple Regression in R
+
+The basic syntax is:
+
+```{r}
+#| eval: false
+lm(response ~ predictor1 + predictor2 + predictor3, data = df)
+```
+
+For example:
+
+```{r}
+#| eval: false
+lm(growth ~ temperature + nutrients + light, data = kelp_df)
+```
+
+An interaction is written as:
+
+```{r}
+#| eval: false
+lm(growth ~ temperature * nutrients, data = kelp_df)
+```
+
+The `*` expands to the main effects plus their interaction.
+
+# What This Chapter Does Not Yet Solve
+
+Multiple regression opens the door to several important complications that are treated more fully later:
+
+-   **collinearity**, when predictors overlap strongly,
+-   **confounding**, when a third variable distorts interpretation,
+-   **measurement error**, when predictors are imperfect,
+-   **model evaluation**, when several candidate models compete, and
+-   **dependence**, when observations are not independent.
+
+Those are not side issues. They are central reasons why regression modelling requires judgement, not just software.
+
+# Summary
+
+-   Multiple regression models one response using several predictors.
+-   Model specification is the translation of biological hypotheses into statistical form.
+-   Predictors should be included for defensible scientific reasons, not just because they are available.
+-   Omitted variables, poor functional form, and unjustified interactions can distort inference.
+-   A good model is one that can be explained in biological language before it is fitted.
+
+This chapter sets up the more detailed treatment of interactions, collinearity, confounding, and model evaluation that follows.

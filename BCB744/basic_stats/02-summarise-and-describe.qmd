@@ -1,7 +1,9 @@
 ---
-date: "2021-01-01"
-title: "2. Data Summaries & Descriptions"
+title: "2. Summarising Biological Data"
 subtitle: "The First Steps of Exploratory Data Analysis"
+author: "A. J. Smit"
+date: last-modified
+date-format: "YYYY/MM/DD"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -9,10 +11,12 @@ knitr::opts_chunk$set(
   comment = "R>", 
   warning = FALSE, 
   message = FALSE,
-  fig.width = 4.5,
-  fig.height = 2.625,
-  out.width = "75%",
+  fig.width = 6.5,
+  fig.height = 4.5,
+  out.width = "88%",
   fig.asp = NULL, # control via width/height
+  fig.align = "center",
+  fig.retina = 2,
   dpi = 300
 )
 
@@ -58,9 +62,11 @@ library(tidyverse)
 
 **Exploratory data analysis (EDA)** is an essential initial step in every statistical analysis project aimed at understanding the structure, patterns, and characteristics of the data. During EDA, we visually, quantitatively examine the data by creating plots and summary statistics, and descriptive measures to identify trends, outliers, and potential relationships among variables. This process helps us formulate hypotheses, choose appropriate statistical models, and identify potential issues, anomalies that may require further investigation or data cleaning. EDA serves as a foundation for making informed decisions and guiding the subsequent steps of a statistical analysis project.
 
-In this Chapter we will focus on the basic components of EDA, and these initial forays are built around measures of the central tendency (the **mean**, **median**, **mode**), the dispersion and variability (*e.g.* **standard deviations** and **standard error**, **variance**, **quantiles**) of the data. I advocate a workflow in which EDA, graphical assessments [(Chapter 3)](03-visualise.qmd) precede inferential statistics [(Chapter 7)](07-t_tests.qmd).
+In this chapter we focus on the basic components of EDA, built around measures of central tendency (the **mean**, **median**, **mode**) and dispersion (*e.g.* **standard deviation**, **standard error**, **variance**, and **quantiles**). I advocate a workflow in which numerical summaries, graphical assessment [(Chapter 3)](03-visualise.qmd), and an understanding of distributions and uncertainty [(Chapter 4)](04-distributions-sampling-uncertainty.qmd) all precede formal inferential statistics.
 
 # Key Concepts
+
+This section isolates the main ideas before the chapter moves into definitions, examples, and worked summaries.
 
 - **Exploratory Data Analysis (EDA):** The initial and essential process of understanding data structure, patterns, and characteristics through visual and quantitative examination.
 - **Measures of Central Tendency:** Key metrics like the mean, median, and mode used to find the "center" of a dataset.
@@ -68,15 +74,14 @@ In this Chapter we will focus on the basic components of EDA, and these initial 
 - **Grouped Analysis:** Summarising data by different categories or groups to reveal underlying patterns and relationships between variables.
 - **Data Distribution:** The shape of the data (e.g., normal, skewed) which dictates the appropriate choice of summary statistics and subsequent statistical tests.
 
-But first, I want to define a few principles that you will encounter throughout this module on biostatistics.
+# Foundational Definitions
 
-::: {.callout-note appearance="simple"}
+Before moving into numerical summaries, we need a few definitions that recur throughout the module.
+
 ## Variables and Parameters
 
 In a statistical framework, a **parameter** is a fixed, unknown (to be determined) value that characterises a population, distribution and is often estimated using sample data. On the other hand, a **variable** is a measurable characteristic that can vary among individuals, objects in a population or sample. Parameters are used to describe the distribution of a population or while variables are the data points that are collected and analysed to draw conclusions about the population. Variables are used to estimate parameters through statistical methods such as regression and hypothesis testing.
-:::
 
-::: {.callout-note appearance="simple"}
 ## Samples and Populations
 
 In statistics, samples, populations are two fundamental concepts used to describe data sets and the process of drawing conclusions from them.
@@ -127,9 +132,7 @@ normal_takes_shape |>
     y = "Density"
   )
 ```
-:::
 
-::: {.callout-note appearance="simple"}
 ## When Is Something Random?
 
 This is a bit of a rant. I often get annoyed by the imprecise use of language and disrespect for scientific terms. 'Random' is such a word (as are 'literally' and 'energy'). The scientific concept of randomness and the colloquial usage of the word differ in their precision and context. Understanding these distinctions can help clarify the role of randomness in various settings.
@@ -147,7 +150,6 @@ An example of a stochastic ecological process is the population dynamics of a sp
 Okay, you may ask, "Weather models can predict tomorrow's weather to some degree, albeit not with complete accuracy, so is there truly such a thing as unpredictable weather events"? Weather events might not be truly random in the strictest sense, as weather patterns are influenced by various physical factors, such as temperature, air pressure, humidity, and interactions between different atmospheric layers. However, due to the immense complexity and chaotic nature of these factors, weather events can be challenging to predict with absolute certainty, especially over longer time scales.
 
 In this context, "unpredictable weather events" are considered random from a practical standpoint because they introduce uncertainty and variability in the system. While they may not be truly random like quantum-level events, their unpredictability and the difficulty in forecasting their occurrence make them effectively random for many ecological and statistical analyses.
-:::
 
 # The Palmer Penguin Dataset
 
@@ -166,7 +168,7 @@ library(palmerpenguins)
 Several functions help us get a *broad view of the data structure* (the dataset) itself: its size (number of rows and columns), the data classes contained, the presence of missing values, and so forth. This table lists some of the most important ways to get such an overview:
 
 | Purpose                   | Function      |
-|: --- --- --- --- --- --- --- --- --|: --- --- --- --- --|
+|:--------------------------|:--------------|
 | The class of the dataset  | `class()`     |
 | The head of the dataframe | `head()`      |
 | The tail of the dataframe | `tail()`      |
@@ -268,14 +270,14 @@ Explain the output of `str()` when applied to the `penguins` dataset.
 
 Thus far we have looked at the properties of the data structure. Now we turn to the *properties of the data contained within a data structure*. This might simply be to see the data class of the different variables, or to provide some basic descriptive statistics. Before we go to deeply into the data summaries, we need to first review basic descriptive statistics.
 
-**Descriptive statistics** refer to the process of *summarising* and organising data collected from our various kinds of studies in a meaningful way. The process of **summary** implies that we take something detailed (like a large number of individual measurements) and reduce its complexity to a view --- a 'statistic' --- that tells us something informative about the nature of the population. Descriptive statistics allow us to gain an initial understanding of the data's main features, including the **sample size**, **central tendency**, **variability**, and **distribution**. We will look at data distributions in [Chapter 4](04-distributions.qmd).
+**Descriptive statistics** refer to the process of *summarising* and organising data collected from our various kinds of studies in a meaningful way. The process of **summary** implies that we take something detailed (like a large number of individual measurements) and reduce its complexity to a view --- a 'statistic' --- that tells us something informative about the nature of the population. Descriptive statistics allow us to gain an initial understanding of the data's main features, including the **sample size**, **central tendency**, **variability**, and **distribution**. We will look at data distributions and sampling uncertainty in [Chapter 4](04-distributions-sampling-uncertainty.qmd).
 
-The sample size is simply the number of data points ($n$) per sample. The measures of central tendency include the **mean**, **median**, and **mode**, while variability is most often described using the **range**, **interquartile range**, **variance**, and **standard deviation**. Additionally, descriptive statistics can involve visual representations, such as histograms, box plots, and scatter plots, to further illustrate the data's characteristics, and we will cover these in [Chapter 3](03-visualise.qmd). Descriptive statistics serve as a foundation for more advanced statistical analyses, as it helps us make sense of our data, identify patterns and trends, or potential anomalies.
+The sample size is simply the number of data points ($n$) per sample. The measures of central tendency include the **mean**, **median**, and **mode**, while variability is most often described using the **range**, **interquartile range**, **variance**, and **standard deviation**. Additionally, descriptive statistics can involve visual representations, such as histograms, box plots, and scatter plots, to further illustrate the data's characteristics, and we will cover these in [Chapter 3](03-visualise.qmd). Descriptive statistics serve as a foundation for more advanced statistical analyses because they help us make sense of our data, identify patterns and trends, and notice potential anomalies.
 
 ## Measures of Central Tendency
 
 | Statistic | Function     | Package   |
-|: --- --- --- -|: --- --- --- --- -|: --- --- --- -|
+|:----------|:-------------|:----------|
 | Mean      | `mean()`     | **base**  |
 | Median    | `median()`   | **base**  |
 | Mode      | **Do it!**   |           |
@@ -404,7 +406,7 @@ The mean is quite sensitive to the presence of outliers or extreme values in the
 
 The median indicates the centre value in our dataset. The simplest way to explain what it is is to describe how it is determined. It can be calculated by 'hand' (if you have a small enough amount of data) by arranging all the numbers in sequence from low to high, and then finding the middle value. If there are five numbers, say `5, 2, 6, 13, 1`, then you would arrange them from low to high, *i.e.* `1, 2, 5, 6, 13`. The middle number is `5`. This is the median. But there is no middle if we have an even number of values. What now? Take this example sequence of six integers (they may also be floating point numbers), which has already been ordered for your pleasure: `1, 2, 5, 6, 9, 13`. Find the middle two numbers (*i.e.* `5, 6`) and take the mean. It is `5.5`. That is the median.
 
-The median is therefore the value that separates the lower half of the sample data from the upper half. In normally distributed continuous data the median is equal to the mean. Comparable concepts to the median are the **1st** and **3rd quartiles**, which, respectively, separate the first quarter of the data from the last quarter --- see the later in the section on 'Measures of variance, dispersal' in this Chapter. The advantage of the median over the mean is that it is unaffected by extreme values or outliers. The median is also used to provide a robust description of non-parametric data (see [Chapter 4](04-distributions.qmd) for a discussion on normal data and other data distributions).
+The median is therefore the value that separates the lower half of the sample data from the upper half. In normally distributed continuous data the median is equal to the mean. Comparable concepts to the median are the **1st** and **3rd quartiles**, which, respectively, separate the first quarter of the data from the last quarter --- see later in the section on measures of variance and dispersal in this chapter. The advantage of the median over the mean is that it is unaffected by extreme values or outliers. The median is also used to provide a robust description of non-parametric data (see [Chapter 4](04-distributions-sampling-uncertainty.qmd) for a discussion on normal data and other distributions).
 
 What is the median of the `normal_data` dataset? We use the `median()` function for this:
 
@@ -471,12 +473,12 @@ kurtosis(right_skewed_data)
 kurtosis(left_skewed_data)
 ```
 
-I have seldom used the concepts of the skewness or kurtosis in any EDA, but it is worth being aware of them. The overall purpose of examining data using the range of central tendency statistics is to get an idea of whether our data are **normally distributed** --- *a normal distribution is a key requirement for all parametric inferential statistics*. See [Chapter 4](04-distributions.qmd) for a discourse of data distributions. These central tendency statistics will serve you well as a first glance, but formal tests for normality do exist, I encourage their use before embarking on the rest of the journey. We will explore these formal tests in [Chapter 7](07-t_tests.qmd).
+I have seldom used the concepts of skewness or kurtosis in routine EDA, but it is worth being aware of them. One purpose of examining data using measures of central tendency is to get an idea of whether our data are **normally distributed**. See [Chapter 4](04-distributions-sampling-uncertainty.qmd) for a discussion of data distributions. These descriptive statistics serve well as a first glance, but they do not replace assumption checks. We will return to formal testing and model assumptions later in the module.
 
 ## Measures of Variance or Dispersion around the Centre
 
 | Statistic            | Function     |
-|: --- --- --- --- --- --- --- |: --- --- --- --- -|
+|:---------------------|:-------------|
 | Variance             | `var()`      |
 | Standard deviation   | `sd()`       |
 | Minimum              | `min()`      |
@@ -596,8 +598,8 @@ IQR(normal_data)
 
 # Data Summaries
 
-| Purpose                        | Function          | Package             |
-|: --- --- --- --- --- --- --- --- --- --- -|: --- --- --- --- --- --- |: --- --- --- --- --- --- --|
+| Purpose                        | Function          | Package          |
+|:-------------------------------|:------------------|:-----------------|
 | Summary of the data properties | `summary()`       | **base**            |
 |                                | `describe()`      | **psych**           |
 |                                | `skim()`          | **skimr**           |

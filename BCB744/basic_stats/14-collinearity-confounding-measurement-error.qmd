@@ -1,0 +1,199 @@
+---
+title: "14. Collinearity, Confounding, and Measurement Error"
+subtitle: "Three Threats to Interpretable Regression Models"
+author: "A. J. Smit"
+date: last-modified
+date-format: "YYYY/MM/DD"
+reference-location: margin
+---
+
+```{r code-brewing-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 6.5,
+  fig.height = 4.5,
+  out.width = "88%",
+  fig.asp = NULL,
+  fig.align = "center",
+  fig.retina = 2,
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 8)
+)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 8)
+)
+```
+
+```{r code-knitr-opts-chunk-set, echo=FALSE}
+library(tidyverse)
+```
+
+::: {.callout-note appearance="simple"}
+## In This Chapter
+
+-   What collinearity is and why it matters
+-   How confounding differs from collinearity
+-   Why measurement error weakens inference
+-   The role of proxy variables in biology
+-   Practical responses when these problems arise
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to Complete in This Chapter
+
+-   None
+:::
+
+# Introduction
+
+Regression models are often presented as if the main problem is choosing the right formula and fitting it correctly. In practice, some of the hardest problems arise before or beneath the fitting step. Predictors may overlap, causal roles may be confused, or key variables may be measured imperfectly.
+
+This chapter brings together three related but distinct problems:
+
+1. **collinearity**: predictors share too much information,
+2. **confounding**: a variable distorts the interpretation of another effect, and
+3. **measurement error**: the variables we fit are noisy or are only proxies for what we really want.
+
+# Key Concepts
+
+These ideas should be kept separate even though they often co-occur in practice.
+
+-   **Collinearity** is overlap among predictors that destabilises coefficient interpretation.
+-   **Confounding** is a causal attribution problem, not merely a correlation problem.
+-   **Measurement error** weakens inference by adding noise to observed variables.
+-   **Proxy variables** can be useful, but they complicate interpretation.
+-   **Interpretability** often depends more on design and variable choice than on fitting alone.
+
+# Collinearity
+
+## What it is
+
+Collinearity occurs when two or more predictor variables are strongly correlated. In ecology this is common because many environmental variables co-vary through shared processes.
+
+Examples include:
+
+-   temperature and dissolved oxygen,
+-   altitude and temperature,
+-   nitrate and phosphate,
+-   rainfall and river flow.
+
+## Why it is a problem
+
+Collinearity is mainly a problem of **interpretation**, not always of raw prediction. A model may still fit the response well, but the individual coefficients can become:
+
+-   unstable,
+-   imprecise,
+-   biologically misleading, or
+-   assigned the wrong sign.
+
+The model struggles to partition shared explanatory information among overlapping predictors.
+
+## Diagnosing collinearity
+
+The most common diagnostic is the **variance inflation factor (VIF)**.
+
+-   `VIF = 1`: no inflation
+-   `VIF` between about `1` and `5`: often manageable
+-   `VIF` above about `5` or `10`: often problematic
+
+In R:
+
+```{r}
+#| eval: false
+car::vif(fitted_model)
+```
+
+The threshold is not sacred. The important question is whether the collinearity prevents defensible interpretation.
+
+# Confounding
+
+Confounding is a **causal** problem, not just a statistical one.
+
+A confounder is a variable that influences both:
+
+-   the predictor of interest, and
+-   the response.
+
+This can create a spurious association or distort a real one.
+
+For example, if you relate species abundance to temperature without accounting for nutrient supply, and nutrient supply is associated with both temperature and abundance, then the temperature coefficient may partly reflect nutrient effects.
+
+## Confounding is not the same as collinearity
+
+These ideas are related but not identical:
+
+-   **Collinearity** is about overlap among predictors in the data.
+-   **Confounding** is about mistaken causal attribution.
+
+Two variables can be highly collinear without one being a confounder. A confounder may also matter even when the correlation structure does not look especially dramatic.
+
+# Measurement Error
+
+Regression models often assume that predictor variables are measured without serious error. That assumption is rarely exactly true.
+
+When a predictor is noisy, the estimated effect is often biased toward zero. This is known as **attenuation bias**. In practical terms, measurement error can make a real effect appear weaker and less stable than it truly is.
+
+This matters because:
+
+-   biological field measurements are often noisy,
+-   instruments are imperfect,
+-   environmental conditions fluctuate, and
+-   some variables are difficult to measure directly.
+
+# Proxy Variables
+
+Many biological models use proxies because the true mechanistic variables are unavailable or expensive to obtain.
+
+Examples:
+
+-   altitude as a proxy for temperature or radiation,
+-   distance from shore as a proxy for exposure,
+-   chlorophyll as a proxy for productivity,
+-   body size as a proxy for age or condition.
+
+Proxy variables are often useful, but they create interpretive limits. A proxy coefficient should not be over-read as if it identified a single clean mechanism.
+
+::: {.callout-note appearance="simple"}
+## Mechanism Versus Proxy
+
+If your question is about physiology, use physiological drivers where possible. If your question is about broad spatial pattern, a proxy may be acceptable. The variable should match the scale and aim of the question.
+:::
+
+# A Practical Workflow
+
+When building a regression model:
+
+1. Specify the biological hypothesis first.
+2. Identify which predictors are mechanistic and which are proxies.
+3. Ask which variables may confound the relationship of interest.
+4. Inspect predictor correlations and calculate VIF where needed.
+5. Remove or combine redundant predictors when interpretation is the goal.
+6. Be cautious about causal language when important variables are missing or measured poorly.
+
+# Common Responses
+
+Depending on the problem, possible responses include:
+
+-   removing a redundant predictor,
+-   choosing one variable over another based on theory,
+-   combining predictors into an index or ordination axis,
+-   centring or rescaling variables to improve interpretation,
+-   collecting better measurements,
+-   being explicit that a variable is only a proxy.
+
+If prediction is the main goal, some collinearity may be tolerable. If interpretation is the goal, these issues become much more serious.
+
+# Summary
+
+-   Collinearity makes coefficients unstable because predictors share information.
+-   Confounding is a causal problem in which another variable distorts interpretation.
+-   Measurement error weakens and destabilises estimated effects.
+-   Proxy variables can be useful, but they limit what coefficients mean.
+-   These problems are best handled through good biological reasoning before model fitting, not only by software after the fact.
+
+Regression is powerful, but only if we remain honest about what the variables actually represent.

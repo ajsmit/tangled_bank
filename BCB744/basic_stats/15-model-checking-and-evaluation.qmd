@@ -1,0 +1,206 @@
+---
+title: "15. Model Checking and Evaluation"
+subtitle: "Diagnostics, Comparison, and Generalisation"
+author: "A. J. Smit"
+date: last-modified
+date-format: "YYYY/MM/DD"
+reference-location: margin
+---
+
+```{r code-brewing-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 6.5,
+  fig.height = 4.5,
+  out.width = "88%",
+  fig.asp = NULL,
+  fig.align = "center",
+  fig.retina = 2,
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 8)
+)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 8)
+)
+```
+
+```{r code-knitr-opts-chunk-set, echo=FALSE}
+library(tidyverse)
+```
+
+::: {.callout-note appearance="simple"}
+## In This Chapter
+
+-   Why model fitting is not the end of the analysis
+-   Diagnostic checks for linear models
+-   Influence, leverage, and residual structure
+-   Comparing candidate models with information criteria
+-   Overfitting and generalisation
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to Complete in This Chapter
+
+-   None
+:::
+
+# Introduction
+
+Once a model has been fitted, two further questions immediately follow:
+
+1. **Is the model adequate for the data?**
+2. **How does this model compare with plausible alternatives?**
+
+These questions belong to model checking and model evaluation. A statistically significant model may still be poorly specified, violate assumptions, overfit the data, or generalise badly to new observations.
+
+# Key Concepts
+
+The following concepts structure the chapter.
+
+-   **Model checking** asks whether a fitted model is adequate for the data and assumptions.
+-   **Residuals** are central diagnostic tools for linear-model behaviour.
+-   **Influence and leverage** identify observations that matter disproportionately.
+-   **Model comparison** weighs plausible alternatives rather than treating one fitted model as final.
+-   **Generalisation** matters because good in-sample fit does not guarantee useful prediction.
+
+# Model Checking
+
+Model checking asks whether the fitted model behaves in a way consistent with its assumptions and intended interpretation.
+
+For ordinary linear models, the most useful checks usually involve **residuals**.
+
+## Residual patterns
+
+Residuals should not show strong systematic structure.
+
+Problems to look for include:
+
+-   curvature, suggesting non-linearity,
+-   funnel shapes, suggesting heteroscedasticity,
+-   unusual points with strong leverage,
+-   heavy tails or severe asymmetry.
+
+## Standard diagnostic plots
+
+The standard four-plot diagnostic display in R remains a good starting point:
+
+```{r}
+#| eval: false
+plot(fitted_model)
+```
+
+These typically show:
+
+-   residuals vs fitted values,
+-   normal Q-Q plot,
+-   scale-location plot,
+-   residuals vs leverage.
+
+## Influence and leverage
+
+Not all unusual points are equally important. Some observations have:
+
+-   high **residuals**: poorly fitted values,
+-   high **leverage**: unusual predictor values,
+-   high **influence**: strong impact on the fitted coefficients.
+
+An influential point deserves attention, but not automatic deletion. It may indicate:
+
+-   a data entry problem,
+-   measurement error,
+-   an important biological extreme, or
+-   a model that is too simple.
+
+# Assumption Checks and Their Limits
+
+Formal tests such as Shapiro-Wilk or Breusch-Pagan can be useful, but they should not replace graphical assessment and biological judgement.
+
+In practice:
+
+-   tiny deviations from normality are often unimportant,
+-   large datasets can make trivial deviations look “significant,” and
+-   visual residual structure is often more informative than a single test.
+
+The real question is not whether a model is perfect, but whether it is **adequate for the inferential goal**.
+
+# Model Comparison
+
+Biological analysis often involves several plausible candidate models, each representing a different hypothesis.
+
+Model comparison should therefore be framed as comparing **competing explanations**, not merely hunting for the best numerical fit.
+
+## Information criteria
+
+The most common tools are:
+
+-   **AIC**,
+-   **AICc** for small samples,
+-   sometimes **BIC** for a stronger penalty on complexity.
+
+These criteria balance:
+
+-   model fit, and
+-   model complexity.
+
+Lower values indicate better relative support among the models being compared.
+
+## What not to do
+
+Automated stepwise procedures often produce unstable and hard-to-interpret models. They can also encourage post hoc storytelling around whichever terms happen to survive selection.
+
+Candidate models should ideally be motivated by theory first and compared second.
+
+# Overfitting and Generalisation
+
+A model can fit the present data very well while performing poorly on new data. This is **overfitting**.
+
+Overfitting occurs when the model captures noise as if it were signal. It is especially common when:
+
+-   sample size is modest,
+-   many predictors are included,
+-   interactions are added freely,
+-   model choice is heavily data-driven.
+
+The key distinction is between:
+
+-   **training performance**: fit to the data used to estimate the model,
+-   **generalisation performance**: fit to new or unseen data.
+
+## Cross-validation
+
+Cross-validation provides one way to estimate predictive performance on unseen data.
+
+In principle, the workflow is:
+
+1. split the data into parts,
+2. fit the model on one part,
+3. test it on the held-out part,
+4. repeat.
+
+This is especially valuable when the goal of modelling is prediction rather than explanation.
+
+# A Practical Workflow
+
+After fitting a model:
+
+1. Inspect residual plots.
+2. Check for influential points.
+3. Ask whether any detected pattern suggests a missing variable or wrong functional form.
+4. Compare only biologically sensible candidate models.
+5. Use information criteria or cross-validation according to the modelling goal.
+6. Report uncertainty and limitations clearly.
+
+# Summary
+
+-   Fitting a model is only the middle of the analysis.
+-   Residual diagnostics are essential for checking adequacy.
+-   Influence and leverage can distort fitted results and must be inspected.
+-   Model comparison should evaluate competing biological hypotheses, not just maximise fit.
+-   Overfitting is a major risk when complexity outruns signal.
+
+Good modelling requires both a plausible model and evidence that the model is behaving well.

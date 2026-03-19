@@ -1,0 +1,201 @@
+---
+title: "13. Interaction Effects"
+subtitle: "When the Effect of One Predictor Depends on Another"
+author: "A. J. Smit"
+date: last-modified
+date-format: "YYYY/MM/DD"
+reference-location: margin
+---
+
+```{r code-brewing-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 6.5,
+  fig.height = 4.5,
+  out.width = "88%",
+  fig.asp = NULL,
+  fig.align = "center",
+  fig.retina = 2,
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 8)
+)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 8)
+)
+```
+
+```{r code-knitr-opts-chunk-set, echo=FALSE}
+library(tidyverse)
+```
+
+::: {.callout-note appearance="simple"}
+## In This Chapter
+
+-   What an interaction term means
+-   Why main effects change meaning when interactions are present
+-   How to specify interactions in `lm()`
+-   How to interpret and plot conditional effects
+-   Why interactions should be theory-driven
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to Complete in This Chapter
+
+-   None
+:::
+
+# Introduction
+
+Many ecological and biological processes are interactive. The effect of one variable often depends on the level of another. Nutrient supply may matter more at high temperature than at low temperature. A treatment may affect males and females differently. The relationship between disturbance and species richness may differ among habitats.
+
+These situations are handled in regression by including an **interaction term**.
+
+# Key Concepts
+
+The interaction logic can be reduced to a few central points.
+
+-   **An interaction** means the effect of one predictor depends on another.
+-   **Main effects change meaning** when interaction terms are present.
+-   **Centring predictors** often makes interaction models easier to interpret.
+-   **Plots are essential** because coefficients alone rarely communicate conditional effects clearly.
+-   **Interactions should be biologically motivated**, not added automatically.
+
+# What an Interaction Means
+
+An interaction means that the effect of one predictor is **conditional** on the value of another predictor.
+
+Without an interaction, a model assumes that:
+
+-   the slope of predictor `X1` is the same at all values of `X2`, and
+-   the slope of predictor `X2` is the same at all values of `X1`.
+
+With an interaction, those assumptions are relaxed.
+
+For two predictors, a model with interaction is:
+
+$$
+Y_i = \alpha + \beta_1 X_{1i} + \beta_2 X_{2i} + \beta_3 X_{1i}X_{2i} + \epsilon_i
+$$
+
+The coefficient $\beta_3$ is the interaction term. It tells us how much the slope of one predictor changes as the other predictor changes.
+
+# Why Main Effects Become Harder to Read
+
+When an interaction is present, the main-effect coefficients can no longer be interpreted in isolation.
+
+For example, in the model above:
+
+-   $\beta_1$ is the effect of `X1` when `X2 = 0`,
+-   $\beta_2$ is the effect of `X2` when `X1 = 0`.
+
+This means the interpretation of the main effects depends on how the variables are coded and centred. It is often useful to centre continuous predictors before fitting interaction models.
+
+::: {.callout-note appearance="simple"}
+## Centring Predictors
+
+If a predictor has no meaningful zero, the raw main effect may be awkward to interpret. Centring a variable shifts the zero point to a meaningful reference value, often the sample mean, and makes interaction models easier to read.
+:::
+
+# Biological Justification
+
+Interactions should be included because the biology suggests them. They should not be added automatically to every model.
+
+Examples of biologically justified interactions include:
+
+-   temperature × nutrient supply,
+-   treatment × sex,
+-   rainfall × soil type,
+-   depth × light availability.
+
+If you cannot explain in words why one predictor should modify the effect of another, the interaction term is probably not well motivated.
+
+# Fitting Interactions in R
+
+In R, an interaction is specified with `*`:
+
+```{r}
+#| eval: false
+lm(response ~ x1 * x2, data = df)
+```
+
+This expands to:
+
+```{r}
+#| eval: false
+lm(response ~ x1 + x2 + x1:x2, data = df)
+```
+
+The `:` term is the interaction itself; `*` includes both main effects and the interaction.
+
+# A Small Example
+
+Suppose plant growth depends on nutrient concentration and temperature, and that nutrient effects strengthen as temperature increases.
+
+```{r}
+set.seed(74413)
+
+dat <- tibble(
+  nutrient = rep(seq(1, 5, length.out = 20), 2),
+  temperature_group = rep(c("cool", "warm"), each = 20)
+) |>
+  mutate(
+    growth = if_else(
+      temperature_group == "cool",
+      2 + 0.6 * nutrient + rnorm(n(), 0, 0.25),
+      2 + 1.2 * nutrient + rnorm(n(), 0, 0.25)
+    )
+  )
+
+mod_interaction <- lm(growth ~ nutrient * temperature_group, data = dat)
+summary(mod_interaction)
+```
+
+```{r fig-interaction-example}
+#| fig-cap: "An interaction between nutrient concentration and temperature group."
+#| fig-width: 6
+#| fig-height: 4.5
+#| out-width: "82%"
+
+ggplot(dat, aes(x = nutrient, y = growth, colour = temperature_group)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Nutrient concentration", y = "Growth") +
+  theme_bw()
+```
+
+The lines have different slopes. That is the visual signature of an interaction.
+
+# How to Interpret an Interaction
+
+A useful workflow is:
+
+1. Ask whether the interaction is biologically plausible.
+2. Fit the interaction model.
+3. Plot the fitted relationships.
+4. Interpret the effect of one predictor at specific values or levels of the other.
+
+Do not stop at the `p`-value of the interaction term. The coefficient alone is rarely intuitive. Plots and conditional interpretation are usually far more informative.
+
+# Common Mistakes
+
+Common mistakes include:
+
+-   adding interactions without biological justification,
+-   interpreting main effects as if no interaction were present,
+-   failing to plot the fitted interaction,
+-   including many interaction terms in small datasets, and
+-   treating a significant interaction as important without examining effect size.
+
+# Summary
+
+-   An interaction means the effect of one predictor depends on another.
+-   Interaction terms change the interpretation of main effects.
+-   Interactions should be motivated by biological reasoning.
+-   Plotting fitted lines or conditional effects is usually essential for interpretation.
+
+Interaction models are often where regression becomes much more biologically interesting, but they also demand more care in interpretation.
