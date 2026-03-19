@@ -53,7 +53,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
@@ -76,7 +95,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-28b2a0d1de077534df0f44753bd511b9.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/bootstrap/bootstrap-28b2a0d1de077534df0f44753bd511b9.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
   "collapse-after": 3,
@@ -130,6 +152,7 @@ cookieconsent.run({
 </script><link rel="stylesheet" href="../../styles/styles.css">
 <meta property="og:title" content="14. Collinearity, Confounding, and Measurement Error – The Tangled Bank">
 <meta property="og:description" content="Three Threats to Interpretable Regression Models">
+<meta property="og:image" content="http://tangledbank.netlify.app/BCB744/basic_stats/14-collinearity-confounding-measurement-error_files/figure-html/fig-confounding-1.svg">
 <meta property="og:site_name" content="The Tangled Bank">
 </head>
 <body class="nav-sidebar floating nav-fixed quarto-light">
@@ -1064,25 +1087,42 @@ cookieconsent.run({
   <ul>
 <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
   <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts"><span class="header-section-number">2</span> Key Concepts</a></li>
+  <li><a href="#why-these-problems-matter" id="toc-why-these-problems-matter" class="nav-link" data-scroll-target="#why-these-problems-matter"><span class="header-section-number">3</span> Why These Problems Matter</a></li>
+  <li><a href="#r-functions" id="toc-r-functions" class="nav-link" data-scroll-target="#r-functions"><span class="header-section-number">4</span> R Functions</a></li>
   <li>
-<a href="#collinearity" id="toc-collinearity" class="nav-link" data-scroll-target="#collinearity"><span class="header-section-number">3</span> Collinearity</a>
+<a href="#collinearity" id="toc-collinearity" class="nav-link" data-scroll-target="#collinearity"><span class="header-section-number">5</span> Collinearity</a>
   <ul class="collapse">
-<li><a href="#what-it-is" id="toc-what-it-is" class="nav-link" data-scroll-target="#what-it-is"><span class="header-section-number">3.1</span> What it is</a></li>
-  <li><a href="#why-it-is-a-problem" id="toc-why-it-is-a-problem" class="nav-link" data-scroll-target="#why-it-is-a-problem"><span class="header-section-number">3.2</span> Why it is a problem</a></li>
-  <li><a href="#a-worked-collinearity-check" id="toc-a-worked-collinearity-check" class="nav-link" data-scroll-target="#a-worked-collinearity-check"><span class="header-section-number">3.3</span> A worked collinearity check</a></li>
-  <li><a href="#responding-to-collinearity" id="toc-responding-to-collinearity" class="nav-link" data-scroll-target="#responding-to-collinearity"><span class="header-section-number">3.4</span> Responding to collinearity</a></li>
+<li><a href="#what-is-collinearity" id="toc-what-is-collinearity" class="nav-link" data-scroll-target="#what-is-collinearity"><span class="header-section-number">5.1</span> What is collinearity?</a></li>
+  <li><a href="#why-is-it-a-problem" id="toc-why-is-it-a-problem" class="nav-link" data-scroll-target="#why-is-it-a-problem"><span class="header-section-number">5.2</span> Why is it a problem?</a></li>
+  <li><a href="#example-1-predicting-plant-growth" id="toc-example-1-predicting-plant-growth" class="nav-link" data-scroll-target="#example-1-predicting-plant-growth"><span class="header-section-number">5.3</span> Example 1: Predicting plant growth</a></li>
+  <li><a href="#example-2-nutrient-limitation-in-coastal-systems" id="toc-example-2-nutrient-limitation-in-coastal-systems" class="nav-link" data-scroll-target="#example-2-nutrient-limitation-in-coastal-systems"><span class="header-section-number">5.4</span> Example 2: Nutrient limitation in coastal systems</a></li>
+  <li><a href="#diagnosing-collinearity" id="toc-diagnosing-collinearity" class="nav-link" data-scroll-target="#diagnosing-collinearity"><span class="header-section-number">5.5</span> Diagnosing collinearity</a></li>
+  <li><a href="#a-worked-collinearity-example" id="toc-a-worked-collinearity-example" class="nav-link" data-scroll-target="#a-worked-collinearity-example"><span class="header-section-number">5.6</span> A worked collinearity example</a></li>
+  <li><a href="#addressing-collinearity" id="toc-addressing-collinearity" class="nav-link" data-scroll-target="#addressing-collinearity"><span class="header-section-number">5.7</span> Addressing collinearity</a></li>
   </ul>
 </li>
   <li>
-<a href="#confounding" id="toc-confounding" class="nav-link" data-scroll-target="#confounding"><span class="header-section-number">4</span> Confounding</a>
+<a href="#confounding" id="toc-confounding" class="nav-link" data-scroll-target="#confounding"><span class="header-section-number">6</span> Confounding</a>
   <ul class="collapse">
-<li><a href="#confounding-is-not-the-same-as-collinearity" id="toc-confounding-is-not-the-same-as-collinearity" class="nav-link" data-scroll-target="#confounding-is-not-the-same-as-collinearity"><span class="header-section-number">4.1</span> Confounding is not the same as collinearity</a></li>
+<li><a href="#confounding-is-not-the-same-as-collinearity" id="toc-confounding-is-not-the-same-as-collinearity" class="nav-link" data-scroll-target="#confounding-is-not-the-same-as-collinearity"><span class="header-section-number">6.1</span> Confounding is not the same as collinearity</a></li>
+  <li><a href="#a-worked-confounding-example" id="toc-a-worked-confounding-example" class="nav-link" data-scroll-target="#a-worked-confounding-example"><span class="header-section-number">6.2</span> A worked confounding example</a></li>
+  <li><a href="#practical-implications-of-confounding" id="toc-practical-implications-of-confounding" class="nav-link" data-scroll-target="#practical-implications-of-confounding"><span class="header-section-number">6.3</span> Practical implications of confounding</a></li>
   </ul>
 </li>
-  <li><a href="#measurement-error" id="toc-measurement-error" class="nav-link" data-scroll-target="#measurement-error"><span class="header-section-number">5</span> Measurement Error</a></li>
-  <li><a href="#proxy-variables" id="toc-proxy-variables" class="nav-link" data-scroll-target="#proxy-variables"><span class="header-section-number">6</span> Proxy Variables</a></li>
-  <li><a href="#a-practical-workflow" id="toc-a-practical-workflow" class="nav-link" data-scroll-target="#a-practical-workflow"><span class="header-section-number">7</span> A Practical Workflow</a></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
+  <li>
+<a href="#measurement-error" id="toc-measurement-error" class="nav-link" data-scroll-target="#measurement-error"><span class="header-section-number">7</span> Measurement Error</a>
+  <ul class="collapse">
+<li><a href="#a-worked-measurement-error-example" id="toc-a-worked-measurement-error-example" class="nav-link" data-scroll-target="#a-worked-measurement-error-example"><span class="header-section-number">7.1</span> A worked measurement-error example</a></li>
+  </ul>
+</li>
+  <li><a href="#proxy-variables" id="toc-proxy-variables" class="nav-link" data-scroll-target="#proxy-variables"><span class="header-section-number">8</span> Proxy Variables</a></li>
+  <li>
+<a href="#a-practical-workflow" id="toc-a-practical-workflow" class="nav-link" data-scroll-target="#a-practical-workflow"><span class="header-section-number">9</span> A Practical Workflow</a>
+  <ul class="collapse">
+<li><a href="#explanation-versus-prediction" id="toc-explanation-versus-prediction" class="nav-link" data-scroll-target="#explanation-versus-prediction"><span class="header-section-number">9.1</span> Explanation versus prediction</a></li>
+  </ul>
+</li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">10</span> Summary</a></li>
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/14-collinearity-confounding-measurement-error.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
@@ -1150,7 +1190,7 @@ cookieconsent.run({
 </div>
 <section id="introduction" class="level1" data-number="1"><h1 data-number="1">
 <span class="header-section-number">1</span> Introduction</h1>
-<p>Regression models are sometimes taught as though the difficult part is fitting the correct formula and reading the summary table. In practice, some of the hardest problems sit below that surface. Predictors may overlap strongly, causal roles may be confused, and the variables we fit may be noisy measurements or only rough proxies for the processes we care about.</p>
+<p>Regression models are often taught as though the difficult part is fitting the correct formula and reading the summary table. In practice, some of the hardest come afterwards. Predictors may overlap strongly, causal roles may be confused, and the variables we fit may be noisy measurements or only rough proxies for the processes we care about.</p>
 <p>This chapter brings together three closely related but distinct problems:</p>
 <ol type="1">
 <li>
@@ -1160,44 +1200,126 @@ cookieconsent.run({
 <li>
 <strong>measurement error</strong>, where the variables in the model are noisy versions of the quantities we would really like to observe.</li>
 </ol>
-<p>All three problems matter because they threaten interpretation. A model may still run and produce a neat table of coefficients, but those coefficients may no longer mean what we would like them to mean.</p>
+<p>All three problems matter because they erode interpretation. A model may still run and produce seemingly believable coefficients, but those coefficients may no longer mean what we would like them to mean.</p>
+<p>In multiple regression and other multivariate models, we generally hope that the predictor variables provide distinct information. When they do not, our models can become unstable and difficult to interpret. This issue, known as <strong>collinearity</strong> or <strong>multicollinearity</strong>, is a common challenge in biological research, where environmental variables are often highly correlated. It is especially common in ecology because many environmental variables are linked through shared physical and biological processes. Temperature, oxygen, and productivity, for example, often co-vary.</p>
+<p>This chapter explains what collinearity is, why it is problematic, and how to diagnose and address it. It also explains why collinearity is not the same as confounding, and why measurement error and proxy variables create further limitations even when the fitted model looks statistically sound. While no single paper is as singularly famous here as Hurlbert’s work on pseudoreplication, a foundational and highly recommended review of multicollinearity is that of Graham <span class="citation" data-cites="Graham2003">(<a href="#ref-Graham2003" role="doc-biblioref">2003</a>)</span>.</p>
 </section><section id="key-concepts" class="level1" data-number="2"><h1 data-number="2">
 <span class="header-section-number">2</span> Key Concepts</h1>
 <p>Keep the following distinctions clear.</p>
 <ul>
 <li>
-<strong>Collinearity</strong> is overlap among predictors.</li>
+<strong>Collinearity / Multicollinearity</strong> is a condition in multiple regression where two or more predictor variables are highly correlated, making it difficult for the model to separate their individual effects.</li>
 <li>
-<strong>Confounding</strong> is a problem of attribution, not merely correlation.</li>
+<strong>Problem of interpretation, not prediction</strong> The main drawback of collinearity is that it makes the model’s coefficients unreliable and difficult to interpret, even when the model predicts the outcome well.</li>
 <li>
-<strong>Measurement error</strong> weakens and can bias estimated effects.</li>
+<strong>Variance Inflation Factor (VIF)</strong> is the standard diagnostic tool for detecting multicollinearity. A high VIF indicates that the variance of a coefficient is being inflated by overlap with other predictors.</li>
 <li>
-<strong>Proxy variables</strong> are often useful but come with interpretive limits.</li>
+<strong>Confounding</strong>, on the other hand, is a problem of attribution.</li>
+<li>
+<strong>Measurement error</strong> weakens inference and can bias estimated effects, often towards zero.</li>
+<li>
+<strong>Proxy variables</strong> can be very useful, but they come with interpretive limits.</li>
 <li>
 <strong>Good design and good variable choice</strong> solve more of these problems than software does.</li>
-</ul></section><section id="collinearity" class="level1" data-number="3"><h1 data-number="3">
-<span class="header-section-number">3</span> Collinearity</h1>
-<section id="what-it-is" class="level2" data-number="3.1"><h2 data-number="3.1" class="anchored" data-anchor-id="what-it-is">
-<span class="header-section-number">3.1</span> What it is</h2>
-<p>Collinearity occurs when two or more predictors are strongly correlated with one another. In ecology this is common because environmental variables often co-vary through shared physical processes.</p>
-<p>Examples include:</p>
+</ul></section><section id="why-these-problems-matter" class="level1" data-number="3"><h1 data-number="3">
+<span class="header-section-number">3</span> Why These Problems Matter</h1>
+<p>It is useful to state the broader issue clearly. In the regression chapters so far, we have assumed that the predictors in a model can be interpreted as though each one contributes something identifiable to the response. But, that assumption is often too optimistic since several things can go wrong:</p>
+<ul>
+<li>Two predictors may describe almost the same underlying process.</li>
+<li>A variable may appear important only because another, unmeasured variable has been omitted.</li>
+<li>A predictor may be measured with enough error that its effect is weakened and unstable.</li>
+<li>A fitted coefficient may describe a proxy rather than a mechanism.</li>
+</ul>
+<p>These affect what the model allows us to say biologically.</p>
+</section><section id="r-functions" class="level1" data-number="4"><h1 data-number="4">
+<span class="header-section-number">4</span> R Functions</h1>
+<p>The most useful functions in this chapter are:</p>
+<ul>
+<li>
+<code><a href="https://rdrr.io/r/stats/cor.html">cor()</a></code> and plots of predictor relationships for identifying overlap;</li>
+<li>
+<code><a href="https://rdrr.io/pkg/car/man/vif.html">car::vif()</a></code> for diagnosing collinearity in a fitted model;</li>
+<li>
+<code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code> for comparing models that omit or include potentially confounding variables;</li>
+<li>
+<code><a href="https://generics.r-lib.org/reference/tidy.html">broom::tidy()</a></code> for comparing coefficients across models.</li>
+</ul></section><section id="collinearity" class="level1" data-number="5"><h1 data-number="5">
+<span class="header-section-number">5</span> Collinearity</h1>
+<section id="what-is-collinearity" class="level2" data-number="5.1"><h2 data-number="5.1" class="anchored" data-anchor-id="what-is-collinearity">
+<span class="header-section-number">5.1</span> What is collinearity?</h2>
+<p><strong>Collinearity</strong> occurs when two predictor variables in a multiple regression model are highly correlated. <strong>Multicollinearity</strong> is the more general term, referring to a situation where one predictor variable can be linearly predicted from one or more of the other predictor variables with a substantial degree of accuracy.</p>
+<p>For example, in a marine environment, you might measure water temperature, salinity, and dissolved oxygen. It is very likely that temperature and dissolved oxygen are strongly negatively correlated, because colder water holds more oxygen. If you include both in a model to predict the abundance of a fish species, the predictors share information, which introduces multicollinearity.</p>
+<p>In ecology and environmental biology, this is common because many variables co-vary through shared physical or biological processes. Examples include:</p>
 <ul>
 <li>altitude and temperature;</li>
 <li>nitrate and phosphate;</li>
 <li>temperature and dissolved oxygen;</li>
 <li>rainfall and river flow.</li>
-</ul></section><section id="why-it-is-a-problem" class="level2" data-number="3.2"><h2 data-number="3.2" class="anchored" data-anchor-id="why-it-is-a-problem">
-<span class="header-section-number">3.2</span> Why it is a problem</h2>
-<p>Collinearity is mainly a problem of interpretation. A model can still fit the response well while the individual coefficients become:</p>
+</ul></section><section id="why-is-it-a-problem" class="level2" data-number="5.2"><h2 data-number="5.2" class="anchored" data-anchor-id="why-is-it-a-problem">
+<span class="header-section-number">5.2</span> Why is it a problem?</h2>
+<p>Unlike pseudoreplication, collinearity does not necessarily invalidate the entire model in terms of its predictive power. A model with collinear predictors may still produce good predictions. However, it severely compromises the <strong>interpretation</strong> of the model’s coefficients. The primary problems are:</p>
+<ol type="1">
+<li>
+<strong>Unstable coefficient estimates</strong> The estimated regression coefficients can vary wildly depending on which other variables are in the model. The standard errors of the coefficients become inflated, making it difficult to determine the true effect of each predictor.</li>
+<li>
+<strong>Incorrect signs</strong> A coefficient might appear to have the “wrong” sign, such as a positive effect where a negative one is expected biologically. This happens because the model is trying to partition shared variation between correlated predictors, and the results can become nonsensical.</li>
+<li>
+<strong>Loss of statistical significance</strong> Because the standard errors are inflated, a predictor that is truly important may appear statistically non-significant. The model cannot confidently attribute the effect to any single one of the correlated predictors.</li>
+</ol>
+<p>These effects arise because the model must estimate multiple coefficients from overlapping information. When two predictors are strongly correlated, the model cannot cleanly separate their individual contributions because they explain the same variation in the response.</p>
+<p>So, the central message is that collinearity is usually a <strong>problem of interpretation rather than raw prediction</strong>.</p>
+</section><section id="example-1-predicting-plant-growth" class="level2" data-number="5.3"><h2 data-number="5.3" class="anchored" data-anchor-id="example-1-predicting-plant-growth">
+<span class="header-section-number">5.3</span> Example 1: Predicting plant growth</h2>
+<p>Suppose you model plant growth using:</p>
 <ul>
-<li>unstable;</li>
-<li>imprecise;</li>
-<li>assigned the wrong sign;</li>
-<li>difficult to interpret biologically.</li>
+<li>
+<code>mean_annual_temperature</code>, a mechanistic driver of metabolic rates; and</li>
+<li>
+<code>altitude</code>, a composite variable that correlates with temperature, oxygen, and radiation.</li>
 </ul>
-<p>The model struggles to partition shared explanatory information among overlapping predictors.</p>
-</section><section id="a-worked-collinearity-check" class="level2" data-number="3.3"><h2 data-number="3.3" class="anchored" data-anchor-id="a-worked-collinearity-check">
-<span class="header-section-number">3.3</span> A worked collinearity check</h2>
+<p>These variables are strongly correlated because altitude influences temperature. The model then attempts to assign separate effects to two variables that describe overlapping processes. As a result:</p>
+<ul>
+<li>coefficients become unstable;</li>
+<li>standard errors increase;</li>
+<li>biological interpretation becomes unclear.</li>
+</ul>
+<p>Altitude is acting as a <strong>proxy variable</strong>. It is easy to measure but does not represent a single causal mechanism. Including both altitude and temperature asks the model to separate a proxy from the process it represents, which it often cannot do reliably.</p>
+<p>Better modelling choices would include:</p>
+<ul>
+<li>using temperature if the hypothesis concerns physiology;</li>
+<li>using altitude if the question concerns broad spatial gradients;</li>
+<li>avoiding both in the same model unless their distinct roles are explicitly justified.</li>
+</ul></section><section id="example-2-nutrient-limitation-in-coastal-systems" class="level2" data-number="5.4"><h2 data-number="5.4" class="anchored" data-anchor-id="example-2-nutrient-limitation-in-coastal-systems">
+<span class="header-section-number">5.4</span> Example 2: Nutrient limitation in coastal systems</h2>
+<p>Suppose you model phytoplankton biomass using:</p>
+<ul>
+<li>nitrate; and</li>
+<li>phosphate.</li>
+</ul>
+<p>These nutrients often co-vary because they are supplied by the same water masses. The outcome may be that:</p>
+<ul>
+<li>the model fits well overall;</li>
+<li>individual coefficients are unstable or non-significant.</li>
+</ul>
+<p>The model cannot separate the effect of nitrate from phosphate because both track the same underlying process: nutrient supply.</p>
+<p>Possible resolutions include:</p>
+<ul>
+<li>using one nutrient based on ecological theory, for example the limiting nutrient;</li>
+<li>using a ratio such as N:P if the hypothesis concerns stoichiometry;</li>
+<li>using PCA or another dimension-reduction method to represent a broader “nutrient gradient” if prediction is the main goal.</li>
+</ul>
+<p>This example shows that collinearity can arise even when all the variables are mechanistically meaningful. The decision is therefore about how to handle collinearity <em>and</em> whether the goal is explanation or prediction.</p>
+</section><section id="diagnosing-collinearity" class="level2" data-number="5.5"><h2 data-number="5.5" class="anchored" data-anchor-id="diagnosing-collinearity">
+<span class="header-section-number">5.5</span> Diagnosing collinearity</h2>
+<p>The most common way to diagnose multicollinearity is by calculating the <strong>Variance Inflation Factor (VIF)</strong> for each predictor variable.</p>
+<ul>
+<li>A VIF of 1 means there is no correlation.</li>
+<li>A VIF between about 1 and 5 is often manageable.</li>
+<li>A VIF above about 5 or 10 suggests substantial multicollinearity that should be considered carefully.</li>
+</ul>
+<p>VIF does not diagnose a problem on its own. It indicates that a coefficient reflects shared variation with other predictors. The decision to act depends on whether the model needs interpretable coefficients.</p>
+</section><section id="a-worked-collinearity-example" class="level2" data-number="5.6"><h2 data-number="5.6" class="anchored" data-anchor-id="a-worked-collinearity-example">
+<span class="header-section-number">5.6</span> A worked collinearity example</h2>
 <p>Using the seaweed example from the previous chapter, we can inspect the candidate climate predictors for overlap.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>sw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"../../data/BCB743/seaweed/spp_df2.csv"</span>)</span>
@@ -1215,6 +1337,7 @@ augSD    0.4603614 0.5415907 0.5744316 1.0000000 0.5851171
 annMean  0.9711458 0.6860398 0.5533197 0.5851171 1.0000000</code></pre>
 </div>
 </div>
+<p>The correlation matrix already shows that several of the candidate predictors overlap strongly.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>col_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> augMean <span class="sc">+</span> febRange <span class="sc">+</span> febSD <span class="sc">+</span> augSD <span class="sc">+</span> annMean,</span>
 <span id="cb3-2"><a href="#cb3-2"></a>              <span class="at">data =</span> sw_ectz)</span>
@@ -1225,28 +1348,67 @@ annMean  0.9711458 0.6860398 0.5533197 0.5851171 1.0000000</code></pre>
 27.947767 10.806635  8.765732  2.497739 31.061900 </code></pre>
 </div>
 </div>
-<p>The VIF values show that some predictors overlap strongly. This does not mean the model is mathematically invalid, but it does mean that the separate interpretation of those coefficients becomes hard to defend.</p>
-</section><section id="responding-to-collinearity" class="level2" data-number="3.4"><h2 data-number="3.4" class="anchored" data-anchor-id="responding-to-collinearity">
-<span class="header-section-number">3.4</span> Responding to collinearity</h2>
-<p>Possible responses include:</p>
+<p>The VIF values show that some predictors overlap strongly. The model is not necessarily mathematically invalid; it simply means that the separate interpretation of those coefficients becomes hard to defend.</p>
+<p>We can make the consequences more concrete by comparing the simple slopes for each predictor to the coefficients in the multiple regression.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"augMean"</span>, <span class="st">"febRange"</span>, <span class="st">"febSD"</span>, <span class="st">"augSD"</span>, <span class="st">"annMean"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a>simple_models <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map</span>(preds, <span class="sc">~</span> <span class="fu">lm</span>(<span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">"Y ~"</span>, .x)),</span>
+<span id="cb5-4"><a href="#cb5-4"></a>                                        <span class="at">data =</span> sw_ectz))</span>
+<span id="cb5-5"><a href="#cb5-5"></a></span>
+<span id="cb5-6"><a href="#cb5-6"></a>simple_slopes <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map2_dfr</span>(simple_models, preds, \(mod, nm) {</span>
+<span id="cb5-7"><a href="#cb5-7"></a>  <span class="fu">tidy</span>(mod) <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a>    <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a>    <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Simple regression"</span>,</span>
+<span id="cb5-10"><a href="#cb5-10"></a>           <span class="at">predictor =</span> nm)</span>
+<span id="cb5-11"><a href="#cb5-11"></a>})</span>
+<span id="cb5-12"><a href="#cb5-12"></a></span>
+<span id="cb5-13"><a href="#cb5-13"></a>multiple_slopes <span class="ot">&lt;-</span> <span class="fu">tidy</span>(col_mod) <span class="sc">|&gt;</span></span>
+<span id="cb5-14"><a href="#cb5-14"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-15"><a href="#cb5-15"></a>  <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Multiple regression"</span>,</span>
+<span id="cb5-16"><a href="#cb5-16"></a>         <span class="at">predictor =</span> term)</span>
+<span id="cb5-17"><a href="#cb5-17"></a></span>
+<span id="cb5-18"><a href="#cb5-18"></a><span class="fu">bind_rows</span>(simple_slopes, multiple_slopes) <span class="sc">|&gt;</span></span>
+<span id="cb5-19"><a href="#cb5-19"></a>  <span class="fu">select</span>(model, predictor, estimate, std.error, statistic, p.value)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 6
+   model               predictor estimate std.error statistic   p.value
+   &lt;chr&gt;               &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+ 1 Simple regression   augMean    0.346     0.0109     31.7   6.68e- 96
+ 2 Simple regression   febRange   0.182     0.00890    20.4   8.31e- 58
+ 3 Simple regression   febSD      0.172     0.0124     13.8   1.56e- 33
+ 4 Simple regression   augSD      0.0879    0.00720    12.2   6.68e- 28
+ 5 Simple regression   annMean    0.332     0.00867    38.3   6.82e-115
+ 6 Multiple regression augMean   -0.0799    0.0426     -1.87  6.18e-  2
+ 7 Multiple regression febRange   0.113     0.0159      7.08  1.14e- 11
+ 8 Multiple regression febSD     -0.0572    0.0166     -3.45  6.37e-  4
+ 9 Multiple regression augSD      0.00302   0.00489     0.619 5.36e-  1
+10 Multiple regression annMean    0.323     0.0416      7.76  1.59e- 13</code></pre>
+</div>
+</div>
+<p>This comparison is useful because it shows the practical effect of collinearity. Predictors that look obvious and seem strongly positive in isolation may become weaker, unstable, or even change sign once the overlapping predictors are entered together. The does multiple regression might not be wrong, but the coefficients are being estimated under much greater uncertainty because the model is trying to assign separate effects to partially redundant variables.</p>
+</section><section id="addressing-collinearity" class="level2" data-number="5.7"><h2 data-number="5.7" class="anchored" data-anchor-id="addressing-collinearity">
+<span class="header-section-number">5.7</span> Addressing collinearity</h2>
+<p>Common responses include:</p>
 <ul>
-<li>removing a redundant predictor;</li>
-<li>choosing one variable over another based on biological reasoning;</li>
-<li>combining correlated predictors into an index or ordination axis;</li>
-<li>accepting some overlap if prediction is the main goal but avoiding causal over-interpretation.</li>
+<li>removing one of the correlated predictors;</li>
+<li>choosing one variable over another based on theory;</li>
+<li>combining correlated predictors into a single index or ordination axis;</li>
+<li>accepting some overlap if prediction is the main goal, but avoiding strong causal language;</li>
+<li>using regularisation methods such as ridge regression, lasso, or elastic net when the objective is predictive stability rather than simple coefficient interpretation.</li>
 </ul>
-<p>There is no magical threshold that solves the problem automatically. The question is whether the overlap is small enough that the coefficients still mean something defensible.</p>
-</section></section><section id="confounding" class="level1" data-number="4"><h1 data-number="4">
-<span class="header-section-number">4</span> Confounding</h1>
-<p>Confounding is a different problem. It is not simply that two predictors overlap. It is that a third variable distorts the apparent relationship between a predictor of interest and the response.</p>
+<p>There is obvious threshold that solves the problem automatically. But, is the overlap is small enough that the coefficients still mean something defensible?</p>
+</section></section><section id="confounding" class="level1" data-number="6"><h1 data-number="6">
+<span class="header-section-number">6</span> Confounding</h1>
+<p>Confounding is a different problem. The two predictors may or may not overlap, and, more importantly, a third variable was accidentally excluded from assessment, or it inadvertently distorts the apparent relationship between a predictor of interest and the response.</p>
 <p>A confounder is a variable that influences both:</p>
 <ul>
 <li>the predictor of interest; and</li>
 <li>the response.</li>
 </ul>
 <p>This can create a spurious association or distort a real one. For example, if you relate abundance to temperature but nutrient supply is associated with both temperature and abundance, the temperature coefficient may partly absorb nutrient effects.</p>
-<section id="confounding-is-not-the-same-as-collinearity" class="level2" data-number="4.1"><h2 data-number="4.1" class="anchored" data-anchor-id="confounding-is-not-the-same-as-collinearity">
-<span class="header-section-number">4.1</span> Confounding is not the same as collinearity</h2>
+<section id="confounding-is-not-the-same-as-collinearity" class="level2" data-number="6.1"><h2 data-number="6.1" class="anchored" data-anchor-id="confounding-is-not-the-same-as-collinearity">
+<span class="header-section-number">6.1</span> Confounding is not the same as collinearity</h2>
 <p>These ideas are related but not identical.</p>
 <ul>
 <li>
@@ -1255,27 +1417,166 @@ annMean  0.9711458 0.6860398 0.5533197 0.5851171 1.0000000</code></pre>
 <strong>Confounding</strong> is about mistaken attribution of an effect.</li>
 </ul>
 <p>Two variables can be highly collinear without one being a confounder. Equally, a confounder can matter even when the correlation structure does not look especially dramatic.</p>
-</section></section><section id="measurement-error" class="level1" data-number="5"><h1 data-number="5">
-<span class="header-section-number">5</span> Measurement Error</h1>
+</section><section id="a-worked-confounding-example" class="level2" data-number="6.2"><h2 data-number="6.2" class="anchored" data-anchor-id="a-worked-confounding-example">
+<span class="header-section-number">6.2</span> A worked confounding example</h2>
+<p>We can see the logic of confounding clearly with a small simulated example. Suppose we want to know whether temperature affects algal abundance, but nutrient concentration also varies with temperature and itself influences abundance.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">set.seed</span>(<span class="dv">144</span>)</span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a>n <span class="ot">&lt;-</span> <span class="dv">120</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>nutrient <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">10</span>, <span class="at">sd =</span> <span class="dv">2</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>temperature <span class="ot">&lt;-</span> <span class="dv">15</span> <span class="sc">+</span> <span class="fl">0.9</span> <span class="sc">*</span> nutrient <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">1.2</span>)</span>
+<span id="cb7-6"><a href="#cb7-6"></a>abundance <span class="ot">&lt;-</span> <span class="dv">4</span> <span class="sc">+</span> <span class="fl">1.4</span> <span class="sc">*</span> nutrient <span class="sc">+</span> <span class="fl">0.15</span> <span class="sc">*</span> temperature <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">1.5</span>)</span>
+<span id="cb7-7"><a href="#cb7-7"></a></span>
+<span id="cb7-8"><a href="#cb7-8"></a>conf_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-9"><a href="#cb7-9"></a>  <span class="at">nutrient =</span> nutrient,</span>
+<span id="cb7-10"><a href="#cb7-10"></a>  <span class="at">temperature =</span> temperature,</span>
+<span id="cb7-11"><a href="#cb7-11"></a>  <span class="at">abundance =</span> abundance</span>
+<span id="cb7-12"><a href="#cb7-12"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>If we fit a model with temperature alone, we may conclude that temperature is strongly related to abundance:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>mod_temp_only <span class="ot">&lt;-</span> <span class="fu">lm</span>(abundance <span class="sc">~</span> temperature, <span class="at">data =</span> conf_dat)</span>
+<span id="cb8-2"><a href="#cb8-2"></a>mod_with_nutrient <span class="ot">&lt;-</span> <span class="fu">lm</span>(abundance <span class="sc">~</span> temperature <span class="sc">+</span> nutrient, <span class="at">data =</span> conf_dat)</span>
+<span id="cb8-3"><a href="#cb8-3"></a></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="fu">tidy</span>(mod_temp_only)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 5
+  term        estimate std.error statistic  p.value
+  &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+1 (Intercept)    -8.74    2.03       -4.30 3.57e- 5
+2 temperature     1.27    0.0854     14.8  1.02e-28</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">tidy</span>(mod_with_nutrient)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 5
+  term        estimate std.error statistic  p.value
+  &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+1 (Intercept)    2.17      1.77       1.22 2.23e- 1
+2 temperature    0.253     0.112      2.25 2.61e- 2
+3 nutrient       1.33      0.124     10.7  3.99e-19</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(conf_dat, <span class="fu">aes</span>(<span class="at">x =</span> temperature, <span class="at">y =</span> abundance)) <span class="sc">+</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>) <span class="sc">+</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Temperature"</span>, <span class="at">y =</span> <span class="st">"Algal abundance"</span>) <span class="sc">+</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb12-6"><a href="#cb12-6"></a></span>
+<span id="cb12-7"><a href="#cb12-7"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(conf_dat, <span class="fu">aes</span>(<span class="at">x =</span> nutrient, <span class="at">y =</span> abundance)) <span class="sc">+</span></span>
+<span id="cb12-8"><a href="#cb12-8"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>) <span class="sc">+</span></span>
+<span id="cb12-9"><a href="#cb12-9"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb12-10"><a href="#cb12-10"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Nutrient concentration"</span>, <span class="at">y =</span> <span class="st">"Algal abundance"</span>) <span class="sc">+</span></span>
+<span id="cb12-11"><a href="#cb12-11"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb12-12"><a href="#cb12-12"></a></span>
+<span id="cb12-13"><a href="#cb12-13"></a><span class="fu">ggarrange</span>(p1, p2, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-confounding" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-confounding-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="14-collinearity-confounding-measurement-error_files/figure-html/fig-confounding-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: A confounding situation where nutrient concentration is associated with both temperature and abundance."><img src="14-collinearity-confounding-measurement-error_files/figure-html/fig-confounding-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-confounding-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: A confounding situation where nutrient concentration is associated with both temperature and abundance.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>The important point is the change in interpretation. Once nutrient is included, the estimated effect of temperature is re-evaluated while holding nutrient constant. If the temperature slope changes substantially, that is evidence that the original temperature-only model was at least partly confounded by nutrient concentration.</p>
+<p>This is why confounding is fundamentally a problem of attribution: we are trying to decide whether the apparent effect of one variable is actually partly due to another.</p>
+</section><section id="practical-implications-of-confounding" class="level2" data-number="6.3"><h2 data-number="6.3" class="anchored" data-anchor-id="practical-implications-of-confounding">
+<span class="header-section-number">6.3</span> Practical implications of confounding</h2>
+<p>Confounding often arises because:</p>
+<ul>
+<li>a variable of biological importance was omitted;</li>
+<li>the variable was measured but not included;</li>
+<li>the design did not separate the process of interest from another correlated process.</li>
+</ul>
+<p>The best remedy for confounding effects is to avoid it altogether through good subject knowledge, better experimental or sampling design, better measurement, and more careful model specification.</p>
+</section></section><section id="measurement-error" class="level1" data-number="7"><h1 data-number="7">
+<span class="header-section-number">7</span> Measurement Error</h1>
 <p>Standard linear regression assumes that predictors are measured without serious error. That assumption is rarely exactly true in field biology.</p>
-<p>When a predictor is noisy, its estimated effect is often biased towards zero. This is called <strong>attenuation bias</strong>. In practical terms, a real effect may appear weaker and less stable than it truly is.</p>
-<p>This matters because:</p>
+<p>When a predictor is noisy, its estimated effect is often biased towards zero. This is called <strong>attenuation bias</strong>. In practical terms, a real effect may appear weaker and less stable than it truly is. This matters because:</p>
 <ul>
 <li>field instruments are imperfect;</li>
 <li>environmental conditions fluctuate;</li>
 <li>biological measurements can be imprecise;</li>
 <li>some important variables are difficult or expensive to measure directly.</li>
-</ul></section><section id="proxy-variables" class="level1" data-number="6"><h1 data-number="6">
-<span class="header-section-number">6</span> Proxy Variables</h1>
+</ul>
+<section id="a-worked-measurement-error-example" class="level2" data-number="7.1"><h2 data-number="7.1" class="anchored" data-anchor-id="a-worked-measurement-error-example">
+<span class="header-section-number">7.1</span> A worked measurement-error example</h2>
+<p>Suppose a response truly depends on temperature, but our observed temperature values are noisy because of instrument error or sampling mismatch.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="fu">set.seed</span>(<span class="dv">414</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a></span>
+<span id="cb13-3"><a href="#cb13-3"></a>n <span class="ot">&lt;-</span> <span class="dv">150</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>true_temp <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="at">min =</span> <span class="dv">8</span>, <span class="at">max =</span> <span class="dv">24</span>)</span>
+<span id="cb13-5"><a href="#cb13-5"></a>observed_temp <span class="ot">&lt;-</span> true_temp <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">2.5</span>)</span>
+<span id="cb13-6"><a href="#cb13-6"></a>growth <span class="ot">&lt;-</span> <span class="fl">1.2</span> <span class="sc">+</span> <span class="fl">0.55</span> <span class="sc">*</span> true_temp <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">2.0</span>)</span>
+<span id="cb13-7"><a href="#cb13-7"></a></span>
+<span id="cb13-8"><a href="#cb13-8"></a>me_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb13-9"><a href="#cb13-9"></a>  <span class="at">true_temp =</span> true_temp,</span>
+<span id="cb13-10"><a href="#cb13-10"></a>  <span class="at">observed_temp =</span> observed_temp,</span>
+<span id="cb13-11"><a href="#cb13-11"></a>  <span class="at">growth =</span> growth</span>
+<span id="cb13-12"><a href="#cb13-12"></a>)</span>
+<span id="cb13-13"><a href="#cb13-13"></a></span>
+<span id="cb13-14"><a href="#cb13-14"></a>mod_true <span class="ot">&lt;-</span> <span class="fu">lm</span>(growth <span class="sc">~</span> true_temp, <span class="at">data =</span> me_dat)</span>
+<span id="cb13-15"><a href="#cb13-15"></a>mod_observed <span class="ot">&lt;-</span> <span class="fu">lm</span>(growth <span class="sc">~</span> observed_temp, <span class="at">data =</span> me_dat)</span>
+<span id="cb13-16"><a href="#cb13-16"></a></span>
+<span id="cb13-17"><a href="#cb13-17"></a><span class="fu">bind_rows</span>(</span>
+<span id="cb13-18"><a href="#cb13-18"></a>  <span class="fu">tidy</span>(mod_true) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"True predictor"</span>),</span>
+<span id="cb13-19"><a href="#cb13-19"></a>  <span class="fu">tidy</span>(mod_observed) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Observed noisy predictor"</span>)</span>
+<span id="cb13-20"><a href="#cb13-20"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb13-21"><a href="#cb13-21"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb13-22"><a href="#cb13-22"></a>  <span class="fu">select</span>(model, term, estimate, std.error, statistic, p.value)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 6
+  model                    term          estimate std.error statistic  p.value
+  &lt;chr&gt;                    &lt;chr&gt;            &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+1 True predictor           true_temp        0.558    0.0350      16.0 5.38e-34
+2 Observed noisy predictor observed_temp    0.501    0.0362      13.8 1.77e-28</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(me_dat, <span class="fu">aes</span>(<span class="at">x =</span> true_temp, <span class="at">y =</span> growth)) <span class="sc">+</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>) <span class="sc">+</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"True temperature"</span>, <span class="at">y =</span> <span class="st">"Growth"</span>) <span class="sc">+</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb15-6"><a href="#cb15-6"></a></span>
+<span id="cb15-7"><a href="#cb15-7"></a>p4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(me_dat, <span class="fu">aes</span>(<span class="at">x =</span> observed_temp, <span class="at">y =</span> growth)) <span class="sc">+</span></span>
+<span id="cb15-8"><a href="#cb15-8"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>) <span class="sc">+</span></span>
+<span id="cb15-9"><a href="#cb15-9"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb15-10"><a href="#cb15-10"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Observed temperature"</span>, <span class="at">y =</span> <span class="st">"Growth"</span>) <span class="sc">+</span></span>
+<span id="cb15-11"><a href="#cb15-11"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb15-12"><a href="#cb15-12"></a></span>
+<span id="cb15-13"><a href="#cb15-13"></a><span class="fu">ggarrange</span>(p3, p4, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-measurement-error" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-measurement-error-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="14-collinearity-confounding-measurement-error_files/figure-html/fig-measurement-error-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Measurement error weakens the apparent relationship between the predictor and the response."><img src="14-collinearity-confounding-measurement-error_files/figure-html/fig-measurement-error-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-measurement-error-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Measurement error weakens the apparent relationship between the predictor and the response.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>The model using the noisy predictor typically produces a weaker slope than the model using the true predictor. This is the practical effect of attenuation bias: measurement error can make a real effect appear smaller than it is.</p>
+<p>Measurement error therefore matters because it adds noise and because it can systematically weaken the estimated effect.</p>
+</section></section><section id="proxy-variables" class="level1" data-number="8"><h1 data-number="8">
+<span class="header-section-number">8</span> Proxy Variables</h1>
 <p>Many biological models use proxy variables because the true mechanistic variables are unavailable.</p>
 <p>Examples include:</p>
 <ul>
 <li>altitude as a proxy for temperature or radiation;</li>
 <li>distance from shore as a proxy for exposure;</li>
 <li>chlorophyll as a proxy for productivity;</li>
+<li>depth in the ocean as a proxy for light intensity;</li>
 <li>body size as a proxy for age or condition.</li>
 </ul>
-<p>Proxy variables are often reasonable, but they limit interpretation. A proxy coefficient should not be read as if it identified one clean mechanism.</p>
+<p>Proxy variables are often convenient, they may seem reasonable, and sometimes they are even unavoidable. However, they <em>do</em> create interpretive limits. A proxy coefficient should not be inprepreted as if it identified one clean mechanism.</p>
+<p>This is why the examples above matter. In the plant-growth example, altitude is a broad spatial proxy, while temperature is closer to the mechanism. In the nutrient example, nitrate and phosphate are both mechanistically meaningful but may still function as overlapping representations of nutrient supply. In both cases, interpretation depends on whether the question is explanatory or predictive.</p>
 <div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1289,31 +1590,46 @@ annMean  0.9711458 0.6860398 0.5533197 0.5851171 1.0000000</code></pre>
 <p>If the question is physiological, use physiological drivers where possible. If the question is broad-scale pattern, a proxy may be perfectly acceptable. The important thing is that the variable should match the scale and aim of the question.</p>
 </div>
 </div>
-</section><section id="a-practical-workflow" class="level1" data-number="7"><h1 data-number="7">
-<span class="header-section-number">7</span> A Practical Workflow</h1>
+</section><section id="a-practical-workflow" class="level1" data-number="9"><h1 data-number="9">
+<span class="header-section-number">9</span> A Practical Workflow</h1>
 <p>When building and interpreting a regression model:</p>
 <ol type="1">
 <li>state the biological hypothesis first;</li>
 <li>identify which predictors are mechanistic and which are proxies;</li>
 <li>ask which variables could confound the relationship of interest;</li>
-<li>inspect the predictor correlations and calculate VIF where appropriate;</li>
+<li>inspect predictor correlations and calculate VIF where appropriate;</li>
+<li>compare simpler and richer models when confounding is plausible;</li>
 <li>remove or combine redundant predictors when interpretation is the goal;</li>
 <li>be honest about causal limits when important variables are missing or poorly measured.</li>
-</ol></section><section id="summary" class="level1" data-number="8"><h1 data-number="8">
-<span class="header-section-number">8</span> Summary</h1>
+</ol>
+<section id="explanation-versus-prediction" class="level2" data-number="9.1"><h2 data-number="9.1" class="anchored" data-anchor-id="explanation-versus-prediction">
+<span class="header-section-number">9.1</span> Explanation versus prediction</h2>
+<p>This chapter also forces an important distinction that connects directly to the regularisation chapter that follows later in the sequence.</p>
+<ul>
+<li>If the main goal is <strong>explanation</strong>, then unstable coefficients, proxies, confounding, and overlap are serious problems because they weaken the biological interpretation.</li>
+<li>If the main goal is <strong>prediction</strong>, some overlap may be tolerable if predictive performance is strong, although the coefficients may still not support strong mechanistic claims.</li>
+</ul>
+<p>So the decision is not only “is there collinearity?” It is also “what is the model for?”</p>
+</section></section><section id="summary" class="level1" data-number="10"><h1 data-number="10">
+<span class="header-section-number">10</span> Summary</h1>
 <ul>
 <li>Collinearity makes coefficients unstable because predictors share information.</li>
 <li>Confounding is a problem of attribution rather than simple overlap.</li>
-<li>Measurement error weakens inference and can bias estimated effects.</li>
+<li>Measurement error weakens inference and can bias estimated effects, often towards zero.</li>
 <li>Proxy variables are often useful, but they limit what a coefficient can be said to mean.</li>
-<li>These problems are handled best through strong biological reasoning and careful design before model fitting.</li>
+<li>These problems are handled best through strong biological reasoning, careful design, and honest interpretation rather than by software alone.</li>
 </ul>
-<p>The next chapter turns from model construction to the question of whether a fitted model is actually behaving well: diagnostics, comparison, and evaluation.</p>
+<p>The next chapter goes from model construction to the question of whether a fitted model is actually behaving well: diagnostics, comparison, and evaluation.</p>
 
 
 <!-- -->
 
-</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit,_a._j.2026,
+
+</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-Graham2003" class="csl-entry" role="listitem">
+Graham MH (2003) <span class="nocase">Confronting multicollinearity in ecological multiple regression</span>. Ecology 84:2809–2815.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit,_a._j.2026,
   author = {Smit, A. J., and J. Smit, A.},
   title = {14. {Collinearity,} {Confounding,} and {Measurement} {Error}},
   date = {2026-03-19},
@@ -1792,209 +2108,445 @@ Measurement Error. <a href="http://tangledbank.netlify.app/BCB744/basic_stats/14
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1"></a><span class="co">---</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a><span class="an">title:</span><span class="co"> "14. Collinearity, Confounding, and Measurement Error"</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a><span class="an">subtitle:</span><span class="co"> "Three Threats to Interpretable Regression Models"</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
-<span id="cb5-5"><a href="#cb5-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
-<span id="cb5-6"><a href="#cb5-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
-<span id="cb5-7"><a href="#cb5-7"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
-<span id="cb5-8"><a href="#cb5-8"></a><span class="co">---</span></span>
-<span id="cb5-9"><a href="#cb5-9"></a></span>
-<span id="cb5-10"><a href="#cb5-10"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
-<span id="cb5-11"><a href="#cb5-11"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
-<span id="cb5-12"><a href="#cb5-12"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
-<span id="cb5-13"><a href="#cb5-13"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb5-14"><a href="#cb5-14"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb5-15"><a href="#cb5-15"></a>  <span class="at">fig.width =</span> <span class="fl">6.5</span>,</span>
-<span id="cb5-16"><a href="#cb5-16"></a>  <span class="at">fig.height =</span> <span class="fl">4.5</span>,</span>
-<span id="cb5-17"><a href="#cb5-17"></a>  <span class="at">out.width =</span> <span class="st">"88%"</span>,</span>
-<span id="cb5-18"><a href="#cb5-18"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
-<span id="cb5-19"><a href="#cb5-19"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
-<span id="cb5-20"><a href="#cb5-20"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
-<span id="cb5-21"><a href="#cb5-21"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
-<span id="cb5-22"><a href="#cb5-22"></a>)</span>
-<span id="cb5-23"><a href="#cb5-23"></a></span>
-<span id="cb5-24"><a href="#cb5-24"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
-<span id="cb5-25"><a href="#cb5-25"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
-<span id="cb5-26"><a href="#cb5-26"></a>)</span>
-<span id="cb5-27"><a href="#cb5-27"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
-<span id="cb5-28"><a href="#cb5-28"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
-<span id="cb5-29"><a href="#cb5-29"></a>)</span>
-<span id="cb5-30"><a href="#cb5-30"></a><span class="in">```</span></span>
-<span id="cb5-31"><a href="#cb5-31"></a></span>
-<span id="cb5-32"><a href="#cb5-32"></a><span class="in">```{r code-knitr-opts-chunk-set, echo=FALSE}</span></span>
-<span id="cb5-33"><a href="#cb5-33"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb5-34"><a href="#cb5-34"></a><span class="fu">library</span>(car)</span>
-<span id="cb5-35"><a href="#cb5-35"></a><span class="in">```</span></span>
-<span id="cb5-36"><a href="#cb5-36"></a></span>
-<span id="cb5-37"><a href="#cb5-37"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb5-38"><a href="#cb5-38"></a><span class="fu">## In This Chapter</span></span>
-<span id="cb5-39"><a href="#cb5-39"></a></span>
-<span id="cb5-40"><a href="#cb5-40"></a><span class="ss">-   </span>what collinearity is and why it matters;</span>
-<span id="cb5-41"><a href="#cb5-41"></a><span class="ss">-   </span>how confounding differs from collinearity;</span>
-<span id="cb5-42"><a href="#cb5-42"></a><span class="ss">-   </span>why measurement error weakens inference;</span>
-<span id="cb5-43"><a href="#cb5-43"></a><span class="ss">-   </span>how proxy variables complicate interpretation;</span>
-<span id="cb5-44"><a href="#cb5-44"></a><span class="ss">-   </span>what a practical response looks like when these problems appear.</span>
-<span id="cb5-45"><a href="#cb5-45"></a>:::</span>
-<span id="cb5-46"><a href="#cb5-46"></a></span>
-<span id="cb5-47"><a href="#cb5-47"></a>::: {.callout-important appearance="simple"}</span>
-<span id="cb5-48"><a href="#cb5-48"></a><span class="fu">## Tasks to Complete in This Chapter</span></span>
-<span id="cb5-49"><a href="#cb5-49"></a></span>
-<span id="cb5-50"><a href="#cb5-50"></a><span class="ss">-   </span>None</span>
-<span id="cb5-51"><a href="#cb5-51"></a>:::</span>
-<span id="cb5-52"><a href="#cb5-52"></a></span>
-<span id="cb5-53"><a href="#cb5-53"></a><span class="fu"># Introduction</span></span>
-<span id="cb5-54"><a href="#cb5-54"></a></span>
-<span id="cb5-55"><a href="#cb5-55"></a>Regression models are sometimes taught as though the difficult part is fitting the correct formula and reading the summary table. In practice, some of the hardest problems sit below that surface. Predictors may overlap strongly, causal roles may be confused, and the variables we fit may be noisy measurements or only rough proxies for the processes we care about.</span>
-<span id="cb5-56"><a href="#cb5-56"></a></span>
-<span id="cb5-57"><a href="#cb5-57"></a>This chapter brings together three closely related but distinct problems:</span>
-<span id="cb5-58"><a href="#cb5-58"></a></span>
-<span id="cb5-59"><a href="#cb5-59"></a><span class="ss">1. </span>**collinearity**, where predictors share too much information;</span>
-<span id="cb5-60"><a href="#cb5-60"></a><span class="ss">2. </span>**confounding**, where a third variable distorts interpretation; and</span>
-<span id="cb5-61"><a href="#cb5-61"></a><span class="ss">3. </span>**measurement error**, where the variables in the model are noisy versions of the quantities we would really like to observe.</span>
-<span id="cb5-62"><a href="#cb5-62"></a></span>
-<span id="cb5-63"><a href="#cb5-63"></a>All three problems matter because they threaten interpretation. A model may still run and produce a neat table of coefficients, but those coefficients may no longer mean what we would like them to mean.</span>
-<span id="cb5-64"><a href="#cb5-64"></a></span>
-<span id="cb5-65"><a href="#cb5-65"></a><span class="fu"># Key Concepts</span></span>
-<span id="cb5-66"><a href="#cb5-66"></a></span>
-<span id="cb5-67"><a href="#cb5-67"></a>Keep the following distinctions clear.</span>
-<span id="cb5-68"><a href="#cb5-68"></a></span>
-<span id="cb5-69"><a href="#cb5-69"></a><span class="ss">-   </span>**Collinearity** is overlap among predictors.</span>
-<span id="cb5-70"><a href="#cb5-70"></a><span class="ss">-   </span>**Confounding** is a problem of attribution, not merely correlation.</span>
-<span id="cb5-71"><a href="#cb5-71"></a><span class="ss">-   </span>**Measurement error** weakens and can bias estimated effects.</span>
-<span id="cb5-72"><a href="#cb5-72"></a><span class="ss">-   </span>**Proxy variables** are often useful but come with interpretive limits.</span>
-<span id="cb5-73"><a href="#cb5-73"></a><span class="ss">-   </span>**Good design and good variable choice** solve more of these problems than software does.</span>
-<span id="cb5-74"><a href="#cb5-74"></a></span>
-<span id="cb5-75"><a href="#cb5-75"></a><span class="fu"># Collinearity</span></span>
-<span id="cb5-76"><a href="#cb5-76"></a></span>
-<span id="cb5-77"><a href="#cb5-77"></a><span class="fu">## What it is</span></span>
-<span id="cb5-78"><a href="#cb5-78"></a></span>
-<span id="cb5-79"><a href="#cb5-79"></a>Collinearity occurs when two or more predictors are strongly correlated with one another. In ecology this is common because environmental variables often co-vary through shared physical processes.</span>
-<span id="cb5-80"><a href="#cb5-80"></a></span>
-<span id="cb5-81"><a href="#cb5-81"></a>Examples include:</span>
-<span id="cb5-82"><a href="#cb5-82"></a></span>
-<span id="cb5-83"><a href="#cb5-83"></a><span class="ss">-   </span>altitude and temperature;</span>
-<span id="cb5-84"><a href="#cb5-84"></a><span class="ss">-   </span>nitrate and phosphate;</span>
-<span id="cb5-85"><a href="#cb5-85"></a><span class="ss">-   </span>temperature and dissolved oxygen;</span>
-<span id="cb5-86"><a href="#cb5-86"></a><span class="ss">-   </span>rainfall and river flow.</span>
-<span id="cb5-87"><a href="#cb5-87"></a></span>
-<span id="cb5-88"><a href="#cb5-88"></a><span class="fu">## Why it is a problem</span></span>
-<span id="cb5-89"><a href="#cb5-89"></a></span>
-<span id="cb5-90"><a href="#cb5-90"></a>Collinearity is mainly a problem of interpretation. A model can still fit the response well while the individual coefficients become:</span>
-<span id="cb5-91"><a href="#cb5-91"></a></span>
-<span id="cb5-92"><a href="#cb5-92"></a><span class="ss">-   </span>unstable;</span>
-<span id="cb5-93"><a href="#cb5-93"></a><span class="ss">-   </span>imprecise;</span>
-<span id="cb5-94"><a href="#cb5-94"></a><span class="ss">-   </span>assigned the wrong sign;</span>
-<span id="cb5-95"><a href="#cb5-95"></a><span class="ss">-   </span>difficult to interpret biologically.</span>
-<span id="cb5-96"><a href="#cb5-96"></a></span>
-<span id="cb5-97"><a href="#cb5-97"></a>The model struggles to partition shared explanatory information among overlapping predictors.</span>
-<span id="cb5-98"><a href="#cb5-98"></a></span>
-<span id="cb5-99"><a href="#cb5-99"></a><span class="fu">## A worked collinearity check</span></span>
-<span id="cb5-100"><a href="#cb5-100"></a></span>
-<span id="cb5-101"><a href="#cb5-101"></a>Using the seaweed example from the previous chapter, we can inspect the candidate climate predictors for overlap.</span>
-<span id="cb5-102"><a href="#cb5-102"></a></span>
-<span id="cb5-103"><a href="#cb5-103"></a><span class="in">```{r code-collinearity-data}</span></span>
-<span id="cb5-104"><a href="#cb5-104"></a>sw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"../../data/BCB743/seaweed/spp_df2.csv"</span>)</span>
-<span id="cb5-105"><a href="#cb5-105"></a>sw_ectz <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
-<span id="cb5-106"><a href="#cb5-106"></a>  <span class="fu">filter</span>(bio <span class="sc">==</span> <span class="st">"ECTZ"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-107"><a href="#cb5-107"></a>  <span class="fu">select</span>(Y, augMean, febRange, febSD, augSD, annMean)</span>
-<span id="cb5-108"><a href="#cb5-108"></a></span>
-<span id="cb5-109"><a href="#cb5-109"></a><span class="fu">cor</span>(sw_ectz[, <span class="sc">-</span><span class="dv">1</span>])</span>
-<span id="cb5-110"><a href="#cb5-110"></a><span class="in">```</span></span>
-<span id="cb5-111"><a href="#cb5-111"></a></span>
-<span id="cb5-112"><a href="#cb5-112"></a><span class="in">```{r code-collinearity-vif}</span></span>
-<span id="cb5-113"><a href="#cb5-113"></a>col_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> augMean <span class="sc">+</span> febRange <span class="sc">+</span> febSD <span class="sc">+</span> augSD <span class="sc">+</span> annMean,</span>
-<span id="cb5-114"><a href="#cb5-114"></a>              <span class="at">data =</span> sw_ectz)</span>
-<span id="cb5-115"><a href="#cb5-115"></a></span>
-<span id="cb5-116"><a href="#cb5-116"></a><span class="fu">vif</span>(col_mod)</span>
-<span id="cb5-117"><a href="#cb5-117"></a><span class="in">```</span></span>
-<span id="cb5-118"><a href="#cb5-118"></a></span>
-<span id="cb5-119"><a href="#cb5-119"></a>The VIF values show that some predictors overlap strongly. This does not mean the model is mathematically invalid, but it does mean that the separate interpretation of those coefficients becomes hard to defend.</span>
-<span id="cb5-120"><a href="#cb5-120"></a></span>
-<span id="cb5-121"><a href="#cb5-121"></a><span class="fu">## Responding to collinearity</span></span>
-<span id="cb5-122"><a href="#cb5-122"></a></span>
-<span id="cb5-123"><a href="#cb5-123"></a>Possible responses include:</span>
-<span id="cb5-124"><a href="#cb5-124"></a></span>
-<span id="cb5-125"><a href="#cb5-125"></a><span class="ss">-   </span>removing a redundant predictor;</span>
-<span id="cb5-126"><a href="#cb5-126"></a><span class="ss">-   </span>choosing one variable over another based on biological reasoning;</span>
-<span id="cb5-127"><a href="#cb5-127"></a><span class="ss">-   </span>combining correlated predictors into an index or ordination axis;</span>
-<span id="cb5-128"><a href="#cb5-128"></a><span class="ss">-   </span>accepting some overlap if prediction is the main goal but avoiding causal over-interpretation.</span>
-<span id="cb5-129"><a href="#cb5-129"></a></span>
-<span id="cb5-130"><a href="#cb5-130"></a>There is no magical threshold that solves the problem automatically. The question is whether the overlap is small enough that the coefficients still mean something defensible.</span>
-<span id="cb5-131"><a href="#cb5-131"></a></span>
-<span id="cb5-132"><a href="#cb5-132"></a><span class="fu"># Confounding</span></span>
-<span id="cb5-133"><a href="#cb5-133"></a></span>
-<span id="cb5-134"><a href="#cb5-134"></a>Confounding is a different problem. It is not simply that two predictors overlap. It is that a third variable distorts the apparent relationship between a predictor of interest and the response.</span>
-<span id="cb5-135"><a href="#cb5-135"></a></span>
-<span id="cb5-136"><a href="#cb5-136"></a>A confounder is a variable that influences both:</span>
-<span id="cb5-137"><a href="#cb5-137"></a></span>
-<span id="cb5-138"><a href="#cb5-138"></a><span class="ss">-   </span>the predictor of interest; and</span>
-<span id="cb5-139"><a href="#cb5-139"></a><span class="ss">-   </span>the response.</span>
-<span id="cb5-140"><a href="#cb5-140"></a></span>
-<span id="cb5-141"><a href="#cb5-141"></a>This can create a spurious association or distort a real one. For example, if you relate abundance to temperature but nutrient supply is associated with both temperature and abundance, the temperature coefficient may partly absorb nutrient effects.</span>
-<span id="cb5-142"><a href="#cb5-142"></a></span>
-<span id="cb5-143"><a href="#cb5-143"></a><span class="fu">## Confounding is not the same as collinearity</span></span>
-<span id="cb5-144"><a href="#cb5-144"></a></span>
-<span id="cb5-145"><a href="#cb5-145"></a>These ideas are related but not identical.</span>
-<span id="cb5-146"><a href="#cb5-146"></a></span>
-<span id="cb5-147"><a href="#cb5-147"></a><span class="ss">-   </span>**Collinearity** is about overlap among predictors in the data.</span>
-<span id="cb5-148"><a href="#cb5-148"></a><span class="ss">-   </span>**Confounding** is about mistaken attribution of an effect.</span>
-<span id="cb5-149"><a href="#cb5-149"></a></span>
-<span id="cb5-150"><a href="#cb5-150"></a>Two variables can be highly collinear without one being a confounder. Equally, a confounder can matter even when the correlation structure does not look especially dramatic.</span>
-<span id="cb5-151"><a href="#cb5-151"></a></span>
-<span id="cb5-152"><a href="#cb5-152"></a><span class="fu"># Measurement Error</span></span>
-<span id="cb5-153"><a href="#cb5-153"></a></span>
-<span id="cb5-154"><a href="#cb5-154"></a>Standard linear regression assumes that predictors are measured without serious error. That assumption is rarely exactly true in field biology.</span>
-<span id="cb5-155"><a href="#cb5-155"></a></span>
-<span id="cb5-156"><a href="#cb5-156"></a>When a predictor is noisy, its estimated effect is often biased towards zero. This is called **attenuation bias**. In practical terms, a real effect may appear weaker and less stable than it truly is.</span>
-<span id="cb5-157"><a href="#cb5-157"></a></span>
-<span id="cb5-158"><a href="#cb5-158"></a>This matters because:</span>
-<span id="cb5-159"><a href="#cb5-159"></a></span>
-<span id="cb5-160"><a href="#cb5-160"></a><span class="ss">-   </span>field instruments are imperfect;</span>
-<span id="cb5-161"><a href="#cb5-161"></a><span class="ss">-   </span>environmental conditions fluctuate;</span>
-<span id="cb5-162"><a href="#cb5-162"></a><span class="ss">-   </span>biological measurements can be imprecise;</span>
-<span id="cb5-163"><a href="#cb5-163"></a><span class="ss">-   </span>some important variables are difficult or expensive to measure directly.</span>
-<span id="cb5-164"><a href="#cb5-164"></a></span>
-<span id="cb5-165"><a href="#cb5-165"></a><span class="fu"># Proxy Variables</span></span>
-<span id="cb5-166"><a href="#cb5-166"></a></span>
-<span id="cb5-167"><a href="#cb5-167"></a>Many biological models use proxy variables because the true mechanistic variables are unavailable.</span>
-<span id="cb5-168"><a href="#cb5-168"></a></span>
-<span id="cb5-169"><a href="#cb5-169"></a>Examples include:</span>
-<span id="cb5-170"><a href="#cb5-170"></a></span>
-<span id="cb5-171"><a href="#cb5-171"></a><span class="ss">-   </span>altitude as a proxy for temperature or radiation;</span>
-<span id="cb5-172"><a href="#cb5-172"></a><span class="ss">-   </span>distance from shore as a proxy for exposure;</span>
-<span id="cb5-173"><a href="#cb5-173"></a><span class="ss">-   </span>chlorophyll as a proxy for productivity;</span>
-<span id="cb5-174"><a href="#cb5-174"></a><span class="ss">-   </span>body size as a proxy for age or condition.</span>
-<span id="cb5-175"><a href="#cb5-175"></a></span>
-<span id="cb5-176"><a href="#cb5-176"></a>Proxy variables are often reasonable, but they limit interpretation. A proxy coefficient should not be read as if it identified one clean mechanism.</span>
-<span id="cb5-177"><a href="#cb5-177"></a></span>
-<span id="cb5-178"><a href="#cb5-178"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb5-179"><a href="#cb5-179"></a><span class="fu">## Mechanism Versus Proxy</span></span>
-<span id="cb5-180"><a href="#cb5-180"></a></span>
-<span id="cb5-181"><a href="#cb5-181"></a>If the question is physiological, use physiological drivers where possible. If the question is broad-scale pattern, a proxy may be perfectly acceptable. The important thing is that the variable should match the scale and aim of the question.</span>
-<span id="cb5-182"><a href="#cb5-182"></a>:::</span>
-<span id="cb5-183"><a href="#cb5-183"></a></span>
-<span id="cb5-184"><a href="#cb5-184"></a><span class="fu"># A Practical Workflow</span></span>
-<span id="cb5-185"><a href="#cb5-185"></a></span>
-<span id="cb5-186"><a href="#cb5-186"></a>When building and interpreting a regression model:</span>
-<span id="cb5-187"><a href="#cb5-187"></a></span>
-<span id="cb5-188"><a href="#cb5-188"></a><span class="ss">1. </span>state the biological hypothesis first;</span>
-<span id="cb5-189"><a href="#cb5-189"></a><span class="ss">2. </span>identify which predictors are mechanistic and which are proxies;</span>
-<span id="cb5-190"><a href="#cb5-190"></a><span class="ss">3. </span>ask which variables could confound the relationship of interest;</span>
-<span id="cb5-191"><a href="#cb5-191"></a><span class="ss">4. </span>inspect the predictor correlations and calculate VIF where appropriate;</span>
-<span id="cb5-192"><a href="#cb5-192"></a><span class="ss">5. </span>remove or combine redundant predictors when interpretation is the goal;</span>
-<span id="cb5-193"><a href="#cb5-193"></a><span class="ss">6. </span>be honest about causal limits when important variables are missing or poorly measured.</span>
-<span id="cb5-194"><a href="#cb5-194"></a></span>
-<span id="cb5-195"><a href="#cb5-195"></a><span class="fu"># Summary</span></span>
-<span id="cb5-196"><a href="#cb5-196"></a></span>
-<span id="cb5-197"><a href="#cb5-197"></a><span class="ss">-   </span>Collinearity makes coefficients unstable because predictors share information.</span>
-<span id="cb5-198"><a href="#cb5-198"></a><span class="ss">-   </span>Confounding is a problem of attribution rather than simple overlap.</span>
-<span id="cb5-199"><a href="#cb5-199"></a><span class="ss">-   </span>Measurement error weakens inference and can bias estimated effects.</span>
-<span id="cb5-200"><a href="#cb5-200"></a><span class="ss">-   </span>Proxy variables are often useful, but they limit what a coefficient can be said to mean.</span>
-<span id="cb5-201"><a href="#cb5-201"></a><span class="ss">-   </span>These problems are handled best through strong biological reasoning and careful design before model fitting.</span>
-<span id="cb5-202"><a href="#cb5-202"></a></span>
-<span id="cb5-203"><a href="#cb5-203"></a>The next chapter turns from model construction to the question of whether a fitted model is actually behaving well: diagnostics, comparison, and evaluation.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">---</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="an">title:</span><span class="co"> "14. Collinearity, Confounding, and Measurement Error"</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="an">subtitle:</span><span class="co"> "Three Threats to Interpretable Regression Models"</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a><span class="co">---</span></span>
+<span id="cb16-9"><a href="#cb16-9"></a></span>
+<span id="cb16-10"><a href="#cb16-10"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
+<span id="cb16-11"><a href="#cb16-11"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb16-12"><a href="#cb16-12"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
+<span id="cb16-13"><a href="#cb16-13"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb16-14"><a href="#cb16-14"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb16-15"><a href="#cb16-15"></a>  <span class="at">fig.width =</span> <span class="fl">6.5</span>,</span>
+<span id="cb16-16"><a href="#cb16-16"></a>  <span class="at">fig.height =</span> <span class="fl">4.5</span>,</span>
+<span id="cb16-17"><a href="#cb16-17"></a>  <span class="at">out.width =</span> <span class="st">"88%"</span>,</span>
+<span id="cb16-18"><a href="#cb16-18"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
+<span id="cb16-19"><a href="#cb16-19"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
+<span id="cb16-20"><a href="#cb16-20"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
+<span id="cb16-21"><a href="#cb16-21"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb16-22"><a href="#cb16-22"></a>)</span>
+<span id="cb16-23"><a href="#cb16-23"></a></span>
+<span id="cb16-24"><a href="#cb16-24"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb16-25"><a href="#cb16-25"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb16-26"><a href="#cb16-26"></a>)</span>
+<span id="cb16-27"><a href="#cb16-27"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb16-28"><a href="#cb16-28"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb16-29"><a href="#cb16-29"></a>)</span>
+<span id="cb16-30"><a href="#cb16-30"></a><span class="in">```</span></span>
+<span id="cb16-31"><a href="#cb16-31"></a></span>
+<span id="cb16-32"><a href="#cb16-32"></a><span class="in">```{r code-knitr-opts-chunk-set, echo=FALSE}</span></span>
+<span id="cb16-33"><a href="#cb16-33"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb16-34"><a href="#cb16-34"></a><span class="fu">library</span>(car)</span>
+<span id="cb16-35"><a href="#cb16-35"></a><span class="fu">library</span>(broom)</span>
+<span id="cb16-36"><a href="#cb16-36"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb16-37"><a href="#cb16-37"></a><span class="in">```</span></span>
+<span id="cb16-38"><a href="#cb16-38"></a></span>
+<span id="cb16-39"><a href="#cb16-39"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb16-40"><a href="#cb16-40"></a><span class="fu">## In This Chapter</span></span>
+<span id="cb16-41"><a href="#cb16-41"></a></span>
+<span id="cb16-42"><a href="#cb16-42"></a><span class="ss">-   </span>what collinearity is and why it matters;</span>
+<span id="cb16-43"><a href="#cb16-43"></a><span class="ss">-   </span>how confounding differs from collinearity;</span>
+<span id="cb16-44"><a href="#cb16-44"></a><span class="ss">-   </span>why measurement error weakens inference;</span>
+<span id="cb16-45"><a href="#cb16-45"></a><span class="ss">-   </span>how proxy variables complicate interpretation;</span>
+<span id="cb16-46"><a href="#cb16-46"></a><span class="ss">-   </span>what a practical response looks like when these problems appear.</span>
+<span id="cb16-47"><a href="#cb16-47"></a>:::</span>
+<span id="cb16-48"><a href="#cb16-48"></a></span>
+<span id="cb16-49"><a href="#cb16-49"></a>::: {.callout-important appearance="simple"}</span>
+<span id="cb16-50"><a href="#cb16-50"></a><span class="fu">## Tasks to Complete in This Chapter</span></span>
+<span id="cb16-51"><a href="#cb16-51"></a></span>
+<span id="cb16-52"><a href="#cb16-52"></a><span class="ss">-   </span>None</span>
+<span id="cb16-53"><a href="#cb16-53"></a>:::</span>
+<span id="cb16-54"><a href="#cb16-54"></a></span>
+<span id="cb16-55"><a href="#cb16-55"></a><span class="fu"># Introduction</span></span>
+<span id="cb16-56"><a href="#cb16-56"></a></span>
+<span id="cb16-57"><a href="#cb16-57"></a>Regression models are often taught as though the difficult part is fitting the correct formula and reading the summary table. In practice, some of the hardest come afterwards. Predictors may overlap strongly, causal roles may be confused, and the variables we fit may be noisy measurements or only rough proxies for the processes we care about.</span>
+<span id="cb16-58"><a href="#cb16-58"></a></span>
+<span id="cb16-59"><a href="#cb16-59"></a>This chapter brings together three closely related but distinct problems:</span>
+<span id="cb16-60"><a href="#cb16-60"></a></span>
+<span id="cb16-61"><a href="#cb16-61"></a><span class="ss">1. </span>**collinearity**, where predictors share too much information;</span>
+<span id="cb16-62"><a href="#cb16-62"></a><span class="ss">2. </span>**confounding**, where a third variable distorts interpretation; and</span>
+<span id="cb16-63"><a href="#cb16-63"></a><span class="ss">3. </span>**measurement error**, where the variables in the model are noisy versions of the quantities we would really like to observe.</span>
+<span id="cb16-64"><a href="#cb16-64"></a></span>
+<span id="cb16-65"><a href="#cb16-65"></a>All three problems matter because they erode interpretation. A model may still run and produce seemingly believable coefficients, but those coefficients may no longer mean what we would like them to mean.</span>
+<span id="cb16-66"><a href="#cb16-66"></a></span>
+<span id="cb16-67"><a href="#cb16-67"></a>In multiple regression and other multivariate models, we generally hope that the predictor variables provide distinct information. When they do not, our models can become unstable and difficult to interpret. This issue, known as **collinearity** or **multicollinearity**, is a common challenge in biological research, where environmental variables are often highly correlated. It is especially common in ecology because many environmental variables are linked through shared physical and biological processes. Temperature, oxygen, and productivity, for example, often co-vary.</span>
+<span id="cb16-68"><a href="#cb16-68"></a></span>
+<span id="cb16-69"><a href="#cb16-69"></a>This chapter explains what collinearity is, why it is problematic, and how to diagnose and address it. It also explains why collinearity is not the same as confounding, and why measurement error and proxy variables create further limitations even when the fitted model looks statistically sound. While no single paper is as singularly famous here as Hurlbert's work on pseudoreplication, a foundational and highly recommended review of multicollinearity is that of Graham -@Graham2003.</span>
+<span id="cb16-70"><a href="#cb16-70"></a></span>
+<span id="cb16-71"><a href="#cb16-71"></a><span class="fu"># Key Concepts</span></span>
+<span id="cb16-72"><a href="#cb16-72"></a></span>
+<span id="cb16-73"><a href="#cb16-73"></a>Keep the following distinctions clear.</span>
+<span id="cb16-74"><a href="#cb16-74"></a></span>
+<span id="cb16-75"><a href="#cb16-75"></a><span class="ss">-   </span>**Collinearity / Multicollinearity** is a condition in multiple regression where two or more predictor variables are highly correlated, making it difficult for the model to separate their individual effects.</span>
+<span id="cb16-76"><a href="#cb16-76"></a><span class="ss">-   </span>**Problem of interpretation, not prediction** The main drawback of collinearity is that it makes the model's coefficients unreliable and difficult to interpret, even when the model predicts the outcome well.</span>
+<span id="cb16-77"><a href="#cb16-77"></a><span class="ss">-   </span>**Variance Inflation Factor (VIF)** is the standard diagnostic tool for detecting multicollinearity. A high VIF indicates that the variance of a coefficient is being inflated by overlap with other predictors.</span>
+<span id="cb16-78"><a href="#cb16-78"></a><span class="ss">-   </span>**Confounding**, on the other hand, is a problem of attribution.</span>
+<span id="cb16-79"><a href="#cb16-79"></a><span class="ss">-   </span>**Measurement error** weakens inference and can bias estimated effects, often towards zero.</span>
+<span id="cb16-80"><a href="#cb16-80"></a><span class="ss">-   </span>**Proxy variables** can be very useful, but they come with interpretive limits.</span>
+<span id="cb16-81"><a href="#cb16-81"></a><span class="ss">-   </span>**Good design and good variable choice** solve more of these problems than software does.</span>
+<span id="cb16-82"><a href="#cb16-82"></a></span>
+<span id="cb16-83"><a href="#cb16-83"></a><span class="fu"># Why These Problems Matter</span></span>
+<span id="cb16-84"><a href="#cb16-84"></a></span>
+<span id="cb16-85"><a href="#cb16-85"></a>It is useful to state the broader issue clearly. In the regression chapters so far, we have assumed that the predictors in a model can be interpreted as though each one contributes something identifiable to the response. But, that assumption is often too optimistic since several things can go wrong:</span>
+<span id="cb16-86"><a href="#cb16-86"></a></span>
+<span id="cb16-87"><a href="#cb16-87"></a><span class="ss">-   </span>Two predictors may describe almost the same underlying process.</span>
+<span id="cb16-88"><a href="#cb16-88"></a><span class="ss">-   </span>A variable may appear important only because another, unmeasured variable has been omitted.</span>
+<span id="cb16-89"><a href="#cb16-89"></a><span class="ss">-   </span>A predictor may be measured with enough error that its effect is weakened and unstable.</span>
+<span id="cb16-90"><a href="#cb16-90"></a><span class="ss">-   </span>A fitted coefficient may describe a proxy rather than a mechanism.</span>
+<span id="cb16-91"><a href="#cb16-91"></a></span>
+<span id="cb16-92"><a href="#cb16-92"></a>These affect what the model allows us to say biologically.</span>
+<span id="cb16-93"><a href="#cb16-93"></a></span>
+<span id="cb16-94"><a href="#cb16-94"></a><span class="fu"># R Functions</span></span>
+<span id="cb16-95"><a href="#cb16-95"></a></span>
+<span id="cb16-96"><a href="#cb16-96"></a>The most useful functions in this chapter are:</span>
+<span id="cb16-97"><a href="#cb16-97"></a></span>
+<span id="cb16-98"><a href="#cb16-98"></a><span class="ss">-   </span><span class="in">`cor()`</span> and plots of predictor relationships for identifying overlap;</span>
+<span id="cb16-99"><a href="#cb16-99"></a><span class="ss">-   </span><span class="in">`car::vif()`</span> for diagnosing collinearity in a fitted model;</span>
+<span id="cb16-100"><a href="#cb16-100"></a><span class="ss">-   </span><span class="in">`lm()`</span> for comparing models that omit or include potentially confounding variables;</span>
+<span id="cb16-101"><a href="#cb16-101"></a><span class="ss">-   </span><span class="in">`broom::tidy()`</span> for comparing coefficients across models.</span>
+<span id="cb16-102"><a href="#cb16-102"></a></span>
+<span id="cb16-103"><a href="#cb16-103"></a><span class="fu"># Collinearity</span></span>
+<span id="cb16-104"><a href="#cb16-104"></a></span>
+<span id="cb16-105"><a href="#cb16-105"></a><span class="fu">## What is collinearity?</span></span>
+<span id="cb16-106"><a href="#cb16-106"></a></span>
+<span id="cb16-107"><a href="#cb16-107"></a>**Collinearity** occurs when two predictor variables in a multiple regression model are highly correlated. **Multicollinearity** is the more general term, referring to a situation where one predictor variable can be linearly predicted from one or more of the other predictor variables with a substantial degree of accuracy.</span>
+<span id="cb16-108"><a href="#cb16-108"></a></span>
+<span id="cb16-109"><a href="#cb16-109"></a>For example, in a marine environment, you might measure water temperature, salinity, and dissolved oxygen. It is very likely that temperature and dissolved oxygen are strongly negatively correlated, because colder water holds more oxygen. If you include both in a model to predict the abundance of a fish species, the predictors share information, which introduces multicollinearity.</span>
+<span id="cb16-110"><a href="#cb16-110"></a></span>
+<span id="cb16-111"><a href="#cb16-111"></a>In ecology and environmental biology, this is common because many variables co-vary through shared physical or biological processes. Examples include:</span>
+<span id="cb16-112"><a href="#cb16-112"></a></span>
+<span id="cb16-113"><a href="#cb16-113"></a><span class="ss">-   </span>altitude and temperature;</span>
+<span id="cb16-114"><a href="#cb16-114"></a><span class="ss">-   </span>nitrate and phosphate;</span>
+<span id="cb16-115"><a href="#cb16-115"></a><span class="ss">-   </span>temperature and dissolved oxygen;</span>
+<span id="cb16-116"><a href="#cb16-116"></a><span class="ss">-   </span>rainfall and river flow.</span>
+<span id="cb16-117"><a href="#cb16-117"></a></span>
+<span id="cb16-118"><a href="#cb16-118"></a><span class="fu">## Why is it a problem?</span></span>
+<span id="cb16-119"><a href="#cb16-119"></a></span>
+<span id="cb16-120"><a href="#cb16-120"></a>Unlike pseudoreplication, collinearity does not necessarily invalidate the entire model in terms of its predictive power. A model with collinear predictors may still produce good predictions. However, it severely compromises the **interpretation** of the model's coefficients. The primary problems are:</span>
+<span id="cb16-121"><a href="#cb16-121"></a></span>
+<span id="cb16-122"><a href="#cb16-122"></a><span class="ss">1. </span>**Unstable coefficient estimates** The estimated regression coefficients can vary wildly depending on which other variables are in the model. The standard errors of the coefficients become inflated, making it difficult to determine the true effect of each predictor.</span>
+<span id="cb16-123"><a href="#cb16-123"></a><span class="ss">2. </span>**Incorrect signs** A coefficient might appear to have the "wrong" sign, such as a positive effect where a negative one is expected biologically. This happens because the model is trying to partition shared variation between correlated predictors, and the results can become nonsensical.</span>
+<span id="cb16-124"><a href="#cb16-124"></a><span class="ss">3. </span>**Loss of statistical significance** Because the standard errors are inflated, a predictor that is truly important may appear statistically non-significant. The model cannot confidently attribute the effect to any single one of the correlated predictors.</span>
+<span id="cb16-125"><a href="#cb16-125"></a></span>
+<span id="cb16-126"><a href="#cb16-126"></a>These effects arise because the model must estimate multiple coefficients from overlapping information. When two predictors are strongly correlated, the model cannot cleanly separate their individual contributions because they explain the same variation in the response.</span>
+<span id="cb16-127"><a href="#cb16-127"></a></span>
+<span id="cb16-128"><a href="#cb16-128"></a>So, the central message is that collinearity is usually a **problem of interpretation rather than raw prediction**.</span>
+<span id="cb16-129"><a href="#cb16-129"></a></span>
+<span id="cb16-130"><a href="#cb16-130"></a><span class="fu">## Example 1: Predicting plant growth</span></span>
+<span id="cb16-131"><a href="#cb16-131"></a></span>
+<span id="cb16-132"><a href="#cb16-132"></a>Suppose you model plant growth using:</span>
+<span id="cb16-133"><a href="#cb16-133"></a></span>
+<span id="cb16-134"><a href="#cb16-134"></a><span class="ss">-   </span><span class="in">`mean_annual_temperature`</span>, a mechanistic driver of metabolic rates; and</span>
+<span id="cb16-135"><a href="#cb16-135"></a><span class="ss">-   </span><span class="in">`altitude`</span>, a composite variable that correlates with temperature, oxygen, and radiation.</span>
+<span id="cb16-136"><a href="#cb16-136"></a></span>
+<span id="cb16-137"><a href="#cb16-137"></a>These variables are strongly correlated because altitude influences temperature. The model then attempts to assign separate effects to two variables that describe overlapping processes. As a result:</span>
+<span id="cb16-138"><a href="#cb16-138"></a></span>
+<span id="cb16-139"><a href="#cb16-139"></a><span class="ss">-   </span>coefficients become unstable;</span>
+<span id="cb16-140"><a href="#cb16-140"></a><span class="ss">-   </span>standard errors increase;</span>
+<span id="cb16-141"><a href="#cb16-141"></a><span class="ss">-   </span>biological interpretation becomes unclear.</span>
+<span id="cb16-142"><a href="#cb16-142"></a></span>
+<span id="cb16-143"><a href="#cb16-143"></a>Altitude is acting as a **proxy variable**. It is easy to measure but does not represent a single causal mechanism. Including both altitude and temperature asks the model to separate a proxy from the process it represents, which it often cannot do reliably.</span>
+<span id="cb16-144"><a href="#cb16-144"></a></span>
+<span id="cb16-145"><a href="#cb16-145"></a>Better modelling choices would include:</span>
+<span id="cb16-146"><a href="#cb16-146"></a></span>
+<span id="cb16-147"><a href="#cb16-147"></a><span class="ss">-   </span>using temperature if the hypothesis concerns physiology;</span>
+<span id="cb16-148"><a href="#cb16-148"></a><span class="ss">-   </span>using altitude if the question concerns broad spatial gradients;</span>
+<span id="cb16-149"><a href="#cb16-149"></a><span class="ss">-   </span>avoiding both in the same model unless their distinct roles are explicitly justified.</span>
+<span id="cb16-150"><a href="#cb16-150"></a></span>
+<span id="cb16-151"><a href="#cb16-151"></a><span class="fu">## Example 2: Nutrient limitation in coastal systems</span></span>
+<span id="cb16-152"><a href="#cb16-152"></a></span>
+<span id="cb16-153"><a href="#cb16-153"></a>Suppose you model phytoplankton biomass using:</span>
+<span id="cb16-154"><a href="#cb16-154"></a></span>
+<span id="cb16-155"><a href="#cb16-155"></a><span class="ss">-   </span>nitrate; and</span>
+<span id="cb16-156"><a href="#cb16-156"></a><span class="ss">-   </span>phosphate.</span>
+<span id="cb16-157"><a href="#cb16-157"></a></span>
+<span id="cb16-158"><a href="#cb16-158"></a>These nutrients often co-vary because they are supplied by the same water masses. The outcome may be that:</span>
+<span id="cb16-159"><a href="#cb16-159"></a></span>
+<span id="cb16-160"><a href="#cb16-160"></a><span class="ss">-   </span>the model fits well overall;</span>
+<span id="cb16-161"><a href="#cb16-161"></a><span class="ss">-   </span>individual coefficients are unstable or non-significant.</span>
+<span id="cb16-162"><a href="#cb16-162"></a></span>
+<span id="cb16-163"><a href="#cb16-163"></a>The model cannot separate the effect of nitrate from phosphate because both track the same underlying process: nutrient supply.</span>
+<span id="cb16-164"><a href="#cb16-164"></a></span>
+<span id="cb16-165"><a href="#cb16-165"></a>Possible resolutions include:</span>
+<span id="cb16-166"><a href="#cb16-166"></a></span>
+<span id="cb16-167"><a href="#cb16-167"></a><span class="ss">-   </span>using one nutrient based on ecological theory, for example the limiting nutrient;</span>
+<span id="cb16-168"><a href="#cb16-168"></a><span class="ss">-   </span>using a ratio such as N:P if the hypothesis concerns stoichiometry;</span>
+<span id="cb16-169"><a href="#cb16-169"></a><span class="ss">-   </span>using PCA or another dimension-reduction method to represent a broader "nutrient gradient" if prediction is the main goal.</span>
+<span id="cb16-170"><a href="#cb16-170"></a></span>
+<span id="cb16-171"><a href="#cb16-171"></a>This example shows that collinearity can arise even when all the variables are mechanistically meaningful. The decision is therefore about how to handle collinearity *and* whether the goal is explanation or prediction.</span>
+<span id="cb16-172"><a href="#cb16-172"></a></span>
+<span id="cb16-173"><a href="#cb16-173"></a><span class="fu">## Diagnosing collinearity</span></span>
+<span id="cb16-174"><a href="#cb16-174"></a></span>
+<span id="cb16-175"><a href="#cb16-175"></a>The most common way to diagnose multicollinearity is by calculating the **Variance Inflation Factor (VIF)** for each predictor variable.</span>
+<span id="cb16-176"><a href="#cb16-176"></a></span>
+<span id="cb16-177"><a href="#cb16-177"></a><span class="ss">-   </span>A VIF of 1 means there is no correlation.</span>
+<span id="cb16-178"><a href="#cb16-178"></a><span class="ss">-   </span>A VIF between about 1 and 5 is often manageable.</span>
+<span id="cb16-179"><a href="#cb16-179"></a><span class="ss">-   </span>A VIF above about 5 or 10 suggests substantial multicollinearity that should be considered carefully.</span>
+<span id="cb16-180"><a href="#cb16-180"></a></span>
+<span id="cb16-181"><a href="#cb16-181"></a>VIF does not diagnose a problem on its own. It indicates that a coefficient reflects shared variation with other predictors. The decision to act depends on whether the model needs interpretable coefficients.</span>
+<span id="cb16-182"><a href="#cb16-182"></a></span>
+<span id="cb16-183"><a href="#cb16-183"></a><span class="fu">## A worked collinearity example</span></span>
+<span id="cb16-184"><a href="#cb16-184"></a></span>
+<span id="cb16-185"><a href="#cb16-185"></a>Using the seaweed example from the previous chapter, we can inspect the candidate climate predictors for overlap.</span>
+<span id="cb16-186"><a href="#cb16-186"></a></span>
+<span id="cb16-187"><a href="#cb16-187"></a><span class="in">```{r code-collinearity-data}</span></span>
+<span id="cb16-188"><a href="#cb16-188"></a>sw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"../../data/BCB743/seaweed/spp_df2.csv"</span>)</span>
+<span id="cb16-189"><a href="#cb16-189"></a>sw_ectz <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
+<span id="cb16-190"><a href="#cb16-190"></a>  <span class="fu">filter</span>(bio <span class="sc">==</span> <span class="st">"ECTZ"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb16-191"><a href="#cb16-191"></a>  <span class="fu">select</span>(Y, augMean, febRange, febSD, augSD, annMean)</span>
+<span id="cb16-192"><a href="#cb16-192"></a></span>
+<span id="cb16-193"><a href="#cb16-193"></a><span class="fu">cor</span>(sw_ectz[, <span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb16-194"><a href="#cb16-194"></a><span class="in">```</span></span>
+<span id="cb16-195"><a href="#cb16-195"></a></span>
+<span id="cb16-196"><a href="#cb16-196"></a>The correlation matrix already shows that several of the candidate predictors overlap strongly.</span>
+<span id="cb16-197"><a href="#cb16-197"></a></span>
+<span id="cb16-198"><a href="#cb16-198"></a><span class="in">```{r code-collinearity-vif}</span></span>
+<span id="cb16-199"><a href="#cb16-199"></a>col_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> augMean <span class="sc">+</span> febRange <span class="sc">+</span> febSD <span class="sc">+</span> augSD <span class="sc">+</span> annMean,</span>
+<span id="cb16-200"><a href="#cb16-200"></a>              <span class="at">data =</span> sw_ectz)</span>
+<span id="cb16-201"><a href="#cb16-201"></a></span>
+<span id="cb16-202"><a href="#cb16-202"></a><span class="fu">vif</span>(col_mod)</span>
+<span id="cb16-203"><a href="#cb16-203"></a><span class="in">```</span></span>
+<span id="cb16-204"><a href="#cb16-204"></a></span>
+<span id="cb16-205"><a href="#cb16-205"></a>The VIF values show that some predictors overlap strongly. The model is not necessarily mathematically invalid; it simply means that the separate interpretation of those coefficients becomes hard to defend.</span>
+<span id="cb16-206"><a href="#cb16-206"></a></span>
+<span id="cb16-207"><a href="#cb16-207"></a>We can make the consequences more concrete by comparing the simple slopes for each predictor to the coefficients in the multiple regression.</span>
+<span id="cb16-208"><a href="#cb16-208"></a></span>
+<span id="cb16-209"><a href="#cb16-209"></a><span class="in">```{r code-collinearity-compare}</span></span>
+<span id="cb16-210"><a href="#cb16-210"></a>preds <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"augMean"</span>, <span class="st">"febRange"</span>, <span class="st">"febSD"</span>, <span class="st">"augSD"</span>, <span class="st">"annMean"</span>)</span>
+<span id="cb16-211"><a href="#cb16-211"></a></span>
+<span id="cb16-212"><a href="#cb16-212"></a>simple_models <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map</span>(preds, <span class="sc">~</span> <span class="fu">lm</span>(<span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">"Y ~"</span>, .x)),</span>
+<span id="cb16-213"><a href="#cb16-213"></a>                                        <span class="at">data =</span> sw_ectz))</span>
+<span id="cb16-214"><a href="#cb16-214"></a></span>
+<span id="cb16-215"><a href="#cb16-215"></a>simple_slopes <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map2_dfr</span>(simple_models, preds, \(mod, nm) {</span>
+<span id="cb16-216"><a href="#cb16-216"></a>  <span class="fu">tidy</span>(mod) <span class="sc">|&gt;</span></span>
+<span id="cb16-217"><a href="#cb16-217"></a>    <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb16-218"><a href="#cb16-218"></a>    <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Simple regression"</span>,</span>
+<span id="cb16-219"><a href="#cb16-219"></a>           <span class="at">predictor =</span> nm)</span>
+<span id="cb16-220"><a href="#cb16-220"></a>})</span>
+<span id="cb16-221"><a href="#cb16-221"></a></span>
+<span id="cb16-222"><a href="#cb16-222"></a>multiple_slopes <span class="ot">&lt;-</span> <span class="fu">tidy</span>(col_mod) <span class="sc">|&gt;</span></span>
+<span id="cb16-223"><a href="#cb16-223"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb16-224"><a href="#cb16-224"></a>  <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Multiple regression"</span>,</span>
+<span id="cb16-225"><a href="#cb16-225"></a>         <span class="at">predictor =</span> term)</span>
+<span id="cb16-226"><a href="#cb16-226"></a></span>
+<span id="cb16-227"><a href="#cb16-227"></a><span class="fu">bind_rows</span>(simple_slopes, multiple_slopes) <span class="sc">|&gt;</span></span>
+<span id="cb16-228"><a href="#cb16-228"></a>  <span class="fu">select</span>(model, predictor, estimate, std.error, statistic, p.value)</span>
+<span id="cb16-229"><a href="#cb16-229"></a><span class="in">```</span></span>
+<span id="cb16-230"><a href="#cb16-230"></a></span>
+<span id="cb16-231"><a href="#cb16-231"></a>This comparison is useful because it shows the practical effect of collinearity. Predictors that look obvious and seem strongly positive in isolation may become weaker, unstable, or even change sign once the overlapping predictors are entered together. The does multiple regression might not be wrong, but the coefficients are being estimated under much greater uncertainty because the model is trying to assign separate effects to partially redundant variables.</span>
+<span id="cb16-232"><a href="#cb16-232"></a></span>
+<span id="cb16-233"><a href="#cb16-233"></a><span class="fu">## Addressing collinearity</span></span>
+<span id="cb16-234"><a href="#cb16-234"></a></span>
+<span id="cb16-235"><a href="#cb16-235"></a>Common responses include:</span>
+<span id="cb16-236"><a href="#cb16-236"></a></span>
+<span id="cb16-237"><a href="#cb16-237"></a><span class="ss">-   </span>removing one of the correlated predictors;</span>
+<span id="cb16-238"><a href="#cb16-238"></a><span class="ss">-   </span>choosing one variable over another based on theory;</span>
+<span id="cb16-239"><a href="#cb16-239"></a><span class="ss">-   </span>combining correlated predictors into a single index or ordination axis;</span>
+<span id="cb16-240"><a href="#cb16-240"></a><span class="ss">-   </span>accepting some overlap if prediction is the main goal, but avoiding strong causal language;</span>
+<span id="cb16-241"><a href="#cb16-241"></a><span class="ss">-   </span>using regularisation methods such as ridge regression, lasso, or elastic net when the objective is predictive stability rather than simple coefficient interpretation.</span>
+<span id="cb16-242"><a href="#cb16-242"></a></span>
+<span id="cb16-243"><a href="#cb16-243"></a>There is obvious threshold that solves the problem automatically. But, is the overlap is small enough that the coefficients still mean something defensible?</span>
+<span id="cb16-244"><a href="#cb16-244"></a></span>
+<span id="cb16-245"><a href="#cb16-245"></a><span class="fu"># Confounding</span></span>
+<span id="cb16-246"><a href="#cb16-246"></a></span>
+<span id="cb16-247"><a href="#cb16-247"></a>Confounding is a different problem. The two predictors may or may not overlap, and, more importantly, a third variable was accidentally excluded from assessment, or it inadvertently distorts the apparent relationship between a predictor of interest and the response.</span>
+<span id="cb16-248"><a href="#cb16-248"></a></span>
+<span id="cb16-249"><a href="#cb16-249"></a>A confounder is a variable that influences both:</span>
+<span id="cb16-250"><a href="#cb16-250"></a></span>
+<span id="cb16-251"><a href="#cb16-251"></a><span class="ss">-   </span>the predictor of interest; and</span>
+<span id="cb16-252"><a href="#cb16-252"></a><span class="ss">-   </span>the response.</span>
+<span id="cb16-253"><a href="#cb16-253"></a></span>
+<span id="cb16-254"><a href="#cb16-254"></a>This can create a spurious association or distort a real one. For example, if you relate abundance to temperature but nutrient supply is associated with both temperature and abundance, the temperature coefficient may partly absorb nutrient effects.</span>
+<span id="cb16-255"><a href="#cb16-255"></a></span>
+<span id="cb16-256"><a href="#cb16-256"></a><span class="fu">## Confounding is not the same as collinearity</span></span>
+<span id="cb16-257"><a href="#cb16-257"></a></span>
+<span id="cb16-258"><a href="#cb16-258"></a>These ideas are related but not identical.</span>
+<span id="cb16-259"><a href="#cb16-259"></a></span>
+<span id="cb16-260"><a href="#cb16-260"></a><span class="ss">-   </span>**Collinearity** is about overlap among predictors in the data.</span>
+<span id="cb16-261"><a href="#cb16-261"></a><span class="ss">-   </span>**Confounding** is about mistaken attribution of an effect.</span>
+<span id="cb16-262"><a href="#cb16-262"></a></span>
+<span id="cb16-263"><a href="#cb16-263"></a>Two variables can be highly collinear without one being a confounder. Equally, a confounder can matter even when the correlation structure does not look especially dramatic.</span>
+<span id="cb16-264"><a href="#cb16-264"></a></span>
+<span id="cb16-265"><a href="#cb16-265"></a><span class="fu">## A worked confounding example</span></span>
+<span id="cb16-266"><a href="#cb16-266"></a></span>
+<span id="cb16-267"><a href="#cb16-267"></a>We can see the logic of confounding clearly with a small simulated example. Suppose we want to know whether temperature affects algal abundance, but nutrient concentration also varies with temperature and itself influences abundance.</span>
+<span id="cb16-268"><a href="#cb16-268"></a></span>
+<span id="cb16-269"><a href="#cb16-269"></a><span class="in">```{r code-confounding-sim}</span></span>
+<span id="cb16-270"><a href="#cb16-270"></a><span class="fu">set.seed</span>(<span class="dv">144</span>)</span>
+<span id="cb16-271"><a href="#cb16-271"></a></span>
+<span id="cb16-272"><a href="#cb16-272"></a>n <span class="ot">&lt;-</span> <span class="dv">120</span></span>
+<span id="cb16-273"><a href="#cb16-273"></a>nutrient <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">10</span>, <span class="at">sd =</span> <span class="dv">2</span>)</span>
+<span id="cb16-274"><a href="#cb16-274"></a>temperature <span class="ot">&lt;-</span> <span class="dv">15</span> <span class="sc">+</span> <span class="fl">0.9</span> <span class="sc">*</span> nutrient <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">1.2</span>)</span>
+<span id="cb16-275"><a href="#cb16-275"></a>abundance <span class="ot">&lt;-</span> <span class="dv">4</span> <span class="sc">+</span> <span class="fl">1.4</span> <span class="sc">*</span> nutrient <span class="sc">+</span> <span class="fl">0.15</span> <span class="sc">*</span> temperature <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">1.5</span>)</span>
+<span id="cb16-276"><a href="#cb16-276"></a></span>
+<span id="cb16-277"><a href="#cb16-277"></a>conf_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb16-278"><a href="#cb16-278"></a>  <span class="at">nutrient =</span> nutrient,</span>
+<span id="cb16-279"><a href="#cb16-279"></a>  <span class="at">temperature =</span> temperature,</span>
+<span id="cb16-280"><a href="#cb16-280"></a>  <span class="at">abundance =</span> abundance</span>
+<span id="cb16-281"><a href="#cb16-281"></a>)</span>
+<span id="cb16-282"><a href="#cb16-282"></a><span class="in">```</span></span>
+<span id="cb16-283"><a href="#cb16-283"></a></span>
+<span id="cb16-284"><a href="#cb16-284"></a>If we fit a model with temperature alone, we may conclude that temperature is strongly related to abundance:</span>
+<span id="cb16-285"><a href="#cb16-285"></a></span>
+<span id="cb16-286"><a href="#cb16-286"></a><span class="in">```{r code-confounding-models}</span></span>
+<span id="cb16-287"><a href="#cb16-287"></a>mod_temp_only <span class="ot">&lt;-</span> <span class="fu">lm</span>(abundance <span class="sc">~</span> temperature, <span class="at">data =</span> conf_dat)</span>
+<span id="cb16-288"><a href="#cb16-288"></a>mod_with_nutrient <span class="ot">&lt;-</span> <span class="fu">lm</span>(abundance <span class="sc">~</span> temperature <span class="sc">+</span> nutrient, <span class="at">data =</span> conf_dat)</span>
+<span id="cb16-289"><a href="#cb16-289"></a></span>
+<span id="cb16-290"><a href="#cb16-290"></a><span class="fu">tidy</span>(mod_temp_only)</span>
+<span id="cb16-291"><a href="#cb16-291"></a><span class="fu">tidy</span>(mod_with_nutrient)</span>
+<span id="cb16-292"><a href="#cb16-292"></a><span class="in">```</span></span>
+<span id="cb16-293"><a href="#cb16-293"></a></span>
+<span id="cb16-294"><a href="#cb16-294"></a><span class="in">```{r fig-confounding}</span></span>
+<span id="cb16-295"><a href="#cb16-295"></a><span class="co">#| fig-cap: "A confounding situation where nutrient concentration is associated with both temperature and abundance."</span></span>
+<span id="cb16-296"><a href="#cb16-296"></a></span>
+<span id="cb16-297"><a href="#cb16-297"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(conf_dat, <span class="fu">aes</span>(<span class="at">x =</span> temperature, <span class="at">y =</span> abundance)) <span class="sc">+</span></span>
+<span id="cb16-298"><a href="#cb16-298"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>) <span class="sc">+</span></span>
+<span id="cb16-299"><a href="#cb16-299"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb16-300"><a href="#cb16-300"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Temperature"</span>, <span class="at">y =</span> <span class="st">"Algal abundance"</span>) <span class="sc">+</span></span>
+<span id="cb16-301"><a href="#cb16-301"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb16-302"><a href="#cb16-302"></a></span>
+<span id="cb16-303"><a href="#cb16-303"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(conf_dat, <span class="fu">aes</span>(<span class="at">x =</span> nutrient, <span class="at">y =</span> abundance)) <span class="sc">+</span></span>
+<span id="cb16-304"><a href="#cb16-304"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>) <span class="sc">+</span></span>
+<span id="cb16-305"><a href="#cb16-305"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb16-306"><a href="#cb16-306"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Nutrient concentration"</span>, <span class="at">y =</span> <span class="st">"Algal abundance"</span>) <span class="sc">+</span></span>
+<span id="cb16-307"><a href="#cb16-307"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb16-308"><a href="#cb16-308"></a></span>
+<span id="cb16-309"><a href="#cb16-309"></a><span class="fu">ggarrange</span>(p1, p2, <span class="at">ncol =</span> <span class="dv">2</span>)</span>
+<span id="cb16-310"><a href="#cb16-310"></a><span class="in">```</span></span>
+<span id="cb16-311"><a href="#cb16-311"></a></span>
+<span id="cb16-312"><a href="#cb16-312"></a>The important point is the change in interpretation. Once nutrient is included, the estimated effect of temperature is re-evaluated while holding nutrient constant. If the temperature slope changes substantially, that is evidence that the original temperature-only model was at least partly confounded by nutrient concentration.</span>
+<span id="cb16-313"><a href="#cb16-313"></a></span>
+<span id="cb16-314"><a href="#cb16-314"></a>This is why confounding is fundamentally a problem of attribution: we are trying to decide whether the apparent effect of one variable is actually partly due to another.</span>
+<span id="cb16-315"><a href="#cb16-315"></a></span>
+<span id="cb16-316"><a href="#cb16-316"></a><span class="fu">## Practical implications of confounding</span></span>
+<span id="cb16-317"><a href="#cb16-317"></a></span>
+<span id="cb16-318"><a href="#cb16-318"></a>Confounding often arises because:</span>
+<span id="cb16-319"><a href="#cb16-319"></a></span>
+<span id="cb16-320"><a href="#cb16-320"></a><span class="ss">-   </span>a variable of biological importance was omitted;</span>
+<span id="cb16-321"><a href="#cb16-321"></a><span class="ss">-   </span>the variable was measured but not included;</span>
+<span id="cb16-322"><a href="#cb16-322"></a><span class="ss">-   </span>the design did not separate the process of interest from another correlated process.</span>
+<span id="cb16-323"><a href="#cb16-323"></a></span>
+<span id="cb16-324"><a href="#cb16-324"></a>The best remedy for confounding effects is to avoid it altogether through good subject knowledge, better experimental or sampling design, better measurement, and more careful model specification.</span>
+<span id="cb16-325"><a href="#cb16-325"></a></span>
+<span id="cb16-326"><a href="#cb16-326"></a><span class="fu"># Measurement Error</span></span>
+<span id="cb16-327"><a href="#cb16-327"></a></span>
+<span id="cb16-328"><a href="#cb16-328"></a>Standard linear regression assumes that predictors are measured without serious error. That assumption is rarely exactly true in field biology.</span>
+<span id="cb16-329"><a href="#cb16-329"></a></span>
+<span id="cb16-330"><a href="#cb16-330"></a>When a predictor is noisy, its estimated effect is often biased towards zero. This is called **attenuation bias**. In practical terms, a real effect may appear weaker and less stable than it truly is. This matters because:</span>
+<span id="cb16-331"><a href="#cb16-331"></a></span>
+<span id="cb16-332"><a href="#cb16-332"></a><span class="ss">-   </span>field instruments are imperfect;</span>
+<span id="cb16-333"><a href="#cb16-333"></a><span class="ss">-   </span>environmental conditions fluctuate;</span>
+<span id="cb16-334"><a href="#cb16-334"></a><span class="ss">-   </span>biological measurements can be imprecise;</span>
+<span id="cb16-335"><a href="#cb16-335"></a><span class="ss">-   </span>some important variables are difficult or expensive to measure directly.</span>
+<span id="cb16-336"><a href="#cb16-336"></a></span>
+<span id="cb16-337"><a href="#cb16-337"></a><span class="fu">## A worked measurement-error example</span></span>
+<span id="cb16-338"><a href="#cb16-338"></a></span>
+<span id="cb16-339"><a href="#cb16-339"></a>Suppose a response truly depends on temperature, but our observed temperature values are noisy because of instrument error or sampling mismatch.</span>
+<span id="cb16-340"><a href="#cb16-340"></a></span>
+<span id="cb16-341"><a href="#cb16-341"></a><span class="in">```{r code-measurement-error-sim}</span></span>
+<span id="cb16-342"><a href="#cb16-342"></a><span class="fu">set.seed</span>(<span class="dv">414</span>)</span>
+<span id="cb16-343"><a href="#cb16-343"></a></span>
+<span id="cb16-344"><a href="#cb16-344"></a>n <span class="ot">&lt;-</span> <span class="dv">150</span></span>
+<span id="cb16-345"><a href="#cb16-345"></a>true_temp <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="at">min =</span> <span class="dv">8</span>, <span class="at">max =</span> <span class="dv">24</span>)</span>
+<span id="cb16-346"><a href="#cb16-346"></a>observed_temp <span class="ot">&lt;-</span> true_temp <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">2.5</span>)</span>
+<span id="cb16-347"><a href="#cb16-347"></a>growth <span class="ot">&lt;-</span> <span class="fl">1.2</span> <span class="sc">+</span> <span class="fl">0.55</span> <span class="sc">*</span> true_temp <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">2.0</span>)</span>
+<span id="cb16-348"><a href="#cb16-348"></a></span>
+<span id="cb16-349"><a href="#cb16-349"></a>me_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb16-350"><a href="#cb16-350"></a>  <span class="at">true_temp =</span> true_temp,</span>
+<span id="cb16-351"><a href="#cb16-351"></a>  <span class="at">observed_temp =</span> observed_temp,</span>
+<span id="cb16-352"><a href="#cb16-352"></a>  <span class="at">growth =</span> growth</span>
+<span id="cb16-353"><a href="#cb16-353"></a>)</span>
+<span id="cb16-354"><a href="#cb16-354"></a></span>
+<span id="cb16-355"><a href="#cb16-355"></a>mod_true <span class="ot">&lt;-</span> <span class="fu">lm</span>(growth <span class="sc">~</span> true_temp, <span class="at">data =</span> me_dat)</span>
+<span id="cb16-356"><a href="#cb16-356"></a>mod_observed <span class="ot">&lt;-</span> <span class="fu">lm</span>(growth <span class="sc">~</span> observed_temp, <span class="at">data =</span> me_dat)</span>
+<span id="cb16-357"><a href="#cb16-357"></a></span>
+<span id="cb16-358"><a href="#cb16-358"></a><span class="fu">bind_rows</span>(</span>
+<span id="cb16-359"><a href="#cb16-359"></a>  <span class="fu">tidy</span>(mod_true) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"True predictor"</span>),</span>
+<span id="cb16-360"><a href="#cb16-360"></a>  <span class="fu">tidy</span>(mod_observed) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">model =</span> <span class="st">"Observed noisy predictor"</span>)</span>
+<span id="cb16-361"><a href="#cb16-361"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb16-362"><a href="#cb16-362"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb16-363"><a href="#cb16-363"></a>  <span class="fu">select</span>(model, term, estimate, std.error, statistic, p.value)</span>
+<span id="cb16-364"><a href="#cb16-364"></a><span class="in">```</span></span>
+<span id="cb16-365"><a href="#cb16-365"></a></span>
+<span id="cb16-366"><a href="#cb16-366"></a><span class="in">```{r fig-measurement-error}</span></span>
+<span id="cb16-367"><a href="#cb16-367"></a><span class="co">#| fig-cap: "Measurement error weakens the apparent relationship between the predictor and the response."</span></span>
+<span id="cb16-368"><a href="#cb16-368"></a></span>
+<span id="cb16-369"><a href="#cb16-369"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(me_dat, <span class="fu">aes</span>(<span class="at">x =</span> true_temp, <span class="at">y =</span> growth)) <span class="sc">+</span></span>
+<span id="cb16-370"><a href="#cb16-370"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>) <span class="sc">+</span></span>
+<span id="cb16-371"><a href="#cb16-371"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb16-372"><a href="#cb16-372"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"True temperature"</span>, <span class="at">y =</span> <span class="st">"Growth"</span>) <span class="sc">+</span></span>
+<span id="cb16-373"><a href="#cb16-373"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb16-374"><a href="#cb16-374"></a></span>
+<span id="cb16-375"><a href="#cb16-375"></a>p4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(me_dat, <span class="fu">aes</span>(<span class="at">x =</span> observed_temp, <span class="at">y =</span> growth)) <span class="sc">+</span></span>
+<span id="cb16-376"><a href="#cb16-376"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>) <span class="sc">+</span></span>
+<span id="cb16-377"><a href="#cb16-377"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb16-378"><a href="#cb16-378"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Observed temperature"</span>, <span class="at">y =</span> <span class="st">"Growth"</span>) <span class="sc">+</span></span>
+<span id="cb16-379"><a href="#cb16-379"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb16-380"><a href="#cb16-380"></a></span>
+<span id="cb16-381"><a href="#cb16-381"></a><span class="fu">ggarrange</span>(p3, p4, <span class="at">ncol =</span> <span class="dv">2</span>)</span>
+<span id="cb16-382"><a href="#cb16-382"></a><span class="in">```</span></span>
+<span id="cb16-383"><a href="#cb16-383"></a></span>
+<span id="cb16-384"><a href="#cb16-384"></a>The model using the noisy predictor typically produces a weaker slope than the model using the true predictor. This is the practical effect of attenuation bias: measurement error can make a real effect appear smaller than it is.</span>
+<span id="cb16-385"><a href="#cb16-385"></a></span>
+<span id="cb16-386"><a href="#cb16-386"></a>Measurement error therefore matters because it adds noise and because it can systematically weaken the estimated effect.</span>
+<span id="cb16-387"><a href="#cb16-387"></a></span>
+<span id="cb16-388"><a href="#cb16-388"></a><span class="fu"># Proxy Variables</span></span>
+<span id="cb16-389"><a href="#cb16-389"></a></span>
+<span id="cb16-390"><a href="#cb16-390"></a>Many biological models use proxy variables because the true mechanistic variables are unavailable.</span>
+<span id="cb16-391"><a href="#cb16-391"></a></span>
+<span id="cb16-392"><a href="#cb16-392"></a>Examples include:</span>
+<span id="cb16-393"><a href="#cb16-393"></a></span>
+<span id="cb16-394"><a href="#cb16-394"></a><span class="ss">-   </span>altitude as a proxy for temperature or radiation;</span>
+<span id="cb16-395"><a href="#cb16-395"></a><span class="ss">-   </span>distance from shore as a proxy for exposure;</span>
+<span id="cb16-396"><a href="#cb16-396"></a><span class="ss">-   </span>chlorophyll as a proxy for productivity;</span>
+<span id="cb16-397"><a href="#cb16-397"></a><span class="ss">-   </span>depth in the ocean as a proxy for light intensity;</span>
+<span id="cb16-398"><a href="#cb16-398"></a><span class="ss">-   </span>body size as a proxy for age or condition.</span>
+<span id="cb16-399"><a href="#cb16-399"></a></span>
+<span id="cb16-400"><a href="#cb16-400"></a>Proxy variables are often convenient, they may seem reasonable, and sometimes they are even unavoidable. However, they *do* create interpretive limits. A proxy coefficient should not be inprepreted as if it identified one clean mechanism.</span>
+<span id="cb16-401"><a href="#cb16-401"></a></span>
+<span id="cb16-402"><a href="#cb16-402"></a>This is why the examples above matter. In the plant-growth example, altitude is a broad spatial proxy, while temperature is closer to the mechanism. In the nutrient example, nitrate and phosphate are both mechanistically meaningful but may still function as overlapping representations of nutrient supply. In both cases, interpretation depends on whether the question is explanatory or predictive.</span>
+<span id="cb16-403"><a href="#cb16-403"></a></span>
+<span id="cb16-404"><a href="#cb16-404"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb16-405"><a href="#cb16-405"></a><span class="fu">## Mechanism Versus Proxy</span></span>
+<span id="cb16-406"><a href="#cb16-406"></a></span>
+<span id="cb16-407"><a href="#cb16-407"></a>If the question is physiological, use physiological drivers where possible. If the question is broad-scale pattern, a proxy may be perfectly acceptable. The important thing is that the variable should match the scale and aim of the question.</span>
+<span id="cb16-408"><a href="#cb16-408"></a>:::</span>
+<span id="cb16-409"><a href="#cb16-409"></a></span>
+<span id="cb16-410"><a href="#cb16-410"></a><span class="fu"># A Practical Workflow</span></span>
+<span id="cb16-411"><a href="#cb16-411"></a></span>
+<span id="cb16-412"><a href="#cb16-412"></a>When building and interpreting a regression model:</span>
+<span id="cb16-413"><a href="#cb16-413"></a></span>
+<span id="cb16-414"><a href="#cb16-414"></a><span class="ss">1. </span>state the biological hypothesis first;</span>
+<span id="cb16-415"><a href="#cb16-415"></a><span class="ss">2. </span>identify which predictors are mechanistic and which are proxies;</span>
+<span id="cb16-416"><a href="#cb16-416"></a><span class="ss">3. </span>ask which variables could confound the relationship of interest;</span>
+<span id="cb16-417"><a href="#cb16-417"></a><span class="ss">4. </span>inspect predictor correlations and calculate VIF where appropriate;</span>
+<span id="cb16-418"><a href="#cb16-418"></a><span class="ss">5. </span>compare simpler and richer models when confounding is plausible;</span>
+<span id="cb16-419"><a href="#cb16-419"></a><span class="ss">6. </span>remove or combine redundant predictors when interpretation is the goal;</span>
+<span id="cb16-420"><a href="#cb16-420"></a><span class="ss">7. </span>be honest about causal limits when important variables are missing or poorly measured.</span>
+<span id="cb16-421"><a href="#cb16-421"></a></span>
+<span id="cb16-422"><a href="#cb16-422"></a><span class="fu">## Explanation versus prediction</span></span>
+<span id="cb16-423"><a href="#cb16-423"></a></span>
+<span id="cb16-424"><a href="#cb16-424"></a>This chapter also forces an important distinction that connects directly to the regularisation chapter that follows later in the sequence.</span>
+<span id="cb16-425"><a href="#cb16-425"></a></span>
+<span id="cb16-426"><a href="#cb16-426"></a><span class="ss">-   </span>If the main goal is **explanation**, then unstable coefficients, proxies, confounding, and overlap are serious problems because they weaken the biological interpretation.</span>
+<span id="cb16-427"><a href="#cb16-427"></a><span class="ss">-   </span>If the main goal is **prediction**, some overlap may be tolerable if predictive performance is strong, although the coefficients may still not support strong mechanistic claims.</span>
+<span id="cb16-428"><a href="#cb16-428"></a></span>
+<span id="cb16-429"><a href="#cb16-429"></a>So the decision is not only "is there collinearity?" It is also "what is the model for?"</span>
+<span id="cb16-430"><a href="#cb16-430"></a></span>
+<span id="cb16-431"><a href="#cb16-431"></a><span class="fu"># Summary</span></span>
+<span id="cb16-432"><a href="#cb16-432"></a></span>
+<span id="cb16-433"><a href="#cb16-433"></a><span class="ss">-   </span>Collinearity makes coefficients unstable because predictors share information.</span>
+<span id="cb16-434"><a href="#cb16-434"></a><span class="ss">-   </span>Confounding is a problem of attribution rather than simple overlap.</span>
+<span id="cb16-435"><a href="#cb16-435"></a><span class="ss">-   </span>Measurement error weakens inference and can bias estimated effects, often towards zero.</span>
+<span id="cb16-436"><a href="#cb16-436"></a><span class="ss">-   </span>Proxy variables are often useful, but they limit what a coefficient can be said to mean.</span>
+<span id="cb16-437"><a href="#cb16-437"></a><span class="ss">-   </span>These problems are handled best through strong biological reasoning, careful design, and honest interpretation rather than by software alone.</span>
+<span id="cb16-438"><a href="#cb16-438"></a></span>
+<span id="cb16-439"><a href="#cb16-439"></a>The next chapter goes from model construction to the question of whether a fitted model is actually behaving well: diagnostics, comparison, and evaluation.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
@@ -2008,7 +2560,38 @@ Measurement Error. <a href="http://tangledbank.netlify.app/BCB744/basic_stats/14
       &nbsp;
     </div>
   </div>
-</footer>
+</footer><script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 <script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
