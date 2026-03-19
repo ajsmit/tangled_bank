@@ -1,0 +1,397 @@
+---
+title: "21. Nonlinear Regression"
+subtitle: "When Straight Lines Are Not Enough"
+author: "A. J. Smit"
+date: last-modified
+date-format: "YYYY/MM/DD"
+reference-location: margin
+---
+
+```{r code-brewing-opts}
+#| echo: false
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  dev = "svglite",
+  fig.width = 6.5,
+  fig.height = 4.5,
+  out.width = "88%",
+  fig.asp = NULL,
+  fig.align = "center",
+  fig.retina = 2,
+  dpi = 300
+)
+```
+
+```{r setup-nonlinear}
+#| echo: false
+library(tidyverse)
+library(ggpubr)
+library(mgcv)
+
+set.seed(13)
+theme_set(theme_grey(base_size = 11))
+
+mm_fun <- function(S, Vmax, Km) {
+  Vmax * S / (Km + S)
+}
+
+generate_data <- function(n_trt, n_rep, conc_vec, Km_vec,
+                          Vmax_vec, Km_vec_sd, Vmax_vec_sd) {
+  data <- expand.grid(
+    trt = paste("Treatment", 1:n_trt),
+    S = conc_vec,
+    rep = 1:n_rep
+  ) |>
+    as_tibble() |>
+    arrange(trt, S, rep) |>
+    group_by(trt) |>
+    mutate(
+      trt_id = readr::parse_number(as.character(trt)),
+      Km = rnorm(n(), mean = Km_vec[trt_id], sd = Km_vec_sd[trt_id]),
+      Vmax = rnorm(n(), mean = Vmax_vec[trt_id], sd = Vmax_vec_sd[trt_id])
+    ) |>
+    ungroup() |>
+    mutate(
+      V = mm_fun(S, Vmax, Km),
+      rep = factor(rep),
+      trt = factor(trt)
+    ) |>
+    select(-trt_id, -Km, -Vmax)
+
+  data
+}
+```
+
+# Introduction
+
+Some relationships are curved because the biology is curved. Growth saturates, enzyme kinetics asymptote, seasonal cycles oscillate, and responses may level off, bend, or change slope across the range of the predictor. In such cases, a straight-line model is often too rigid.
+
+This chapter focuses specifically on mechanistic nonlinear regression: models where the response is described by a named nonlinear function whose parameters have scientific meaning. Examples include saturating uptake curves, logistic growth, seasonal sine curves, and other biologically motivated responses.
+
+Polynomial regression and GAMs are covered in their own chapters because they answer a different modelling need. Here the emphasis is narrower and stronger: what to do when the biology suggests the form of the curve itself.
+
+# Key Concepts
+
+-   **Nonlinearity** often reflects real biological structure rather than unwanted curvature.
+-   **Flexible regression** can model patterns that a straight line misses.
+-   **Mechanistic nonlinear models are appropriate when the curve has a biologically motivated form.**
+-   **Greater flexibility increases the risk of overfitting** if used carelessly.
+-   **Model choice should follow biological form**, not only convenience or visual preference.
+
+# When This Method Is Appropriate
+
+You should move beyond a simple linear model when:
+
+-   the fitted residuals show clear curvature;
+-   the biology suggests an asymptote, threshold, saturation, or oscillation;
+-   the response changes differently across the predictor range;
+-   the question concerns parts of the response distribution other than the mean.
+
+The diagnostic chapters earlier in the sequence already suggested this possibility. This chapter is about what to do next.
+
+# Nature of the Data and Assumptions
+
+Mechanistic nonlinear regression is still regression, so the familiar concerns about independence, residual spread, and overall model adequacy do not disappear. In many introductory applications, the response variable is continuous and the residuals are assumed to be approximately normally distributed with constant variance.
+
+The key distinction is that the mean structure is explicitly nonlinear and tied to a named function. These models are usually fitted by nonlinear least squares with `nls()`, or by mixed-effects extensions when grouped or repeated-measures data are present.
+
+The practical point is that you do not choose a curved model just because it draws a pleasing bendy line through the points. You choose it because the straight-line model is inadequate and because the curved alternative matches the biological process or the inferential question more closely.
+
+# R Functions
+
+Some of the most useful R functions are:
+
+-   `nls()` for nonlinear least-squares models;
+-   `nlme::nlme()` when nonlinear relationships occur in grouped or repeated-measures data.
+
+Examples:
+
+```{r}
+#| eval: false
+lm(response ~ poly(x, degree = 2), data = df)
+nls(y ~ Vmax * x / (Km + x), data = df,
+    start = list(Vmax = 1, Km = 1))
+nlme::nlme(y ~ Vmax * x / (Km + x), data = df, ...)
+```
+
+One practical difference from ordinary regression is that `nls()` usually needs sensible starting values. Unlike `lm()`, it uses an iterative search for the best-fitting parameter values, and poor starting values can prevent convergence.
+
+# Example 1: Why Use a Mechanistic Nonlinear Model?
+
+The first decision is whether the biology gives you a reason to prefer a specific nonlinear function rather than a descriptive curve.
+
+```{r fig-main-families}
+#| echo: false
+#| fig-cap: "Examples of curved models fitted to simulated data. A polynomial can capture modest curvature, a GAM can adapt flexibly to the data, and a mechanistic nonlinear model can represent a known saturating biological response."
+#| fig-width: 6
+#| fig-height: 4
+set.seed(13)
+
+x_poly <- seq(-10, 10, length.out = 30)
+y_poly <- 1 - 2 * x_poly + 3 * x_poly^2 - 0.5 * x_poly^3 + rnorm(30, sd = 40)
+dat_poly <- tibble(x = x_poly, y = y_poly)
+mod_poly <- lm(y ~ poly(x, 3, raw = FALSE), data = dat_poly)
+pred_poly <- tibble(x = seq(min(x_poly), max(x_poly), length.out = 300)) |>
+  mutate(y = predict(mod_poly, newdata = cur_data()))
+
+x_gam <- seq(-3, 3, length.out = 30)
+y_gam <- x_gam^2 * sin(x_gam) + rnorm(30, sd = 0.5)
+dat_gam <- tibble(x = x_gam, y = y_gam)
+mod_gam <- gam(y ~ s(x, bs = "tp"), data = dat_gam)
+pred_gam <- tibble(x = seq(min(x_gam), max(x_gam), length.out = 300)) |>
+  mutate(y = predict(mod_gam, newdata = cur_data()))
+
+S <- seq(0, 100, length.out = 30)
+V <- (100 * S) / (25 + S) + rnorm(30, mean = 0, sd = 5)
+dat_mm <- tibble(S = S, V = V)
+mod_mm <- nls(V ~ (Vmax * S) / (Km + S),
+              data = dat_mm,
+              start = list(Vmax = 90, Km = 40))
+pred_mm <- tibble(S = seq(min(S), max(S), length.out = 300)) |>
+  mutate(V = predict(mod_mm, newdata = cur_data()))
+
+plt_poly <- ggplot(dat_poly, aes(x, y)) +
+  geom_point(size = 2, shape = 1, colour = "royalblue2") +
+  geom_line(data = pred_poly, aes(x, y), colour = "black") +
+  labs(x = "Predictor, X", y = "Response, Y", title = "A. Polynomial regression")
+
+plt_gam <- ggplot(dat_gam, aes(x, y)) +
+  geom_point(size = 2, shape = 1, colour = "royalblue2") +
+  geom_line(data = pred_gam, aes(x, y), colour = "black") +
+  labs(x = "Predictor, X", y = "Response, Y", title = "B. GAM")
+
+plt_mm <- ggplot(dat_mm, aes(S, V)) +
+  geom_point(size = 2, shape = 1, colour = "royalblue2") +
+  geom_line(data = pred_mm, aes(S, V), colour = "black") +
+  labs(x = "Substrate concentration", y = "Uptake rate", title = "C. Nonlinear least squares")
+
+ggarrange(plt_poly, plt_gam, plt_mm, ncol = 2, nrow = 2)
+```
+
+@fig-main-families shows three broad situations:
+
+-   A polynomial model can describe modest curvature, but it is mainly descriptive.
+-   A GAM is very useful when the relationship is clearly curved but its exact form is unknown or not informative.
+-   A mechanistic nonlinear model is most attractive when the biology suggests a specific function, because its parameters can often be interpreted directly.
+
+That last point is important. If we know the process should saturate, as in nutrient uptake kinetics, a mechanistic model tells us more than a flexible smoother. It gives us interpretable parameters such as an asymptote or a half-saturation constant.
+
+# Example 2: Algal Nutrient Uptake Kinetics
+
+We can measure algal nutrient uptake rates using a multiple flask experiment. We prepare a series of flasks, each containing a different initial concentration of the substrate nutrient, and then estimate nutrient uptake rate over a fixed time interval. The result is a set of uptake rates, $V$, paired with substrate concentrations, $[S]$.
+
+Applied to algae, the Michaelis-Menten model assumes an irreversible uptake process that saturates at high substrate concentrations. It effectively quantifies key characteristics of the nutrient uptake system, including the maximum uptake rate and the alga's affinity for the nutrient:
+
+$$V_i = \frac{V_{max} \cdot [S_i]}{K_m + [S_i]} + \epsilon_i$$
+
+where:
+
+-   $V_i$ is the uptake rate at the $i$-th observation;
+-   $V_{max}$ is the maximum nutrient uptake rate achieved;
+-   $[S_i]$ is the substrate concentration at the $i$-th observation;
+-   $K_m$ is the substrate concentration at which uptake reaches half of $V_{max}$; and
+-   $\epsilon_i$ is the residual error.
+
+The two parameters are biologically meaningful. $V_{max}$ represents the maximum capacity of the alga to utilise the nutrient, while $K_m$ describes the affinity of the uptake system for that nutrient. Lower values of $K_m$ indicate higher affinity.
+
+## Do an Exploratory Data Analysis (EDA)
+
+To demonstrate fitting a nonlinear model to $V$ versus $[S]$ data from a multiple flask experiment, I simulate data across a range of substrate concentrations. The dataset consists of five replicate flasks for each of 13 substrate concentrations.
+
+```{r simulate-mf-data}
+conc_vec <- c(0, 0.1, 0.5, 2, 5, 7.5, 10, 12.5, 15, 17.5, 20, 25, 30)
+n_rep <- 5
+Km_vec <- c(10)
+Vmax_vec <- c(50)
+Km_vec_sd <- c(1.2)
+Vmax_vec_sd <- c(0.7)
+
+mf_data <- generate_data(
+  n_trt = 1,
+  n_rep = n_rep,
+  conc_vec = conc_vec,
+  Km_vec = Km_vec,
+  Vmax_vec = Vmax_vec,
+  Km_vec_sd = Km_vec_sd,
+  Vmax_vec_sd = Vmax_vec_sd
+) |>
+  select(rep, S, V)
+
+mf_data
+```
+
+```{r fig-mf-eda}
+#| echo: false
+#| fig-cap: "Plot of uptake rate, V, as a function of substrate concentration, [S], for a multiple flask experiment. The relationship is clearly curved and tends towards saturation."
+ggplot(mf_data, aes(x = S, y = V, group = rep)) +
+  geom_jitter(size = 2, shape = 1, colour = "royalblue2", width = 0.08) +
+  labs(
+    x = expression("Substrate concentration, " * S),
+    y = expression("Uptake rate, " * V)
+  )
+```
+
+The plot in @fig-mf-eda already suggests that a straight line is not the right model. Uptake increases quickly at low substrate concentrations and then begins to level off. That is exactly the sort of pattern for which a Michaelis-Menten model was designed.
+
+## State the Model Question
+
+At this point, two related questions arise.
+
+The first is descriptive and mechanistic: can we estimate the uptake parameters $V_{max}$ and $K_m$ from these data?
+
+The second is comparative: does a Michaelis-Menten model fit these data better than a simple linear model?
+
+Those are not the same question. The first is about parameter estimation within a nonlinear biological model. The second is about choosing between two competing mean structures.
+
+## Fit the Model
+
+The Michaelis-Menten model is fit with `nls()`:
+
+```{r fit-nls}
+nls_mod <- nls(
+  V ~ mm_fun(S, Vmax, Km),
+  data = mf_data,
+  start = c(Vmax = 30, Km = 5)
+)
+
+summary(nls_mod)
+```
+
+The starting values do not have to be exact, but they should be sensible. Here we know from the plot that the asymptote is probably somewhere around 40 to 50, and that the half-saturation constant is likely to be in the single digits.
+
+```{r fig-mf-fit}
+#| echo: false
+#| fig-cap: "Michaelis-Menten model fitted to the uptake data. The dashed lines indicate the estimated Km and Vmax values."
+coef_nls <- coef(nls_mod)
+Vmax_est <- coef_nls["Vmax"]
+Km_est <- coef_nls["Km"]
+
+pred_mm_fit <- tibble(S = seq(min(mf_data$S), max(mf_data$S), length.out = 200)) |>
+  mutate(V = predict(nls_mod, newdata = cur_data()))
+
+ggplot(mf_data, aes(x = S, y = V)) +
+  geom_jitter(shape = 1, size = 2, colour = "royalblue2", width = 0.08) +
+  geom_line(data = pred_mm_fit, aes(S, V), linewidth = 0.7, colour = "black") +
+  geom_vline(xintercept = Km_est, linetype = "dashed", colour = "hotpink3") +
+  geom_hline(yintercept = Vmax_est, linetype = "dashed", colour = "hotpink3") +
+  labs(
+    x = expression("Substrate concentration, " * S),
+    y = expression("Uptake rate, " * V)
+  )
+```
+
+## Check Diagnostics
+
+Because this is a least-squares nonlinear model, residual diagnostics are interpreted much as they are for ordinary regression.
+
+```{r diagnostics-nls}
+mf_data <- mf_data |>
+  mutate(
+    fitted = fitted(nls_mod),
+    resid = resid(nls_mod)
+  )
+
+shapiro.test(mf_data$resid)
+```
+
+```{r fig-mf-diagnostics}
+#| echo: false
+#| fig-cap: "Basic diagnostics for the Michaelis-Menten fit. The residuals show no serious trend with the fitted values, and the distribution is approximately symmetric."
+plt_hist <- ggplot(mf_data, aes(resid)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 bins = 10,
+                 fill = "lightblue",
+                 colour = "white") +
+  geom_density(colour = "black", linewidth = 0.6) +
+  labs(x = "Residuals", y = "Density")
+
+plt_resid <- ggplot(mf_data, aes(fitted, resid)) +
+  geom_point(shape = 1, colour = "royalblue2") +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+  labs(x = "Fitted values", y = "Residuals")
+
+ggarrange(plt_hist, plt_resid, ncol = 2)
+```
+
+These diagnostics do not suggest any serious problem. The residual spread is fairly even, and the histogram is approximately symmetric. As always, you should not rely on a single formal test, but the residual behaviour is consistent with a usable fit.
+
+## Interpret the Results
+
+```{r compare-linear-and-nonlinear}
+lm_mod <- lm(V ~ S, data = mf_data)
+model_comp <- anova(lm_mod, nls_mod)
+f_stat <- model_comp$F[2]
+
+AIC(lm_mod, nls_mod)
+BIC(lm_mod, nls_mod)
+model_comp
+```
+
+The fitted nonlinear model gives estimated values for $V_{max}$ and $K_m$, and these are the biologically meaningful outputs of the analysis. The estimated $V_{max}$ is the asymptotic uptake rate, while $K_m$ indicates the substrate concentration at which the uptake rate reaches half of that asymptote.
+
+The model comparison also matters. If the linear and Michaelis-Menten models are both fitted to the same data, the nonlinear model has markedly lower information criteria and a much smaller residual error. That supports the biological interpretation already suggested by the plot; that is, uptake increases with substrate concentration, but it does so in a saturating rather than indefinitely linear way.
+
+::: {.callout-tip}
+## Results
+
+Nutrient uptake increased rapidly with substrate concentration at low concentrations and then approached an asymptote, consistent with Michaelis-Menten kinetics (@fig-mf-fit). The fitted nonlinear model estimated a maximum uptake rate of `r round(Vmax_est, 2)` and a half-saturation constant of `r round(Km_est, 2)`. Relative to a simple linear regression, the Michaelis-Menten model provided the better description of the data, with lower AIC and BIC values and a significant improvement in fit (`r paste0("F = ", round(f_stat, 2))`, `p < 0.05`). These results indicate that nutrient uptake in this example is saturating rather than linear across the observed substrate range.
+:::
+
+## What If We Add Treatments?
+
+Experiments are seldom as simple as the one above. Consider an experiment designed to assess whether an experimental treatment, such as light intensity or seawater temperature, affects nutrient uptake kinetics. It is biologically plausible to expect that each treatment will result in unique $V_{max}$ and $K_m$ values.
+
+```{r simulate-treatment-data}
+mf_data2 <- generate_data(
+  n_trt = 3,
+  n_rep = 5,
+  conc_vec = conc_vec,
+  Km_vec = c(10, 8, 6),
+  Vmax_vec = c(50, 40, 22),
+  Km_vec_sd = c(1.2, 1.1, 1.0),
+  Vmax_vec_sd = c(0.7, 1.0, 0.8)
+)
+```
+
+```{r fig-mf-treatment}
+#| echo: false
+#| fig-cap: "Simulated nutrient uptake curves for three treatments. The pattern suggests treatment-specific nonlinear responses rather than a single shared curve."
+ggplot(mf_data2, aes(S, V, colour = trt)) +
+  geom_jitter(shape = 1, width = 0.08) +
+  labs(
+    x = expression("Substrate concentration, " * S),
+    y = expression("Uptake rate, " * V),
+    colour = "Treatment"
+  )
+```
+
+At that point, the modelling problem becomes a bit more challenging and exciting. A separate `nls()` fit can be used for each treatment, or a nonlinear mixed-effects model can be used when dependence or grouping must be handled explicitly. That is the nonlinear counterpart of the fixed-effects and mixed-effects logic introduced in [Chapter 18](18-dependence-and-mixed-models.qmd). If the response is also non-normal, you are moving towards the broader territory covered in [Chapter 19](19-generalised-linear-models.qmd).
+
+The important point is that nonlinear modelling “draws a curve” *and* it chooses a mean structure that matches the process and then extending that structure carefully when treatments, dependence, or more complicated designs are present.
+
+# Choosing Among Flexible Models
+
+There are a few practical considerations to keep in mind when choosing a mechanistic nonlinear model. Sometimes different curved models can provide similar fits to the same data, but they have very different implications for interpretation. The reason to prefer a mechanistic nonlinear model is precisely that its parameters mean something biologically. If that interpretability is weak or artificial, a descriptive alternative such as a polynomial regression or GAM may be more honest.
+
+# Practical Caution
+
+Flexibility is valuable, but it comes with a cost.
+
+-   More flexible models are often harder to interpret.
+-   They can overfit small datasets.
+-   They may fit noise rather than structure if the biological logic is weak.
+-   Nonlinear least-squares models can fail to converge if the functional form or starting values are poor.
+
+This is why flexible regression should be a response to a clear diagnostic or biological need, not just a default preference for curved lines.
+
+# Summary
+
+-   Not all biological relationships are well described by straight lines.
+-   Mechanistic nonlinear models serve a distinct purpose within the broader family of curved-response models.
+-   Model choice should follow the biology and the inferential goal.
+-   Mechanistic nonlinear models are especially valuable when their parameters have clear biological meaning.
+-   Greater flexibility can improve fit, but it also increases interpretive demands and the risk of overfitting.
+
+The next chapter extends the regression sequence in a different direction again by asking what happens when the scientific target is not the conditional mean, but another part of the response distribution.

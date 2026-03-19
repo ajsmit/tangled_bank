@@ -12,8 +12,6 @@ knitr::opts_chunk$set(
   comment = "R>",
   warning = FALSE,
   message = FALSE,
-  fig.width = 6.5,
-  fig.height = 4.5,
   out.width = "88%",
   fig.asp = NULL,
   fig.align = "center",
@@ -22,10 +20,7 @@ knitr::opts_chunk$set(
 )
 
 ggplot2::theme_set(
-  ggplot2::theme_minimal(base_size = 8)
-)
-ggplot2::theme_set(
-  ggplot2::theme_bw(base_size = 8)
+  ggplot2::theme_grey(base_size = 8)
 )
 ```
 
@@ -69,7 +64,7 @@ Linear models are among the most useful statistical tools in biology because the
 
 One of the simplest such models is the **simple linear model**, which has one continuous predictor and one continuous response. The aim may be explanatory, where the predictor is believed to influence the response, or predictive, where we want a formula that allows us to estimate likely values of the response from known values of the predictor. In either case, regression differs from [correlation](09-correlation-and-association.qmd) because it imposes a response-predictor structure on the data.
 
-This chapter is foundational because the reasoning developed here extends directly to [multiple regression](12-multiple-regression-and-model-specification.qmd), [interaction terms](13-interaction-effects.qmd), [generalised linear models](18-generalised-linear-models.qmd), and several of the more flexible modelling approaches discussed later. If the response-predictor structure is sound and a straight-line model is biologically plausible, simple linear regression is often the correct point of departure.
+This chapter is foundational because the reasoning developed here extends directly to [polynomial regression](12-polynomial-regression.qmd), [multiple regression](13-multiple-regression-and-model-specification.qmd), [interaction terms](14-interaction-effects.qmd), [generalised linear models](19-generalised-linear-models.qmd), and several of the more flexible modelling approaches discussed later. If the response-predictor structure is sound and a straight-line model is biologically plausible, simple linear regression is often the correct point of departure.
 
 # Key Concepts
 
@@ -96,7 +91,7 @@ After the model has been fitted, the following assumptions must be checked:
 1. **Normality:** The residuals should be approximately normally distributed.
 2. **Homoscedasticity:** The residual variance should be roughly constant across the fitted values.
 3. **Linearity:** The mean relationship between the predictor and the response should be approximately linear.
-4. **Measurement error in the predictor:** Standard linear regression assumes that the predictor is measured without serious error. In practice this is only approximately true, and we return to this issue in [Chapter 14](14-collinearity-confounding-measurement-error.qmd).
+4. **Measurement error in the predictor:** Standard linear regression assumes that the predictor is measured without serious error. In practice this is only approximately true, and we return to this issue in [Chapter 15](15-collinearity-confounding-measurement-error.qmd).
 
 As in the earlier inferential chapters, the workflow is important. We first inspect the data, then fit the model, then examine the residuals, and *only then* interpret the coefficients with confidence.
 
@@ -197,13 +192,14 @@ summary(sparrows)
 ```{r fig-sparrow}
 #| echo: false
 #| fig-cap: "Wing length of sparrows at different ages."
-#| fig-width: 4
+#| fig-width: 4.6
+#| fig-height: 2.6
 
 ggplot(sparrows, aes(x = age, y = wing)) +
   geom_point(size = 3, col = "red3", shape = 16) +
   geom_smooth(method = "lm", se = FALSE, linewidth = 1.2, colour = "black") +
   labs(x = "Age (days)", y = "Wing length (cm)") +
-  theme_bw()
+  theme_grey()
 ```
 
 The scatter plot suggests a clear positive linear relationship: older sparrows tend to have longer wings, and the relationship appears close to linear over the range of the data. This small example is useful because it makes the fitted line and the slope easy to understand before we move to a noisier biological dataset.
@@ -318,7 +314,7 @@ ggplot(Adelie,
   geom_point(shape = 1, colour = "pink") +
   geom_smooth(method = "lm", se = FALSE, colour = "steelblue4") +
   labs(x = "Body mass (g)", y = "Bill length (mm)") +
-  theme_bw()
+  theme_grey()
 ```
 
 Although there is considerable scatter in the data, there is also a clear positive relationship between body mass and bill length. This relationship appears linear enough to justify a simple linear model as a first approximation.
@@ -370,24 +366,24 @@ p1 <- ggplot(mod1_data, aes(sample = .resid)) +
   stat_qq(shape = 1, colour = "pink") +
   stat_qq_line(colour = "steelblue4") +
   labs(title = "Normal Q-Q", x = "Theoretical Quantiles", y = "Sample Quantiles") +
-  theme_minimal()
+  theme_grey()
 
 p2 <- ggplot(mod1_data, aes(x = .resid)) +
   geom_histogram(binwidth = 1, fill = "pink", color = "pink") +
   labs(title = "Histogram of Residuals", x = "Residuals", y = "Frequency") +
-  theme_minimal()
+  theme_grey()
 
 p3 <- ggplot(mod1_data, aes(x = .fitted, y = .resid)) +
   geom_point(shape = 1, colour = "pink") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(title = "Residuals vs Fitted", x = "Fitted values", y = "Residuals") +
-  theme_minimal()
+  theme_grey()
 
 p4 <- ggplot(mod1_data, aes(x = .fitted, y = sqrt(abs(.resid)))) +
   geom_point(shape = 1, colour = "pink") +
   geom_smooth(se = FALSE, colour = "steelblue4") +
   labs(title = "Scale-Location", x = "Fitted values", y = "Sq. Root |Resid.|") +
-  theme_minimal()
+  theme_grey()
 
 ggarrange(p1, p2, p3, p4, nrow = 2, ncol = 2, labels = "AUTO")
 ```
@@ -432,7 +428,7 @@ plt1 <- ggplot(mod1_data, aes(x = index, y = dffits)) +
   geom_text(aes(label = ifelse(abs(dffits) > dffits_threshold, as.character(index), "")),
             hjust = 1.0, vjust = 1.0, colour = "darkred") +
   labs(x = "Observation Index", y = "DFFITS") +
-  theme_minimal()
+  theme_grey()
 
 plt2 <- ggplot(mod1_data, aes(x = index, y = .cooksd, fill = colour)) +
   geom_col() +
@@ -441,7 +437,7 @@ plt2 <- ggplot(mod1_data, aes(x = index, y = .cooksd, fill = colour)) +
             hjust = 1.2, vjust = 1.0, color = "darkred") +
   labs(x = "Observation Index", y = "Cook's Dist.") +
   scale_fill_identity() +
-  theme_minimal()
+  theme_grey()
 
 plt3 <- ggplot(mod1_data, aes(x = .hat, y = .std.resid)) +
   geom_point(aes(size = .cooksd, colour = colour), shape = 1) +
@@ -454,7 +450,7 @@ plt3 <- ggplot(mod1_data, aes(x = .hat, y = .std.resid)) +
        y = "Std. Resid.",
        size = "Cook's Distance") +
   scale_colour_identity() +
-  theme_minimal() +
+  theme_grey() +
   theme(legend.position = "bottom") +
   guides(size = guide_legend("Cook's Dist."))
 
@@ -468,7 +464,7 @@ plt4 <- ggplot(mod1_data, aes(x = .hat, y = .cooksd)) +
        y = "Cook's Dist.",
        size = "Cook's Distance") +
   scale_colour_identity() +
-  theme_minimal() +
+  theme_grey() +
   guides(size = guide_legend("Cook's Distance"))
 
 ggarrange(plt1, plt2, plt3, plt4, nrow = 2, ncol = 2, labels = "AUTO",
@@ -487,7 +483,7 @@ ggplot(mod1_data, aes(x = body_mass_g, y = bill_length_mm)) +
             hjust = 1.0, vjust = 1.0, colour = "darkred") +
   labs(x = "Body mass (g)", y = "Bill length (mm)") +
   scale_colour_identity() +
-  theme_minimal() +
+  theme_grey() +
   theme(legend.position = "bottom") +
   guides(size = guide_legend("Cook's Distance"))
 ```
@@ -527,7 +523,7 @@ ggplot(Adelie,
   geom_smooth(method = "lm", linewidth = 0.4, alpha = 0.2,
               colour = "red", se = TRUE, fill = "blue") +
   labs(x = "Body mass (g)", y = "Bill length (mm)") +
-  theme_bw()
+  theme_grey()
 ```
 
 > Bill length increased with body mass in the fitted simple linear regression ($\beta = 0.00319$, SE = 0.00040, $t = 8.02$, $p < 0.001$) (@fig-penguin-results). The model explained about 30% of the variation in bill length ($R^2 = 0.30$), indicating that body mass was an informative but incomplete predictor of bill length. The overall model was also strongly supported by the ANOVA ($F = 64.25$, $p < 0.001$, d.f. = 1, 149).
@@ -579,7 +575,7 @@ ggplot(data = results, aes(x = body_mass_g, y = fit)) +
               alpha = 0.2, fill = "blue") +
   geom_point(aes(y = bill_length_mm), shape = 1) +
   labs(x = "Body mass (g)", y = "Bill length (mm)") +
-  theme_bw()
+  theme_grey()
 ```
 
 Confidence intervals are useful when the primary interest lies in the mean expected response at a given predictor value. Prediction intervals are more relevant when the goal is to anticipate the range in which an individual future observation may fall.
