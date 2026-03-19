@@ -1,9 +1,10 @@
 ---
 title: "9. Correlation and Association"
 subtitle: "Quantifying Relationships Without Imposing a Response Model"
-author: "A. J. Smit"
 date: last-modified
 date-format: "YYYY/MM/DD"
+reference-location: margin
+number-sections: true
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -28,6 +29,12 @@ ggplot2::theme_set(
 )
 ```
 
+```{r code-libraries, echo=FALSE}
+library(tidyverse)
+library(ggpubr)
+library(ggthemes)
+```
+
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
@@ -39,32 +46,157 @@ ggplot2::theme_set(
 
 # Introduction
 
-Correlation measures the strength and direction of association between variables. Unlike regression, it does not assign one variable the formal role of response and the other the role of predictor.
+In the previous chapters we focused on comparing means across groups. Sometimes, however, our question is not whether groups differ, but whether two continuous variables tend to vary together. For example, do heavier kelps also have longer stipes? Do warmer waters also contain less dissolved oxygen? Do larger animals tend to have larger home ranges?
 
-That distinction matters. Correlation is useful when we want to describe association. Regression is more appropriate when we want to model a response as a function of one or more predictors.
+These are questions about **association**. The most familiar tool for this purpose is **correlation**, which quantifies the strength and direction of the relationship between two variables. Unlike regression, correlation does not formally assign one variable the role of response and the other the role of predictor. That distinction matters, because correlation is descriptive while regression is explicitly model-based.
+
+This chapter therefore acts as a bridge. It closes the sequence of core inferential tools by showing how association can be quantified, but it also prepares the way for the regression chapters that follow.
 
 # Key Concepts
 
-This chapter depends on a small number of core distinctions.
+These ideas define the logic of the chapter before we move into the worked example.
 
 -   **Correlation** quantifies the strength and direction of association between variables.
--   **Association is not directionality** because correlation does not define a response and predictor.
+-   **Association is not causation** because correlation alone does not show that one variable causes changes in the other.
+-   **Correlation is not regression** because correlation does not specify a formal response and predictor.
 -   **Pearson, Spearman, and Kendall** answer related but not identical questions.
 -   **Strength, sign, and uncertainty** all matter when interpreting a correlation coefficient.
--   **Regression** should be preferred when the goal is explicit modelling rather than association alone.
 
-# Main Forms of Correlation
+# Nature of the Data and Assumptions
 
--   **Pearson correlation** for approximately linear relationships among continuous variables.
--   **Spearman correlation** for monotonic relationships or ordinal data.
--   **Kendall correlation** as a rank-based alternative that can be useful in smaller datasets or where tied ranks are common.
+The appropriateness of a correlation analysis depends on the nature of the variables and on the question being asked.
 
-# Practical Rule
+-   **Two measured variables** Correlation is used when we have two variables measured on the same sampling units.
+-   **Paired observations** Each value of one variable must correspond to the same observation in the other variable.
+-   **Independence of sampling units** The sampling units themselves should be independent of one another.
+-   **Appropriate form of relationship** Pearson correlation is most appropriate when the relationship is approximately linear and the variables are continuous. Spearman and Kendall correlation are more appropriate when the relationship is monotonic or when rank-based inference is preferred.
+-   **Outliers matter** Correlation coefficients can be strongly influenced by a small number of extreme values, so visual inspection is essential.
 
-Use correlation when the question is about **association**. Use regression when the question is about **modelling a response**.
+Before calculating a correlation coefficient, it is therefore necessary to make a scatterplot and inspect the overall pattern in the data.
 
-# Link
+# R Functions
 
-This chapter replaces the earlier standalone chapter:
+The main function used in this chapter is `cor.test()`. It can be applied with different methods:
 
--   `10-correlations.qmd`
+-   `method = "pearson"` for Pearson's product-moment correlation;
+-   `method = "spearman"` for Spearman's rank correlation;
+-   `method = "kendall"` for Kendall's rank correlation.
+
+The base function `cor()` calculates the coefficient itself, but `cor.test()` is more useful for inference because it also returns a test statistic, confidence interval where appropriate, and a *p*-value.
+
+# A Worked Example
+
+We will use the `ecklonia` data introduced in the previous chapter. Here we ask whether stipe length and stipe mass tend to vary together among individual kelps.
+
+```{r code-read-ecklonia}
+ecklonia <- read_csv(file.path("..", "..", "data", "BCB744", "ecklonia.csv"))
+```
+
+## Do an exploratory data analysis (EDA)
+
+As always, we begin by looking at the data numerically and graphically.
+
+```{r code-ecklonia-summary}
+ecklonia %>%
+  summarise(
+    n = n(),
+    mean_stipe_length = mean(stipe_length),
+    sd_stipe_length = sd(stipe_length),
+    mean_stipe_mass = mean(stipe_mass),
+    sd_stipe_mass = sd(stipe_mass)
+  )
+```
+
+```{r fig-ecklonia-correlation}
+#| fig-cap: "Association between stipe length and stipe mass in _Ecklonia maxima_."
+
+ggplot(data = ecklonia, aes(x = stipe_length, y = stipe_mass, colour = site)) +
+  geom_point(size = 2.2, alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.8, colour = "black") +
+  labs(x = "Stipe length (mm)", y = "Stipe mass (kg)") +
+  theme_pubclean()
+```
+
+The scatterplot suggests a positive association: longer stipes tend to have larger mass. The pattern is not perfectly tight, but it is clearly not random either. This makes a correlation analysis sensible.
+
+## State the question and hypotheses
+
+The central question is whether the association between stipe length and stipe mass differs from zero.
+
+For Pearson correlation, the hypotheses are:
+
+$$H_{0}: \rho = 0$$
+$$H_{a}: \rho \ne 0$$
+
+where $\rho$ is the population correlation coefficient.
+
+## Apply Pearson correlation
+
+```{r code-pearson-correlation}
+cor.test(ecklonia$stipe_length, ecklonia$stipe_mass, method = "pearson")
+```
+
+## Interpret the results
+
+The Pearson correlation coefficient is positive ($r = 0.577$), which indicates that longer stipes tend to be associated with heavier stipes. The *p*-value is small ($p < 0.01$), so the data provide strong evidence against the null hypothesis of no linear association. The confidence interval for the correlation excludes zero, which supports the same conclusion.
+
+This result does not mean that stipe length causes stipe mass or vice versa. It means only that the two variables co-vary positively in these data.
+
+## Reporting
+
+When reporting a correlation analysis, state:
+
+-   the variables being compared;
+-   the type of correlation used;
+-   the value of the correlation coefficient;
+-   the sample size;
+-   the test statistic and *p*-value;
+-   a short biological interpretation.
+
+For example, you might report:
+
+> Stipe length and stipe mass in *Ecklonia maxima* were positively correlated (Pearson correlation: $r = 0.577$, $n = 26$, $p < 0.01$). The 95% confidence interval for the correlation coefficient ranged from 0.244 to 0.788, indicating a moderate positive association in which kelps with longer stipes also tended to have greater stipe mass.
+
+# Rank-Based Correlation
+
+Pearson correlation is appropriate when the relationship is approximately linear and the variables are continuous. If the relationship is monotonic but not well described by a straight line, or if the data are rank-like or strongly influenced by outliers, a rank-based correlation may be preferable.
+
+## Spearman correlation
+
+```{r code-spearman-correlation}
+cor.test(ecklonia$stipe_length, ecklonia$stipe_mass,
+         method = "spearman", exact = FALSE)
+```
+
+Spearman's $\rho$ asks whether the ranks of the two variables tend to increase together. In this example it also indicates a positive association ($\rho = 0.630$, $p < 0.001$), which is broadly consistent with the Pearson result.
+
+## Kendall correlation
+
+Kendall's $\tau$ is another rank-based measure of association. It is often useful in smaller datasets or when tied ranks are common. The main practical point is that Spearman and Kendall provide alternatives when Pearson's assumptions are not plausible.
+
+# Correlation Versus Regression
+
+It is important not to confuse correlation with regression.
+
+-   **Correlation** asks whether two variables vary together.
+-   **Regression** asks whether a response variable changes systematically as a function of one or more predictors.
+
+This distinction is not just technical. If your question is "do these variables co-vary?", correlation is appropriate. If your question is "how does the response change with the predictor?", then you are already in the territory of regression. That is why this chapter naturally leads into the next one.
+
+# If Assumptions Fail
+
+If the relationship is not linear, the variables are ordinal, or the data contain influential outliers, Pearson correlation may not be appropriate. In such cases:
+
+-   use Spearman or Kendall correlation for rank-based association;
+-   inspect the scatterplot carefully before interpreting any coefficient;
+-   move to a regression model if the real question is one of response and predictor rather than simple association.
+
+# Summary
+
+Correlation is a measure of association, not a model of response. The important workflow is therefore:
+
+1. Plot the data.
+2. Decide whether the question is really about association.
+3. Choose Pearson, Spearman, or Kendall according to the data and relationship.
+4. Interpret the coefficient, uncertainty, and *p*-value together.
+5. Do not confuse association with causation, or correlation with regression.

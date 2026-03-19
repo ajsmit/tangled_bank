@@ -64,10 +64,27 @@ Find here a [Cheatsheet](../../docs/Methods_cheatsheet_v1.pdf) on statistical me
 
 # Introduction
 
-Where the Student's and Welch's *t*-tests are used to test for the difference between the means of two groups, analysis of variance (ANOVA)[^1] is used to *compare the means of three, more groups*. The following expectations about your data should be met to conduct an ANOVA:
+In [Chapter 7](07-t_tests.qmd) we compared the means of one sample, two independent groups, and paired measurements. The natural next question is this: what do we do when we want to compare the means of **more than two groups**? The answer is not to run many separate *t*-tests. The answer is **analysis of variance**, or **ANOVA**.[^1]
+
+ANOVA extends the same inferential logic you have already learned. We still ask whether observed differences among group means are large relative to the variation within groups. What changes is the scale of the question. Instead of asking whether two means differ, we ask whether at least one mean among several groups differs from the others.
+
+This chapter therefore follows directly from the *t*-test chapter. It begins with the reason we should not perform many pairwise *t*-tests, introduces the assumptions and functions used for ANOVA, works through a one-way example, and then extends the discussion to factorial ANOVA and the main non-parametric alternatives.
 
 [^1]: Variations of the basic ANOVA include an analysis of covariance (ANCOVA) when, in addition to the categorical variable, your data also contains a **continuous covariate** (*e.g.*, age, mass) that you want to control. Or, if your study involves multiple dependent variables, you may need to consider using **multivariate analysis of variance (MANOVA)** instead. ANOVAs that have multiple independent variables are called **factorial ANOVAs** (*e.g.* 2-way ANOVA, 3-way ANOVA).
 
+# Key Concepts
+
+These points separate the core ANOVA ideas from the practical sections that follow.
+
+-   **ANOVA (Analysis of Variance):** A statistical test used to compare the means of three or more groups to determine if at least one group mean differs from the others.
+-   **One-way versus factorial ANOVA:** One-way ANOVA analyzes one categorical independent variable (factor), while factorial ANOVA analyzes two or more factors and their interactions.
+-   **Problem of multiple comparisons:** Repeatedly using *t*-tests on many pairs of groups inflates the probability of a Type I error. ANOVA avoids this by testing all groups simultaneously.
+-   **Post-hoc tests (Tukey HSD):** After a significant ANOVA result, a post-hoc test is needed to identify exactly which group means differ.
+-   **Non-parametric alternative (Kruskal-Wallis):** If the assumptions for ANOVA are not met, the Kruskal-Wallis test is a common rank-based alternative.
+
+# Nature of the Data and Assumptions
+
+As with the *t*-test, ANOVAs have expectations on the nature of the response variables and assumptions stemming from the study design. 
 
 -   **Continuous dependent variable** The dependent variable should be measured on a *continuous scale* (*e.g.*, height, weight, test scores).
 
@@ -82,17 +99,17 @@ Other assumptions to be aware of with regards to the dependent variable:
 -   Homogeneity of variances
 -   We also encourage that the data are balanced
 
-# Key Concepts
+# R Functions
 
-These points separate the core ANOVA ideas from the practical sections that follow.
+The main functions used in this chapter are:
 
--   **ANOVA (Analysis of Variance):** A statistical test used to compare the means of three or more groups to determine if at least one group mean is different from the others.
--   **One-Way vs. Factorial ANOVA:** One-way ANOVA analyzes one categorical independent variable (factor), while factorial ANOVA (e.g., two-way) analyzes two or more factors and their interactions.
--   **Problem of Multiple Comparisons:** Repeatedly using *t*-tests on multiple pairs of groups inflates the probability of a Type I error (a false positive). ANOVA avoids this by testing all groups simultaneously.
--   **Post-Hoc Tests (Tukey HSD):** After a significant ANOVA result (which only tells you that *at least one* group is different), a post-hoc test like Tukey's HSD is necessary to perform pairwise comparisons and identify exactly which group means differ from each other.
--   **Non-Parametric Alternative (Kruskal-Wallis Test):** If the assumptions for ANOVA (particularly normality) are not met, the Kruskal-Wallis test is used as a non-parametric equivalent.
+-   `aov()` for classical ANOVA;
+-   `summary()` to inspect the ANOVA table;
+-   `TukeyHSD()` for post-hoc pairwise comparisons;
+-   `oneway.test()` for Welch's ANOVA when variances differ;
+-   `kruskal.test()` for the Kruskal-Wallis rank-sum test.
 
-# The ANOVA
+# Why ANOVA Follows from the *t*-Test
 
 Whole big books have been written about analysis of variance (ANOVA). Although there are many experimental designs that may be analysed with ANOVAs, biologists are taught to pay special attention to the design of experiments, and generally make sure that the experiments are fully *factorial* (in the case of two-way, higher ANOVAs) and balanced. For this reason we will focus in this introductory statistics module on one-way and factorial ANOVAs only.
 
@@ -265,7 +282,7 @@ On the downside, this method can be overly conservative, we may then increase th
 
 Or better still, we do an ANOVA that controls for these Type I errors so that it remains at 5%.
 
-# ANOVA
+# A Worked One-Way ANOVA Example
 
 ::: {.callout-note}
 ## Hypothesis for an ANOVA
@@ -281,14 +298,24 @@ $H_{a}$: the means of the four groups are not equal.
 Here, $\mu_1$, $\mu_2$, $\mu_3$,$\mu_4$ are four population means. For the *H*~0~ to be rejected, all that is required is for one of the pairs of means to be different, not all of them.
 :::
 
-## Single Factor
+## The one-way design
 
-We continue with the chicken data. The *t*-test showed that Diets 1 and 2 resulted in the same chicken mass at Day 21. What about the other two diets? Our *H*~0~ is that, at Day 21, $\mu_{1}=\mu_{2}=\mu_{3}=\mu_{4}$. Is there a statistical difference between chickens fed these four diets, or do we retain the *H*~0~? The R function for an ANOVA is `aov()`. To look for significant differences between all four diets on the last day of sampling we use this one line of code:
+We continue with the chicken data. The *t*-test showed that Diets 1 and 2 resulted in similar chicken mass at Day 21. What about the other two diets? Our *H*~0~ is that, at Day 21, $\mu_{1}=\mu_{2}=\mu_{3}=\mu_{4}$. Is there a statistical difference between chickens fed these four diets, or do we retain the *H*~0~?
+
+### Do an exploratory data analysis (EDA)
+
+Before fitting the ANOVA, inspect the distributions graphically and keep the group means in mind. We already began this process in the *t*-test revision, but here we must consider all four diets together.
+
+### Apply the test
+
+The R function for a classical one-way ANOVA is `aov()`. To look for significant differences between all four diets on the last day of sampling we use this one line of code:
 
 ```{r code-chicks-aov1-aov-weight}
 chicks.aov1 <- aov(weight ~ Diet, data = filter(chicks, Time == 21))
 summary(chicks.aov1)
 ```
+
+The ANOVA table tells us whether there is overall evidence that the group means differ. In this example the result is significant, which means that at least one diet differs from at least one other diet in terms of mean chick mass at Day 21.
 
 :::: {.callout-important}
 ## Task G.2: Do It Now!
@@ -296,7 +323,9 @@ a. What does the outcome say about the chicken masses? Which ones are different 
 b. Devise a graphical display of this outcome.
 ::::
 
-If this seems too easy to be true, it is because we are not quite done yet. You could use your graphical display to eyeball where the significant differences are, or we can turn to a more 'precise' approach. The next step one could take is to run a Tukey HSD test on the results of the ANOVA by wrapping `tukeyHSD()` around `aov()`:
+### Identify which groups differ
+
+If this seems too easy to be true, it is because we are not quite done yet. ANOVA tells us that at least one mean differs, but not which ones. You could use your graphical display to eyeball where the significant differences are, or we can turn to a more precise approach. The next step is to run a Tukey HSD test on the results of the ANOVA:
 
 ```{r code-tukeyhsd-chicks-aov1}
 TukeyHSD(chicks.aov1)
@@ -339,6 +368,24 @@ ggbetweenstats(
 )
 ```
 
+### Interpret the results
+
+Taken together, the ANOVA and Tukey outputs show that the global effect of diet is statistically significant, but not every pair of diets differs. In these data the clearest pairwise difference is between Diet 1 and Diet 3. This is a useful reminder that a significant ANOVA is a global result: it establishes that there is structure among the means, not that every pairwise contrast is significant.
+
+### Reporting
+
+When reporting a one-way ANOVA, state:
+
+-   the response variable and grouping factor;
+-   the ANOVA statistic and degrees of freedom;
+-   the *p*-value;
+-   the group means and their spread;
+-   the main post-hoc result if a follow-up test was used.
+
+For example, you might report:
+
+> At Day 21, mean chick mass differed among diets (one-way ANOVA: $F_{3,41} = 4.66$, $p < 0.01$). Chicks fed Diet 1 had a mean mass of $177.8 \pm 58.7$ g (SD), compared with $214.7 \pm 78.1$ g for Diet 2, $270.3 \pm 71.6$ g for Diet 3, and $238.6 \pm 43.3$ g for Diet 4. Tukey's HSD test showed that the clearest pairwise difference was between Diet 1 and Diet 3 ($p < 0.01$), indicating that chicks on Diet 3 were heavier than those on Diet 1 by Day 21.
+
 :::: {.callout-important}
 ## Task G.3: Do It Now!
 Look at the help file for the `TukeyHSD()` function to better understand what the output means.
@@ -354,7 +401,7 @@ c. Why does the ANOVA return a significant result, but the Tukey test shows that
 
 <!-- ``` -->
 
-## Multiple Factors
+## Factorial ANOVA
 
 What if we have multiple grouping variables, and not just one? We would encounter this kind of situation in factorial designs. In the case of the chicken data, there is also time that seems to be having an effect.
 
@@ -454,9 +501,17 @@ To summarise *t*-tests, single-factor (1-way), multifactor (2- or 3-way and etc.
 3. Following on from there, a 2-way ANOVA compares the means of response variables belonging to all the levels within **two categorical independent variables** (*e.g.* Factor 1 might have three levels, and Factor 2 five levels). In the simplest formulation, it does so by looking at the **main effects**, which is the group differences between the three levels of Factor 1, disregarding the contribution due to the group membership to Factor 2 and also the group differences amongst the levels of Factor 2 but disregarding the group membership of Factor 1. In addition to looking at the main effects, a 2-way ANOVA can also consider the **interaction** (or combined effect) of Factors 1, 2 in influencing the means.
 :::
 
-# Alternatives to ANOVA {#sec-alt}
+# If Assumptions Fail {#sec-alt}
 
-In the first main section of this chapter we learned how to test hypotheses based on the comparisons of means between sets of data when we were able to meet our two base assumptions. These parametric tests are preferred over non-parametric tests because they are more robust. However, when we simply are not able to meet these assumptions we must not despair. Non-parametric tests are still useful. In this chapter we will learn how to run non-parametric tests for two sample, multiple sample datasets. To start and let us load our libraries`chicks` data if we have not already.
+In the first main section of this chapter we learned how to test hypotheses based on the comparisons of means between sets of data when we were able to meet the core assumptions. These parametric tests are usually preferred because they are more informative and more powerful. However, when we are not able to meet those assumptions, alternatives are available.
+
+The main choices are:
+
+-   use **Welch's ANOVA** with `oneway.test()` when the data are roughly normal but the variances differ;
+-   use a **Kruskal-Wallis rank-sum test** when a one-way non-parametric alternative is more appropriate;
+-   move later in the course to more flexible models when the response structure or design demands it.
+
+To start, let us load our libraries and the `chicks` data if we have not already.
 
 ```{r code-library-tidyverse}
 # First activate libraries
@@ -478,9 +533,9 @@ chicks %>%
             var_wt = var(weight))
 ```
 
-## Wilcoxon Rank Sum Test
+## Wilcoxon Rank-Sum Test
 
-The non-parametric version of a *t*-test is a Wilcox rank sum test. To perform this test in R we may again use `compare_means()` and specify the test we want:
+The non-parametric version of a two-sample *t*-test is a Wilcoxon rank-sum test. To perform this test in R we may again use `compare_means()` and specify the test we want:
 
 ```{r code-compare-means-weight-diet}
 compare_means(weight ~ Diet,
@@ -491,9 +546,9 @@ compare_means(weight ~ Diet,
 
 What do our results show?
 
-## Kruskall-Wallis Rank Sum Test
+## Kruskal-Wallis Rank-Sum Test
 
-### Single factor
+### One-way alternative
 
 The non-parametric version of an ANOVA is a Kruskall-Wallis rank sum test. As you may have by now surmised, this may be done with `compare_means()` as seen below:
 
@@ -540,7 +595,7 @@ ggboxplot(sa_time_long, x = "term", y = "minutes",
           add = "jitter", shape = "term")
 ```
 
-# Examples
+# Extended Example
 
 ## Snakes!
 

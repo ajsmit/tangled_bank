@@ -1,7 +1,7 @@
 ---
 date: "2021-01-01"
 title: "7. *t*-Tests"
-subtitle: "Comparing the Means of Two Groups"
+subtitle: "One-Sample, Two-Sample, and Paired Mean Comparisons"
 reference-location: margin
 ---
 
@@ -65,43 +65,79 @@ two_assum <- function(x) {
 
 # Introduction
 
-Student's *t*-tests are used to compare the *means of two groups* to determine if there is a significant difference between them. These are the expectations about your data:
+As biologists, we often want to use sample data to make an inference about a larger population. Sometimes we want to know whether the mean of a single sample differs from an expected value. At other times we want to compare the means of two groups, or the mean change within the same individuals measured twice. The family of tests most commonly used for these questions are *t*-tests.
 
--   **Continuous dependent variable** The dependent variable should be measured on a *continuous scale* (*e.g.*, height, mass, concentration).
+A *t*-test is therefore not only a test for comparing two groups. More generally, it is a statistical hypothesis test used to assess whether a sample mean, or the difference between two means, is likely to be zero under a null hypothesis. The exact form of the test depends on the structure of the data:
 
--   **Categorical independent variable** The independent variable has two independent groups being compared, so we expect a *factor variable with two groups* (*e.g.* fertiliser levels of high, low and vegetation types of grassland and forest, herbivory levels of moderate, intense). There are two types of *t*-tests depending on whether the samples are independent or paired (related):
+-   in a **one-sample *t*-test** we compare one sample mean, $\bar{x}$, against a known or hypothesised value, $\mu_{0}$;
+-   in a **two-sample *t*-test** we compare the means of two independent groups, $\bar{A}$ and $\bar{B}$;
+-   in a **paired *t*-test** we compare the mean difference, $\bar{d}$, between matched measurements.
 
-    - **Independent sample *t*-test** Appropriate when the groups consist of different individuals or observations; here, the observations within one group does not affect the other group's observations. 
-    - **Paired sample *t*-test**: Appropriate when the groups are related, such as before-and-after measurements, matched pairs of individuals.
+These questions arise frequently in ecology and biology. We might ask whether the mean chlorophyll concentration in a lagoon differs from a regulatory threshold, whether the mean size of plants differs between a control and a treatment, or whether the same individuals are heavier after a feeding trial than before it started.
 
-Other assumptions to be aware of with regards to the dependent variable:
-
--   **[Normal distribution](06-assumptions-and-transformations.qmd)** The data in each group should follow a normal distribution or be approximately normally distributed for you to use the Student's *t*-test, `t.test()`. If the assumption of normality is not met, as, for example, determined with the `shapiro.test()`, you may consider using a non-parametric alternative such as the Wilcoxon signed-rank test, `wilcox.test()`, as a replacement for a one-sample *t*-test or the Mann-Whitney test, also with `wilcox.test()` (but note how to set the function arguments), in stead of a two-sample *t*-test. This assumption can be relaxed for large sample sizes due to the [Central Limit Theorem](04-distributions-sampling-uncertainty.qmd).
-
--   **[Homoscedasticity](06-assumptions-and-transformations.qmd)** The variances of the two groups should be approximately equal, as determined with the Levene's test `leveneTest()`. If this assumption is not met, you can use Welch's *t*-test in stead of Student's *t*-test, as the former does not require variances to be equal. The default setting for `t.test()` is actually Welch's *t*-test; to perform a Student's *t*-test (one- or two-sample *t*-test) you need to set the argument `var.equal = TRUE`.
-
--   **Random sampling** The data should be obtained through random sampling or random assignment, ensuring that each observation has an equal chance of being included in the sample.
+In all cases, we work with sample data but wish to say something about the population from which the sample was drawn. This means that the logic of the chapter must begin with the inferential question, the hypotheses, and the nature of the data before we rush to the function in R.
 
 # Key Concepts
 
 These ideas define the logic of the chapter before we move into the worked tests.
 
-- ***t*-test:** A statistical hypothesis test used to determine if there is a significant difference between the means of two groups.
-- **One-Sample vs. Two-Sample vs. Paired:** The choice of *t*-test depends on the data structure: comparing one group to a known value (one-sample), comparing two independent groups (two-sample), or comparing two related measurements (paired).
-- **One-Sided vs. Two-Sided Test:** A two-sided test checks for any difference ($\bar{A} \neq \bar{B}$), while a one-sided test checks for a specific direction of difference ($\bar{A} > \bar{B}$ or $\bar{A} < \bar{B}$).
-- **Assumptions (Normality and Homoscedasticity):** Student's *t*-test requires normally distributed data and equal variances. Welch's *t*-test is used when variances are unequal. Non-parametric alternatives (like the Wilcoxon test) are used if normality is violated.
-- **`t.test()` Function:** The primary R function for all variations of the *t*-test, controlled by arguments like `mu`, `paired`, `var.equal`, and `alternative`.
+- ***t*-test:** A statistical hypothesis test used to determine whether a sample mean, or a difference between means, is consistent with a null hypothesis.
+- **One-sample vs. two-sample vs. paired:** The choice of *t*-test depends on the data structure: one sample against a fixed value, two independent groups against one another, or two related measurements on the same sampling units.
+- **One-sided vs. two-sided tests:** A two-sided test asks whether a value differs in either direction, while a one-sided test asks whether the difference is specifically greater than or less than zero.
+- **Student versus Welch:** Student's *t*-test assumes equal variances between groups; Welch's *t*-test relaxes this assumption and is the default in R.
+- **Assumptions matter:** The appropriateness of a *t*-test depends on the nature of the data, especially the scale of measurement, independence, approximate normality, and in the two-sample case the equality or inequality of variances.
+- **Non-parametric alternatives:** When the assumptions for a *t*-test are not met, rank-based alternatives such as `wilcox.test()` may be more appropriate.
+- **`t.test()` is the main R function:** The same function handles one-sample, two-sample, and paired designs through arguments such as `mu`, `paired`, `var.equal`, and `alternative`.
 
-# A simple experiment
+# Nature of the Data and Assumptions
+
+The appropriateness of a *t*-test hinges on the nature of the response data and on the study design.
+
+-   **Continuous response variable** The response variable should be measured on a continuous scale, such as length, mass, concentration, or temperature.
+
+-   **Correct data structure** The design determines which *t*-test is appropriate:
+
+    -   **One-sample *t*-test** when one sample is compared to a hypothesised mean, $\mu_{0}$;
+    -   **Independent two-sample *t*-test** when two groups are made up of different individuals or sampling units;
+    -   **Paired *t*-test** when measurements are matched, such as before-and-after measurements on the same individuals or matched pairs.
+
+-   **Independence** The observations used in the test must be independent in the way assumed by the design. In a two-sample test, observations in one group should not determine those in the other group. In a paired design, the pairs are deliberate, but the pairs themselves should still be independent of one another.
+
+-   **Approximate normality** The data, or more precisely the relevant differences or sampling distribution, should be approximately normally distributed for Student's or Welch's *t*-tests. If this assumption is not met, especially in small samples, you should consider a non-parametric alternative such as the Wilcoxon signed-rank test or the Mann-Whitney test via `wilcox.test()`. This assumption is relaxed in larger samples because of the [Central Limit Theorem](04-distributions-sampling-uncertainty.qmd).
+
+-   **Homoscedasticity for Student's two-sample test** In a classical Student's two-sample *t*-test, the variances of the two groups should be approximately equal. If this assumption is not met, you should use Welch's *t*-test instead. In R, Welch's test is the default, and a Student's test is obtained by setting `var.equal = TRUE`.
+
+-   **Random sampling or random assignment** The data should come from a defensible sampling design so that the observations are representative of the population or experimental process of interest.
+
+Before carrying out a *t*-test, you should examine the data visually and statistically. Histograms, boxplots, Q-Q plots, and tests such as `shapiro.test()` or Levene's test help you decide whether the parametric route is appropriate. When assumptions fail badly, please refer back to [Chapter 6](06-assumptions-and-transformations.qmd) for remedies and alternatives.
+
+# R Functions
+
+The main function used throughout this chapter is `t.test()`. It can be used for:
+
+-   one-sample *t*-tests by specifying `mu = ...`,
+-   independent two-sample *t*-tests using either `x, y` or a formula such as `response ~ group`,
+-   paired *t*-tests by specifying `paired = TRUE`.
+
+The most important arguments are:
+
+-   `mu` for the hypothesised mean in a one-sample test,
+-   `alternative` to choose `"two.sided"`, `"less"`, or `"greater"`,
+-   `paired` to indicate matched observations,
+-   `var.equal` to request Student's two-sample *t*-test rather than Welch's.
+
+When the assumptions for a *t*-test are not met, the main alternative used in this chapter is `wilcox.test()`. For one-sample and paired settings it serves as a rank-based alternative to the *t*-test, and for two independent groups it provides the Mann-Whitney or Wilcoxon rank-sum approach, depending on the argument structure.
+
+# A Simple Experimental Logic
 
 ::: callout-important
 ## Do This Now!
 **Task F.1.** Work with two friends and devise a real 'experiment' (or designed sampling to determine some real-world phenomenon, more likely) in which you demonstrate the following two principles:
 
 a. the effect of sample size on the estimate of the mean and variance (use SD),
-b. the effect of repeated sampling on the value of the mean and variance. In both cases, apply the correct *t*-test (later in this Chapter) to test whether sample size, repeat sampling has a statistically significant effect. What conclusion do you reach?
+b. the effect of repeated sampling on the value of the mean and variance. In both cases, apply the correct *t*-test (later in this Chapter) to test whether sample size and repeat sampling has a statistically significant effect. What conclusion do you reach?
 
-Report back comprehensively in Task F.
+Report back comprehensively with Task F.
 :::
 
 The simplest experiment that makes any scientific sense is one where data are collected to represent two groups --- maybe a treatment compared to a control. For example, "does adding manure to some plants have a measurable effect on their growth compared to the situation where nothing was added that might affect the plants' growth?" To answer this very basic question one often uses a ***t*-test**. 
@@ -110,7 +146,7 @@ The most commonly used *t*-test is **Student's *t*-test**[^1], a statistical hyp
 
 [^1]: Whereas the Student's *t*-test applies to data whose variances are equal among the two groups, the **Welch's *t*-test** is used when the variances are unequal. The Welch's *t*-test is a more robust test, is preferred when the sample sizes are unequal or the variances are unequal. The Welch's *t*-test is the default setting in the`t.test()` function in R (through the argument `var.equal = FALSE`, which is the default).
 
-Now it becomes interesting. There are several flavours of *t*-tests, depending on the nature of our samples, the type of question being asked but all of them involve comparing two samples. Specifically, *the comparison involves the sample means*, and as such, they test whether, not the central tendencies of two samples differ. Here are the variations:
+Now it becomes interesting. There are several flavours of *t*-tests, depending on the nature of our samples, the type of question being asked but all of them involve comparing two samples. Specifically, *the comparison involves the sample means*, and as such, they test whether or not the central tendencies of two samples differ. Here are the variations:
 
 -   **One-sample *t*-tests:** only one sample set of data that we wish to compare against a known population mean:
 
@@ -131,23 +167,41 @@ Let us go into detail into each of these variations of *t*-tests.
 
 # One-sample *t*-tests
 
+Sometimes we have only one sample, but we still want to make an inference about a population. In that case the question is not whether two groups differ from one another, but whether the mean of our sample differs from some hypothesised value, $\mu_{0}$. That hypothesised value may come from a regulatory threshold, a historical mean, a theoretical expectation, or a biologically meaningful reference point.
+
+The one-sample *t*-test asks whether the difference between the sample mean, $\bar{x}$, and the hypothesised mean, $\mu_{0}$, is large relative to the variation in the sample. As in the one-sample hypothesis chapter in `BCB_Stats`, the logic should always proceed in the same order: first decide whether the one-sample design is appropriate, then state the hypotheses, then look carefully at the data, and only then run `t.test()`.
+
+## When to use a one-sample *t*-test
+
+Use a one-sample *t*-test when:
+
+-   you have one sample of observations;
+-   the response variable is continuous;
+-   the observations are independent;
+-   you want to compare the sample mean against a known or hypothesised value, $\mu_{0}$;
+-   the data are approximately normally distributed, or the sample size is large enough that the test is reasonably robust.
+
+If you already know the direction of the expected effect before seeing the data, you may use a one-sided test. If you simply want to know whether the mean differs from $\mu_{0}$ in either direction, use a two-sided test.
+
 ## Two-sided one-sample *t*-test
 
 ::: {.callout-note}
 ## Hypothesis for two-sided one-sample *t*-test
 
-$H_{0}: \bar{x} = \mu_{0}$$H_{a}: \bar{x} \ne \mu_{0}$
+$$H_{0}: \bar{x} = \mu_{0}$$
+$$H_{a}: \bar{x} \ne \mu_{0}$$
 
 This is the same as:
 
-$H_{0}: \bar{x} - \mu_{0} = 0$$H_{a}: \bar{x} - \mu_{0} \ne 0$
+$$H_{0}: \bar{x} - \mu_{0} = 0$$
+$$H_{a}: \bar{x} - \mu_{0} \ne 0$$
 
-Here $\bar{x}$ is the population mean$\mu_{0}$ the hypothesised mean to which $\bar{x}$ is being compared. In this example we have a two-sided one-sample *t*-test.
+Here $\bar{x}$ is the sample mean and $\mu_{0}$ is the hypothesised population mean against which the sample is being compared.
 
-As stated above, $H_{0}$ does not make a distinction between whether it expects $\bar{x}$ to be $\lt$$\gt$ $\mu_{0}$.
+Because this is a two-sided test, the alternative hypothesis does not specify direction. We are asking whether $\bar{x}$ differs from $\mu_{0}$, not whether it is specifically less than or greater than $\mu_{0}$.
 :::
 
-Generally when we use a *t*-test it will be a two-sample *t*-test (see below). Occasionally, however, we may have only one set of observations (random samples taken to represent a population) whose mean, $\bar{x}$, we wish to compare against a known population mean, $\mu_{0}$, which had been established *a priori* (@eq-onesample). In R's `t.test()` function, the default setting is for a **two-sided one-sample *t*-test** --- that is, *we do not care if our* $H_{a}$ *is significantly less than* $\mu_{0}$ *or if it is significantly greater than* $\mu_{0}$.
+In R, a one-sample *t*-test is done with `t.test(x, mu = ...)`. The default is a two-sided test, so unless you specify otherwise, `t.test()` evaluates whether the sample mean differs from $\mu_{0}$ in either direction.
 
 ::: {.column-margin}
 **The one-sample *t*-test:**
@@ -157,6 +211,8 @@ $$t = \frac{\overline{x} - \mu}{s / \sqrt{n}}$$ {#eq-onesample}
 where $t$ is the calculated $t$-value, $\overline{x}$ is the sample mean, $\mu$ is the hypothesised population mean, $s$ is the sample standard deviation,$n$ the sample size.
 :::
 
+## A worked one-sample example
+
 ```{r code-set-seed}
 # create a single sample of random normal data
 set.seed(666)
@@ -164,23 +220,22 @@ r_one <- data.frame(dat = rnorm(n = 20, mean = 20, sd = 5),
                     sample = "A")
 ``` 
 
-<!-- ```{r} -->
-<!-- ## check normality -->
-<!-- shapiro.test(r_one$dat) -->
-<!-- ``` -->
+We will work with one sample of random normal data and compare its mean against two possible reference values. The purpose of the example is to run the test and to see how the result depends on the hypothesised mean, $\mu_{0}$.
 
-```{r code-t-test-r-one-dat}
-# compare random data against a population mean of 20
-t.test(r_one$dat, mu = 20)
+### Do an exploratory data analysis (EDA)
 
-# compare random data against a population mean of 30
-t.test(r_one$dat, mu = 30)
+Before fitting the test, we should inspect the data numerically and graphically.
+
+```{r code-r-one-summary}
+summary(r_one$dat)
+sd(r_one$dat)
+shapiro.test(r_one$dat)
 ```
 
-What do the results of these two different tests show? Let us visualise these data to get a better understanding (@fig-boxplot1).
+The sample is small, so it is useful to check both the summary statistics and the approximate normality of the observations. We should also look at a plot.
 
 ```{r fig-boxplot1}
-#| fig-cap: "Boxplot of random normal data with. A hypothetical population mean of 20 is shown as a blue line, with the red line showing a mean of 30."
+#| fig-cap: "Boxplot of random normal data with. A hypothetical (reference) population mean of 20 is shown as a blue line, with the red line showing another reference mean of 30."
 #| fig-width: 5.5
 #| fig-height: 3.75
 #| out-width: "78%"
@@ -199,7 +254,55 @@ ggplot(data = r_one, aes(y = dat, x = sample)) +
   theme_pubclean()
 ```
 
-The boxplot shows the distribution of our random data against two potential population means. Does this help now to illustrate the results of our one-sample *t*-tests?
+The boxplot shows the sample distribution relative to two possible hypothesised means. Visually, the sample appears to be centred much closer to 20 than to 30. That immediately suggests that a test against 20 may not be significant, whereas a test against 30 may be.
+
+### State the hypotheses
+
+Suppose we first ask whether this sample could reasonably have come from a population with mean 20. The hypotheses are:
+
+$$H_{0}: \mu = 20$$
+$$H_{a}: \mu \ne 20$$
+
+We can then ask the same question for a hypothesised population mean of 30:
+
+$$H_{0}: \mu = 30$$
+$$H_{a}: \mu \ne 30$$
+
+### Apply the test
+
+```{r code-t-test-r-one-dat}
+# compare random data against a population mean of 20
+t.test(r_one$dat, mu = 20)
+
+# compare random data against a population mean of 30
+t.test(r_one$dat, mu = 30)
+```
+
+### Interpret the results
+
+The test against $\mu_{0} = 20$ asks whether the observed sample mean is far enough from 20, relative to the sample variation, to reject the null hypothesis. The test against $\mu_{0} = 30$ asks the same question, but now the hypothesised mean is much farther from the centre of the observed data.
+
+This is the key inferential logic of the one-sample *t*-test: the same data can support different conclusions depending on the null value being tested. The output should therefore always be interpreted in relation to the biological or experimental meaning of $\mu_{0}$.
+
+### Reporting
+
+When reporting a one-sample *t*-test, state:
+
+-   the sample mean and its units;
+-   the hypothesised mean, $\mu_{0}$;
+-   the *t* statistic and degrees of freedom;
+-   the *p*-value;
+-   a short biological interpretation of the result.
+
+For example, you might report:
+
+> The mean of the sample ($\bar{x} = 20.01, SD = 6.61, n = 20)$ did not differ from the hypothesised value of $\mu_0 = 20$ (one-sample *t*-test: $t_{19} = 0.005, p > 0.05$). The 95% confidence interval for the mean ($16.91$ to $23.10$) included the reference value, indicating that the observed data are consistent with a population mean of 20.
+>
+> In contrast, the sample mean differed from a hypothesised value of $\mu_0 = 30$ ($t_{19} = -6.76$, $p < 0.001$). The same confidence interval ($16.91$ to $23.10$) did not include 30, indicating that the observed values are not compatible with a population mean of 30.
+> 
+> Together, these results show that inference depends on the hypothesised reference value: the data support a mean near 20 but provide strong evidence against a mean of 30.
+
+
 
 ## One-sided one-sample *t*-tests
 
@@ -208,12 +311,15 @@ The boxplot shows the distribution of our random data against two potential popu
 
 For example, when we are concerned that our sample mean, $\bar{x}$, should be less than the *a priori* established value, $\mu_{0}$:
 
-$H_{0}: \bar{x} \ge \mu_{0}$$H_{a}: \bar{x} \lt \mu_{0}$
+$$H_{0}: \bar{x} \ge \mu_{0}$$
+$$H_{a}: \bar{x} \lt \mu_{0}$$
 
 Only one of the two options is shown.
 :::
 
-Remember that a normal distribution has two tails. As indicated already, when we are testing for significance we are generally looking for a result that sits in the far end of either of these tails. Occasionally, however, we may want to know if the result is specifically in one of the two tails. Explicitly the leading, trailing tail. For example, is the mean value of our sample population, $\bar{x}$, *significantly greater than the value* $\mu_{0}$? *Or, is* $\bar{x}$ *less than the value* $\mu_{0}$? This *t*-test is called a **one-sided one-sample *t*-tests**. To specify this in R we must add an argument as seen below:
+One-sided tests are used when the direction of the alternative hypothesis is specified before the data are analysed. For example, we may wish to know whether the sample mean is specifically less than $\mu_{0}$, or specifically greater than $\mu_{0}$. This must be justified by the scientific question.
+
+In R, one-sided one-sample tests are requested with the `alternative` argument:
 
 ```{r code-t-test-r-one-dat-2}
 # check against the trailing tail
@@ -223,7 +329,11 @@ t.test(r_one$dat, mu = 30, alternative = "less")
 t.test(r_one$dat, mu = 30, alternative = "greater")
 ```
 
-Are these the results we would have expected? Why does the second test not return a significant result?
+Are these the results we would have expected? Why does the second test not return a significant result? The answer lies in the direction of the alternative hypothesis: the first test asks whether the mean is less than 30, which is compatible with the data, whereas the second asks whether the mean is greater than 30, which is not.
+
+## If assumptions fail
+
+If the observations are strongly non-normal, especially in small samples, or if the data contain severe outliers that undermine the mean-based logic of the test, a one-sample *t*-test may not be appropriate. In such cases, a rank-based alternative such as `wilcox.test()` may be more defensible. The broader reasoning behind the checking of assumptions and deciding on alternatives is discussed in [Chapter 6](06-assumptions-and-transformations.qmd).
 
 ::: callout-important
 ## Do This Now!
@@ -232,21 +342,45 @@ Create a visualisation to graphically demonstrate the outcome of this *t*-test.
 
 # Two-sample *t*-tests
 
+Very often, however, the inferential question is not whether one sample differs from a fixed value, but whether the means of two groups differ from one another. This happens when we compare a control against a treatment, one habitat against another, or one species against another. The response variable is still continuous, but now the grouping variable has two levels.
+
+In this case we use a **two-sample *t*-test**, also called an **independent-samples *t*-test**, because the observations in the two groups are assumed to be independent. As with the one-sample test, the logic must still proceed in the same order: decide whether the design is appropriate, state the hypotheses, examine the data, choose the correct version of the test, and then interpret the result in biological terms.
+
+## When to use a two-sample *t*-test
+
+Use a two-sample *t*-test when:
+
+-   you have a continuous response variable;
+-   you have two groups to compare;
+-   the observations in one group are independent of those in the other group;
+-   the data in each group are approximately normal, or the sample sizes are large enough for the test to be robust;
+-   you are interested in whether the difference between the group means is zero.
+
+At this point we must also decide which two-sample *t*-test is appropriate. If the two groups have approximately equal variances, we may use **Student's *t*-test**. If the variances differ, we use **Welch's *t*-test**, which is more robust and is the default in R.
+
 ## Two-sided two-sample *t*-test
 
 ::: {.callout-note}
 ## Hypothesis for two-sided two-sample *t*-test
 
-$H_{0}: \bar{A} = \bar{B}$$H_{a}: \bar{A} \ne \bar{B}$
+$$H_{0}: \bar{A} = \bar{B}$$
+$$H_{a}: \bar{A} \ne \bar{B}$$
 
-where $\bar{A}$ is the population mean of the first sample$\bar{B}$ the population mean of the second sample. In this example we have a two-sided two-sample *t*-test, which is the default in R's `t.test()` function.
+where $\bar{A}$ is the population mean of the first sample and $\bar{B}$ the population mean of the second sample. In this example we have a two-sided two-sample *t*-test, which is the default in R's `t.test()` function.
 
-As stated above, $H_{0}$ does not make a distinction between whether it expects the difference between $\bar{A}$$\bar{B}$ to be greater than or less than 0.
+This is the same as saying:
+
+$$H_{0}: \bar{A} - \bar{B} = 0$$
+$$H_{a}: \bar{A} - \bar{B} \ne 0$$
+
+Again, $H_{0}$ does not distinguish between whether the difference is greater than or less than 0. We are simply asking whether the two means differ.
 :::
 
-A two-sample *t*-test is used when we have samples from two different (independent) populations whose means, $\bar{A}$$\bar{B}$, we would like to compare against one another. Sometimes it is called an independent sample *t*-test. Specifically, it tests whether the *difference between the means of two samples is zero*. Note that again *we make no distinction between whether it is more interesting that the difference is greater than zero, less zero* --- as long as there is a difference between$\bar{A}$$\bar{B}$. This test is called a **two-sided two sample *t*-test** and it is the most common use of a *t*-test.
+This is the most common *t*-test in experimental biology. We use it when our two samples come from different individuals or sampling units, and when there is no natural pairing between the observations.
 
-There are two varieties of *t*-tests. In the case of samples whose variances do not differ, we perform a **Student's *t*-test**. @eq-tstat shows how to calculate the *t*-statistic for Student's *t*-test. The other case is if we have unequal variances in $\bar{A}$$\bar{B}$ (established with the Levene's test for equality of variances; see [Chapter 6](06-assumptions-and-transformations.qmd)); here, we perform **Welch's *t*-test** as written in @eq-welch. Welch's *t*-test is the default in R's `t.test()` function.
+## Student's versus Welch's *t*-test
+
+There are two main varieties of the two-sample *t*-test. In the case of samples whose variances do not differ appreciably, we may perform a **Student's *t*-test**. @eq-tstat shows how the *t*-statistic is calculated for Student's *t*-test. If the variances differ between the two groups, we instead perform **Welch's *t*-test** as written in @eq-welch. Welch's *t*-test is more robust and is therefore the default in R's `t.test()` function.
 
 ::: {.column-margin}
 **Student's *t*-test:**
@@ -268,9 +402,11 @@ Here, $S_{A}$$S_{B}$ are the variances of groups $A$$B$, respectively (see Secti
 $$d.f. = \frac{\left( \frac{S^{2}_{A}}{n}+\frac{S^{2}_{B}}{m} \right)^{2}}{\left( \frac{S^{4}_{A}}{n-1} + \frac{S^{4}_{B}}{m-1} \right)}$$ {#eq-satterthwaite}
 :::
 
-What do we do with this *t*-statistic? In the olden days we had to calculate the *t*-statistics and the *d.f.* by hand. These two values, the *d.f.*, *t*-value had to be read off a table of pre-calculated *t*-values and probabilities and degrees of freedom [as in here](https://home.ubalt.edu/ntsbarsh/Business-stat/StatistialTables.pdf). Luckily, the *t*-test function nowadays does this all automagically. But if you are feeling nostalgic over times that you have sadly never experienced, please calculate the *t*-statistic, the *d.f.* yourself and give the table a go. In fact and an excessive later in this chapter will give you an opportunity to do so.
+In the olden days, we had to calculate the *t*-statistic and degrees of freedom by hand and then read probabilities from a printed table. R now does this for us automatically, but the formulas still matter because they explain why Student's and Welch's tests differ.
 
-Back to the present day and the wonders of modern technology. Let us generate some new random normal data and test to see if the data belonging to the two groups differ significantly from one-another. First, we apply the *t*-test function as usual:
+## A worked two-sample example
+
+Let us generate some new random normal data and ask whether the values in two independent groups differ from one another.
 
 ```{r code-set-seed-2}
 # random normal data
@@ -278,16 +414,90 @@ set.seed(666)
 r_two <- data.frame(dat = c(rnorm(n = 20, mean = 4, sd = 1),
                             rnorm(n = 20, mean = 5, sd = 1)),
                     sample = c(rep("A", 20), rep("B", 20)))
+```
 
+### Do an exploratory data analysis (EDA)
+
+As before, we begin by exploring the data before fitting a model.
+
+```{r code-r-two-summary}
+r_two |>
+  group_by(sample) |>
+  summarise(
+    n = n(),
+    mean = mean(dat),
+    sd = sd(dat),
+    .groups = "drop"
+  )
+
+by(r_two$dat, r_two$sample, shapiro.test)
+```
+
+The summaries tell us whether the two groups differ in their sample means and whether their spread appears similar. We should also inspect the groups visually.
+
+```{r fig-boxplot2}
+#| fig-cap: "Boxplots of two independent samples. Group B has a slightly higher mean than Group A, but the spread is similar."
+#| fig-width: 5.5
+#| fig-height: 3.75
+#| out-width: "78%"
+
+ggplot(data = r_two, aes(x = sample, y = dat, fill = sample)) +
+  geom_boxplot(alpha = 0.35, colour = "black", outlier.shape = NA) +
+  geom_jitter(width = 0.08, alpha = 0.7, size = 1.8) +
+  labs(x = "Group", y = "Value") +
+  theme_pubclean() +
+  theme(legend.position = "none")
+```
+
+The boxplots suggest that the two groups are roughly similar in spread, but that Group B may have a higher mean than Group A. Because these data were simulated with the same standard deviation, a Student's *t*-test is appropriate here.
+
+### State the hypotheses
+
+For a two-sided comparison, the hypotheses are:
+
+$$H_{0}: \mu_{A} = \mu_{B}$$
+$$H_{a}: \mu_{A} \ne \mu_{B}$$
+
+Equivalently:
+
+$$H_{0}: \mu_{A} - \mu_{B} = 0$$
+$$H_{a}: \mu_{A} - \mu_{B} \ne 0$$
+
+### Apply the test
+
+Now we apply the *t*-test. Note how we set the `var.equal` argument to `TRUE` because we know these simulated data have the same standard deviation.
+
+```{r code-t-test-r-two}
 # perform t-test
-# note how we set the `var.equal` argument to TRUE because we know 
+# note how we set the `var.equal` argument to TRUE because we know
 # our data has the same SD (they are simulated as such!)
 t.test(dat ~ sample, data = r_two, var.equal = TRUE)
+
 # if the variances are not equal, simply set `var.equal` to false
 # and a Welch's t-test will be performed
 ```
 
-The first argument we see in `t.test()` is `dat ~ sample`. Usually in R when we see a `~` (tilde) we are creating what is known as a formula. A formula tells R how it should look for interactions between data and factors. For example `Y ~ X` reads: $Y$ as a function of $X$. In our code above we see `dat ~ sample`. This means we are telling R that the *t*-test we want it to perform is when the `dat` column is a function of the `sample` column. In plain English we are dividing up the `dat` column into the two different samples we have, and then running a *t*-test on these samples. Another way of stating this is that the value of `dat` depends on the grouping it belong to (`A` and `B`). We will see this same formula notation cropping up later under ANOVAs, linear models, etc.
+The first argument we see in `t.test()` is `dat ~ sample`. Usually in R when we see a `~` (tilde), we are creating what is known as a formula. A formula tells R how it should look for relationships between a response and a grouping or explanatory variable. In our code above, `dat ~ sample` means that the values in the `dat` column are being compared across the levels of the `sample` column. We will see this same formula notation repeatedly later in ANOVAs and linear models.
+
+### Interpret the results
+
+The two-sample *t*-test asks whether the observed difference between the group means is large relative to the variation within the groups. If the *p*-value is small, we reject the null hypothesis that the mean difference is zero. If the *p*-value is not small, we conclude that the data do not provide strong evidence for a difference in means.
+
+The confidence interval is also important. It gives an estimated range for the mean difference between the two groups. If this interval excludes zero, the result is consistent with a statistically significant difference.
+
+### Reporting
+
+When reporting a two-sample *t*-test, state:
+
+-   the mean and spread for each group;
+-   whether you used Student's or Welch's *t*-test;
+-   the *t* statistic and degrees of freedom;
+-   the *p*-value;
+-   a brief biological interpretation of the mean difference.
+
+For example, you might report:
+
+> The mean value in Group A was $4.00 \pm 1.32$ (SD, $n = 20$), while the mean value in Group B was $4.75 \pm 1.08$ (SD, $n = 20$). A two-sample Student's *t*-test indicated that this difference was not statistically significant at the 0.05 level ($t_{38} = -1.95$, $p > 0.05$). The 95% confidence interval for the mean difference between the groups ranged from $-1.52$ to $0.03$, which included zero. These data therefore suggest that, although Group B tended to have the higher mean, the evidence was not quite strong enough to conclude that the population means differ.
 
 ```{r fig-t-test-plot3, echo=FALSE, include=FALSE, eval=FALSE}
 #| fig-cap: "T test plot3."
@@ -325,12 +535,15 @@ Create a visualisation to graphically demonstrate the outcome of this *t*-test.
 
 For example, when we are concerned that the sample mean of the first population, $\bar{A}$, should be greater than that of the second, $\bar{B}$:
 
-$H_{0}: \bar{A} \le \bar{B}$$H_{a}: \bar{A} \gt \bar{B}$
+$$H_{0}: \bar{A} \le \bar{B}$$
+$$H_{a}: \bar{A} \gt \bar{B}$$
 
 Only one of the two options is shown.
 :::
 
-Just as with the one-sample *t*-tests above, we may also specify which tail of the distribution we are interested in when we compare the means of our two samples. This is a **one-sided two-sample *t*-test**, and here too we have the Student's *t*-test, Welch's *t*-test varieties. We do so by providing the same arguments as previously:
+Just as with the one-sample *t*-tests above, we may also specify which tail of the distribution we are interested in when we compare the means of two samples. This is a **one-sided two-sample *t*-test**. Here too we may use either Student's or Welch's form, depending on the variances. The direction of the test must be justified before looking at the results.
+
+In R we do this with the `alternative` argument:
 
 ```{r code-compare-means-dat-sample-data}
 # is the mean of sample B smaller than that of sample A?
@@ -344,14 +557,34 @@ compare_means(dat ~ sample, data = r_two,
               alternative = "greater")
 ```
 
-What do these results show? Is this surprising?
+What do these results show? Is this surprising? It should not be. The data were generated so that Group B tends to be larger than Group A, so a directional test framed that way is more likely to support the alternative than one framed in the opposite direction.
+
+## If assumptions fail
+
+If the group variances differ, use Welch's *t*-test rather than Student's *t*-test. If the data are badly non-normal, strongly skewed, or dominated by outliers, a rank-based alternative such as `wilcox.test()` may be preferable. The broader workflow for checking assumptions and choosing alternatives is dealt with in [Chapter 6](06-assumptions-and-transformations.qmd).
 
 # Paired *t*-tests
+
+Sometimes the two measurements we want to compare do not come from different individuals or sampling units, but from the same units measured twice, or from units that have been deliberately matched. In such cases the observations are not independent across the two groups, and a standard two-sample *t*-test is no longer appropriate.
+
+The logic of the paired *t*-test is therefore slightly different. We do not compare two independent means directly. Instead, we calculate the difference within each pair, and then ask whether the mean of those differences is zero. In other words, the paired *t*-test is really a one-sample *t*-test applied to the set of paired differences.
+
+## When to use a paired *t*-test
+
+Use a paired *t*-test when:
+
+-   the response variable is continuous;
+-   each observation in one group is naturally matched to one observation in the other group;
+-   the pairing is meaningful, such as before-and-after measurements on the same individuals, left-versus-right measurements on the same organism, or deliberately matched experimental units;
+-   the paired differences are approximately normally distributed.
+
+The crucial point is that the analysis focuses on the **differences within pairs**, not on the raw values considered as though they came from independent groups.
 
 ::: {.callout-note}
 ## Hypothesis for two-sided Paired *t*-test
 
-$H_{0}: \bar{d} = 0$$H_{a}: \bar{d} \ne 0$
+$$H_{0}: \bar{d} = 0$$
+$$H_{a}: \bar{d} \ne 0$$
 
 where $\bar{d}$ is the mean population difference based on the matched pairs.
 
@@ -365,16 +598,90 @@ $$t = \frac{\bar{d}}{s_d/\sqrt{n}}$$
 where $\bar{d}$ is the sample mean of the differences between paired observations, $s_d$ is the sample standard deviation of the differences,$n$ is the number of pairs. The resulting $t$-statistic is then compared to the appropriate $t$-distribution with $n-1$ degrees of freedom to determine the $p$-value.
 :::
 
-Paired *t*-tests are done when comparing matched samples, and in other words, when our second assumption of *t*-tests is violated: the observations are independent of one another --- in paired samples, clearly they are not independent. This test is also sometimes called a dependent sample *t*-test, a repeated measures *t*-test.
+Paired *t*-tests are therefore used when the dependence between observations is not a problem to be ignored, but the central feature of the design. This test is also sometimes called a dependent-samples *t*-test or a repeated-measures *t*-test.
 
-For example, we design a survey to determine if, in a group of 20 people, individuals' right arms differ in length from that of their left arms. For person A, we measure her right arm, her left arm. For person B we measure his right arm and his left arm. So we go all the way to person 20. A right arm belonging with one individual is always matched against a left arm in the same individual. The samples are paired so we use a paired *t*-test.
+For example, we might want to determine whether the right arms of a group of people differ in length from their left arms. For each individual, the right arm measurement is matched to the left arm measurement from the same person. Or, we may wish to determine whether piglets weigh more after a feeding trial than they did at the start of the trial. Each individual piglet then contributes a before-and-after pair of measurements.
 
-Another example: we follow the growth of a sample of 20 piglets over three weeks to see if they weigh more after three weeks than they did at the start of the assessment period. We measure the first piglet, named Halal, at the start of the three week period, again after. We do the same for the second piglet and Kosher. And so it goes. Each piglet has a paired set of measurements, one before matched with one after. In both these examples the data in the two groups (left arm, right arm; or before and after) are not independent and so we need to account for this in the analysis. In practice, how do we perform such a *t*-test? Who can think of a dataset we have used in the past that we would use a paired *t*-test for?
+## A worked paired example
 
-```{r code-compare-means-dat-sample-data-2}
-compare_means(dat ~ sample, data = r_two,
-              method = "t.test", paired = TRUE)
+Let us use a small example in which piglets are weighed before and after a three-week feeding period. The inferential question is whether body mass increases over time within the same individuals.
+
+```{r code-paired-piglets}
+set.seed(666)
+piglets <- data.frame(
+  id = 1:12,
+  before = round(rnorm(12, mean = 8.2, sd = 0.7), 2),
+  after = round(rnorm(12, mean = 9.0, sd = 0.7), 2)
+)
+
+piglets$diff <- piglets$after - piglets$before
+piglets
 ```
+
+### Do an exploratory data analysis (EDA)
+
+Before running the paired *t*-test, we should inspect the paired differences because these are the values that the test uses directly.
+
+```{r code-paired-summary}
+summary(piglets$diff)
+sd(piglets$diff)
+shapiro.test(piglets$diff)
+```
+
+```{r fig-paired-differences}
+#| fig-cap: "Distribution of paired differences in piglet body mass after minus before the feeding period."
+#| fig-width: 5.5
+#| fig-height: 3.75
+#| out-width: "78%"
+
+ggplot(data = piglets, aes(x = diff)) +
+  geom_histogram(binwidth = 0.5, fill = "indianred", colour = "black", alpha = 0.5) +
+  geom_vline(xintercept = 0, colour = "dodgerblue2", linewidth = 0.9) +
+  labs(x = "Paired difference in mass (after - before)", y = "Frequency") +
+  theme_pubclean()
+```
+
+The distribution of paired differences is centred above zero, which already suggests that the piglets tended to be heavier after the feeding period. The Shapiro-Wilk test also indicates that the differences are reasonably consistent with normality, so a paired *t*-test is appropriate.
+
+### State the hypotheses
+
+For a two-sided paired *t*-test, the hypotheses are:
+
+$$H_{0}: \mu_{d} = 0$$
+$$H_{a}: \mu_{d} \ne 0$$
+
+where $\mu_{d}$ is the population mean of the paired differences. If we had a strictly directional biological question, such as whether piglets are heavier after feeding than before, we could also frame this as a one-sided test.
+
+### Apply the test
+
+```{r code-paired-test}
+t.test(piglets$after, piglets$before, paired = TRUE)
+```
+
+We can also use the formula interface with paired data if the data are arranged appropriately, but in practice the paired vectors are often the clearest way to express the analysis.
+
+### Interpret the results
+
+The paired *t*-test asks whether the mean of the within-individual differences is zero. In this example the mean paired difference is positive, which indicates that the piglets tended to gain mass over the feeding period. Because the confidence interval for the mean difference lies just above zero and the *p*-value is near 0.05, the evidence suggests a modest but statistically detectable increase in mass.
+
+### Reporting
+
+In a results section, the reporting logic for a paired *t*-test is similar to the other *t*-tests, but now the emphasis falls on the **mean paired difference** rather than on two separate independent means. A journal-style results paragraph should therefore report:
+
+-   what the two paired measurements were;
+-   the mean difference between them and its units;
+-   the *t* statistic and degrees of freedom;
+-   the *p*-value;
+-   the confidence interval for the mean difference;
+-   a short interpretation in biological terms.
+
+For example, you might report:
+
+> Piglet body mass increased over the three-week feeding period. A paired *t*-test showed that the mean within-individual change in body mass differed significantly from zero ($t_{11} = 2.21$, $p < 0.05$). The mean paired difference was $0.815$ kg, with a 95% confidence interval from $0.004$ to $1.626$ kg, indicating that the piglets were, on average, heavier after the feeding period than at the start.
+
+## If assumptions fail
+
+If the paired differences are strongly non-normal, especially in a small sample, the paired *t*-test may not be appropriate. In that case a Wilcoxon signed-rank test via `wilcox.test(..., paired = TRUE)` may be more defensible. As before, the broader workflow for evaluating assumptions is discussed in [Chapter 6](06-assumptions-and-transformations.qmd).
 
 ::: callout-important
 ## Do This Now!
@@ -383,7 +690,22 @@ compare_means(dat ~ sample, data = r_two,
 
 # Is There a Difference Between Two Proportions?
 
-All of the tests we covered above are designed to deal with continuous data, such as fish lengths, chlorophyll content. If we want to compare proportions (probabilities of success) of different samples against each other or some known population mean, we need `prop.test()`. Let us create a dummy dataset to get a better idea of how this function works. Below we create some data showing the result of placing two different subjects, Jack, Jill and in separate sealed rooms for two hours (120 minutes). Once every minute a mosquito is let into the room before being extracted again. The columns `yes` and `no` show if the mosquito bit the subject during that one minute. Who says science cannot be fun!
+All of the tests we have covered above are designed for continuous response data, such as fish lengths, chlorophyll concentrations, or body mass. Sometimes, however, our response is not continuous but binary: success or failure, bitten or not bitten, germinated or not germinated, alive or dead. In such cases the quantity of interest is a **proportion**, and the logic of the analysis changes accordingly.
+
+If we want to compare proportions against a known value, or compare the proportions of two samples against one another, we use `prop.test()`. Although this is not a *t*-test, it fits naturally here because the inferential logic is similar: we still state a hypothesis, examine the data, apply the appropriate test, interpret the result, and report it clearly.
+
+## When to use a proportion test
+
+Use `prop.test()` when:
+
+-   the response variable records success/failure outcomes;
+-   the data can be summarised as the number of successes out of a total number of trials;
+-   you want to compare an observed proportion against a hypothesised value, or compare the proportions of two groups;
+-   the observations are independent.
+
+As with the *t*-tests above, the exact form of the test depends on the question. We may do a **one-sample proportion test** when comparing an observed proportion to a known or expected probability, or a **two-sample proportion test** when comparing the success proportions of two groups.
+
+Let us create a simple dataset to see how this works. Below we create some data showing the result of placing two different subjects, Jack and Jill, in separate sealed rooms for two hours (120 minutes). Once every minute a mosquito is let into the room before being extracted again. The columns `yes` and `no` show whether the mosquito bit the subject during that one minute. Who says science cannot be fun!
 
 ```{r code-mosquito-matrix-c-ncol}
 mosquito <- matrix(c(70, 85, 50, 35), ncol = 2)
@@ -392,9 +714,22 @@ rownames(mosquito) <- c("Jack", "Jill")
 mosquito
 ```
 
-## One-sample and two-sample Tests
+## One-sample proportion tests
 
-As with *t*-tests, proportion tests may also be based on one sample, or two. If we have only one sample we must specify the total number of trials as well as what the expected population probability of success is. Because these are individual values, and not matrices, we will show what this would look like without using any objects but will rather give each argument within `prop.test()` a single exact value. In the arguments within `prop.test()`, `x` denotes the number of successes recorded, `n` shows the total number of individual trials performed, `p` is the expected probability. It is easiest to consider this as though it were a series of 100 coin tosses.
+If we have only one sample, we must specify the total number of trials as well as the expected population probability of success. In the arguments within `prop.test()`, `x` denotes the number of successes recorded, `n` shows the total number of individual trials performed, and `p` is the expected probability.
+
+### State the hypotheses
+
+For a two-sided one-sample proportion test, the hypotheses are:
+
+$$H_{0}: p = p_{0}$$
+$$H_{a}: p \ne p_{0}$$
+
+where $p$ is the observed population proportion and $p_{0}$ is the hypothesised proportion.
+
+### Apply the test
+
+It is easiest to think of this as a series of 100 coin tosses, where the null expectation is that the probability of heads is 0.5.
 
 ```{r code-prop-test-x-n}
 # When the probability matches the population
@@ -404,14 +739,68 @@ prop.test(x = 45, n = 100, p = 0.5)
 prop.test(x = 33, n = 100, p = 0.5)
 ```
 
-If we have two samples that we would like to compare against one another we enter them into the function as follows:
+### Interpret the results
+
+The first test asks whether an observed success proportion of 0.45 differs from the hypothesised value of 0.50. The answer is no: the confidence interval includes 0.50 and the *p*-value is not small. The second test asks whether an observed proportion of 0.33 differs from 0.50. In that case the answer is yes: the *p*-value is very small and the confidence interval does not include 0.50.
+
+The inferential logic is therefore identical to what we saw with one-sample *t*-tests. The conclusion depends on how far the observed sample proportion lies from the null value, relative to the uncertainty in the estimate.
+
+### Reporting
+
+When reporting a one-sample proportion test, state:
+
+-   the number of successes and the total number of trials;
+-   the observed proportion;
+-   the hypothesised proportion;
+-   the test statistic and *p*-value;
+-   the confidence interval for the observed proportion;
+-   a short interpretation in biological terms.
+
+For example, you might report:
+
+> In 45 successes out of 100 trials, the observed proportion was 0.45. A one-sample proportion test indicated that this did not differ from the hypothesised probability of 0.50 ($\chi^2 = 0.81$, $p > 0.05$). The 95% confidence interval for the observed proportion ranged from 0.351 to 0.552, which included the null value of 0.50.
+>
+> In contrast, 33 successes out of 100 trials yielded an observed proportion of 0.33, which differed significantly from 0.50 ($\chi^2 = 10.89$, $p < 0.001$). The 95% confidence interval ranged from 0.241 to 0.432, indicating that the true success probability was likely lower than one half.
+
+## Two-sample proportion tests
+
+If we have two samples that we would like to compare against one another, we enter them into the function as follows:
+
+### State the hypotheses
+
+For a two-sided comparison of two proportions, the hypotheses are:
+
+$$H_{0}: p_{1} = p_{2}$$
+$$H_{a}: p_{1} \ne p_{2}$$
+
+where $p_{1}$ and $p_{2}$ are the success probabilities in the two groups.
+
+### Apply the test
 
 ```{r code-prop-test-mosquito}
 # NB: Note that the `mosquito` data are a matrix, NOT a data.frame
 prop.test(mosquito)
 ```
 
-Do mosquito's bite Jack and Jill at different proportions?
+### Interpret the results
+
+In the mosquito example, the estimated bite proportion for Jack is 0.583, while that for Jill is 0.708. The two-sample proportion test asks whether this observed difference is large enough, relative to sampling uncertainty, to conclude that the underlying bite probabilities differ.
+
+The *p*-value here is about 0.059, which is just above the conventional 0.05 threshold. The 95% confidence interval for the difference in proportions includes zero, so we would conclude that these data do not quite provide strong enough evidence for a difference in bite rate between Jack and Jill, even though Jill appears to have been bitten more often.
+
+### Reporting
+
+When reporting a two-sample proportion test, state:
+
+-   the number of successes and total trials in each group;
+-   the observed proportions for each group;
+-   the test statistic and *p*-value;
+-   the confidence interval for the difference in proportions;
+-   a short biological interpretation.
+
+For example, you might report:
+
+> Mosquitoes bit Jack in 70 of 120 trials (proportion = 0.583) and Jill in 85 of 120 trials (proportion = 0.708). A two-sample test for equality of proportions indicated that this difference was not statistically significant at the 0.05 level ($\chi^2 = 3.57$, $p > 0.05$). The 95% confidence interval for the difference in proportions ranged from $-0.253$ to $0.003$, indicating that although Jill appeared to be bitten more often, the data do not provide quite enough evidence to conclude that the two bite probabilities differ.
 
 ::: callout-important
 ## Do This Now!
@@ -420,7 +809,7 @@ Do mosquito's bite Jack and Jill at different proportions?
 
 ## One-sided and two-sided Tests
 
-As with all other tests that compare values, proportion tests may be specified as either one, two-sided. Just to be clear or the default setting for `prop.test()`, like everything else, is a two-sided test. See code below to confirm that the results are identical with, without the added argument:
+As with all the other tests that compare values, proportion tests may be specified as either one- or two-sided. The default setting for `prop.test()`, like the default for `t.test()`, is a two-sided test. See the code below to confirm that the results are identical with and without the added argument:
 
 ```{r code-prop-test-mosquito-2}
 # Default
@@ -430,7 +819,7 @@ prop.test(mosquito)
 prop.test(mosquito, alternative = "two.sided")
 ```
 
-Should we want to specify only one of the tails to be considered, we do so precisely the same as with t-tests. Below are examples of what this code would look like:
+If we want to specify only one of the tails, we do so in precisely the same way as with the *t*-tests above.
 
 ```{r code-prop-test-mosquito-alternative}
 # Jack is bit less than Jill
@@ -440,7 +829,11 @@ prop.test(mosquito, alternative = "less")
 prop.test(mosquito, alternative = "greater")
 ```
 
-Do these results differ from the two-sided test? What is different?
+Do these results differ from the two-sided test? What is different? The answer is that the direction of the alternative matters. If our directional hypothesis is that Jack is bitten less often than Jill, the one-sided *p*-value is 0.029, which supports that alternative. If we ask the opposite question, the *p*-value is 0.971, which clearly does not.
+
+## If assumptions fail
+
+The main assumptions behind proportion tests are that the observations are independent and that the data arise from counts of successes and failures. If the observations are dependent, or if the counts are very small, other methods may be more appropriate. For now, the key point is that proportion tests extend the same inferential workflow used for *t*-tests to binary-response data.
 
 # A *t*-test Workflow
 
@@ -544,9 +937,11 @@ We may reject the null hypothesis that the stipe mass of kelps at Batsata Rock i
 
 ## Drawing Conclusions
 
-There are many ways to present ones findings. Style, without *too much* flourish, is encouraged as long as certain necessary pieces of information are provided. The sentence below is a very minimalist example of how one may conclude this mini research project. A more thorough explanation would be desirable.
+There are many ways to present one's findings. Style, without *too much* flourish, is encouraged as long as certain necessary pieces of information are provided. In a scientific paper, the results section would normally report the sample means, the test used, the test statistic, degrees of freedom, the *p*-value, and the biological interpretation in one compact paragraph.
 
-> The stipe mass (kg) of the kelp *Ecklonia maxima* was found to be significantly greater at Batsata Rock than at Boulders Beach (*p* = 0.03, *t* = 1.87, df = 24).
+For example, one might report:
+
+> Mean stipe mass of *Ecklonia maxima* was higher at Batsata Rock ($6.12 \pm 1.41$ kg SD, $n = 13$) than at Boulders Beach ($5.00 \pm 1.63$ kg SD, $n = 13$). A one-sided two-sample Student's *t*-test indicated that stipe mass at Batsata Rock was significantly greater than at Boulders Beach ($t_{24} = 1.87$, $p < 0.05$). The 95% confidence interval for the mean difference was $0.10$ kg to $\infty$, supporting the conclusion that kelp at Batsata Rock had greater stipe mass.
 
 ## Going Further
 
