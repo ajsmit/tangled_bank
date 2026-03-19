@@ -1,0 +1,2824 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="author" content="A. J. Smit">
+<title>11. Simple Linear Regression – The Tangled Bank</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../BCB744/basic_stats/12-multiple-regression-and-model-specification.html" rel="next">
+<link href="../../images/favicon.ico" rel="icon">
+<script src="../../site_libs/cookie-consent/cookie-consent.js"></script>
+<link href="../../site_libs/cookie-consent/cookie-consent.css" rel="stylesheet">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-28b2a0d1de077534df0f44753bd511b9.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SCYH68M489"></script><script type="text/plain" cookie-consent="tracking">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-SCYH68M489', { 'anonymize_ip': true});
+</script><script type="text/javascript" charset="UTF-8">
+document.addEventListener('DOMContentLoaded', function () {
+cookieconsent.run({
+  "notice_banner_type":"headline",
+  "consent_type":"express",
+  "palette":"light",
+  "language":"en",
+  "page_load_consent_levels":["strictly-necessary"],
+  "notice_banner_reject_button_hide":false,
+  "preferences_center_close_button_hide":false,
+  "website_name":""
+  ,
+"language":"en"
+  });
+});
+</script><style>html{ scroll-behavior: smooth; }</style>
+<script async="" src="https://hypothes.is/embed.js"></script><script>
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    document.body.classList.add('hypothesis-enabled');
+  });
+</script><script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script><link rel="stylesheet" href="../../styles/styles.css">
+<meta property="og:title" content="11. Simple Linear Regression – The Tangled Bank">
+<meta property="og:description" content="The Entry Point to Model-Based Biostatistics">
+<meta property="og:image" content="http://tangledbank.netlify.app/BCB744/basic_stats/11-simple-linear-regression_files/figure-html/fig-sparrow-1.svg">
+<meta property="og:site_name" content="The Tangled Bank">
+</head>
+<body class="nav-sidebar floating nav-fixed slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">The Tangled Bank</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+<li class="nav-item">
+    <a class="nav-link active" href="../../index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-vignettes" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Vignettes</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-vignettes">
+<li>
+    <a class="dropdown-item" href="../../vignettes/netCDF_dates.html">
+ <span class="dropdown-text">Dates From netCDF Files: Two Approaches</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/prep_NOAA_OISST.html">
+ <span class="dropdown-text">Downloading and Prep: ERDDAP</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/chl_ERDDAP.html">
+ <span class="dropdown-text">Retrieving Chlorophyll-a Data from ERDDAP Servers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/alt_method.html">
+ <span class="dropdown-text">Downloading and Prep: Python + CDO</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/gridded_data.html">
+ <span class="dropdown-text">Detecting Events in Gridded Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/regridding.html">
+ <span class="dropdown-text">Regridding gridded data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/MHW_MCS_horizonplots.html">
+ <span class="dropdown-text">Displaying MHWs and MCSs as Horizon Plots</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/heatwaveR_issues.html">
+ <span class="dropdown-text">heatwaveR Issues</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/chl_sightings.html">
+ <span class="dropdown-text">Plotting the Whale Sightings and Chlorophyll-<em>a</em> Concentrations</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/chl_localisation.html">
+ <span class="dropdown-text">Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-<em>a</em> Data</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/elem_ts_methods.html">
+ <span class="dropdown-text">Wavelet Analysis of Diatom Time Series</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/buffer_data_extract.html">
+ <span class="dropdown-text">Extracting gridded data within a buffer</span></a>
+  </li>  
+    </ul>
+</li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-high-performance-computing" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">High-Performance Computing</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-high-performance-computing">
+<li>
+    <a class="dropdown-item" href="../../vignettes/README_Lengau.html">
+ <span class="dropdown-text">Using Lengau</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/PBSPro_users.html">
+ <span class="dropdown-text">PBSPro user and job management</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vignettes/README_tmux.html">
+ <span class="dropdown-text">Using tmux</span></a>
+  </li>  
+    </ul>
+</li>
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Tangled Bank Blog</span></a>
+  </li>  
+</ul>
+<ul class="navbar-nav navbar-nav-scroll ms-auto">
+<li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-blogroll" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Blogroll</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-blogroll">
+<li>
+    <a class="dropdown-item" href="https://www.r-bloggers.com">
+ <span class="dropdown-text">R-bloggers</span></a>
+  </li>  
+    </ul>
+</li>
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../blog.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-bi-github" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">
+<li>
+    <a class="dropdown-item" href="https://github.com/ajsmit/tangled_bank">
+ <span class="dropdown-text">Source Code</span></a>
+  </li>  
+    </ul>
+</li>
+</ul>
+</div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../BCB744/index.html">BCB744: Biostatistics</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/11-simple-linear-regression.html">11. Simple Linear Regression</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../../index.html" class="sidebar-logo-link">
+      <img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none"><img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none"></a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+ <span class="menu-text">☘☘☘</span>
+  </li>
+        <li class="sidebar-item">
+ <span class="menu-text">UNDERGRADUATE</span>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">BDC223: Plant Ecophysiology</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/BDC223_index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>About</strong></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L00-introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introductory Lecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L01-worldmapper.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 1: the Limits to Life</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L02-SA_V.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 2: Surface Area to Volume (SA:V) Ratio</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L03-climate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 3: Earth’s Climate</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L04-carbon_cycle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 4: Climate Change (Carbon Cycle)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L05-light.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 5: Light</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L06-pigments_photosynthesis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 6: Pigments &amp; Photosynthesis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L07-chromatic_adaptation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 7: Chromatic Adaptation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L08a-nutrient_uptake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 8a: Nutrient Uptake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L08b-nutrients_michaelis_menten.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 8b: Nutrient Uptake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/L09-plant_stress.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 3: Plant Stress</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/Lab1_SA_V.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 1: Surface Area to Volume (SA/V) Ratios in Biology</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/Lab2_misc_calcs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 2: Miscellaneous Calculations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/Lab3_PI_curves.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 3: PI Curves — Jassby &amp; Platt</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/Lab4_nitrogen_uptake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 4: Uptake Kinetics — Michaelis-Menten</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC223/BDC223_FAQ.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">FAQ</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">BDC334: Biogeography &amp; Global Ecology</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/BDC334_syllabus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>About</strong></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/BDC334-Lecture-Transcripts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="my-highlight">BCB334 Lecture Transcript</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lec-01-introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 1: Introductory Lecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lec-02-ecosystems.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 2. Overview of Ecosystems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lec-03-gradients.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 3. Ecological Gradients</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lec-04-biodiversity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 4: Biodiversity Concepts</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+ <span class="menu-text">Lecture 5: Multivariate Data</span>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lec-06-unified-ecology.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 6: Unified Ecology</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+ <span class="menu-text">Lecture 7: Threats to Biodiversity</span>
+  </li>
+          <li class="sidebar-item">
+ <span class="menu-text">Lecture 8: Nature's Contribution to People</span>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../docs/IKS_Conservation.pdf" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lecture 9: Indigenous Knowledge Systems and Conservation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lab-01-introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 1. Ecological Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lab-02a-r_rstudio.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 2a. Introduction to R and RStudio</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lab-02b-env_dist.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 2b. Environmental Distance</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lab-03-biodiversity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 3. Quantifying Biodiversity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/Lab-04-biodiversity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 4. Species Distribution Patterns</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BDC334/BDC334_AI_Tutor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="my-highlight">BCB334 AI Tutor</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pages/Transboundary_systems.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Transboundary Systems</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item">
+ <span class="menu-text">☘☘☘</span>
+  </li>
+        <li class="sidebar-item">
+ <span class="menu-text">HONOURS CORE</span>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/BCB744_index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BCB744: Module Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">BCB744: Introduction to R</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>About</strong></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/01-RStudio.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1. R and RStudio</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/02-working-with-data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2. Working with Data and Code</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/03-quarto.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3. R Markdown and Quarto</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/04-data-in-R.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4. Data Classes and Structures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/05-workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5. R Workflows</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/06-graphics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">6. Graphics with <strong>ggplot2</strong></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/07-faceting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7. Faceting Figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/08-brewing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8. Brewing Colours</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/09-mapping.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9. Mapping with <strong>ggplot2</strong></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/10-mapping_style.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">10. Mapping with Style</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/11-mapping_rnaturalearth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">11. Mapping with Natural Earth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/12-mapping_quakes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12. The Fiji Earthquake Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/13-tidy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">13. Tidy Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/14-tidier.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">14. Tidier Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/15-tidiest.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">15. Tidiest Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/16-recap.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">16. Synthesis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/intro_r/18-base_r.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">18: R Without Training Wheels (Bridge)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/assessments/BCB744_Intro_R_Self-Assessment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="my-highlight">Intro R Self-Assessment</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/assessments/BCB744_Intro_R_Example_1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BCB744 Intro R Example 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/assessments/BCB744_Intro_R_Example_2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BCB744 Intro R Example 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../self-assessment_v1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Self-Assessment Form</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">BCB744: Biostatistics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>About</strong></span></a>
+  </div>
+</li>
+          <li class="px-0"><hr class="sidebar-divider hi "></li>
+          <li class="sidebar-item">
+ <span class="menu-text">Part I. Statistical Thinking and Data Foundations</span>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/01-statistical-landscape.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1. The Statistical Landscape</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/02-summarise-and-describe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2. Summarising Biological Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/03-visualise.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">3. Visualising Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/04-distributions-sampling-uncertainty.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">4. Distributions, Sampling, and Uncertainty</span></a>
+  </div>
+</li>
+          <li class="px-0"><hr class="sidebar-divider hi "></li>
+          <li class="sidebar-item">
+ <span class="menu-text">Part II. Core Hypothesis Tests</span>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/05-inference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5. Statistical Inference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/06-assumptions-and-transformations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">6. Assumptions and Transformations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/07-t_tests.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7. <em>t</em>-Tests</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/08-anova.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8. ANOVA</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/09-correlation-and-association.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9. Correlation and Association</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/10-test-selection.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">10. Choosing the Right Test</span></a>
+  </div>
+</li>
+          <li class="px-0"><hr class="sidebar-divider hi "></li>
+          <li class="sidebar-item">
+ <span class="menu-text">Part III. Regression and Model Building</span>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/11-simple-linear-regression.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">11. Simple Linear Regression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/12-multiple-regression-and-model-specification.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12. Multiple Regression and Model Specification</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/13-interaction-effects.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">13. Interaction Effects</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/14-collinearity-confounding-measurement-error.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">14. Collinearity, Confounding, and Measurement Error</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/15-model-checking-and-evaluation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">15. Model Checking and Evaluation</span></a>
+  </div>
+</li>
+          <li class="px-0"><hr class="sidebar-divider hi "></li>
+          <li class="sidebar-item">
+ <span class="menu-text">Part IV. Dependence and Model Extensions</span>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/16-pseudoreplication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">16. Pseudoreplication</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/17-dependence-and-mixed-models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">17. Dependence and Mixed Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/18-generalised-linear-models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">18. Generalised Linear Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/19-nonlinear-and-flexible-regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">19. Nonlinear and Flexible Regression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/20-prediction-explanation-and-regularisation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">20. Prediction, Explanation, and Regularisation</span></a>
+  </div>
+</li>
+          <li class="px-0"><hr class="sidebar-divider hi "></li>
+          <li class="sidebar-item">
+ <span class="menu-text">Part V. Reproducible Practice</span>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/basic_stats/21-reproducible-workflow.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">21. Reproducible Workflow</span></a>
+  </div>
+</li>
+          <li class="px-0"><hr class="sidebar-divider hi "></li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/assessments/BCB744_Biostatistics_Self-Assessment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="my-highlight">Biostatistics Self-Assessment</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB744/assessments/BCB744_BioStats_Example_1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BCB744 BioStats 2025 Example 1</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item">
+ <span class="menu-text">☘☘☘</span>
+  </li>
+        <li class="sidebar-item">
+ <span class="menu-text">HONOURS ELECTIVES</span>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">BCB743: Quantitative Ecology</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/BCB743_index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><strong>About</strong></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/review.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1-4: Review Concepts of Biodiversity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/correlations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">5: Correlations &amp; Associations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/ordination.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">7: Intro to Ordination</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/PCA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8a: Principal Components Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/PCA_examples.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8b: PCA: Additional Examples</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/PCA_SDG_example.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">8c: PCA: WHO SDG Example</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/CA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9a: Correspondence Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/DCA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">9b: Detrended Correspondence Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/PCoA.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">10: Principal Coordinates Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/nMDS.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">11a: Non-metric Multidimensional Scaling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/nMDS_diatoms.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">11b: nMDS: PERMANOVA (Diatoms) Example</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/unconstrained-summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12: Unconstrained Ordination Summary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/constrained_ordination.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">13a: Distance-Based Redundancy Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/two_oceans_appendices.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">13b: db-RDA: Seaweeds Example</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/cluster_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">14: Cluster Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/model_building.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">15: Model Building</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/deep_dive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">16a: Deep Dive Into Gradients</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../BCB743/multiple_regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">16b: Multiple Regression</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item">
+ <span class="menu-text">AI &amp; POLICY</span>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../docs/Combined Faculty AI Policy 15082025.pdf" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Faculty of Natural Sciences AI Policy</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../AI/BCB_AI_Workshop_Sep_2025.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BCB AI Workshop</span></a>
+  </div>
+</li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item">
+ <span class="menu-text">☘☘☘︎</span>
+  </li>
+        <li class="sidebar-item">
+ <span class="menu-text">SUPPORT</span>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Web Resources</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../resources/general_resources_web.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">R Resources</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../resources/ecology_resources_web.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quantitative Ecology Resources</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../resources/spatial_resources_web.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Spatial R Resources</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item">
+ <span class="menu-text">☘☘☘︎</span>
+  </li>
+    </ul>
+</div>
+</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+   
+  <ul>
+<li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
+  <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts"><span class="header-section-number">2</span> Key Concepts</a></li>
+  <li><a href="#the-model" id="toc-the-model" class="nav-link" data-scroll-target="#the-model"><span class="header-section-number">3</span> The Model</a></li>
+  <li><a href="#regression-versus-correlation" id="toc-regression-versus-correlation" class="nav-link" data-scroll-target="#regression-versus-correlation"><span class="header-section-number">4</span> Regression Versus Correlation</a></li>
+  <li><a href="#data-requirements-and-assumptions" id="toc-data-requirements-and-assumptions" class="nav-link" data-scroll-target="#data-requirements-and-assumptions"><span class="header-section-number">5</span> Data Requirements and Assumptions</a></li>
+  <li><a href="#example-dataset" id="toc-example-dataset" class="nav-link" data-scroll-target="#example-dataset"><span class="header-section-number">6</span> Example Dataset</a></li>
+  <li><a href="#fitting-the-model-in-r" id="toc-fitting-the-model-in-r" class="nav-link" data-scroll-target="#fitting-the-model-in-r"><span class="header-section-number">7</span> Fitting the Model in R</a></li>
+  <li><a href="#interpreting-the-coefficients" id="toc-interpreting-the-coefficients" class="nav-link" data-scroll-target="#interpreting-the-coefficients"><span class="header-section-number">8</span> Interpreting the Coefficients</a></li>
+  <li><a href="#confidence-intervals-and-prediction" id="toc-confidence-intervals-and-prediction" class="nav-link" data-scroll-target="#confidence-intervals-and-prediction"><span class="header-section-number">9</span> Confidence Intervals and Prediction</a></li>
+  <li><a href="#residuals-and-diagnostics" id="toc-residuals-and-diagnostics" class="nav-link" data-scroll-target="#residuals-and-diagnostics"><span class="header-section-number">10</span> Residuals and Diagnostics</a></li>
+  <li><a href="#a-larger-example-penguin-data" id="toc-a-larger-example-penguin-data" class="nav-link" data-scroll-target="#a-larger-example-penguin-data"><span class="header-section-number">11</span> A Larger Example: Penguin Data</a></li>
+  <li><a href="#common-mistakes" id="toc-common-mistakes" class="nav-link" data-scroll-target="#common-mistakes"><span class="header-section-number">12</span> Common Mistakes</a></li>
+  <li><a href="#looking-ahead" id="toc-looking-ahead" class="nav-link" data-scroll-target="#looking-ahead"><span class="header-section-number">13</span> Looking Ahead</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">14</span> Summary</a></li>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/11-simple-linear-regression.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../BCB744/index.html">BCB744: Biostatistics</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/11-simple-linear-regression.html">11. Simple Linear Regression</a></li></ol></nav><div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">11. Simple Linear Regression</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<p class="subtitle lead">The Entry Point to Model-Based Biostatistics</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>A. J. Smit </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026/03/19</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header><div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>In This Chapter
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>What a simple linear regression model is</li>
+<li>When regression is appropriate instead of correlation</li>
+<li>The slope, intercept, residuals, and fitted values</li>
+<li>Model fitting with <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code>
+</li>
+<li>Confidence intervals, prediction, and diagnostics</li>
+</ul>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Cheatsheet
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Find here a <a href="../../docs/Methods_cheatsheet_v1.pdf">Cheatsheet</a> on statistical methods.</p>
+</div>
+</div>
+<div class="callout callout-style-simple callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Tasks to Complete in This Chapter
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Task H</li>
+</ul>
+</div>
+</div>
+<section id="introduction" class="level1" data-number="1"><h1 data-number="1">
+<span class="header-section-number">1</span> Introduction</h1>
+<p>Linear regression is one of the most important tools in biostatistics. It allows us to model the relationship between a continuous <strong>response</strong> variable and one or more <strong>predictor</strong> variables, quantify the strength of that relationship, and use the fitted model for explanation or prediction.</p>
+<p>This chapter focuses on the simplest case: <strong>one continuous response</strong> and <strong>one continuous predictor</strong>. Although simple, this model introduces most of the core ideas that recur throughout the rest of the module: model specification, parameter estimation, assumptions, residuals, confidence intervals, and interpretation.</p>
+<p>Simple linear regression is appropriate when we want to ask questions such as:</p>
+<ul>
+<li>How does wing length change with age in a growing bird?</li>
+<li>How does body size change with temperature or nutrient supply?</li>
+<li>Can one continuous variable be used to predict another?</li>
+</ul>
+<p>When there is no directional or explanatory claim and we only want to quantify association, <strong>correlation</strong> is often more appropriate. Regression is used when we want to model a response as a function of a predictor.</p>
+</section><section id="key-concepts" class="level1" data-number="2"><h1 data-number="2">
+<span class="header-section-number">2</span> Key Concepts</h1>
+<p>These concepts frame the regression sections that follow.</p>
+<ul>
+<li>
+<strong>Simple Linear Regression:</strong> A model for the relationship between one continuous response variable and one continuous predictor variable.</li>
+<li>
+<strong>Regression Equation:</strong> The response is modelled as a function of the predictor plus an error term.</li>
+<li>
+<strong>Slope and Intercept:</strong> The slope describes the expected change in the response for a one-unit change in the predictor; the intercept is the expected response when the predictor equals zero.</li>
+<li>
+<strong>Residuals:</strong> The differences between observed and fitted values. Residuals are central to diagnostics.</li>
+<li>
+<strong>Prediction and Explanation:</strong> A fitted regression can be used to predict new values or to estimate and interpret effect sizes.</li>
+</ul></section><section id="the-model" class="level1" data-number="3"><h1 data-number="3">
+<span class="header-section-number">3</span> The Model</h1>
+<p>The simple linear regression model is:</p>
+<p><span class="math display">\[
+Y_i = \alpha + \beta X_i + \epsilon_i
+\]</span></p>
+<p>where:</p>
+<ul>
+<li>
+<span class="math inline">\(Y_i\)</span> is the response for observation <span class="math inline">\(i\)</span>,</li>
+<li>
+<span class="math inline">\(X_i\)</span> is the predictor for observation <span class="math inline">\(i\)</span>,</li>
+<li>
+<span class="math inline">\(\alpha\)</span> is the intercept,</li>
+<li>
+<span class="math inline">\(\beta\)</span> is the slope, and</li>
+<li>
+<span class="math inline">\(\epsilon_i\)</span> is the residual error.</li>
+</ul>
+<p>The fitted line is estimated by minimising the <strong>sum of squared residuals</strong>:</p>
+<p><span class="math display">\[
+\sum_{i=1}^{n}(Y_i - \hat{Y}_i)^2
+\]</span></p>
+<p>This is why simple linear regression is often described as an <strong>ordinary least squares</strong> method.</p>
+</section><section id="regression-versus-correlation" class="level1" data-number="4"><h1 data-number="4">
+<span class="header-section-number">4</span> Regression Versus Correlation</h1>
+<p>Regression and correlation are closely related, but they answer different questions.</p>
+<ul>
+<li>
+<strong>Correlation</strong> quantifies the strength of association between two variables.</li>
+<li>
+<strong>Regression</strong> models the expected value of one variable as a function of the other.</li>
+</ul>
+<p>Regression therefore imposes a distinction between <strong>response</strong> and <strong>predictor</strong>. That distinction should be biologically justified. Even when the goal is primarily predictive rather than explicitly causal, the model must still be framed carefully.</p>
+</section><section id="data-requirements-and-assumptions" class="level1" data-number="5"><h1 data-number="5">
+<span class="header-section-number">5</span> Data Requirements and Assumptions</h1>
+<p>For a simple linear regression, the following conditions should hold:</p>
+<ol type="1">
+<li>The response variable is continuous.</li>
+<li>The predictor variable is continuous.</li>
+<li>Observations are independent.</li>
+<li>The mean relationship between response and predictor is approximately linear.</li>
+<li>Residuals have approximately constant variance.</li>
+<li>Residuals are approximately normally distributed.</li>
+</ol>
+<p>The assumptions are evaluated primarily through the <strong>residuals</strong>, not by inspecting the raw response variable alone.</p>
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Measurement Error in the Predictor
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Standard simple linear regression assumes that the predictor is measured without substantial error. In practice, this is often only approximately true. Later chapters revisit the consequences of measurement error more explicitly.</p>
+</div>
+</div>
+</section><section id="example-dataset" class="level1 page-columns page-full" data-number="6"><h1 data-number="6">
+<span class="header-section-number">6</span> Example Dataset</h1>
+<p>We begin with a simple dataset on sparrow wing length as a function of age.</p>
+<div class="cell page-columns page-full" data-layout-align="center">
+<div id="tbl-gt-sparrows" class="cell quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-layout-align="center">
+<figure class="quarto-float quarto-float-tbl figure page-columns page-full"><div aria-describedby="tbl-gt-sparrows-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<div id="clwyknwoya" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#clwyknwoya table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#clwyknwoya thead, #clwyknwoya tbody, #clwyknwoya tfoot, #clwyknwoya tr, #clwyknwoya td, #clwyknwoya th {
+  border-style: none;
+}
+
+#clwyknwoya p {
+  margin: 0;
+  padding: 0;
+}
+
+#clwyknwoya .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#clwyknwoya .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#clwyknwoya .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#clwyknwoya .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#clwyknwoya .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#clwyknwoya .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#clwyknwoya .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#clwyknwoya .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#clwyknwoya .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#clwyknwoya .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#clwyknwoya .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#clwyknwoya .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#clwyknwoya .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#clwyknwoya .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#clwyknwoya .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#clwyknwoya .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#clwyknwoya .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#clwyknwoya .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#clwyknwoya .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#clwyknwoya .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#clwyknwoya .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#clwyknwoya .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#clwyknwoya .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#clwyknwoya .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#clwyknwoya .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#clwyknwoya .gt_left {
+  text-align: left;
+}
+
+#clwyknwoya .gt_center {
+  text-align: center;
+}
+
+#clwyknwoya .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#clwyknwoya .gt_font_normal {
+  font-weight: normal;
+}
+
+#clwyknwoya .gt_font_bold {
+  font-weight: bold;
+}
+
+#clwyknwoya .gt_font_italic {
+  font-style: italic;
+}
+
+#clwyknwoya .gt_super {
+  font-size: 65%;
+}
+
+#clwyknwoya .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#clwyknwoya .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#clwyknwoya .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#clwyknwoya .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#clwyknwoya .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#clwyknwoya .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#clwyknwoya .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#clwyknwoya .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#clwyknwoya div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="gt_table do-not-create-environment table table-sm table-striped small" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="gt_heading header">
+<td colspan="2" class="gt_heading gt_title gt_font_normal gt_bottom_border">Sparrow wing-length data.</td>
+</tr>
+<tr class="gt_col_headings even">
+<th id="age" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Age (days)</th>
+<th id="wing" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Wing length<br>
+(cm)</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_right" headers="age">3</td>
+<td class="gt_row gt_right" headers="wing">1.4</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="age">4</td>
+<td class="gt_row gt_right" headers="wing">1.5</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="age">5</td>
+<td class="gt_row gt_right" headers="wing">2.2</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="age">6</td>
+<td class="gt_row gt_right" headers="wing">2.4</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="age">8</td>
+<td class="gt_row gt_right" headers="wing">3.1</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="age">9</td>
+<td class="gt_row gt_right" headers="wing">3.2</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="age">10</td>
+<td class="gt_row gt_right" headers="wing">3.2</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="age">11</td>
+<td class="gt_row gt_right" headers="wing">3.9</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="age">12</td>
+<td class="gt_row gt_right" headers="wing">4.1</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="age">14</td>
+<td class="gt_row gt_right" headers="wing">4.7</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="age">15</td>
+<td class="gt_row gt_right" headers="wing">4.5</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_right" headers="age">16</td>
+<td class="gt_row gt_right" headers="wing">5.2</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_right" headers="age">17</td>
+<td class="gt_row gt_right" headers="wing">5.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-margin quarto-float-caption quarto-float-tbl quarto-uncaptioned margin-caption" id="tbl-gt-sparrows-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1
+</figcaption></figure>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="fig-sparrow" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-sparrow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="11-simple-linear-regression_files/figure-html/fig-sparrow-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Wing length of sparrows at different ages."><img src="11-simple-linear-regression_files/figure-html/fig-sparrow-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:82.0%"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sparrow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Wing length of sparrows at different ages.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>The scatter plot suggests a positive linear relationship, which makes this a plausible starting point for a simple linear model.</p>
+</section><section id="fitting-the-model-in-r" class="level1" data-number="7"><h1 data-number="7">
+<span class="header-section-number">7</span> Fitting the Model in R</h1>
+<p>The basic R function is <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code>:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">lm</span>(response <span class="sc">~</span> predictor, <span class="at">data =</span> df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>For the sparrow example:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>sparrow_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(wing <span class="sc">~</span> age, <span class="at">data =</span> sparrows)</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="fu">summary</span>(sparrow_mod)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>R&gt; 
+R&gt; Call:
+R&gt; lm(formula = wing ~ age, data = sparrows)
+R&gt; 
+R&gt; Residuals:
+R&gt;      Min       1Q   Median       3Q      Max 
+R&gt; -0.30699 -0.21538  0.06553  0.16324  0.22507 
+R&gt; 
+R&gt; Coefficients:
+R&gt;             Estimate Std. Error t value Pr(&gt;|t|)    
+R&gt; (Intercept)  0.71309    0.14790   4.821 0.000535 ***
+R&gt; age          0.27023    0.01349  20.027 5.27e-10 ***
+R&gt; ---
+R&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+R&gt; 
+R&gt; Residual standard error: 0.2184 on 11 degrees of freedom
+R&gt; Multiple R-squared:  0.9733, Adjusted R-squared:  0.9709 
+R&gt; F-statistic: 401.1 on 1 and 11 DF,  p-value: 5.267e-10</code></pre>
+</div>
+</div>
+<p>The output provides:</p>
+<ul>
+<li>the estimated intercept,</li>
+<li>the estimated slope,</li>
+<li>standard errors,</li>
+<li>tests of whether coefficients differ from zero,</li>
+<li>
+<code>R^2</code>, and</li>
+<li>the overall model test.</li>
+</ul></section><section id="interpreting-the-coefficients" class="level1" data-number="8"><h1 data-number="8">
+<span class="header-section-number">8</span> Interpreting the Coefficients</h1>
+<p>The <strong>intercept</strong> is the expected wing length when age is zero. In some biological settings this is meaningful; in others it is simply a mathematical anchor for the line.</p>
+<p>The <strong>slope</strong> is usually the parameter of greatest interest. It tells us how much the expected response changes for a one-unit increase in the predictor.</p>
+<p>In a biological interpretation, the key question is not only whether the slope differs from zero, but also whether its magnitude is meaningful.</p>
+</section><section id="confidence-intervals-and-prediction" class="level1" data-number="9"><h1 data-number="9">
+<span class="header-section-number">9</span> Confidence Intervals and Prediction</h1>
+<p>The fitted line provides an expected mean response at each value of the predictor. We can place a <strong>confidence interval</strong> around that mean response and a <strong>prediction interval</strong> around a single future observation.</p>
+<ul>
+<li>A <strong>confidence interval</strong> describes uncertainty in the estimated mean response.</li>
+<li>A <strong>prediction interval</strong> is wider because it includes the scatter of individual observations around that mean.</li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>new_x <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">age =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">13</span>))</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">predict</span>(sparrow_mod, <span class="at">newdata =</span> new_x, <span class="at">interval =</span> <span class="st">"confidence"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>R&gt;        fit      lwr      upr
+R&gt; 1 2.604698 2.444344 2.765051
+R&gt; 2 4.226072 4.065719 4.386425</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">predict</span>(sparrow_mod, <span class="at">newdata =</span> new_x, <span class="at">interval =</span> <span class="st">"prediction"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>R&gt;        fit      lwr      upr
+R&gt; 1 2.604698 2.097951 3.111444
+R&gt; 2 4.226072 3.719325 4.732818</code></pre>
+</div>
+</div>
+</section><section id="residuals-and-diagnostics" class="level1" data-number="10"><h1 data-number="10">
+<span class="header-section-number">10</span> Residuals and Diagnostics</h1>
+<p>Model checking is part of the analysis, not something done only if a reviewer complains. Residual diagnostics help us assess whether the model is plausible.</p>
+<p>Useful checks include:</p>
+<ul>
+<li>
+<strong>Residuals vs fitted values</strong> for non-linearity or changing variance,</li>
+<li>
+<strong>Normal Q-Q plot</strong> for approximate normality of residuals,</li>
+<li>
+<strong>Histogram of residuals</strong> for shape,</li>
+<li>
+<strong>Residuals vs predictor</strong> for overlooked structure.</li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure"><p><a href="11-simple-linear-regression_files/figure-html/unnamed-chunk-4-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="11-simple-linear-regression_files/figure-html/unnamed-chunk-4-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:88.0%"></a></p>
+</figure>
+</div>
+</div>
+</div>
+<p>These plots are often more informative than relying on a single formal assumption test.</p>
+</section><section id="a-larger-example-penguin-data" class="level1" data-number="11"><h1 data-number="11">
+<span class="header-section-number">11</span> A Larger Example: Penguin Data</h1>
+<p>The <code>palmerpenguins</code> dataset provides a more realistic example. Below, we model bill length as a function of body mass in Adelie penguins.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">library</span>(palmerpenguins)</span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a>adelie <span class="ot">&lt;-</span> penguins <span class="sc">|&gt;</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a>  <span class="fu">filter</span>(species <span class="sc">==</span> <span class="st">"Adelie"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>  <span class="fu">drop_na</span>(body_mass_g, bill_length_mm)</span>
+<span id="cb8-6"><a href="#cb8-6"></a></span>
+<span id="cb8-7"><a href="#cb8-7"></a>penguin_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(bill_length_mm <span class="sc">~</span> body_mass_g, <span class="at">data =</span> adelie)</span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="fu">summary</span>(penguin_mod)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>R&gt; 
+R&gt; Call:
+R&gt; lm(formula = bill_length_mm ~ body_mass_g, data = adelie)
+R&gt; 
+R&gt; Residuals:
+R&gt;     Min      1Q  Median      3Q     Max 
+R&gt; -6.4208 -1.3690  0.1874  1.4825  5.6168 
+R&gt; 
+R&gt; Coefficients:
+R&gt;              Estimate Std. Error t value Pr(&gt;|t|)    
+R&gt; (Intercept) 2.699e+01  1.483e+00  18.201  &lt; 2e-16 ***
+R&gt; body_mass_g 3.188e-03  3.977e-04   8.015 2.95e-13 ***
+R&gt; ---
+R&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+R&gt; 
+R&gt; Residual standard error: 2.234 on 149 degrees of freedom
+R&gt; Multiple R-squared:  0.3013, Adjusted R-squared:  0.2966 
+R&gt; F-statistic: 64.24 on 1 and 149 DF,  p-value: 2.955e-13</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">ggplot</span>(adelie, <span class="fu">aes</span>(<span class="at">x =</span> body_mass_g, <span class="at">y =</span> bill_length_mm)) <span class="sc">+</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Body mass (g)"</span>, <span class="at">y =</span> <span class="st">"Bill length (mm)"</span>) <span class="sc">+</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-penguin-slr" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-penguin-slr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="11-simple-linear-regression_files/figure-html/fig-penguin-slr-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;2: A simple linear regression of Adelie penguin bill length on body mass."><img src="11-simple-linear-regression_files/figure-html/fig-penguin-slr-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:82.0%"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-penguin-slr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: A simple linear regression of Adelie penguin bill length on body mass.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>This example illustrates how a simple linear regression can be used to estimate an expected biological response and quantify uncertainty around that estimate.</p>
+</section><section id="common-mistakes" class="level1" data-number="12"><h1 data-number="12">
+<span class="header-section-number">12</span> Common Mistakes</h1>
+<p>Common mistakes in simple linear regression include:</p>
+<ul>
+<li>using regression when the relationship is only associative and poorly justified,</li>
+<li>ignoring non-independence,</li>
+<li>treating a clearly non-linear relationship as linear,</li>
+<li>interpreting statistical significance as biological importance, and</li>
+<li>reporting <code>R^2</code> without discussing effect size, uncertainty, or assumptions.</li>
+</ul></section><section id="looking-ahead" class="level1" data-number="13"><h1 data-number="13">
+<span class="header-section-number">13</span> Looking Ahead</h1>
+<p>Simple linear regression is the shallow end of a much larger pool. The same logic extends naturally to:</p>
+<ul>
+<li>multiple regression with several predictors,</li>
+<li>interaction terms,</li>
+<li>non-linear functional forms,</li>
+<li>non-normal response distributions, and</li>
+<li>hierarchical models for dependent data.</li>
+</ul>
+<p>The next chapter moves from one-predictor models to the problem of specifying richer biological models with several predictors.</p>
+</section><section id="summary" class="level1" data-number="14"><h1 data-number="14">
+<span class="header-section-number">14</span> Summary</h1>
+<ul>
+<li>Simple linear regression models a continuous response as a function of one continuous predictor.</li>
+<li>The key parameters are the intercept, slope, and residual variance.</li>
+<li>Regression is different from correlation because it distinguishes a response from a predictor.</li>
+<li>Diagnostic checks are essential for evaluating assumptions.</li>
+<li>Confidence intervals and prediction intervals serve different purposes.</li>
+</ul>
+<p>This chapter provides the conceptual and practical basis for the more complex regression models that follow.</p>
+
+
+<!-- -->
+
+</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit,_a._j.2026,
+  author = {Smit, A. J., and J. Smit, A.},
+  title = {11. {Simple} {Linear} {Regression}},
+  date = {2026-03-19},
+  url = {http://tangledbank.netlify.app/BCB744/basic_stats/11-simple-linear-regression.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-smit,_a._j.2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Smit, A. J., J. Smit A (2026) 11. Simple Linear Regression. <a href="http://tangledbank.netlify.app/BCB744/basic_stats/11-simple-linear-regression.html">http://tangledbank.netlify.app/BCB744/basic_stats/11-simple-linear-regression.html.
+</a>
+</div></div></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("http:\/\/tangledbank\.netlify\.app");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            // default icon
+            link.classList.add("external");
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../BCB744/basic_stats/12-multiple-regression-and-model-specification.html" class="pagination-link" aria-label="12. Multiple Regression and Model Specification">
+        <span class="nav-page-text">12. Multiple Regression and Model Specification</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">---</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="an">title:</span><span class="co"> "11. Simple Linear Regression"</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="an">subtitle:</span><span class="co"> "The Entry Point to Model-Based Biostatistics"</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="co">---</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a></span>
+<span id="cb11-10"><a href="#cb11-10"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
+<span id="cb11-11"><a href="#cb11-11"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb11-12"><a href="#cb11-12"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
+<span id="cb11-13"><a href="#cb11-13"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb11-14"><a href="#cb11-14"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb11-15"><a href="#cb11-15"></a>  <span class="at">fig.width =</span> <span class="fl">6.5</span>,</span>
+<span id="cb11-16"><a href="#cb11-16"></a>  <span class="at">fig.height =</span> <span class="fl">4.5</span>,</span>
+<span id="cb11-17"><a href="#cb11-17"></a>  <span class="at">out.width =</span> <span class="st">"88%"</span>,</span>
+<span id="cb11-18"><a href="#cb11-18"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
+<span id="cb11-19"><a href="#cb11-19"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
+<span id="cb11-20"><a href="#cb11-20"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
+<span id="cb11-21"><a href="#cb11-21"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb11-22"><a href="#cb11-22"></a>)</span>
+<span id="cb11-23"><a href="#cb11-23"></a></span>
+<span id="cb11-24"><a href="#cb11-24"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb11-25"><a href="#cb11-25"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb11-26"><a href="#cb11-26"></a>)</span>
+<span id="cb11-27"><a href="#cb11-27"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb11-28"><a href="#cb11-28"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb11-29"><a href="#cb11-29"></a>)</span>
+<span id="cb11-30"><a href="#cb11-30"></a><span class="in">```</span></span>
+<span id="cb11-31"><a href="#cb11-31"></a></span>
+<span id="cb11-32"><a href="#cb11-32"></a><span class="in">```{r code-knitr-opts-chunk-set, echo=FALSE}</span></span>
+<span id="cb11-33"><a href="#cb11-33"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb11-34"><a href="#cb11-34"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb11-35"><a href="#cb11-35"></a><span class="fu">library</span>(ggthemes)</span>
+<span id="cb11-36"><a href="#cb11-36"></a><span class="fu">library</span>(gt)</span>
+<span id="cb11-37"><a href="#cb11-37"></a><span class="in">```</span></span>
+<span id="cb11-38"><a href="#cb11-38"></a></span>
+<span id="cb11-39"><a href="#cb11-39"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb11-40"><a href="#cb11-40"></a><span class="fu">## In This Chapter</span></span>
+<span id="cb11-41"><a href="#cb11-41"></a></span>
+<span id="cb11-42"><a href="#cb11-42"></a><span class="ss">-   </span>What a simple linear regression model is</span>
+<span id="cb11-43"><a href="#cb11-43"></a><span class="ss">-   </span>When regression is appropriate instead of correlation</span>
+<span id="cb11-44"><a href="#cb11-44"></a><span class="ss">-   </span>The slope, intercept, residuals, and fitted values</span>
+<span id="cb11-45"><a href="#cb11-45"></a><span class="ss">-   </span>Model fitting with <span class="in">`lm()`</span></span>
+<span id="cb11-46"><a href="#cb11-46"></a><span class="ss">-   </span>Confidence intervals, prediction, and diagnostics</span>
+<span id="cb11-47"><a href="#cb11-47"></a>:::</span>
+<span id="cb11-48"><a href="#cb11-48"></a></span>
+<span id="cb11-49"><a href="#cb11-49"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb11-50"><a href="#cb11-50"></a><span class="fu">## Cheatsheet</span></span>
+<span id="cb11-51"><a href="#cb11-51"></a></span>
+<span id="cb11-52"><a href="#cb11-52"></a>Find here a <span class="co">[</span><span class="ot">Cheatsheet</span><span class="co">](../../docs/Methods_cheatsheet_v1.pdf)</span> on statistical methods.</span>
+<span id="cb11-53"><a href="#cb11-53"></a>:::</span>
+<span id="cb11-54"><a href="#cb11-54"></a></span>
+<span id="cb11-55"><a href="#cb11-55"></a>::: {.callout-important appearance="simple"}</span>
+<span id="cb11-56"><a href="#cb11-56"></a><span class="fu">## Tasks to Complete in This Chapter</span></span>
+<span id="cb11-57"><a href="#cb11-57"></a></span>
+<span id="cb11-58"><a href="#cb11-58"></a><span class="ss">-   </span>Task H</span>
+<span id="cb11-59"><a href="#cb11-59"></a>:::</span>
+<span id="cb11-60"><a href="#cb11-60"></a></span>
+<span id="cb11-61"><a href="#cb11-61"></a><span class="fu"># Introduction</span></span>
+<span id="cb11-62"><a href="#cb11-62"></a></span>
+<span id="cb11-63"><a href="#cb11-63"></a>Linear regression is one of the most important tools in biostatistics. It allows us to model the relationship between a continuous **response** variable and one or more **predictor** variables, quantify the strength of that relationship, and use the fitted model for explanation or prediction.</span>
+<span id="cb11-64"><a href="#cb11-64"></a></span>
+<span id="cb11-65"><a href="#cb11-65"></a>This chapter focuses on the simplest case: **one continuous response** and **one continuous predictor**. Although simple, this model introduces most of the core ideas that recur throughout the rest of the module: model specification, parameter estimation, assumptions, residuals, confidence intervals, and interpretation.</span>
+<span id="cb11-66"><a href="#cb11-66"></a></span>
+<span id="cb11-67"><a href="#cb11-67"></a>Simple linear regression is appropriate when we want to ask questions such as:</span>
+<span id="cb11-68"><a href="#cb11-68"></a></span>
+<span id="cb11-69"><a href="#cb11-69"></a><span class="ss">-   </span>How does wing length change with age in a growing bird?</span>
+<span id="cb11-70"><a href="#cb11-70"></a><span class="ss">-   </span>How does body size change with temperature or nutrient supply?</span>
+<span id="cb11-71"><a href="#cb11-71"></a><span class="ss">-   </span>Can one continuous variable be used to predict another?</span>
+<span id="cb11-72"><a href="#cb11-72"></a></span>
+<span id="cb11-73"><a href="#cb11-73"></a>When there is no directional or explanatory claim and we only want to quantify association, **correlation** is often more appropriate. Regression is used when we want to model a response as a function of a predictor.</span>
+<span id="cb11-74"><a href="#cb11-74"></a></span>
+<span id="cb11-75"><a href="#cb11-75"></a><span class="fu"># Key Concepts</span></span>
+<span id="cb11-76"><a href="#cb11-76"></a></span>
+<span id="cb11-77"><a href="#cb11-77"></a>These concepts frame the regression sections that follow.</span>
+<span id="cb11-78"><a href="#cb11-78"></a></span>
+<span id="cb11-79"><a href="#cb11-79"></a><span class="ss">-   </span>**Simple Linear Regression:** A model for the relationship between one continuous response variable and one continuous predictor variable.</span>
+<span id="cb11-80"><a href="#cb11-80"></a><span class="ss">-   </span>**Regression Equation:** The response is modelled as a function of the predictor plus an error term.</span>
+<span id="cb11-81"><a href="#cb11-81"></a><span class="ss">-   </span>**Slope and Intercept:** The slope describes the expected change in the response for a one-unit change in the predictor; the intercept is the expected response when the predictor equals zero.</span>
+<span id="cb11-82"><a href="#cb11-82"></a><span class="ss">-   </span>**Residuals:** The differences between observed and fitted values. Residuals are central to diagnostics.</span>
+<span id="cb11-83"><a href="#cb11-83"></a><span class="ss">-   </span>**Prediction and Explanation:** A fitted regression can be used to predict new values or to estimate and interpret effect sizes.</span>
+<span id="cb11-84"><a href="#cb11-84"></a></span>
+<span id="cb11-85"><a href="#cb11-85"></a><span class="fu"># The Model</span></span>
+<span id="cb11-86"><a href="#cb11-86"></a></span>
+<span id="cb11-87"><a href="#cb11-87"></a>The simple linear regression model is:</span>
+<span id="cb11-88"><a href="#cb11-88"></a></span>
+<span id="cb11-89"><a href="#cb11-89"></a>$$</span>
+<span id="cb11-90"><a href="#cb11-90"></a>Y_i = \alpha + \beta X_i + \epsilon_i</span>
+<span id="cb11-91"><a href="#cb11-91"></a>$$</span>
+<span id="cb11-92"><a href="#cb11-92"></a></span>
+<span id="cb11-93"><a href="#cb11-93"></a>where:</span>
+<span id="cb11-94"><a href="#cb11-94"></a></span>
+<span id="cb11-95"><a href="#cb11-95"></a><span class="ss">-   </span>$Y_i$ is the response for observation $i$,</span>
+<span id="cb11-96"><a href="#cb11-96"></a><span class="ss">-   </span>$X_i$ is the predictor for observation $i$,</span>
+<span id="cb11-97"><a href="#cb11-97"></a><span class="ss">-   </span>$\alpha$ is the intercept,</span>
+<span id="cb11-98"><a href="#cb11-98"></a><span class="ss">-   </span>$\beta$ is the slope, and</span>
+<span id="cb11-99"><a href="#cb11-99"></a><span class="ss">-   </span>$\epsilon_i$ is the residual error.</span>
+<span id="cb11-100"><a href="#cb11-100"></a></span>
+<span id="cb11-101"><a href="#cb11-101"></a>The fitted line is estimated by minimising the **sum of squared residuals**:</span>
+<span id="cb11-102"><a href="#cb11-102"></a></span>
+<span id="cb11-103"><a href="#cb11-103"></a>$$</span>
+<span id="cb11-104"><a href="#cb11-104"></a>\sum_{i=1}^{n}(Y_i - \hat{Y}_i)^2</span>
+<span id="cb11-105"><a href="#cb11-105"></a>$$</span>
+<span id="cb11-106"><a href="#cb11-106"></a></span>
+<span id="cb11-107"><a href="#cb11-107"></a>This is why simple linear regression is often described as an **ordinary least squares** method.</span>
+<span id="cb11-108"><a href="#cb11-108"></a></span>
+<span id="cb11-109"><a href="#cb11-109"></a><span class="fu"># Regression Versus Correlation</span></span>
+<span id="cb11-110"><a href="#cb11-110"></a></span>
+<span id="cb11-111"><a href="#cb11-111"></a>Regression and correlation are closely related, but they answer different questions.</span>
+<span id="cb11-112"><a href="#cb11-112"></a></span>
+<span id="cb11-113"><a href="#cb11-113"></a><span class="ss">-   </span>**Correlation** quantifies the strength of association between two variables.</span>
+<span id="cb11-114"><a href="#cb11-114"></a><span class="ss">-   </span>**Regression** models the expected value of one variable as a function of the other.</span>
+<span id="cb11-115"><a href="#cb11-115"></a></span>
+<span id="cb11-116"><a href="#cb11-116"></a>Regression therefore imposes a distinction between **response** and **predictor**. That distinction should be biologically justified. Even when the goal is primarily predictive rather than explicitly causal, the model must still be framed carefully.</span>
+<span id="cb11-117"><a href="#cb11-117"></a></span>
+<span id="cb11-118"><a href="#cb11-118"></a><span class="fu"># Data Requirements and Assumptions</span></span>
+<span id="cb11-119"><a href="#cb11-119"></a></span>
+<span id="cb11-120"><a href="#cb11-120"></a>For a simple linear regression, the following conditions should hold:</span>
+<span id="cb11-121"><a href="#cb11-121"></a></span>
+<span id="cb11-122"><a href="#cb11-122"></a><span class="ss">1. </span>The response variable is continuous.</span>
+<span id="cb11-123"><a href="#cb11-123"></a><span class="ss">2. </span>The predictor variable is continuous.</span>
+<span id="cb11-124"><a href="#cb11-124"></a><span class="ss">3. </span>Observations are independent.</span>
+<span id="cb11-125"><a href="#cb11-125"></a><span class="ss">4. </span>The mean relationship between response and predictor is approximately linear.</span>
+<span id="cb11-126"><a href="#cb11-126"></a><span class="ss">5. </span>Residuals have approximately constant variance.</span>
+<span id="cb11-127"><a href="#cb11-127"></a><span class="ss">6. </span>Residuals are approximately normally distributed.</span>
+<span id="cb11-128"><a href="#cb11-128"></a></span>
+<span id="cb11-129"><a href="#cb11-129"></a>The assumptions are evaluated primarily through the **residuals**, not by inspecting the raw response variable alone.</span>
+<span id="cb11-130"><a href="#cb11-130"></a></span>
+<span id="cb11-131"><a href="#cb11-131"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb11-132"><a href="#cb11-132"></a><span class="fu">## Measurement Error in the Predictor</span></span>
+<span id="cb11-133"><a href="#cb11-133"></a></span>
+<span id="cb11-134"><a href="#cb11-134"></a>Standard simple linear regression assumes that the predictor is measured without substantial error. In practice, this is often only approximately true. Later chapters revisit the consequences of measurement error more explicitly.</span>
+<span id="cb11-135"><a href="#cb11-135"></a>:::</span>
+<span id="cb11-136"><a href="#cb11-136"></a></span>
+<span id="cb11-137"><a href="#cb11-137"></a><span class="fu"># Example Dataset</span></span>
+<span id="cb11-138"><a href="#cb11-138"></a></span>
+<span id="cb11-139"><a href="#cb11-139"></a>We begin with a simple dataset on sparrow wing length as a function of age.</span>
+<span id="cb11-140"><a href="#cb11-140"></a></span>
+<span id="cb11-141"><a href="#cb11-141"></a><span class="in">```{r code-sparrows-tibble}</span></span>
+<span id="cb11-142"><a href="#cb11-142"></a><span class="co">#| echo: false</span></span>
+<span id="cb11-143"><a href="#cb11-143"></a>sparrows <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb11-144"><a href="#cb11-144"></a>  <span class="at">age =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">8</span>, <span class="dv">9</span>, <span class="dv">10</span>, <span class="dv">11</span>, <span class="dv">12</span>, <span class="dv">14</span>, <span class="dv">15</span>, <span class="dv">16</span>, <span class="dv">17</span>),</span>
+<span id="cb11-145"><a href="#cb11-145"></a>  <span class="at">wing =</span> <span class="fu">c</span>(<span class="fl">1.4</span>, <span class="fl">1.5</span>, <span class="fl">2.2</span>, <span class="fl">2.4</span>, <span class="fl">3.1</span>, <span class="fl">3.2</span>, <span class="fl">3.2</span>, <span class="fl">3.9</span>, <span class="fl">4.1</span>, <span class="fl">4.7</span>, <span class="fl">4.5</span>, <span class="fl">5.2</span>, <span class="fl">5.0</span>)</span>
+<span id="cb11-146"><a href="#cb11-146"></a>)</span>
+<span id="cb11-147"><a href="#cb11-147"></a><span class="in">```</span></span>
+<span id="cb11-148"><a href="#cb11-148"></a></span>
+<span id="cb11-149"><a href="#cb11-149"></a><span class="in">```{r tbl-gt-sparrows}</span></span>
+<span id="cb11-150"><a href="#cb11-150"></a><span class="co">#| echo: false</span></span>
+<span id="cb11-151"><a href="#cb11-151"></a></span>
+<span id="cb11-152"><a href="#cb11-152"></a><span class="fu">gt</span>(sparrows) <span class="sc">|&gt;</span></span>
+<span id="cb11-153"><a href="#cb11-153"></a>  <span class="fu">tab_header</span>(</span>
+<span id="cb11-154"><a href="#cb11-154"></a>    <span class="at">title =</span> <span class="st">"Sparrow wing-length data."</span></span>
+<span id="cb11-155"><a href="#cb11-155"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb11-156"><a href="#cb11-156"></a>  <span class="fu">cols_label</span>(</span>
+<span id="cb11-157"><a href="#cb11-157"></a>    <span class="at">age =</span> <span class="fu">html</span>(<span class="st">"Age (days)"</span>),</span>
+<span id="cb11-158"><a href="#cb11-158"></a>    <span class="at">wing =</span> <span class="fu">html</span>(<span class="st">"Wing length&lt;br&gt;(cm)"</span>)</span>
+<span id="cb11-159"><a href="#cb11-159"></a>  )</span>
+<span id="cb11-160"><a href="#cb11-160"></a><span class="in">```</span></span>
+<span id="cb11-161"><a href="#cb11-161"></a></span>
+<span id="cb11-162"><a href="#cb11-162"></a><span class="in">```{r fig-sparrow}</span></span>
+<span id="cb11-163"><a href="#cb11-163"></a><span class="co">#| echo: false</span></span>
+<span id="cb11-164"><a href="#cb11-164"></a><span class="co">#| fig-cap: "Wing length of sparrows at different ages."</span></span>
+<span id="cb11-165"><a href="#cb11-165"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb11-166"><a href="#cb11-166"></a><span class="co">#| fig-height: 4.5</span></span>
+<span id="cb11-167"><a href="#cb11-167"></a><span class="co">#| out-width: "82%"</span></span>
+<span id="cb11-168"><a href="#cb11-168"></a></span>
+<span id="cb11-169"><a href="#cb11-169"></a><span class="fu">ggplot</span>(sparrows, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> wing)) <span class="sc">+</span></span>
+<span id="cb11-170"><a href="#cb11-170"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>, <span class="at">col =</span> <span class="st">"red3"</span>, <span class="at">shape =</span> <span class="dv">16</span>) <span class="sc">+</span></span>
+<span id="cb11-171"><a href="#cb11-171"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">linewidth =</span> <span class="fl">1.2</span>, <span class="at">colour =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb11-172"><a href="#cb11-172"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Age (days)"</span>, <span class="at">y =</span> <span class="st">"Wing length (cm)"</span>) <span class="sc">+</span></span>
+<span id="cb11-173"><a href="#cb11-173"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb11-174"><a href="#cb11-174"></a><span class="in">```</span></span>
+<span id="cb11-175"><a href="#cb11-175"></a></span>
+<span id="cb11-176"><a href="#cb11-176"></a>The scatter plot suggests a positive linear relationship, which makes this a plausible starting point for a simple linear model.</span>
+<span id="cb11-177"><a href="#cb11-177"></a></span>
+<span id="cb11-178"><a href="#cb11-178"></a><span class="fu"># Fitting the Model in R</span></span>
+<span id="cb11-179"><a href="#cb11-179"></a></span>
+<span id="cb11-180"><a href="#cb11-180"></a>The basic R function is <span class="in">`lm()`</span>:</span>
+<span id="cb11-181"><a href="#cb11-181"></a></span>
+<span id="cb11-184"><a href="#cb11-184"></a><span class="in">```{r}</span></span>
+<span id="cb11-185"><a href="#cb11-185"></a><span class="co">#| eval: false</span></span>
+<span id="cb11-186"><a href="#cb11-186"></a><span class="fu">lm</span>(response <span class="sc">~</span> predictor, <span class="at">data =</span> df)</span>
+<span id="cb11-187"><a href="#cb11-187"></a><span class="in">```</span></span>
+<span id="cb11-188"><a href="#cb11-188"></a></span>
+<span id="cb11-189"><a href="#cb11-189"></a>For the sparrow example:</span>
+<span id="cb11-190"><a href="#cb11-190"></a></span>
+<span id="cb11-193"><a href="#cb11-193"></a><span class="in">```{r}</span></span>
+<span id="cb11-194"><a href="#cb11-194"></a>sparrow_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(wing <span class="sc">~</span> age, <span class="at">data =</span> sparrows)</span>
+<span id="cb11-195"><a href="#cb11-195"></a><span class="fu">summary</span>(sparrow_mod)</span>
+<span id="cb11-196"><a href="#cb11-196"></a><span class="in">```</span></span>
+<span id="cb11-197"><a href="#cb11-197"></a></span>
+<span id="cb11-198"><a href="#cb11-198"></a>The output provides:</span>
+<span id="cb11-199"><a href="#cb11-199"></a></span>
+<span id="cb11-200"><a href="#cb11-200"></a><span class="ss">-   </span>the estimated intercept,</span>
+<span id="cb11-201"><a href="#cb11-201"></a><span class="ss">-   </span>the estimated slope,</span>
+<span id="cb11-202"><a href="#cb11-202"></a><span class="ss">-   </span>standard errors,</span>
+<span id="cb11-203"><a href="#cb11-203"></a><span class="ss">-   </span>tests of whether coefficients differ from zero,</span>
+<span id="cb11-204"><a href="#cb11-204"></a><span class="ss">-   </span><span class="in">`R^2`</span>, and</span>
+<span id="cb11-205"><a href="#cb11-205"></a><span class="ss">-   </span>the overall model test.</span>
+<span id="cb11-206"><a href="#cb11-206"></a></span>
+<span id="cb11-207"><a href="#cb11-207"></a><span class="fu"># Interpreting the Coefficients</span></span>
+<span id="cb11-208"><a href="#cb11-208"></a></span>
+<span id="cb11-209"><a href="#cb11-209"></a>The **intercept** is the expected wing length when age is zero. In some biological settings this is meaningful; in others it is simply a mathematical anchor for the line.</span>
+<span id="cb11-210"><a href="#cb11-210"></a></span>
+<span id="cb11-211"><a href="#cb11-211"></a>The **slope** is usually the parameter of greatest interest. It tells us how much the expected response changes for a one-unit increase in the predictor.</span>
+<span id="cb11-212"><a href="#cb11-212"></a></span>
+<span id="cb11-213"><a href="#cb11-213"></a>In a biological interpretation, the key question is not only whether the slope differs from zero, but also whether its magnitude is meaningful.</span>
+<span id="cb11-214"><a href="#cb11-214"></a></span>
+<span id="cb11-215"><a href="#cb11-215"></a><span class="fu"># Confidence Intervals and Prediction</span></span>
+<span id="cb11-216"><a href="#cb11-216"></a></span>
+<span id="cb11-217"><a href="#cb11-217"></a>The fitted line provides an expected mean response at each value of the predictor. We can place a **confidence interval** around that mean response and a **prediction interval** around a single future observation.</span>
+<span id="cb11-218"><a href="#cb11-218"></a></span>
+<span id="cb11-219"><a href="#cb11-219"></a><span class="ss">-   </span>A **confidence interval** describes uncertainty in the estimated mean response.</span>
+<span id="cb11-220"><a href="#cb11-220"></a><span class="ss">-   </span>A **prediction interval** is wider because it includes the scatter of individual observations around that mean.</span>
+<span id="cb11-221"><a href="#cb11-221"></a></span>
+<span id="cb11-224"><a href="#cb11-224"></a><span class="in">```{r}</span></span>
+<span id="cb11-225"><a href="#cb11-225"></a>new_x <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">age =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">13</span>))</span>
+<span id="cb11-226"><a href="#cb11-226"></a><span class="fu">predict</span>(sparrow_mod, <span class="at">newdata =</span> new_x, <span class="at">interval =</span> <span class="st">"confidence"</span>)</span>
+<span id="cb11-227"><a href="#cb11-227"></a><span class="fu">predict</span>(sparrow_mod, <span class="at">newdata =</span> new_x, <span class="at">interval =</span> <span class="st">"prediction"</span>)</span>
+<span id="cb11-228"><a href="#cb11-228"></a><span class="in">```</span></span>
+<span id="cb11-229"><a href="#cb11-229"></a></span>
+<span id="cb11-230"><a href="#cb11-230"></a><span class="fu"># Residuals and Diagnostics</span></span>
+<span id="cb11-231"><a href="#cb11-231"></a></span>
+<span id="cb11-232"><a href="#cb11-232"></a>Model checking is part of the analysis, not something done only if a reviewer complains. Residual diagnostics help us assess whether the model is plausible.</span>
+<span id="cb11-233"><a href="#cb11-233"></a></span>
+<span id="cb11-234"><a href="#cb11-234"></a>Useful checks include:</span>
+<span id="cb11-235"><a href="#cb11-235"></a></span>
+<span id="cb11-236"><a href="#cb11-236"></a><span class="ss">-   </span>**Residuals vs fitted values** for non-linearity or changing variance,</span>
+<span id="cb11-237"><a href="#cb11-237"></a><span class="ss">-   </span>**Normal Q-Q plot** for approximate normality of residuals,</span>
+<span id="cb11-238"><a href="#cb11-238"></a><span class="ss">-   </span>**Histogram of residuals** for shape,</span>
+<span id="cb11-239"><a href="#cb11-239"></a><span class="ss">-   </span>**Residuals vs predictor** for overlooked structure.</span>
+<span id="cb11-240"><a href="#cb11-240"></a></span>
+<span id="cb11-243"><a href="#cb11-243"></a><span class="in">```{r}</span></span>
+<span id="cb11-244"><a href="#cb11-244"></a><span class="co">#| echo: false</span></span>
+<span id="cb11-245"><a href="#cb11-245"></a><span class="co">#| fig.width: 7</span></span>
+<span id="cb11-246"><a href="#cb11-246"></a><span class="co">#| fig.height: 7</span></span>
+<span id="cb11-247"><a href="#cb11-247"></a><span class="co">#| out-width: "88%"</span></span>
+<span id="cb11-248"><a href="#cb11-248"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))</span>
+<span id="cb11-249"><a href="#cb11-249"></a><span class="fu">plot</span>(sparrow_mod)</span>
+<span id="cb11-250"><a href="#cb11-250"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb11-251"><a href="#cb11-251"></a><span class="in">```</span></span>
+<span id="cb11-252"><a href="#cb11-252"></a></span>
+<span id="cb11-253"><a href="#cb11-253"></a>These plots are often more informative than relying on a single formal assumption test.</span>
+<span id="cb11-254"><a href="#cb11-254"></a></span>
+<span id="cb11-255"><a href="#cb11-255"></a><span class="fu"># A Larger Example: Penguin Data</span></span>
+<span id="cb11-256"><a href="#cb11-256"></a></span>
+<span id="cb11-257"><a href="#cb11-257"></a>The <span class="in">`palmerpenguins`</span> dataset provides a more realistic example. Below, we model bill length as a function of body mass in Adelie penguins.</span>
+<span id="cb11-258"><a href="#cb11-258"></a></span>
+<span id="cb11-261"><a href="#cb11-261"></a><span class="in">```{r}</span></span>
+<span id="cb11-262"><a href="#cb11-262"></a><span class="co">#| message: false</span></span>
+<span id="cb11-263"><a href="#cb11-263"></a><span class="fu">library</span>(palmerpenguins)</span>
+<span id="cb11-264"><a href="#cb11-264"></a></span>
+<span id="cb11-265"><a href="#cb11-265"></a>adelie <span class="ot">&lt;-</span> penguins <span class="sc">|&gt;</span></span>
+<span id="cb11-266"><a href="#cb11-266"></a>  <span class="fu">filter</span>(species <span class="sc">==</span> <span class="st">"Adelie"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb11-267"><a href="#cb11-267"></a>  <span class="fu">drop_na</span>(body_mass_g, bill_length_mm)</span>
+<span id="cb11-268"><a href="#cb11-268"></a></span>
+<span id="cb11-269"><a href="#cb11-269"></a>penguin_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(bill_length_mm <span class="sc">~</span> body_mass_g, <span class="at">data =</span> adelie)</span>
+<span id="cb11-270"><a href="#cb11-270"></a><span class="fu">summary</span>(penguin_mod)</span>
+<span id="cb11-271"><a href="#cb11-271"></a><span class="in">```</span></span>
+<span id="cb11-272"><a href="#cb11-272"></a></span>
+<span id="cb11-273"><a href="#cb11-273"></a><span class="in">```{r fig-penguin-slr}</span></span>
+<span id="cb11-274"><a href="#cb11-274"></a><span class="co">#| fig-cap: "A simple linear regression of Adelie penguin bill length on body mass."</span></span>
+<span id="cb11-275"><a href="#cb11-275"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb11-276"><a href="#cb11-276"></a><span class="co">#| fig-height: 4.5</span></span>
+<span id="cb11-277"><a href="#cb11-277"></a><span class="co">#| out-width: "82%"</span></span>
+<span id="cb11-278"><a href="#cb11-278"></a></span>
+<span id="cb11-279"><a href="#cb11-279"></a><span class="fu">ggplot</span>(adelie, <span class="fu">aes</span>(<span class="at">x =</span> body_mass_g, <span class="at">y =</span> bill_length_mm)) <span class="sc">+</span></span>
+<span id="cb11-280"><a href="#cb11-280"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb11-281"><a href="#cb11-281"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb11-282"><a href="#cb11-282"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Body mass (g)"</span>, <span class="at">y =</span> <span class="st">"Bill length (mm)"</span>) <span class="sc">+</span></span>
+<span id="cb11-283"><a href="#cb11-283"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb11-284"><a href="#cb11-284"></a><span class="in">```</span></span>
+<span id="cb11-285"><a href="#cb11-285"></a></span>
+<span id="cb11-286"><a href="#cb11-286"></a>This example illustrates how a simple linear regression can be used to estimate an expected biological response and quantify uncertainty around that estimate.</span>
+<span id="cb11-287"><a href="#cb11-287"></a></span>
+<span id="cb11-288"><a href="#cb11-288"></a><span class="fu"># Common Mistakes</span></span>
+<span id="cb11-289"><a href="#cb11-289"></a></span>
+<span id="cb11-290"><a href="#cb11-290"></a>Common mistakes in simple linear regression include:</span>
+<span id="cb11-291"><a href="#cb11-291"></a></span>
+<span id="cb11-292"><a href="#cb11-292"></a><span class="ss">-   </span>using regression when the relationship is only associative and poorly justified,</span>
+<span id="cb11-293"><a href="#cb11-293"></a><span class="ss">-   </span>ignoring non-independence,</span>
+<span id="cb11-294"><a href="#cb11-294"></a><span class="ss">-   </span>treating a clearly non-linear relationship as linear,</span>
+<span id="cb11-295"><a href="#cb11-295"></a><span class="ss">-   </span>interpreting statistical significance as biological importance, and</span>
+<span id="cb11-296"><a href="#cb11-296"></a><span class="ss">-   </span>reporting <span class="in">`R^2`</span> without discussing effect size, uncertainty, or assumptions.</span>
+<span id="cb11-297"><a href="#cb11-297"></a></span>
+<span id="cb11-298"><a href="#cb11-298"></a><span class="fu"># Looking Ahead</span></span>
+<span id="cb11-299"><a href="#cb11-299"></a></span>
+<span id="cb11-300"><a href="#cb11-300"></a>Simple linear regression is the shallow end of a much larger pool. The same logic extends naturally to:</span>
+<span id="cb11-301"><a href="#cb11-301"></a></span>
+<span id="cb11-302"><a href="#cb11-302"></a><span class="ss">-   </span>multiple regression with several predictors,</span>
+<span id="cb11-303"><a href="#cb11-303"></a><span class="ss">-   </span>interaction terms,</span>
+<span id="cb11-304"><a href="#cb11-304"></a><span class="ss">-   </span>non-linear functional forms,</span>
+<span id="cb11-305"><a href="#cb11-305"></a><span class="ss">-   </span>non-normal response distributions, and</span>
+<span id="cb11-306"><a href="#cb11-306"></a><span class="ss">-   </span>hierarchical models for dependent data.</span>
+<span id="cb11-307"><a href="#cb11-307"></a></span>
+<span id="cb11-308"><a href="#cb11-308"></a>The next chapter moves from one-predictor models to the problem of specifying richer biological models with several predictors.</span>
+<span id="cb11-309"><a href="#cb11-309"></a></span>
+<span id="cb11-310"><a href="#cb11-310"></a><span class="fu"># Summary</span></span>
+<span id="cb11-311"><a href="#cb11-311"></a></span>
+<span id="cb11-312"><a href="#cb11-312"></a><span class="ss">-   </span>Simple linear regression models a continuous response as a function of one continuous predictor.</span>
+<span id="cb11-313"><a href="#cb11-313"></a><span class="ss">-   </span>The key parameters are the intercept, slope, and residual variance.</span>
+<span id="cb11-314"><a href="#cb11-314"></a><span class="ss">-   </span>Regression is different from correlation because it distinguishes a response from a predictor.</span>
+<span id="cb11-315"><a href="#cb11-315"></a><span class="ss">-   </span>Diagnostic checks are essential for evaluating assumptions.</span>
+<span id="cb11-316"><a href="#cb11-316"></a><span class="ss">-   </span>Confidence intervals and prediction intervals serve different purposes.</span>
+<span id="cb11-317"><a href="#cb11-317"></a></span>
+<span id="cb11-318"><a href="#cb11-318"></a>This chapter provides the conceptual and practical basis for the more complex regression models that follow.</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer"><div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026, AJ Smit</p>
+</div>   
+    <div class="nav-footer-center">
+
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/11-simple-linear-regression.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div><div class="cookie-consent-footer"><a href="#" id="open_preferences_center">Cookie Preferences</a></div></div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer><script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
