@@ -34,16 +34,18 @@ library(tidyverse)
 library(ggpubr)
 library(ggthemes)
 library(gt)
+library(broom)
 ```
 
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   What a simple linear regression model is
--   When regression is appropriate instead of correlation
--   The slope, intercept, residuals, and fitted values
--   Model fitting with `lm()`
--   Confidence intervals, prediction, and diagnostics
+-   what a simple linear regression model is;
+-   when regression is more appropriate than correlation;
+-   how to fit a model with `lm()`;
+-   how to check the assumptions using residuals;
+-   how to interpret slopes, fitted values, and intervals;
+-   how to report a regression in the style of a Results section.
 :::
 
 ::: {.callout-note appearance="simple"}
@@ -60,31 +62,40 @@ Find here a [Cheatsheet](../../docs/Methods_cheatsheet_v1.pdf) on statistical me
 
 # Introduction
 
-Linear regression is one of the most important tools in biostatistics. It allows us to model the relationship between a continuous **response** variable and one or more **predictor** variables, quantify the strength of that relationship, and use the fitted model for explanation or prediction.
+Simple linear regression is one of the most useful tools in biostatistics because it introduces the general logic of statistical modelling. We are no longer merely asking whether two groups differ, or whether two variables are associated. We are now writing down a model for a **response** variable as a function of a **predictor** variable.
 
-This chapter focuses on the simplest case: **one continuous response** and **one continuous predictor**. Although simple, this model introduces most of the core ideas that recur throughout the rest of the module: model specification, parameter estimation, assumptions, residuals, confidence intervals, and interpretation.
+This distinction matters. Regression is appropriate when one variable is treated as the response whose expected value changes with another variable. Sometimes that distinction is biologically causal, and sometimes it is primarily predictive, but it must always be defensible. If you only want to describe the strength of association between two variables without imposing a response-predictor structure, then [correlation](09-correlation-and-association.qmd) is usually more appropriate.
 
-Simple linear regression is appropriate when we want to ask questions such as:
-
--   How does wing length change with age in a growing bird?
--   How does body size change with temperature or nutrient supply?
--   Can one continuous variable be used to predict another?
-
-When there is no directional or explanatory claim and we only want to quantify association, **correlation** is often more appropriate. Regression is used when we want to model a response as a function of a predictor.
+Simple linear regression is the shallow end of a much deeper pool. The same logic extends naturally to multiple regression, interaction terms, non-linear responses, generalised linear models, and mixed models. For that reason this chapter is foundational.
 
 # Key Concepts
 
-These concepts frame the regression sections that follow.
+These ideas organise the chapter.
 
--   **Simple Linear Regression:** A model for the relationship between one continuous response variable and one continuous predictor variable.
--   **Regression Equation:** The response is modelled as a function of the predictor plus an error term.
--   **Slope and Intercept:** The slope describes the expected change in the response for a one-unit change in the predictor; the intercept is the expected response when the predictor equals zero.
--   **Residuals:** The differences between observed and fitted values. Residuals are central to diagnostics.
--   **Prediction and Explanation:** A fitted regression can be used to predict new values or to estimate and interpret effect sizes.
+-   **Simple linear regression** models one continuous response as a function of one continuous predictor.
+-   **The response-predictor distinction** is essential. Regression is not just dressed-up correlation.
+-   **The fitted line** describes the expected mean response for a given value of the predictor.
+-   **The slope** is usually the main inferential parameter because it describes how the expected response changes with the predictor.
+-   **Residuals** are central to assumption checking because they show how well the model fits the data.
+-   **Confidence intervals and prediction intervals** answer different questions and should not be confused.
+
+# Nature of the Data and Assumptions
+
+The data requirements for a simple linear regression are straightforward, but they matter.
+
+-   **Continuous response variable** The response variable, $Y$, should be measured on a continuous scale.
+-   **Continuous predictor variable** The predictor, $X$, should also be continuous.
+-   **Independent observations** The observations must be independent of one another.
+-   **A plausible response-predictor structure** There should be a defensible reason for treating one variable as the response and the other as the predictor.
+-   **Approximate linearity** The mean relationship between the response and predictor should be approximately linear.
+-   **Residual assumptions** After fitting the model, the residuals should show approximate normality and roughly constant variance across the fitted values.
+-   **Measurement error in the predictor** Standard linear regression assumes that the predictor is measured without serious error. In practice this is only approximately true, and later chapters return to this point.
+
+As with the earlier inferential chapters, the workflow matters. We first inspect the data, then fit the model, then examine the residuals, and only then interpret the coefficients with confidence.
 
 # The Model
 
-The simple linear regression model is:
+The simple linear model can be written as:
 
 $$
 Y_i = \alpha + \beta X_i + \epsilon_i
@@ -92,51 +103,42 @@ $$
 
 where:
 
--   $Y_i$ is the response for observation $i$,
--   $X_i$ is the predictor for observation $i$,
--   $\alpha$ is the intercept,
--   $\beta$ is the slope, and
+-   $Y_i$ is the response for observation $i$;
+-   $X_i$ is the predictor for observation $i$;
+-   $\alpha$ is the intercept;
+-   $\beta$ is the slope; and
 -   $\epsilon_i$ is the residual error.
 
-The fitted line is estimated by minimising the **sum of squared residuals**:
-
-$$
-\sum_{i=1}^{n}(Y_i - \hat{Y}_i)^2
-$$
-
-This is why simple linear regression is often described as an **ordinary least squares** method.
-
-# Regression Versus Correlation
-
-Regression and correlation are closely related, but they answer different questions.
-
--   **Correlation** quantifies the strength of association between two variables.
--   **Regression** models the expected value of one variable as a function of the other.
-
-Regression therefore imposes a distinction between **response** and **predictor**. That distinction should be biologically justified. Even when the goal is primarily predictive rather than explicitly causal, the model must still be framed carefully.
-
-# Data Requirements and Assumptions
-
-For a simple linear regression, the following conditions should hold:
-
-1. The response variable is continuous.
-2. The predictor variable is continuous.
-3. Observations are independent.
-4. The mean relationship between response and predictor is approximately linear.
-5. Residuals have approximately constant variance.
-6. Residuals are approximately normally distributed.
-
-The assumptions are evaluated primarily through the **residuals**, not by inspecting the raw response variable alone.
+The line is fitted by minimising the sum of squared residuals. This is why ordinary linear regression is often called an **ordinary least squares** method.
 
 ::: {.callout-note appearance="simple"}
-## Measurement Error in the Predictor
+## The Residuals, $\epsilon_i$
 
-Standard simple linear regression assumes that the predictor is measured without substantial error. In practice, this is often only approximately true. Later chapters revisit the consequences of measurement error more explicitly.
+The residuals are the differences between the observed values and the fitted values. They are not a minor technical detail. The assumptions of linear regression are assessed primarily through the residuals, because they reveal whether the linear model is leaving behind systematic structure that it should have captured.
 :::
+
+# R Function
+
+The main function used in this chapter is `lm()`:
+
+```{r}
+#| eval: false
+lm(response ~ predictor, data = df)
+```
+
+You can read the formula `response ~ predictor` as "the response is modelled as a function of the predictor."
+
+The fitted model can then be explored with functions such as:
+
+-   `summary()` for the coefficients and overall fit;
+-   `confint()` for confidence intervals around the coefficients;
+-   `augment()` from **broom** for fitted values and residuals;
+-   `predict()` for confidence and prediction intervals;
+-   `plot()` for standard diagnostic plots.
 
 # Example Dataset
 
-We begin with a simple dataset on sparrow wing length as a function of age.
+We begin with a very simple dataset on sparrow wing length as a function of age. This small example keeps the logic transparent before we move to a larger biological dataset later in the chapter.
 
 ```{r code-sparrows-tibble}
 #| echo: false
@@ -159,6 +161,14 @@ gt(sparrows) |>
   )
 ```
 
+# Do an Exploratory Data Analysis (EDA)
+
+As always, we begin by looking at the data before fitting the model.
+
+```{r code-sparrow-summary}
+summary(sparrows)
+```
+
 ```{r fig-sparrow}
 #| echo: false
 #| fig-cap: "Wing length of sparrows at different ages."
@@ -173,82 +183,93 @@ ggplot(sparrows, aes(x = age, y = wing)) +
   theme_minimal()
 ```
 
-The scatter plot suggests a positive linear relationship, which makes this a plausible starting point for a simple linear model.
+The scatter plot suggests a clear positive linear relationship: older sparrows tend to have longer wings, and the relationship appears close to linear over the range of the data. This makes a simple linear model a plausible starting point.
 
-# Fitting the Model in R
+# State the Model Question and Hypothesis
 
-The basic R function is `lm()`:
+The biological question is whether wing length changes systematically with age.
 
-```{r}
-#| eval: false
-lm(response ~ predictor, data = df)
-```
+The inferential focus in a simple linear regression is usually the slope:
 
-For the sparrow example:
+$$H_{0}: \beta = 0$$
+$$H_{a}: \beta \ne 0$$
 
-```{r}
+If the slope is zero, there is no linear relationship between the predictor and the expected value of the response. If the slope differs from zero, then age helps explain variation in wing length.
+
+# Fit the Model
+
+```{r code-sparrow-lm}
 sparrow_mod <- lm(wing ~ age, data = sparrows)
 summary(sparrow_mod)
 ```
 
-The output provides:
+The output provides the intercept, the slope, their standard errors, a test of whether the coefficients differ from zero, the residual standard error, and the model $R^2$.
 
--   the estimated intercept,
--   the estimated slope,
--   standard errors,
--   tests of whether coefficients differ from zero,
--   `R^2`, and
--   the overall model test.
+# Test the Assumptions
 
-# Interpreting the Coefficients
+Assumptions in regression are checked after fitting the model.
 
-The **intercept** is the expected wing length when age is zero. In some biological settings this is meaningful; in others it is simply a mathematical anchor for the line.
-
-The **slope** is usually the parameter of greatest interest. It tells us how much the expected response changes for a one-unit increase in the predictor.
-
-In a biological interpretation, the key question is not only whether the slope differs from zero, but also whether its magnitude is meaningful.
-
-# Confidence Intervals and Prediction
-
-The fitted line provides an expected mean response at each value of the predictor. We can place a **confidence interval** around that mean response and a **prediction interval** around a single future observation.
-
--   A **confidence interval** describes uncertainty in the estimated mean response.
--   A **prediction interval** is wider because it includes the scatter of individual observations around that mean.
-
-```{r}
-new_x <- tibble(age = c(7, 13))
-predict(sparrow_mod, newdata = new_x, interval = "confidence")
-predict(sparrow_mod, newdata = new_x, interval = "prediction")
+```{r code-sparrow-augment}
+sparrow_aug <- augment(sparrow_mod)
+sparrow_aug |>
+  select(age, wing, .fitted, .resid) |>
+  head()
 ```
 
-# Residuals and Diagnostics
-
-Model checking is part of the analysis, not something done only if a reviewer complains. Residual diagnostics help us assess whether the model is plausible.
-
-Useful checks include:
-
--   **Residuals vs fitted values** for non-linearity or changing variance,
--   **Normal Q-Q plot** for approximate normality of residuals,
--   **Histogram of residuals** for shape,
--   **Residuals vs predictor** for overlooked structure.
-
-```{r}
+```{r fig-sparrow-diagnostics}
 #| echo: false
-#| fig.width: 7
-#| fig.height: 7
+#| fig-width: 7
+#| fig-height: 7
 #| out-width: "88%"
 par(mfrow = c(2, 2))
 plot(sparrow_mod)
 par(mfrow = c(1, 1))
 ```
 
-These plots are often more informative than relying on a single formal assumption test.
+The diagnostic plots suggest that the model is broadly adequate for these data. The residuals do not show severe curvature, the spread is reasonably even, and the Q-Q plot does not suggest a dramatic departure from normality. Because the dataset is small, these plots should be interpreted cautiously, but there is no obvious reason to abandon the linear model.
+
+# Interpret the Results
+
+The fitted slope is positive, which means that wing length increases with age. In this example, the slope estimate is about 0.27 cm per day, so the model implies that the expected wing length increases by roughly 0.27 cm for each additional day of age across the range of these observations.
+
+The intercept is the expected wing length when age is zero. Here that value is not biologically the main point of interest. It is simply the point where the fitted line crosses the vertical axis.
+
+The model explains a large proportion of the variation in the observed wing lengths ($R^2 \approx 0.97$), and the test of the slope provides very strong evidence that the linear relationship is not zero ($p < 0.001$).
+
+# Reporting
+
+When reporting a simple linear regression, include:
+
+-   the variables used as response and predictor;
+-   the fitted slope and its interpretation;
+-   the model fit statistic such as $R^2$;
+-   the relevant test statistic and significance level;
+-   a brief biological interpretation.
+
+For example:
+
+> Sparrow wing length increased strongly with age in the fitted simple linear regression ($\beta = 0.270$, 95% CI: 0.241 to 0.300; $R^2 = 0.97$; $p < 0.001$). Across the observed age range, older birds therefore had consistently longer wings, with the expected wing length increasing by about 0.27 cm for each additional day of age.
+
+# Confidence and Prediction Intervals
+
+The fitted line gives the expected mean response for a given value of the predictor, but two different kinds of interval are commonly needed.
+
+-   A **confidence interval** describes uncertainty in the estimated mean response.
+-   A **prediction interval** describes uncertainty for an individual future observation.
+
+The prediction interval is always wider because it must include the scatter of individual observations around the fitted mean.
+
+```{r code-predict-intervals}
+new_x <- tibble(age = c(7, 13))
+predict(sparrow_mod, newdata = new_x, interval = "confidence")
+predict(sparrow_mod, newdata = new_x, interval = "prediction")
+```
 
 # A Larger Example: Penguin Data
 
-The `palmerpenguins` dataset provides a more realistic example. Below, we model bill length as a function of body mass in Adelie penguins.
+The sparrow example makes the workflow clear, but it is useful to see the same logic in a more realistic dataset. Below, we model bill length as a function of body mass in Adelie penguins.
 
-```{r}
+```{r code-penguin-data}
 #| message: false
 library(palmerpenguins)
 
@@ -273,36 +294,37 @@ ggplot(adelie, aes(x = body_mass_g, y = bill_length_mm)) +
   theme_bw()
 ```
 
-This example illustrates how a simple linear regression can be used to estimate an expected biological response and quantify uncertainty around that estimate.
+The association is again positive, but much noisier than in the sparrow example. That is exactly why this second example is useful: it reminds us that a statistically useful regression does not have to explain nearly all the variation in the response. Here the slope is still clearly positive and the model provides strong evidence of a non-zero linear relationship ($p < 0.001$), but the $R^2$ is much lower, so body mass explains only part of the variation in bill length.
+
+An appropriate report sentence would be:
+
+> Bill length increased with body mass in Adelie penguins in the fitted simple linear regression ($\beta = 0.00319$, 95% CI: 0.00240 to 0.00397; $R^2 = 0.30$; $p < 0.001$). Heavier penguins therefore tended to have longer bills, although substantial variation remained around the fitted line.
+
+# What to Do When Assumptions Fail
+
+If the assumptions of the linear model are not adequate, the first step is not to abandon the analysis mechanically but to ask what the diagnostic pattern is telling you.
+
+-   If the residuals suggest **non-linearity**, consider whether the relationship should be transformed or whether a more flexible model is needed.
+-   If the residual variance changes strongly with fitted values, revisit [06-assumptions-and-transformations.qmd](06-assumptions-and-transformations.qmd) and consider transformation or a different modelling approach.
+-   If outliers have strong leverage or influence, inspect them carefully before deciding what to do.
+-   If the real question is still only one of association, and not response modelling, return to [09-correlation-and-association.qmd](09-correlation-and-association.qmd).
 
 # Common Mistakes
 
 Common mistakes in simple linear regression include:
 
--   using regression when the relationship is only associative and poorly justified,
--   ignoring non-independence,
--   treating a clearly non-linear relationship as linear,
--   interpreting statistical significance as biological importance, and
--   reporting `R^2` without discussing effect size, uncertainty, or assumptions.
-
-# Looking Ahead
-
-Simple linear regression is the shallow end of a much larger pool. The same logic extends naturally to:
-
--   multiple regression with several predictors,
--   interaction terms,
--   non-linear functional forms,
--   non-normal response distributions, and
--   hierarchical models for dependent data.
-
-The next chapter moves from one-predictor models to the problem of specifying richer biological models with several predictors.
+-   using regression when the relationship is only associative and poorly justified as a response-predictor model;
+-   ignoring non-independence among observations;
+-   fitting a straight line to a clearly curved relationship;
+-   treating statistical significance as biological importance;
+-   reporting $R^2$ without discussing effect size, uncertainty, or assumptions.
 
 # Summary
 
--   Simple linear regression models a continuous response as a function of one continuous predictor.
--   The key parameters are the intercept, slope, and residual variance.
--   Regression is different from correlation because it distinguishes a response from a predictor.
--   Diagnostic checks are essential for evaluating assumptions.
--   Confidence intervals and prediction intervals serve different purposes.
+-   Simple linear regression models one continuous response as a function of one continuous predictor.
+-   The slope is usually the main inferential quantity because it describes how the expected response changes with the predictor.
+-   Regression differs from correlation because it imposes a response-predictor structure.
+-   Residual diagnostics are essential because they tell us whether the model is adequate.
+-   Confidence intervals and prediction intervals answer different questions.
 
-This chapter provides the conceptual and practical basis for the more complex regression models that follow.
+This chapter establishes the workflow for modelling. The next chapter extends the same logic to several predictors at once, where model specification becomes a more demanding scientific task.

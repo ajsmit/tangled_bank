@@ -4,6 +4,7 @@ subtitle: "Choosing Models for Different Scientific Goals"
 author: "A. J. Smit"
 date: last-modified
 date-format: "YYYY/MM/DD"
+reference-location: margin
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -23,29 +24,92 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Not all models are built for the same purpose. Some are built to explain mechanisms. Others are built to predict future outcomes accurately. These goals overlap, but they are not identical.
+Not all models are built for the same purpose. Some are built to explain mechanisms, isolate effects, and support biologically interpretable statements. Others are built to predict future outcomes as accurately as possible. These goals overlap, but they are not identical.
 
-This chapter draws that distinction explicitly and introduces regularisation as one family of tools that becomes useful when prediction and stability matter more than coefficient-by-coefficient interpretation.
+That distinction matters because a model that is good for explanation is not always the one that is best for prediction. The trade-off becomes especially important once models become high-dimensional, predictors become strongly overlapping, or out-of-sample performance becomes the main concern.
+
+Regularisation is one family of tools that becomes useful in that setting.
 
 # Key Concepts
 
-This chapter depends on a few broad distinctions.
-
--   **Explanation** and **prediction** are overlapping but different modelling goals.
--   **Out-of-sample performance** matters most when prediction is the primary aim.
+-   **Explanation** and **prediction** are related but different modelling goals.
+-   **Interpretability** matters most when explanation is the main goal.
+-   **Out-of-sample performance** matters most when prediction is the main goal.
 -   **Regularisation** shrinks coefficients to improve stability and predictive performance.
--   **Interpretability can be traded against prediction** depending on the scientific objective.
 -   **Model choice should be justified by purpose**, not only by convention.
 
-# Main Ideas
+# Explanation Versus Prediction
 
--   **Explanation** prioritises interpretable coefficients and defensible causal language.
--   **Prediction** prioritises out-of-sample performance.
--   **Regularisation** helps stabilise models when predictors are numerous or collinear.
+An explanatory model typically emphasises:
 
-# Source
+-   biologically interpretable coefficients;
+-   careful model specification;
+-   defensible causal or process-based language;
+-   explicit treatment of confounders and assumptions.
 
-This chapter will draw primarily on:
+A predictive model typically emphasises:
 
--   `25-synthesis-prediction-explanation.qmd`
--   `/Users/ajsmit/Documents/R_local/BCB_Stats/regularisation.qmd`
+-   accurate performance on new data;
+-   stability under collinearity or large predictor sets;
+-   lower prediction error rather than coefficient-by-coefficient interpretation.
+
+Neither goal is superior in the abstract. The important thing is to know which goal you are pursuing.
+
+# Why Regularisation Matters
+
+When predictors are numerous or strongly overlapping, ordinary regression can become unstable. Coefficients may vary too much from sample to sample, even when prediction is the real objective. Regularisation addresses this by shrinking the coefficients towards zero.
+
+The main regularisation families are:
+
+-   **ridge regression**, which shrinks coefficients continuously;
+-   **lasso regression**, which can shrink some coefficients all the way to zero;
+-   **elastic net**, which combines aspects of ridge and lasso.
+
+# Cross-Validation
+
+If prediction is the main goal, the model should be evaluated primarily on data that were not used to fit it. Cross-validation is one of the main ways to do this.
+
+The basic idea is:
+
+1. split the data into training and validation parts;
+2. fit the model on the training data;
+3. evaluate predictive performance on held-out data;
+4. repeat this across several splits.
+
+This is also how regularisation parameters such as the penalty strength are typically chosen.
+
+# R Functions
+
+Regularised models are commonly fitted with **glmnet**:
+
+```{r}
+#| eval: false
+glmnet::cv.glmnet(x, y, alpha = 0)   # ridge
+glmnet::cv.glmnet(x, y, alpha = 1)   # lasso
+glmnet::cv.glmnet(x, y, alpha = 0.5) # elastic net
+```
+
+The important practical point is that these methods usually work with predictor matrices rather than the ordinary formula interface of `lm()`.
+
+# Practical Guidance
+
+If your goal is primarily **explanation**:
+
+-   prefer models whose coefficients can be interpreted clearly;
+-   keep the biological argument central;
+-   use regularisation cautiously and explain what is gained and lost.
+
+If your goal is primarily **prediction**:
+
+-   evaluate models out of sample;
+-   accept that some loss of interpretability may be worthwhile;
+-   use regularisation when coefficient stability and prediction error are central concerns.
+
+# Summary
+
+-   Explanation and prediction are overlapping but distinct modelling goals.
+-   Ordinary regression is often strongest for explanation when the model is interpretable and well specified.
+-   Regularisation becomes useful when prediction and stability matter more than coefficient-level interpretation.
+-   Cross-validation is central when predictive performance is the goal.
+
+This chapter closes the technical modelling sequence by making the modelling goal explicit. The final chapter turns from model choice to the workflow needed to make the whole analysis transparent and reproducible.

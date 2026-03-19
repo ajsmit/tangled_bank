@@ -31,16 +31,17 @@ ggplot2::theme_set(
 
 ```{r code-knitr-opts-chunk-set, echo=FALSE}
 library(tidyverse)
+library(car)
 ```
 
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   What collinearity is and why it matters
--   How confounding differs from collinearity
--   Why measurement error weakens inference
--   The role of proxy variables in biology
--   Practical responses when these problems arise
+-   what collinearity is and why it matters;
+-   how confounding differs from collinearity;
+-   why measurement error weakens inference;
+-   how proxy variables complicate interpretation;
+-   what a practical response looks like when these problems appear.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -51,149 +52,152 @@ library(tidyverse)
 
 # Introduction
 
-Regression models are often presented as if the main problem is choosing the right formula and fitting it correctly. In practice, some of the hardest problems arise before or beneath the fitting step. Predictors may overlap, causal roles may be confused, or key variables may be measured imperfectly.
+Regression models are sometimes taught as though the difficult part is fitting the correct formula and reading the summary table. In practice, some of the hardest problems sit below that surface. Predictors may overlap strongly, causal roles may be confused, and the variables we fit may be noisy measurements or only rough proxies for the processes we care about.
 
-This chapter brings together three related but distinct problems:
+This chapter brings together three closely related but distinct problems:
 
-1. **collinearity**: predictors share too much information,
-2. **confounding**: a variable distorts the interpretation of another effect, and
-3. **measurement error**: the variables we fit are noisy or are only proxies for what we really want.
+1. **collinearity**, where predictors share too much information;
+2. **confounding**, where a third variable distorts interpretation; and
+3. **measurement error**, where the variables in the model are noisy versions of the quantities we would really like to observe.
+
+All three problems matter because they threaten interpretation. A model may still run and produce a neat table of coefficients, but those coefficients may no longer mean what we would like them to mean.
 
 # Key Concepts
 
-These ideas should be kept separate even though they often co-occur in practice.
+Keep the following distinctions clear.
 
--   **Collinearity** is overlap among predictors that destabilises coefficient interpretation.
--   **Confounding** is a causal attribution problem, not merely a correlation problem.
--   **Measurement error** weakens inference by adding noise to observed variables.
--   **Proxy variables** can be useful, but they complicate interpretation.
--   **Interpretability** often depends more on design and variable choice than on fitting alone.
+-   **Collinearity** is overlap among predictors.
+-   **Confounding** is a problem of attribution, not merely correlation.
+-   **Measurement error** weakens and can bias estimated effects.
+-   **Proxy variables** are often useful but come with interpretive limits.
+-   **Good design and good variable choice** solve more of these problems than software does.
 
 # Collinearity
 
 ## What it is
 
-Collinearity occurs when two or more predictor variables are strongly correlated. In ecology this is common because many environmental variables co-vary through shared processes.
+Collinearity occurs when two or more predictors are strongly correlated with one another. In ecology this is common because environmental variables often co-vary through shared physical processes.
 
 Examples include:
 
--   temperature and dissolved oxygen,
--   altitude and temperature,
--   nitrate and phosphate,
+-   altitude and temperature;
+-   nitrate and phosphate;
+-   temperature and dissolved oxygen;
 -   rainfall and river flow.
 
 ## Why it is a problem
 
-Collinearity is mainly a problem of **interpretation**, not always of raw prediction. A model may still fit the response well, but the individual coefficients can become:
+Collinearity is mainly a problem of interpretation. A model can still fit the response well while the individual coefficients become:
 
--   unstable,
--   imprecise,
--   biologically misleading, or
--   assigned the wrong sign.
+-   unstable;
+-   imprecise;
+-   assigned the wrong sign;
+-   difficult to interpret biologically.
 
 The model struggles to partition shared explanatory information among overlapping predictors.
 
-## Diagnosing collinearity
+## A worked collinearity check
 
-The most common diagnostic is the **variance inflation factor (VIF)**.
+Using the seaweed example from the previous chapter, we can inspect the candidate climate predictors for overlap.
 
--   `VIF = 1`: no inflation
--   `VIF` between about `1` and `5`: often manageable
--   `VIF` above about `5` or `10`: often problematic
+```{r code-collinearity-data}
+sw <- read.csv("../../data/BCB743/seaweed/spp_df2.csv")
+sw_ectz <- sw |>
+  filter(bio == "ECTZ") |>
+  select(Y, augMean, febRange, febSD, augSD, annMean)
 
-In R:
-
-```{r}
-#| eval: false
-car::vif(fitted_model)
+cor(sw_ectz[, -1])
 ```
 
-The threshold is not sacred. The important question is whether the collinearity prevents defensible interpretation.
+```{r code-collinearity-vif}
+col_mod <- lm(Y ~ augMean + febRange + febSD + augSD + annMean,
+              data = sw_ectz)
+
+vif(col_mod)
+```
+
+The VIF values show that some predictors overlap strongly. This does not mean the model is mathematically invalid, but it does mean that the separate interpretation of those coefficients becomes hard to defend.
+
+## Responding to collinearity
+
+Possible responses include:
+
+-   removing a redundant predictor;
+-   choosing one variable over another based on biological reasoning;
+-   combining correlated predictors into an index or ordination axis;
+-   accepting some overlap if prediction is the main goal but avoiding causal over-interpretation.
+
+There is no magical threshold that solves the problem automatically. The question is whether the overlap is small enough that the coefficients still mean something defensible.
 
 # Confounding
 
-Confounding is a **causal** problem, not just a statistical one.
+Confounding is a different problem. It is not simply that two predictors overlap. It is that a third variable distorts the apparent relationship between a predictor of interest and the response.
 
 A confounder is a variable that influences both:
 
--   the predictor of interest, and
+-   the predictor of interest; and
 -   the response.
 
-This can create a spurious association or distort a real one.
-
-For example, if you relate species abundance to temperature without accounting for nutrient supply, and nutrient supply is associated with both temperature and abundance, then the temperature coefficient may partly reflect nutrient effects.
+This can create a spurious association or distort a real one. For example, if you relate abundance to temperature but nutrient supply is associated with both temperature and abundance, the temperature coefficient may partly absorb nutrient effects.
 
 ## Confounding is not the same as collinearity
 
-These ideas are related but not identical:
+These ideas are related but not identical.
 
 -   **Collinearity** is about overlap among predictors in the data.
--   **Confounding** is about mistaken causal attribution.
+-   **Confounding** is about mistaken attribution of an effect.
 
-Two variables can be highly collinear without one being a confounder. A confounder may also matter even when the correlation structure does not look especially dramatic.
+Two variables can be highly collinear without one being a confounder. Equally, a confounder can matter even when the correlation structure does not look especially dramatic.
 
 # Measurement Error
 
-Regression models often assume that predictor variables are measured without serious error. That assumption is rarely exactly true.
+Standard linear regression assumes that predictors are measured without serious error. That assumption is rarely exactly true in field biology.
 
-When a predictor is noisy, the estimated effect is often biased toward zero. This is known as **attenuation bias**. In practical terms, measurement error can make a real effect appear weaker and less stable than it truly is.
+When a predictor is noisy, its estimated effect is often biased towards zero. This is called **attenuation bias**. In practical terms, a real effect may appear weaker and less stable than it truly is.
 
 This matters because:
 
--   biological field measurements are often noisy,
--   instruments are imperfect,
--   environmental conditions fluctuate, and
--   some variables are difficult to measure directly.
+-   field instruments are imperfect;
+-   environmental conditions fluctuate;
+-   biological measurements can be imprecise;
+-   some important variables are difficult or expensive to measure directly.
 
 # Proxy Variables
 
-Many biological models use proxies because the true mechanistic variables are unavailable or expensive to obtain.
+Many biological models use proxy variables because the true mechanistic variables are unavailable.
 
-Examples:
+Examples include:
 
--   altitude as a proxy for temperature or radiation,
--   distance from shore as a proxy for exposure,
--   chlorophyll as a proxy for productivity,
+-   altitude as a proxy for temperature or radiation;
+-   distance from shore as a proxy for exposure;
+-   chlorophyll as a proxy for productivity;
 -   body size as a proxy for age or condition.
 
-Proxy variables are often useful, but they create interpretive limits. A proxy coefficient should not be over-read as if it identified a single clean mechanism.
+Proxy variables are often reasonable, but they limit interpretation. A proxy coefficient should not be read as if it identified one clean mechanism.
 
 ::: {.callout-note appearance="simple"}
 ## Mechanism Versus Proxy
 
-If your question is about physiology, use physiological drivers where possible. If your question is about broad spatial pattern, a proxy may be acceptable. The variable should match the scale and aim of the question.
+If the question is physiological, use physiological drivers where possible. If the question is broad-scale pattern, a proxy may be perfectly acceptable. The important thing is that the variable should match the scale and aim of the question.
 :::
 
 # A Practical Workflow
 
-When building a regression model:
+When building and interpreting a regression model:
 
-1. Specify the biological hypothesis first.
-2. Identify which predictors are mechanistic and which are proxies.
-3. Ask which variables may confound the relationship of interest.
-4. Inspect predictor correlations and calculate VIF where needed.
-5. Remove or combine redundant predictors when interpretation is the goal.
-6. Be cautious about causal language when important variables are missing or measured poorly.
-
-# Common Responses
-
-Depending on the problem, possible responses include:
-
--   removing a redundant predictor,
--   choosing one variable over another based on theory,
--   combining predictors into an index or ordination axis,
--   centring or rescaling variables to improve interpretation,
--   collecting better measurements,
--   being explicit that a variable is only a proxy.
-
-If prediction is the main goal, some collinearity may be tolerable. If interpretation is the goal, these issues become much more serious.
+1. state the biological hypothesis first;
+2. identify which predictors are mechanistic and which are proxies;
+3. ask which variables could confound the relationship of interest;
+4. inspect the predictor correlations and calculate VIF where appropriate;
+5. remove or combine redundant predictors when interpretation is the goal;
+6. be honest about causal limits when important variables are missing or poorly measured.
 
 # Summary
 
 -   Collinearity makes coefficients unstable because predictors share information.
--   Confounding is a causal problem in which another variable distorts interpretation.
--   Measurement error weakens and destabilises estimated effects.
--   Proxy variables can be useful, but they limit what coefficients mean.
--   These problems are best handled through good biological reasoning before model fitting, not only by software after the fact.
+-   Confounding is a problem of attribution rather than simple overlap.
+-   Measurement error weakens inference and can bias estimated effects.
+-   Proxy variables are often useful, but they limit what a coefficient can be said to mean.
+-   These problems are handled best through strong biological reasoning and careful design before model fitting.
 
-Regression is powerful, but only if we remain honest about what the variables actually represent.
+The next chapter turns from model construction to the question of whether a fitted model is actually behaving well: diagnostics, comparison, and evaluation.

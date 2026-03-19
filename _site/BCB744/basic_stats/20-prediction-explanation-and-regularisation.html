@@ -1063,8 +1063,12 @@ cookieconsent.run({
   <ul>
 <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
   <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts"><span class="header-section-number">2</span> Key Concepts</a></li>
-  <li><a href="#main-ideas" id="toc-main-ideas" class="nav-link" data-scroll-target="#main-ideas"><span class="header-section-number">3</span> Main Ideas</a></li>
-  <li><a href="#source" id="toc-source" class="nav-link" data-scroll-target="#source"><span class="header-section-number">4</span> Source</a></li>
+  <li><a href="#explanation-versus-prediction" id="toc-explanation-versus-prediction" class="nav-link" data-scroll-target="#explanation-versus-prediction"><span class="header-section-number">3</span> Explanation Versus Prediction</a></li>
+  <li><a href="#why-regularisation-matters" id="toc-why-regularisation-matters" class="nav-link" data-scroll-target="#why-regularisation-matters"><span class="header-section-number">4</span> Why Regularisation Matters</a></li>
+  <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation"><span class="header-section-number">5</span> Cross-Validation</a></li>
+  <li><a href="#r-functions" id="toc-r-functions" class="nav-link" data-scroll-target="#r-functions"><span class="header-section-number">6</span> R Functions</a></li>
+  <li><a href="#practical-guidance" id="toc-practical-guidance" class="nav-link" data-scroll-target="#practical-guidance"><span class="header-section-number">7</span> Practical Guidance</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/20-prediction-explanation-and-regularisation.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
@@ -1098,38 +1102,91 @@ cookieconsent.run({
 
 </header><section id="introduction" class="level1" data-number="1"><h1 data-number="1">
 <span class="header-section-number">1</span> Introduction</h1>
-<p>Not all models are built for the same purpose. Some are built to explain mechanisms. Others are built to predict future outcomes accurately. These goals overlap, but they are not identical.</p>
-<p>This chapter draws that distinction explicitly and introduces regularisation as one family of tools that becomes useful when prediction and stability matter more than coefficient-by-coefficient interpretation.</p>
+<p>Not all models are built for the same purpose. Some are built to explain mechanisms, isolate effects, and support biologically interpretable statements. Others are built to predict future outcomes as accurately as possible. These goals overlap, but they are not identical.</p>
+<p>That distinction matters because a model that is good for explanation is not always the one that is best for prediction. The trade-off becomes especially important once models become high-dimensional, predictors become strongly overlapping, or out-of-sample performance becomes the main concern.</p>
+<p>Regularisation is one family of tools that becomes useful in that setting.</p>
 </section><section id="key-concepts" class="level1" data-number="2"><h1 data-number="2">
 <span class="header-section-number">2</span> Key Concepts</h1>
-<p>This chapter depends on a few broad distinctions.</p>
 <ul>
 <li>
-<strong>Explanation</strong> and <strong>prediction</strong> are overlapping but different modelling goals.</li>
+<strong>Explanation</strong> and <strong>prediction</strong> are related but different modelling goals.</li>
 <li>
-<strong>Out-of-sample performance</strong> matters most when prediction is the primary aim.</li>
+<strong>Interpretability</strong> matters most when explanation is the main goal.</li>
+<li>
+<strong>Out-of-sample performance</strong> matters most when prediction is the main goal.</li>
 <li>
 <strong>Regularisation</strong> shrinks coefficients to improve stability and predictive performance.</li>
 <li>
-<strong>Interpretability can be traded against prediction</strong> depending on the scientific objective.</li>
-<li>
 <strong>Model choice should be justified by purpose</strong>, not only by convention.</li>
-</ul></section><section id="main-ideas" class="level1" data-number="3"><h1 data-number="3">
-<span class="header-section-number">3</span> Main Ideas</h1>
+</ul></section><section id="explanation-versus-prediction" class="level1" data-number="3"><h1 data-number="3">
+<span class="header-section-number">3</span> Explanation Versus Prediction</h1>
+<p>An explanatory model typically emphasises:</p>
 <ul>
-<li>
-<strong>Explanation</strong> prioritises interpretable coefficients and defensible causal language.</li>
-<li>
-<strong>Prediction</strong> prioritises out-of-sample performance.</li>
-<li>
-<strong>Regularisation</strong> helps stabilise models when predictors are numerous or collinear.</li>
-</ul></section><section id="source" class="level1" data-number="4"><h1 data-number="4">
-<span class="header-section-number">4</span> Source</h1>
-<p>This chapter will draw primarily on:</p>
-<ul>
-<li><code>25-synthesis-prediction-explanation.qmd</code></li>
-<li><code>/Users/ajsmit/Documents/R_local/BCB_Stats/regularisation.qmd</code></li>
+<li>biologically interpretable coefficients;</li>
+<li>careful model specification;</li>
+<li>defensible causal or process-based language;</li>
+<li>explicit treatment of confounders and assumptions.</li>
 </ul>
+<p>A predictive model typically emphasises:</p>
+<ul>
+<li>accurate performance on new data;</li>
+<li>stability under collinearity or large predictor sets;</li>
+<li>lower prediction error rather than coefficient-by-coefficient interpretation.</li>
+</ul>
+<p>Neither goal is superior in the abstract. The important thing is to know which goal you are pursuing.</p>
+</section><section id="why-regularisation-matters" class="level1" data-number="4"><h1 data-number="4">
+<span class="header-section-number">4</span> Why Regularisation Matters</h1>
+<p>When predictors are numerous or strongly overlapping, ordinary regression can become unstable. Coefficients may vary too much from sample to sample, even when prediction is the real objective. Regularisation addresses this by shrinking the coefficients towards zero.</p>
+<p>The main regularisation families are:</p>
+<ul>
+<li>
+<strong>ridge regression</strong>, which shrinks coefficients continuously;</li>
+<li>
+<strong>lasso regression</strong>, which can shrink some coefficients all the way to zero;</li>
+<li>
+<strong>elastic net</strong>, which combines aspects of ridge and lasso.</li>
+</ul></section><section id="cross-validation" class="level1" data-number="5"><h1 data-number="5">
+<span class="header-section-number">5</span> Cross-Validation</h1>
+<p>If prediction is the main goal, the model should be evaluated primarily on data that were not used to fit it. Cross-validation is one of the main ways to do this.</p>
+<p>The basic idea is:</p>
+<ol type="1">
+<li>split the data into training and validation parts;</li>
+<li>fit the model on the training data;</li>
+<li>evaluate predictive performance on held-out data;</li>
+<li>repeat this across several splits.</li>
+</ol>
+<p>This is also how regularisation parameters such as the penalty strength are typically chosen.</p>
+</section><section id="r-functions" class="level1" data-number="6"><h1 data-number="6">
+<span class="header-section-number">6</span> R Functions</h1>
+<p>Regularised models are commonly fitted with <strong>glmnet</strong>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">0</span>)   <span class="co"># ridge</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">1</span>)   <span class="co"># lasso</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="co"># elastic net</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The important practical point is that these methods usually work with predictor matrices rather than the ordinary formula interface of <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code>.</p>
+</section><section id="practical-guidance" class="level1" data-number="7"><h1 data-number="7">
+<span class="header-section-number">7</span> Practical Guidance</h1>
+<p>If your goal is primarily <strong>explanation</strong>:</p>
+<ul>
+<li>prefer models whose coefficients can be interpreted clearly;</li>
+<li>keep the biological argument central;</li>
+<li>use regularisation cautiously and explain what is gained and lost.</li>
+</ul>
+<p>If your goal is primarily <strong>prediction</strong>:</p>
+<ul>
+<li>evaluate models out of sample;</li>
+<li>accept that some loss of interpretability may be worthwhile;</li>
+<li>use regularisation when coefficient stability and prediction error are central concerns.</li>
+</ul></section><section id="summary" class="level1" data-number="8"><h1 data-number="8">
+<span class="header-section-number">8</span> Summary</h1>
+<ul>
+<li>Explanation and prediction are overlapping but distinct modelling goals.</li>
+<li>Ordinary regression is often strongest for explanation when the model is interpretable and well specified.</li>
+<li>Regularisation becomes useful when prediction and stability matter more than coefficient-level interpretation.</li>
+<li>Cross-validation is central when predictive performance is the goal.</li>
+</ul>
+<p>This chapter closes the technical modelling sequence by making the modelling goal explicit. The final chapter turns from model choice to the workflow needed to make the whole analysis transparent and reproducible.</p>
 
 
 <!-- -->
@@ -1610,57 +1667,122 @@ Regularisation. <a href="http://tangledbank.netlify.app/BCB744/basic_stats/20-pr
   <div class="nav-page nav-page-next">
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">---</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="an">title:</span><span class="co"> "20. Prediction, Explanation, and Regularisation"</span></span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="an">subtitle:</span><span class="co"> "Choosing Models for Different Scientific Goals"</span></span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
-<span id="cb1-5"><a href="#cb1-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a><span class="co">---</span></span>
-<span id="cb1-8"><a href="#cb1-8"></a></span>
-<span id="cb1-9"><a href="#cb1-9"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
-<span id="cb1-11"><a href="#cb1-11"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
-<span id="cb1-12"><a href="#cb1-12"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb1-13"><a href="#cb1-13"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb1-14"><a href="#cb1-14"></a>  <span class="at">fig.width =</span> <span class="fl">6.5</span>,</span>
-<span id="cb1-15"><a href="#cb1-15"></a>  <span class="at">fig.height =</span> <span class="fl">4.5</span>,</span>
-<span id="cb1-16"><a href="#cb1-16"></a>  <span class="at">out.width =</span> <span class="st">"88%"</span>,</span>
-<span id="cb1-17"><a href="#cb1-17"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
-<span id="cb1-18"><a href="#cb1-18"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
-<span id="cb1-19"><a href="#cb1-19"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
-<span id="cb1-20"><a href="#cb1-20"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
-<span id="cb1-21"><a href="#cb1-21"></a>)</span>
-<span id="cb1-22"><a href="#cb1-22"></a><span class="in">```</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a></span>
-<span id="cb1-24"><a href="#cb1-24"></a><span class="fu"># Introduction</span></span>
-<span id="cb1-25"><a href="#cb1-25"></a></span>
-<span id="cb1-26"><a href="#cb1-26"></a>Not all models are built for the same purpose. Some are built to explain mechanisms. Others are built to predict future outcomes accurately. These goals overlap, but they are not identical.</span>
-<span id="cb1-27"><a href="#cb1-27"></a></span>
-<span id="cb1-28"><a href="#cb1-28"></a>This chapter draws that distinction explicitly and introduces regularisation as one family of tools that becomes useful when prediction and stability matter more than coefficient-by-coefficient interpretation.</span>
-<span id="cb1-29"><a href="#cb1-29"></a></span>
-<span id="cb1-30"><a href="#cb1-30"></a><span class="fu"># Key Concepts</span></span>
-<span id="cb1-31"><a href="#cb1-31"></a></span>
-<span id="cb1-32"><a href="#cb1-32"></a>This chapter depends on a few broad distinctions.</span>
-<span id="cb1-33"><a href="#cb1-33"></a></span>
-<span id="cb1-34"><a href="#cb1-34"></a><span class="ss">-   </span>**Explanation** and **prediction** are overlapping but different modelling goals.</span>
-<span id="cb1-35"><a href="#cb1-35"></a><span class="ss">-   </span>**Out-of-sample performance** matters most when prediction is the primary aim.</span>
-<span id="cb1-36"><a href="#cb1-36"></a><span class="ss">-   </span>**Regularisation** shrinks coefficients to improve stability and predictive performance.</span>
-<span id="cb1-37"><a href="#cb1-37"></a><span class="ss">-   </span>**Interpretability can be traded against prediction** depending on the scientific objective.</span>
-<span id="cb1-38"><a href="#cb1-38"></a><span class="ss">-   </span>**Model choice should be justified by purpose**, not only by convention.</span>
-<span id="cb1-39"><a href="#cb1-39"></a></span>
-<span id="cb1-40"><a href="#cb1-40"></a><span class="fu"># Main Ideas</span></span>
-<span id="cb1-41"><a href="#cb1-41"></a></span>
-<span id="cb1-42"><a href="#cb1-42"></a><span class="ss">-   </span>**Explanation** prioritises interpretable coefficients and defensible causal language.</span>
-<span id="cb1-43"><a href="#cb1-43"></a><span class="ss">-   </span>**Prediction** prioritises out-of-sample performance.</span>
-<span id="cb1-44"><a href="#cb1-44"></a><span class="ss">-   </span>**Regularisation** helps stabilise models when predictors are numerous or collinear.</span>
-<span id="cb1-45"><a href="#cb1-45"></a></span>
-<span id="cb1-46"><a href="#cb1-46"></a><span class="fu"># Source</span></span>
-<span id="cb1-47"><a href="#cb1-47"></a></span>
-<span id="cb1-48"><a href="#cb1-48"></a>This chapter will draw primarily on:</span>
-<span id="cb1-49"><a href="#cb1-49"></a></span>
-<span id="cb1-50"><a href="#cb1-50"></a><span class="ss">-   </span><span class="in">`25-synthesis-prediction-explanation.qmd`</span></span>
-<span id="cb1-51"><a href="#cb1-51"></a><span class="ss">-   </span><span class="in">`/Users/ajsmit/Documents/R_local/BCB_Stats/regularisation.qmd`</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1"></a><span class="co">---</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="an">title:</span><span class="co"> "20. Prediction, Explanation, and Regularisation"</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="an">subtitle:</span><span class="co"> "Choosing Models for Different Scientific Goals"</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a><span class="co">---</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a></span>
+<span id="cb2-10"><a href="#cb2-10"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb2-12"><a href="#cb2-12"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
+<span id="cb2-13"><a href="#cb2-13"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb2-14"><a href="#cb2-14"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb2-15"><a href="#cb2-15"></a>  <span class="at">fig.width =</span> <span class="fl">6.5</span>,</span>
+<span id="cb2-16"><a href="#cb2-16"></a>  <span class="at">fig.height =</span> <span class="fl">4.5</span>,</span>
+<span id="cb2-17"><a href="#cb2-17"></a>  <span class="at">out.width =</span> <span class="st">"88%"</span>,</span>
+<span id="cb2-18"><a href="#cb2-18"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
+<span id="cb2-19"><a href="#cb2-19"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
+<span id="cb2-20"><a href="#cb2-20"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
+<span id="cb2-21"><a href="#cb2-21"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb2-22"><a href="#cb2-22"></a>)</span>
+<span id="cb2-23"><a href="#cb2-23"></a><span class="in">```</span></span>
+<span id="cb2-24"><a href="#cb2-24"></a></span>
+<span id="cb2-25"><a href="#cb2-25"></a><span class="fu"># Introduction</span></span>
+<span id="cb2-26"><a href="#cb2-26"></a></span>
+<span id="cb2-27"><a href="#cb2-27"></a>Not all models are built for the same purpose. Some are built to explain mechanisms, isolate effects, and support biologically interpretable statements. Others are built to predict future outcomes as accurately as possible. These goals overlap, but they are not identical.</span>
+<span id="cb2-28"><a href="#cb2-28"></a></span>
+<span id="cb2-29"><a href="#cb2-29"></a>That distinction matters because a model that is good for explanation is not always the one that is best for prediction. The trade-off becomes especially important once models become high-dimensional, predictors become strongly overlapping, or out-of-sample performance becomes the main concern.</span>
+<span id="cb2-30"><a href="#cb2-30"></a></span>
+<span id="cb2-31"><a href="#cb2-31"></a>Regularisation is one family of tools that becomes useful in that setting.</span>
+<span id="cb2-32"><a href="#cb2-32"></a></span>
+<span id="cb2-33"><a href="#cb2-33"></a><span class="fu"># Key Concepts</span></span>
+<span id="cb2-34"><a href="#cb2-34"></a></span>
+<span id="cb2-35"><a href="#cb2-35"></a><span class="ss">-   </span>**Explanation** and **prediction** are related but different modelling goals.</span>
+<span id="cb2-36"><a href="#cb2-36"></a><span class="ss">-   </span>**Interpretability** matters most when explanation is the main goal.</span>
+<span id="cb2-37"><a href="#cb2-37"></a><span class="ss">-   </span>**Out-of-sample performance** matters most when prediction is the main goal.</span>
+<span id="cb2-38"><a href="#cb2-38"></a><span class="ss">-   </span>**Regularisation** shrinks coefficients to improve stability and predictive performance.</span>
+<span id="cb2-39"><a href="#cb2-39"></a><span class="ss">-   </span>**Model choice should be justified by purpose**, not only by convention.</span>
+<span id="cb2-40"><a href="#cb2-40"></a></span>
+<span id="cb2-41"><a href="#cb2-41"></a><span class="fu"># Explanation Versus Prediction</span></span>
+<span id="cb2-42"><a href="#cb2-42"></a></span>
+<span id="cb2-43"><a href="#cb2-43"></a>An explanatory model typically emphasises:</span>
+<span id="cb2-44"><a href="#cb2-44"></a></span>
+<span id="cb2-45"><a href="#cb2-45"></a><span class="ss">-   </span>biologically interpretable coefficients;</span>
+<span id="cb2-46"><a href="#cb2-46"></a><span class="ss">-   </span>careful model specification;</span>
+<span id="cb2-47"><a href="#cb2-47"></a><span class="ss">-   </span>defensible causal or process-based language;</span>
+<span id="cb2-48"><a href="#cb2-48"></a><span class="ss">-   </span>explicit treatment of confounders and assumptions.</span>
+<span id="cb2-49"><a href="#cb2-49"></a></span>
+<span id="cb2-50"><a href="#cb2-50"></a>A predictive model typically emphasises:</span>
+<span id="cb2-51"><a href="#cb2-51"></a></span>
+<span id="cb2-52"><a href="#cb2-52"></a><span class="ss">-   </span>accurate performance on new data;</span>
+<span id="cb2-53"><a href="#cb2-53"></a><span class="ss">-   </span>stability under collinearity or large predictor sets;</span>
+<span id="cb2-54"><a href="#cb2-54"></a><span class="ss">-   </span>lower prediction error rather than coefficient-by-coefficient interpretation.</span>
+<span id="cb2-55"><a href="#cb2-55"></a></span>
+<span id="cb2-56"><a href="#cb2-56"></a>Neither goal is superior in the abstract. The important thing is to know which goal you are pursuing.</span>
+<span id="cb2-57"><a href="#cb2-57"></a></span>
+<span id="cb2-58"><a href="#cb2-58"></a><span class="fu"># Why Regularisation Matters</span></span>
+<span id="cb2-59"><a href="#cb2-59"></a></span>
+<span id="cb2-60"><a href="#cb2-60"></a>When predictors are numerous or strongly overlapping, ordinary regression can become unstable. Coefficients may vary too much from sample to sample, even when prediction is the real objective. Regularisation addresses this by shrinking the coefficients towards zero.</span>
+<span id="cb2-61"><a href="#cb2-61"></a></span>
+<span id="cb2-62"><a href="#cb2-62"></a>The main regularisation families are:</span>
+<span id="cb2-63"><a href="#cb2-63"></a></span>
+<span id="cb2-64"><a href="#cb2-64"></a><span class="ss">-   </span>**ridge regression**, which shrinks coefficients continuously;</span>
+<span id="cb2-65"><a href="#cb2-65"></a><span class="ss">-   </span>**lasso regression**, which can shrink some coefficients all the way to zero;</span>
+<span id="cb2-66"><a href="#cb2-66"></a><span class="ss">-   </span>**elastic net**, which combines aspects of ridge and lasso.</span>
+<span id="cb2-67"><a href="#cb2-67"></a></span>
+<span id="cb2-68"><a href="#cb2-68"></a><span class="fu"># Cross-Validation</span></span>
+<span id="cb2-69"><a href="#cb2-69"></a></span>
+<span id="cb2-70"><a href="#cb2-70"></a>If prediction is the main goal, the model should be evaluated primarily on data that were not used to fit it. Cross-validation is one of the main ways to do this.</span>
+<span id="cb2-71"><a href="#cb2-71"></a></span>
+<span id="cb2-72"><a href="#cb2-72"></a>The basic idea is:</span>
+<span id="cb2-73"><a href="#cb2-73"></a></span>
+<span id="cb2-74"><a href="#cb2-74"></a><span class="ss">1. </span>split the data into training and validation parts;</span>
+<span id="cb2-75"><a href="#cb2-75"></a><span class="ss">2. </span>fit the model on the training data;</span>
+<span id="cb2-76"><a href="#cb2-76"></a><span class="ss">3. </span>evaluate predictive performance on held-out data;</span>
+<span id="cb2-77"><a href="#cb2-77"></a><span class="ss">4. </span>repeat this across several splits.</span>
+<span id="cb2-78"><a href="#cb2-78"></a></span>
+<span id="cb2-79"><a href="#cb2-79"></a>This is also how regularisation parameters such as the penalty strength are typically chosen.</span>
+<span id="cb2-80"><a href="#cb2-80"></a></span>
+<span id="cb2-81"><a href="#cb2-81"></a><span class="fu"># R Functions</span></span>
+<span id="cb2-82"><a href="#cb2-82"></a></span>
+<span id="cb2-83"><a href="#cb2-83"></a>Regularised models are commonly fitted with **glmnet**:</span>
+<span id="cb2-84"><a href="#cb2-84"></a></span>
+<span id="cb2-87"><a href="#cb2-87"></a><span class="in">```{r}</span></span>
+<span id="cb2-88"><a href="#cb2-88"></a><span class="co">#| eval: false</span></span>
+<span id="cb2-89"><a href="#cb2-89"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">0</span>)   <span class="co"># ridge</span></span>
+<span id="cb2-90"><a href="#cb2-90"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">1</span>)   <span class="co"># lasso</span></span>
+<span id="cb2-91"><a href="#cb2-91"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="co"># elastic net</span></span>
+<span id="cb2-92"><a href="#cb2-92"></a><span class="in">```</span></span>
+<span id="cb2-93"><a href="#cb2-93"></a></span>
+<span id="cb2-94"><a href="#cb2-94"></a>The important practical point is that these methods usually work with predictor matrices rather than the ordinary formula interface of <span class="in">`lm()`</span>.</span>
+<span id="cb2-95"><a href="#cb2-95"></a></span>
+<span id="cb2-96"><a href="#cb2-96"></a><span class="fu"># Practical Guidance</span></span>
+<span id="cb2-97"><a href="#cb2-97"></a></span>
+<span id="cb2-98"><a href="#cb2-98"></a>If your goal is primarily **explanation**:</span>
+<span id="cb2-99"><a href="#cb2-99"></a></span>
+<span id="cb2-100"><a href="#cb2-100"></a><span class="ss">-   </span>prefer models whose coefficients can be interpreted clearly;</span>
+<span id="cb2-101"><a href="#cb2-101"></a><span class="ss">-   </span>keep the biological argument central;</span>
+<span id="cb2-102"><a href="#cb2-102"></a><span class="ss">-   </span>use regularisation cautiously and explain what is gained and lost.</span>
+<span id="cb2-103"><a href="#cb2-103"></a></span>
+<span id="cb2-104"><a href="#cb2-104"></a>If your goal is primarily **prediction**:</span>
+<span id="cb2-105"><a href="#cb2-105"></a></span>
+<span id="cb2-106"><a href="#cb2-106"></a><span class="ss">-   </span>evaluate models out of sample;</span>
+<span id="cb2-107"><a href="#cb2-107"></a><span class="ss">-   </span>accept that some loss of interpretability may be worthwhile;</span>
+<span id="cb2-108"><a href="#cb2-108"></a><span class="ss">-   </span>use regularisation when coefficient stability and prediction error are central concerns.</span>
+<span id="cb2-109"><a href="#cb2-109"></a></span>
+<span id="cb2-110"><a href="#cb2-110"></a><span class="fu"># Summary</span></span>
+<span id="cb2-111"><a href="#cb2-111"></a></span>
+<span id="cb2-112"><a href="#cb2-112"></a><span class="ss">-   </span>Explanation and prediction are overlapping but distinct modelling goals.</span>
+<span id="cb2-113"><a href="#cb2-113"></a><span class="ss">-   </span>Ordinary regression is often strongest for explanation when the model is interpretable and well specified.</span>
+<span id="cb2-114"><a href="#cb2-114"></a><span class="ss">-   </span>Regularisation becomes useful when prediction and stability matter more than coefficient-level interpretation.</span>
+<span id="cb2-115"><a href="#cb2-115"></a><span class="ss">-   </span>Cross-validation is central when predictive performance is the goal.</span>
+<span id="cb2-116"><a href="#cb2-116"></a></span>
+<span id="cb2-117"><a href="#cb2-117"></a>This chapter closes the technical modelling sequence by making the modelling goal explicit. The final chapter turns from model choice to the workflow needed to make the whole analysis transparent and reproducible.</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

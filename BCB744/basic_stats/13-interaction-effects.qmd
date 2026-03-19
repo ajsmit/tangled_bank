@@ -36,11 +36,11 @@ library(tidyverse)
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   What an interaction term means
--   Why main effects change meaning when interactions are present
--   How to specify interactions in `lm()`
--   How to interpret and plot conditional effects
--   Why interactions should be theory-driven
+-   what an interaction term means;
+-   why main effects change meaning when an interaction is present;
+-   how to specify interaction models in `lm()`;
+-   how to compare nested models with and without an interaction;
+-   how to interpret conditional effects graphically and verbally.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -51,70 +51,40 @@ library(tidyverse)
 
 # Introduction
 
-Many ecological and biological processes are interactive. The effect of one variable often depends on the level of another. Nutrient supply may matter more at high temperature than at low temperature. A treatment may affect males and females differently. The relationship between disturbance and species richness may differ among habitats.
+Many ecological and biological processes are interactive. The effect of one variable often depends on the level of another. Nutrient supply may matter more at high temperature than at low temperature. The influence of distance may differ among bioregions. A treatment may affect males and females differently.
 
-These situations are handled in regression by including an **interaction term**.
+These situations are handled in regression by including an **interaction term**. Interaction models are often where linear modelling becomes much more interesting biologically, but they are also where interpretation becomes more demanding. Once an interaction is present, the main effects can no longer be read in the same simple way as before.
 
 # Key Concepts
 
-The interaction logic can be reduced to a few central points.
+The essential ideas are these.
 
--   **An interaction** means the effect of one predictor depends on another.
--   **Main effects change meaning** when interaction terms are present.
--   **Centring predictors** often makes interaction models easier to interpret.
--   **Plots are essential** because coefficients alone rarely communicate conditional effects clearly.
--   **Interactions should be biologically motivated**, not added automatically.
+-   **An interaction** means the effect of one predictor depends on another predictor.
+-   **Main effects become conditional** once an interaction term is present.
+-   **Plots are indispensable** because coefficients alone rarely communicate interactions clearly.
+-   **Nested model comparisons** are useful for asking whether the interaction improves the model beyond the main effects alone.
+-   **Interactions should be biologically motivated**, not generated mechanically because software allows it.
 
-# What an Interaction Means
+# When Is an Interaction Appropriate?
 
-An interaction means that the effect of one predictor is **conditional** on the value of another predictor.
+You should consider an interaction when the biology suggests that the effect of one predictor is contingent on another. Typical examples include:
 
-Without an interaction, a model assumes that:
+-   temperature × nutrient supply;
+-   treatment × sex;
+-   distance × habitat type;
+-   rainfall × soil type.
 
--   the slope of predictor `X1` is the same at all values of `X2`, and
--   the slope of predictor `X2` is the same at all values of `X1`.
+If there is no sensible biological reason to expect one effect to change across the level of another, then an interaction term is often hard to justify.
 
-With an interaction, those assumptions are relaxed.
+# The Interaction Model
 
-For two predictors, a model with interaction is:
+For two predictors, a linear model with interaction is:
 
 $$
 Y_i = \alpha + \beta_1 X_{1i} + \beta_2 X_{2i} + \beta_3 X_{1i}X_{2i} + \epsilon_i
 $$
 
-The coefficient $\beta_3$ is the interaction term. It tells us how much the slope of one predictor changes as the other predictor changes.
-
-# Why Main Effects Become Harder to Read
-
-When an interaction is present, the main-effect coefficients can no longer be interpreted in isolation.
-
-For example, in the model above:
-
--   $\beta_1$ is the effect of `X1` when `X2 = 0`,
--   $\beta_2$ is the effect of `X2` when `X1 = 0`.
-
-This means the interpretation of the main effects depends on how the variables are coded and centred. It is often useful to centre continuous predictors before fitting interaction models.
-
-::: {.callout-note appearance="simple"}
-## Centring Predictors
-
-If a predictor has no meaningful zero, the raw main effect may be awkward to interpret. Centring a variable shifts the zero point to a meaningful reference value, often the sample mean, and makes interaction models easier to read.
-:::
-
-# Biological Justification
-
-Interactions should be included because the biology suggests them. They should not be added automatically to every model.
-
-Examples of biologically justified interactions include:
-
--   temperature × nutrient supply,
--   treatment × sex,
--   rainfall × soil type,
--   depth × light availability.
-
-If you cannot explain in words why one predictor should modify the effect of another, the interaction term is probably not well motivated.
-
-# Fitting Interactions in R
+The coefficient $\beta_3$ is the interaction term. It describes how the effect of one predictor changes as the other predictor changes.
 
 In R, an interaction is specified with `*`:
 
@@ -130,72 +100,118 @@ This expands to:
 lm(response ~ x1 + x2 + x1:x2, data = df)
 ```
 
-The `:` term is the interaction itself; `*` includes both main effects and the interaction.
+The `:` term is the interaction itself, while `*` includes both main effects and the interaction.
 
-# A Small Example
+# Why Main Effects Become Harder to Read
 
-Suppose plant growth depends on nutrient concentration and temperature, and that nutrient effects strengthen as temperature increases.
+When an interaction is present, the main-effect coefficients are conditional.
 
-```{r}
-set.seed(74413)
+For example, in a model with `dist * bio`:
 
-dat <- tibble(
-  nutrient = rep(seq(1, 5, length.out = 20), 2),
-  temperature_group = rep(c("cool", "warm"), each = 20)
-) |>
-  mutate(
-    growth = if_else(
-      temperature_group == "cool",
-      2 + 0.6 * nutrient + rnorm(n(), 0, 0.25),
-      2 + 1.2 * nutrient + rnorm(n(), 0, 0.25)
-    )
-  )
+-   the coefficient of `dist` is the slope of distance only for the reference bioregion;
+-   the coefficients of the non-reference bioregions are differences in intercept relative to that reference;
+-   the interaction coefficients describe how the slope of distance changes in the other bioregions relative to the reference bioregion.
 
-mod_interaction <- lm(growth ~ nutrient * temperature_group, data = dat)
-summary(mod_interaction)
+This is why interaction models should almost never be interpreted from the coefficient table alone. The fitted relationships must be plotted.
+
+::: {.callout-note appearance="simple"}
+## Centring Predictors
+
+If a continuous predictor has no meaningful zero, the main effects in an interaction model can be awkward to interpret. In such cases, centring the predictor often helps because it shifts the zero point to a more meaningful reference value, often the sample mean.
+:::
+
+# Example Dataset
+
+We continue with the seaweed dataset, now using the full data. The question is whether the relationship between Sørensen dissimilarity (`Y`) and distance along the coast (`dist`) differs among bioregions (`bio`).
+
+```{r code-seaweed-int}
+sw <- read.csv("../../data/BCB743/seaweed/spp_df2.csv")
+sw$bio <- factor(sw$bio)
 ```
 
-```{r fig-interaction-example}
-#| fig-cap: "An interaction between nutrient concentration and temperature group."
-#| fig-width: 6
-#| fig-height: 4.5
-#| out-width: "82%"
+# Do an Exploratory Data Analysis (EDA)
 
-ggplot(dat, aes(x = nutrient, y = growth, colour = temperature_group)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(x = "Nutrient concentration", y = "Growth") +
+We first inspect the response against distance within each bioregion.
+
+```{r fig-seaweed-interaction}
+#| fig-cap: "Sørensen dissimilarity as a function of coastal distance in four bioregions."
+
+ggplot(sw, aes(x = dist, y = Y, colour = bio)) +
+  geom_point(alpha = 0.6, size = 1.6) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.9) +
+  labs(x = "Distance along the coast (km)",
+       y = "Sørensen dissimilarity",
+       colour = "Bioregion") +
   theme_bw()
 ```
 
-The lines have different slopes. That is the visual signature of an interaction.
+The fitted lines are not parallel. That already suggests an interaction: the relationship between distance and dissimilarity appears to differ among bioregions.
 
-# How to Interpret an Interaction
+# State the Hypotheses
 
-A useful workflow is:
+There are three increasingly rich questions here:
 
-1. Ask whether the interaction is biologically plausible.
-2. Fit the interaction model.
-3. Plot the fitted relationships.
-4. Interpret the effect of one predictor at specific values or levels of the other.
+1. Is distance related to dissimilarity?
+2. Do the average levels of dissimilarity differ among bioregions?
+3. Does the effect of distance differ among bioregions?
 
-Do not stop at the `p`-value of the interaction term. The coefficient alone is rarely intuitive. Plots and conditional interpretation are usually far more informative.
+The third question is the interaction question. In that case the null hypothesis is:
+
+$$H_{0}: \beta_{\text{interaction}} = 0$$
+
+for all interaction terms. The alternative is that at least one interaction coefficient differs from zero, implying that the slope of distance is not the same in all bioregions.
+
+# Fit Nested Models
+
+We fit three nested models:
+
+-   a distance-only model;
+-   a model with the main effects of distance and bioregion;
+-   a model that adds the interaction between distance and bioregion.
+
+```{r code-fit-interaction}
+mod_dist <- lm(Y ~ dist, data = sw)
+mod_main <- lm(Y ~ dist + bio, data = sw)
+mod_int <- lm(Y ~ dist * bio, data = sw)
+
+anova(mod_dist, mod_main, mod_int)
+summary(mod_int)
+```
+
+The model comparison is the most useful result at this stage. Adding bioregion to the distance-only model improves fit strongly, and adding the interaction improves fit strongly again. This means the interaction is not a cosmetic extra term. It changes the model materially.
+
+# Interpret the Interaction
+
+The interaction model shows that the slope of distance differs among bioregions. In other words, distance does not have one universal effect on Sørensen dissimilarity across the coastline. The direction and steepness of the distance effect depend on which bioregion is being considered.
+
+This is best seen in the plotted lines rather than the raw coefficient table. Some bioregions show a steeper increase of dissimilarity with distance, while others show a shallower increase. The coefficient table provides the detailed parameterisation, but the plot provides the biologically useful interpretation.
+
+The overall interaction model also fits the data well, with an adjusted $R^2$ of about 0.86, and the model comparison provides very strong evidence that the interaction contributes importantly to explaining variation in the response ($p < 0.001$).
+
+# Reporting
+
+When reporting an interaction model, do not simply list coefficients. State what the interaction means biologically.
+
+For example:
+
+> Sørensen dissimilarity increased with coastal distance, but the slope of that relationship differed among bioregions. A model containing the interaction between distance and bioregion fit the data substantially better than models with distance alone or with only additive main effects ($p < 0.001$ for the interaction comparison; adjusted $R^2 = 0.86$). The effect of distance on dissimilarity was therefore conditional on bioregion rather than uniform across the coastline.
 
 # Common Mistakes
 
-Common mistakes include:
+Common mistakes with interaction models include:
 
--   adding interactions without biological justification,
--   interpreting main effects as if no interaction were present,
--   failing to plot the fitted interaction,
--   including many interaction terms in small datasets, and
--   treating a significant interaction as important without examining effect size.
+-   adding interactions without biological justification;
+-   interpreting the main effects as if no interaction were present;
+-   failing to plot the fitted interaction;
+-   fitting many interaction terms in small datasets;
+-   treating a statistically detectable interaction as important without considering its effect size and biological meaning.
 
 # Summary
 
--   An interaction means the effect of one predictor depends on another.
--   Interaction terms change the interpretation of main effects.
--   Interactions should be motivated by biological reasoning.
--   Plotting fitted lines or conditional effects is usually essential for interpretation.
+-   An interaction means that the effect of one predictor depends on another.
+-   Once an interaction is present, the main effects must be interpreted conditionally.
+-   Nested model comparisons are useful for asking whether the interaction improves fit.
+-   Plots are essential because interaction models are hard to understand from coefficients alone.
+-   Interactions should be motivated by biological reasoning and then interpreted in those same terms.
 
-Interaction models are often where regression becomes much more biologically interesting, but they also demand more care in interpretation.
+The next chapter remains in the multiple-regression setting but turns to three major threats to interpretation: collinearity, confounding, and measurement error.

@@ -31,16 +31,19 @@ ggplot2::theme_set(
 
 ```{r code-knitr-opts-chunk-set, echo=FALSE}
 library(tidyverse)
+library(car)
+library(MASS)
+library(broom)
 ```
 
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   Why model fitting is not the end of the analysis
--   Diagnostic checks for linear models
--   Influence, leverage, and residual structure
--   Comparing candidate models with information criteria
--   Overfitting and generalisation
+-   why model fitting is not the end of the analysis;
+-   how residuals are used to assess model adequacy;
+-   what leverage and influence mean in practice;
+-   how to compare competing models;
+-   why overfitting and generalisation must be considered.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -53,154 +56,161 @@ library(tidyverse)
 
 Once a model has been fitted, two further questions immediately follow:
 
-1. **Is the model adequate for the data?**
-2. **How does this model compare with plausible alternatives?**
+1. Is the model adequate for the data?
+2. How does this model compare with plausible alternatives?
 
-These questions belong to model checking and model evaluation. A statistically significant model may still be poorly specified, violate assumptions, overfit the data, or generalise badly to new observations.
+These are the tasks of **model checking** and **model evaluation**. A statistically significant model may still be poorly specified, may violate assumptions, may be driven by a few influential observations, or may generalise badly to new data. Model fitting is therefore only the middle of the analysis.
 
 # Key Concepts
 
-The following concepts structure the chapter.
+The chapter turns on the following ideas.
 
--   **Model checking** asks whether a fitted model is adequate for the data and assumptions.
--   **Residuals** are central diagnostic tools for linear-model behaviour.
--   **Influence and leverage** identify observations that matter disproportionately.
--   **Model comparison** weighs plausible alternatives rather than treating one fitted model as final.
--   **Generalisation** matters because good in-sample fit does not guarantee useful prediction.
+-   **Model checking** asks whether the fitted model is adequate for the data and assumptions.
+-   **Residuals** are the main diagnostic tool because they show what the model failed to explain.
+-   **Leverage and influence** identify observations that matter disproportionately to the fitted result.
+-   **Model comparison** is about competing explanations, not just numerical optimisation.
+-   **Generalisation** matters because good fit to the present data does not guarantee useful prediction elsewhere.
 
-# Model Checking
+# A Worked Diagnostic Example
 
-Model checking asks whether the fitted model behaves in a way consistent with its assumptions and intended interpretation.
+We continue with the seaweed example from the previous chapters and fit the selected multiple regression model again.
 
-For ordinary linear models, the most useful checks usually involve **residuals**.
+```{r code-model-eval-data}
+sw <- read.csv("../../data/BCB743/seaweed/spp_df2.csv")
+sw_ectz <- sw |>
+  filter(bio == "ECTZ")
 
-## Residual patterns
-
-Residuals should not show strong systematic structure.
-
-Problems to look for include:
-
--   curvature, suggesting non-linearity,
--   funnel shapes, suggesting heteroscedasticity,
--   unusual points with strong leverage,
--   heavy tails or severe asymmetry.
-
-## Standard diagnostic plots
-
-The standard four-plot diagnostic display in R remains a good starting point:
-
-```{r}
-#| eval: false
-plot(fitted_model)
+mod_eval <- lm(Y ~ augMean + febSD + augSD, data = sw_ectz)
+summary(mod_eval)
 ```
 
-These typically show:
+# Residual Diagnostics
 
--   residuals vs fitted values,
--   normal Q-Q plot,
--   scale-location plot,
--   residuals vs leverage.
+Residual plots are the natural first step in model checking.
 
-## Influence and leverage
+```{r fig-model-diagnostics}
+#| echo: false
+#| fig-width: 7
+#| fig-height: 7
+#| out-width: "88%"
+par(mfrow = c(2, 2))
+plot(mod_eval)
+par(mfrow = c(1, 1))
+```
 
-Not all unusual points are equally important. Some observations have:
+These four standard plots allow us to assess several things at once:
 
--   high **residuals**: poorly fitted values,
--   high **leverage**: unusual predictor values,
--   high **influence**: strong impact on the fitted coefficients.
+-   **Residuals vs fitted values** for curvature or changing variance;
+-   **Normal Q-Q plot** for approximate normality;
+-   **Scale-location plot** for heteroscedasticity;
+-   **Residuals vs leverage** for potentially influential observations.
 
-An influential point deserves attention, but not automatic deletion. It may indicate:
+No diagnostic plot should be read mechanically. The question is whether the pattern is severe enough to undermine the scientific use of the model. In this example the plots suggest that the model is broadly adequate, although, as always, no real dataset is perfectly obedient.
 
--   a data entry problem,
--   measurement error,
--   an important biological extreme, or
--   a model that is too simple.
+# Influence and Leverage
+
+Not all unusual observations matter equally.
+
+-   A point with a large **residual** is poorly fitted.
+-   A point with high **leverage** has an unusual combination of predictor values.
+-   A point with high **influence** materially changes the fitted coefficients.
+
+Cook's distance is one commonly used summary of influence.
+
+```{r code-cooks}
+cook_summary <- summary(cooks.distance(mod_eval))
+cook_summary
+```
+
+An influential point should not be deleted automatically. It may reflect:
+
+-   a data entry error;
+-   a measurement problem;
+-   a biologically informative extreme case;
+-   or a model that is too simple for the pattern in the data.
 
 # Assumption Checks and Their Limits
 
-Formal tests such as Shapiro-Wilk or Breusch-Pagan can be useful, but they should not replace graphical assessment and biological judgement.
+Formal tests can be useful, but they should not replace residual plots and biological judgement.
 
-In practice:
+The practical points are these:
 
--   tiny deviations from normality are often unimportant,
--   large datasets can make trivial deviations look “significant,” and
--   visual residual structure is often more informative than a single test.
-
-The real question is not whether a model is perfect, but whether it is **adequate for the inferential goal**.
+-   tiny deviations from normality are often unimportant;
+-   large datasets can make trivial deviations look statistically significant;
+-   visual residual structure is usually more informative than a single assumption test;
+-   the real question is whether the model is adequate for the inferential goal, not whether it is mathematically perfect.
 
 # Model Comparison
 
-Biological analysis often involves several plausible candidate models, each representing a different hypothesis.
+Biological analysis often involves several plausible models, not just one. Model comparison should therefore be framed as comparing **competing explanations**.
 
-Model comparison should therefore be framed as comparing **competing explanations**, not merely hunting for the best numerical fit.
+We can illustrate this with the seaweed example by comparing:
 
-## Information criteria
+-   a null model;
+-   the selected three-predictor model;
+-   the larger five-predictor model considered earlier.
 
-The most common tools are:
+```{r code-model-comparison}
+null_mod <- lm(Y ~ 1, data = sw_ectz)
+full_mod <- lm(Y ~ augMean + febRange + febSD + augSD + annMean, data = sw_ectz)
 
--   **AIC**,
--   **AICc** for small samples,
--   sometimes **BIC** for a stronger penalty on complexity.
+AIC(null_mod, mod_eval, full_mod)
+```
 
-These criteria balance:
-
--   model fit, and
--   model complexity.
-
-Lower values indicate better relative support among the models being compared.
-
-## What not to do
-
-Automated stepwise procedures often produce unstable and hard-to-interpret models. They can also encourage post hoc storytelling around whichever terms happen to survive selection.
-
-Candidate models should ideally be motivated by theory first and compared second.
+The selected model is far better than the null model, and its performance is competitive with the larger model while remaining easier to interpret. That is an important general lesson: a more complex model is not automatically a better scientific model.
 
 # Overfitting and Generalisation
 
 A model can fit the present data very well while performing poorly on new data. This is **overfitting**.
 
-Overfitting occurs when the model captures noise as if it were signal. It is especially common when:
+Overfitting is especially likely when:
 
--   sample size is modest,
--   many predictors are included,
--   interactions are added freely,
+-   the sample size is modest;
+-   many predictors are included;
+-   interaction terms are added freely;
 -   model choice is heavily data-driven.
 
 The key distinction is between:
 
--   **training performance**: fit to the data used to estimate the model,
--   **generalisation performance**: fit to new or unseen data.
+-   **in-sample fit**, how well the model describes the data used to estimate it;
+-   **generalisation**, how well it would perform on new or unseen data.
 
 ## Cross-validation
 
-Cross-validation provides one way to estimate predictive performance on unseen data.
+Cross-validation is one practical way to assess predictive performance:
 
-In principle, the workflow is:
+1. split the data into parts;
+2. fit the model on one part;
+3. test it on the held-out part;
+4. repeat across multiple splits.
 
-1. split the data into parts,
-2. fit the model on one part,
-3. test it on the held-out part,
-4. repeat.
-
-This is especially valuable when the goal of modelling is prediction rather than explanation.
+This is especially useful when the modelling goal is prediction rather than explanation.
 
 # A Practical Workflow
 
-After fitting a model:
+After fitting a regression model:
 
-1. Inspect residual plots.
-2. Check for influential points.
-3. Ask whether any detected pattern suggests a missing variable or wrong functional form.
-4. Compare only biologically sensible candidate models.
-5. Use information criteria or cross-validation according to the modelling goal.
-6. Report uncertainty and limitations clearly.
+1. inspect the residual plots;
+2. check for leverage and influential points;
+3. ask whether any pattern suggests a missing predictor or wrong functional form;
+4. compare only biologically sensible candidate models;
+5. balance fit, complexity, and interpretability;
+6. report limitations clearly.
+
+# Reporting
+
+A Results-style report of model checking and evaluation should not read like a dump of diagnostics. It should summarise what was checked and what conclusion was reached.
+
+For example:
+
+> Diagnostic plots of the selected multiple regression indicated no major departures from linear-model assumptions. Residuals were reasonably evenly distributed across the fitted range, the Q-Q plot suggested only mild deviation from normality, and no observation showed influence severe enough to invalidate interpretation. Model comparison further showed that the selected three-predictor model was strongly preferred to the intercept-only model and retained a more interpretable structure than the larger five-predictor alternative.
 
 # Summary
 
 -   Fitting a model is only the middle of the analysis.
--   Residual diagnostics are essential for checking adequacy.
--   Influence and leverage can distort fitted results and must be inspected.
--   Model comparison should evaluate competing biological hypotheses, not just maximise fit.
--   Overfitting is a major risk when complexity outruns signal.
+-   Residual diagnostics are essential for checking whether the model is adequate.
+-   Leverage and influence identify observations that may disproportionately affect the fitted result.
+-   Model comparison should weigh competing biological explanations, not just maximise fit.
+-   Overfitting is a real risk whenever complexity outruns signal.
 
-Good modelling requires both a plausible model and evidence that the model is behaving well.
+At this point the core modelling spine is in place: simple regression, multiple regression, interactions, threats to interpretation, and model evaluation. The later chapters now extend that same logic to more specialised modelling situations.

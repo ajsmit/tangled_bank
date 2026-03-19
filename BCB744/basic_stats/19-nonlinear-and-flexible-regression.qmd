@@ -4,6 +4,7 @@ subtitle: "When Straight Lines Are Not Enough"
 author: "A. J. Smit"
 date: last-modified
 date-format: "YYYY/MM/DD"
+reference-location: margin
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -23,35 +24,103 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Some relationships are curved because the biology is curved. Growth saturates, rates asymptote, thresholds appear, and effects change across the predictor range.
+Some relationships are curved because the biology is curved. Growth saturates, enzyme kinetics asymptote, seasonal cycles oscillate, and responses may level off, bend, or change slope across the range of the predictor. In such cases, a straight-line model is often too rigid.
 
-This chapter groups together approaches that relax the strict straight-line form of simple linear regression.
+This chapter groups together a family of approaches that relax the strict linear form of the ordinary regression model. These methods differ in their assumptions and interpretation, but they share a common purpose: to model biological responses whose shape is not well captured by a straight line.
 
 # Key Concepts
 
-The central ideas are these.
-
 -   **Nonlinearity** often reflects real biological structure rather than nuisance variation.
--   **Flexible regression** can improve fit when straight-line assumptions fail.
--   **Polynomial, mechanistic, quantile, and additive models** answer different kinds of questions.
--   **Greater flexibility increases interpretive demands** and the risk of overfitting.
--   **Model choice should follow biological form**, not only statistical convenience.
+-   **Flexible regression** can model patterns that a straight line misses.
+-   **Different flexible methods answer different questions**: polynomial, mechanistic nonlinear, quantile, and additive models are not interchangeable.
+-   **Greater flexibility increases the risk of overfitting** if used carelessly.
+-   **Model choice should follow biological form**, not only convenience or visual preference.
 
-# Families Covered
+# When This Method Is Appropriate
 
--   polynomial regression,
--   nonlinear mechanistic models,
--   quantile regression,
--   generalised additive models.
+You should move beyond a simple linear model when:
 
-# Practical Principle
+-   the fitted residuals show clear curvature;
+-   the biology suggests an asymptote, threshold, saturation, or oscillation;
+-   the response changes differently across the predictor range;
+-   the question concerns parts of the response distribution other than the mean.
 
-Use flexible regression when the biological process or the residual structure makes a straight line inadequate. Greater flexibility can improve fit, but it also increases interpretive demands.
+The diagnostic chapters earlier in the sequence already signalled this possibility. This chapter is about what to do next.
 
-# Sources
+# Main Families
 
-This chapter will draw primarily on:
+## Polynomial regression
 
--   `/Users/ajsmit/Documents/R_local/BCB_Stats/non-linear_regression.qmd`
--   `/Users/ajsmit/Documents/R_local/BCB_Stats/quantile_regression.qmd`
--   `/Users/ajsmit/Documents/R_local/BCB_Stats/generalised_additive_models.qmd`
+Polynomial regression adds powers of the predictor to capture curvature:
+
+```{r}
+#| eval: false
+lm(response ~ x + I(x^2), data = df)
+```
+
+This is often useful for modest curvature, but it remains a linear model in the coefficients and can become unstable or hard to interpret at higher orders.
+
+## Mechanistic nonlinear models
+
+Mechanistic nonlinear models are appropriate when the biological process suggests a specific functional form, such as:
+
+-   Michaelis-Menten uptake;
+-   von Bertalanffy growth;
+-   exponential decay;
+-   logistic growth.
+
+These models are especially valuable when the parameters themselves have biological meaning.
+
+## Quantile regression
+
+Quantile regression is useful when the relationship differs across the distribution of the response and the mean alone is not the main scientific target.
+
+## Generalised additive models
+
+Generalised additive models (GAMs) use smooth functions to model complex relationships without forcing a fixed parametric nonlinear form in advance.
+
+# R Functions
+
+Some of the most useful R functions are:
+
+-   `lm()` with polynomial terms for simple curvature;
+-   `nls()` for nonlinear least-squares models;
+-   `quantreg::rq()` for quantile regression;
+-   `mgcv::gam()` for additive models.
+
+Examples:
+
+```{r}
+#| eval: false
+lm(response ~ x + I(x^2), data = df)
+nls(y ~ Vm * x / (K + x), data = df, start = list(Vm = 1, K = 1))
+mgcv::gam(response ~ s(x), data = df)
+```
+
+# Choosing Among Flexible Models
+
+The choice should come from the question and the biology.
+
+-   If the expected form is known and biologically interpretable, prefer a mechanistic nonlinear model.
+-   If the curvature is mild and mainly descriptive, a polynomial model may be sufficient.
+-   If the shape is unknown and potentially complex, a GAM may be more appropriate.
+-   If the interest lies in how upper or lower parts of the response distribution behave, quantile regression may be the right tool.
+
+# Practical Caution
+
+Flexibility is valuable, but it comes with a cost.
+
+-   More flexible models are often harder to interpret.
+-   They can overfit small datasets.
+-   They may fit noise rather than structure if the biological logic is weak.
+
+This is why flexible regression should be a response to a clear diagnostic or biological need, not just a default preference for curved lines.
+
+# Summary
+
+-   Not all biological relationships are well described by straight lines.
+-   Polynomial, mechanistic nonlinear, quantile, and additive models serve different purposes.
+-   Model choice should follow the biology and the inferential goal.
+-   Greater flexibility can improve fit, but it also increases interpretive demands and overfitting risk.
+
+The next chapter shifts from model form to modelling purpose: the difference between explanation and prediction, and where regularisation fits into that distinction.

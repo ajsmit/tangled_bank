@@ -31,16 +31,20 @@ ggplot2::theme_set(
 
 ```{r code-knitr-opts-chunk-set, echo=FALSE}
 library(tidyverse)
+library(car)
+library(MASS)
+library(ggpubr)
+library(broom)
 ```
 
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   Why simple regression is often not enough
--   The structure of a multiple linear regression
--   Matching predictors to biological hypotheses
--   Functional form, omitted variables, and interactions
--   A workflow for specifying models before fitting them
+-   why simple regression is often not enough;
+-   how a multiple regression extends the simple linear model;
+-   why model specification is part of the scientific argument;
+-   how to think about omitted variables, proxies, and categorical predictors;
+-   how to fit and interpret a worked multiple regression example.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -51,24 +55,24 @@ library(tidyverse)
 
 # Introduction
 
-Biological systems are rarely driven by a single variable. A response such as growth, abundance, diversity, or disease prevalence usually reflects the combined influence of several environmental, physiological, or experimental factors. Multiple regression extends the simple linear model to this more realistic setting.
+Simple linear regression is a useful beginning, but ecological and biological processes are rarely driven by a single variable. Growth, abundance, richness, dissimilarity, disease prevalence, and physiological performance usually respond to several drivers at once. Multiple regression is the natural extension of simple regression to that more realistic setting.
 
-But adding more predictors is not merely a technical convenience. It creates a more demanding scientific problem: **which predictors belong in the model, and why?**
+However, multiple regression is not only about adding more predictors. It turns model building into a much more demanding scientific exercise. Once several predictors are available, we must decide which variables belong in the model, which variables are confounders, which variables are merely proxies, and whether the model structure matches the biological question. In other words, **model specification** becomes part of the analysis itself.
 
 This chapter therefore combines two topics that should not be separated:
 
-1. **multiple regression** as a modelling framework, and
-2. **model specification** as the translation of biological ideas into statistical structure.
+1. multiple regression as a statistical model; and
+2. model specification as the translation of biological reasoning into that model.
 
 # Key Concepts
 
-The chapter turns on the following ideas.
+The main ideas are these.
 
--   **Multiple regression** models a response using several predictors at once.
--   **Holding other predictors constant** is what gives partial coefficients their meaning.
--   **Model specification** translates biological reasoning into a statistical formula.
--   **Omitted variables and functional form** can distort interpretation even when a model fits.
--   **Predictor choice** should be theory-driven rather than data-convenience driven.
+-   **Multiple regression** models one response using several predictors at once.
+-   **Partial coefficients** describe the effect of one predictor while the others are held constant.
+-   **Model specification** is the biological reasoning that determines which variables and terms belong in the model.
+-   **Omitted variables, proxies, and poor functional form** can distort interpretation even when a model appears to fit.
+-   **Collinearity** is often the first practical obstacle once several predictors are entered together.
 
 # The Multiple Linear Model
 
@@ -80,145 +84,237 @@ $$
 
 where:
 
--   $Y_i$ is the response for observation $i$,
--   $X_{i1}, X_{i2}, \ldots, X_{ik}$ are the predictor variables,
--   $\alpha$ is the intercept,
--   $\beta_1, \beta_2, \ldots, \beta_k$ are the coefficients, and
+-   $Y_i$ is the response for observation $i$;
+-   $X_{i1}, X_{i2}, \ldots, X_{ik}$ are the predictor variables;
+-   $\alpha$ is the intercept;
+-   $\beta_1, \beta_2, \ldots, \beta_k$ are the coefficients; and
 -   $\epsilon_i$ is the residual error.
 
-Each coefficient estimates the expected change in the response associated with a one-unit change in its predictor, **holding the other predictors constant**.
+Each coefficient is interpreted as the expected change in the response for a one-unit change in its predictor, **holding the other predictors constant**. That phrase is what makes multiple regression so powerful, but it is also what makes the model harder to interpret than a simple regression.
 
-That last phrase is what makes multiple regression powerful and difficult at the same time.
+# Nature of the Data and Assumptions
+
+The basic assumptions are the same as for simple linear regression, but now they apply in a multivariable setting.
+
+-   **Continuous response variable** The response should be measured on a continuous scale.
+-   **Predictors matched to the question** Predictors can be continuous or categorical, but their inclusion must be scientifically defensible.
+-   **Independent observations** The observations must still be independent.
+-   **Approximate linearity** The response should relate approximately linearly to each predictor on the scale used in the model.
+-   **Residual assumptions** Residuals should be approximately normal with roughly constant variance.
+-   **Limited collinearity** Predictors should not overlap so strongly that their individual effects become unstable or uninterpretable.
+
+The new point here is that a multiple regression must also be judged as a model specification. Even if the statistical assumptions are acceptable, the model can still be weak because the variables are badly chosen or badly motivated.
 
 # Why Model Specification Matters
 
-In simple regression, the modelling decision is often obvious: one response, one predictor. In multiple regression, the structure of the model becomes part of the scientific argument.
+In simple regression, the modelling decision is often obvious: one response, one predictor. In multiple regression, the structure of the model becomes part of the argument.
 
-The important questions are:
+Before fitting a model, we should ask:
 
--   Which variables represent the hypothesised process?
--   Which variables are potential confounders that must be controlled?
--   Which variables are only proxies for a harder-to-measure mechanism?
--   Should the relationship be linear, transformed, or non-linear?
--   Does the effect of one predictor depend on another?
+-   Which variables represent the biological mechanisms of interest?
+-   Which variables are confounders that ought to be controlled?
+-   Which variables are only proxies for a mechanism that is difficult to measure directly?
+-   Which relationships are likely to be approximately linear on the chosen scale?
+-   Are any interactions biologically justified?
 
-Model specification therefore comes before model fitting. If the biological logic is weak, the fitted model is likely to be weak as well.
+This is why the chapter title includes both **multiple regression** and **model specification**. A multiple regression with weak biological logic is still a weak model.
 
-# Matching Predictors to Processes
+# R Function
 
-A predictor should not enter a model simply because it is available in the dataset. It should have a defensible connection to the response.
-
-Good model specification asks:
-
--   Is the predictor mechanistically plausible?
--   Is it measured at the right scale?
--   Is it a direct driver or only a proxy?
--   Does including it help isolate the process of interest?
-
-For example, altitude may be included in a model of plant growth, but altitude is rarely the mechanism itself. It is usually a proxy for temperature, moisture, radiation, or oxygen availability. That affects how the coefficient should be interpreted.
-
-# Omitted Variables and Bias
-
-Leaving out an important predictor can bias the coefficients of those that remain in the model. This is especially serious when the omitted variable affects both:
-
--   the response, and
--   one or more included predictors.
-
-In such cases, the fitted coefficient of an included predictor may partially absorb the effect of the missing variable. This is one reason why biological theory must guide model structure.
-
-# Functional Form
-
-Model specification is not only about which variables to include. It is also about **how** they should enter the model.
-
-Questions of functional form include:
-
--   Is the relationship approximately linear?
--   Would a transformation improve interpretability or fit?
--   Is a polynomial term justified?
--   Should an interaction term be included?
-
-The linear model is flexible, but not infinitely so. Biological processes are often non-linear, and pretending otherwise can distort inference.
-
-# Interactions
-
-An **interaction** means that the effect of one predictor depends on the level of another predictor.
-
-For example:
-
--   the effect of nutrient supply on growth may depend on temperature,
--   the effect of disturbance may depend on habitat type, or
--   the effect of treatment may differ between sexes or populations.
-
-Interactions should be introduced because the biology suggests them, not because every possible product term can be generated mechanically.
-
-# Categorical Predictors
-
-Multiple regression can include both continuous and categorical predictors. In R, categorical predictors are usually included as factors, and `lm()` handles the dummy-variable coding automatically.
-
-```{r}
-#| eval: false
-lm(response ~ temperature + nutrient + factor(site), data = df)
-```
-
-This is one reason multiple regression and ANOVA are closely connected: many analyses of group differences can be written as linear models.
-
-# A Practical Workflow for Model Specification
-
-Before fitting a multiple regression, work through the following sequence:
-
-1. State the biological question clearly.
-2. Define the response variable.
-3. List predictors that directly represent the hypothesised mechanisms.
-4. Identify potential confounders that need to be controlled.
-5. Decide whether any variables are proxies and note the interpretive limits.
-6. Decide whether interactions or transformations are biologically justified.
-7. Fit only models that you can explain in words.
-
-This workflow prevents the model from becoming a purely algorithmic exercise.
-
-# Fitting a Multiple Regression in R
-
-The basic syntax is:
+The main function is again `lm()`, but now with several predictors:
 
 ```{r}
 #| eval: false
 lm(response ~ predictor1 + predictor2 + predictor3, data = df)
 ```
 
+For a model with both continuous and categorical predictors:
+
+```{r}
+#| eval: false
+lm(response ~ temperature + nutrients + factor(site), data = df)
+```
+
+In R, categorical predictors are usually entered as factors. The model matrix and dummy-variable coding are then handled automatically.
+
+# Example Dataset
+
+We use the seaweed dataset developed elsewhere in your material. The response variable is the mean Sørensen dissimilarity, `Y`, and the environmental predictors include several climatological variables. To keep the example focused, we work within the East Coast Transition Zone (`ECTZ`), where the first question is which combination of the available climate variables best explains variation in `Y`.
+
+```{r code-seaweed-data}
+sw <- read.csv("../../data/BCB743/seaweed/spp_df2.csv")
+sw_ectz <- sw |>
+  filter(bio == "ECTZ")
+
+sw_sub1 <- sw_ectz[, c("Y", "augMean", "febRange", "febSD", "augSD", "annMean")]
+```
+
+# Do an Exploratory Data Analysis (EDA)
+
+We first inspect the variables and the scale of the data.
+
+```{r code-seaweed-summary}
+summary(sw_sub1)
+```
+
+It is also useful to visualise the response against the candidate predictors one at a time before fitting a full multiple regression.
+
+```{r fig-seaweed-slr}
+#| fig-width: 10
+#| fig-height: 7.5
+#| fig-cap: "Individual simple linear regressions for candidate predictors of Sørensen dissimilarity in the East Coast Transition Zone."
+
+predictors <- c("augMean", "febRange", "febSD", "augSD", "annMean")
+
+plts1 <- purrr::map(predictors, function(predictor) {
+  ggplot(sw_ectz, aes_string(x = predictor, y = "Y")) +
+    geom_point(shape = 1, colour = "dodgerblue4") +
+    geom_smooth(method = "lm", col = "magenta", fill = "pink") +
+    labs(title = paste("Y vs", predictor),
+         x = predictor,
+         y = "Y") +
+    theme_bw()
+})
+
+ggpubr::ggarrange(plotlist = plts1, ncol = 2, nrow = 3, labels = "AUTO")
+```
+
+The simple plots suggest that several predictors are individually related to the response. But these one-predictor views cannot tell us how the variables behave once they are considered together, nor can they reveal whether some predictors overlap so strongly that their separate interpretation becomes unstable.
+
+# State the Hypotheses
+
+The overall null hypothesis is that none of the predictors explains variation in the response:
+
+$$H_{0}: \beta_1 = \beta_2 = \cdots = \beta_k = 0$$
+
+The alternative is that at least one coefficient differs from zero:
+
+$$H_{a}: \exists \, \beta_j \ne 0$$
+
+At the coefficient level, each predictor also has its own hypothesis:
+
+$$H_{0}: \beta_j = 0$$
+$$H_{a}: \beta_j \ne 0$$
+
+But the interpretation of those individual coefficients depends on what other predictors are in the model, and whether collinearity has been dealt with adequately.
+
+# Fit the Initial Model
+
+We begin with a full model containing the five candidate climate predictors and compare it, conceptually, with a null model containing only the intercept.
+
+```{r code-full-model}
+full_mod1 <- lm(Y ~ augMean + febRange + febSD + augSD + annMean,
+                data = sw_sub1)
+null_mod1 <- lm(Y ~ 1, data = sw_sub1)
+
+summary(full_mod1)
+```
+
+The full model fits strongly, but the coefficient table already hints at a practical problem: some variables that looked useful on their own are no longer clearly interpretable once the others are included. That is a common sign that the predictors overlap.
+
+# Check for Collinearity
+
+One of the most useful diagnostics at this stage is the variance inflation factor (VIF).
+
+```{r code-initial-vif}
+vif(full_mod1)
+```
+
+The initial VIF values show that some predictors are too strongly overlapping for a comfortably interpretable model. We therefore simplify the candidate set before asking which predictors belong in the final model.
+
+```{r code-reduce-vif}
+sw_vif <- sw_sub1
+vif_mod <- full_mod1
+
+while (max(vif(vif_mod)) > 10) {
+  high_vif_var <- names(which.max(vif(vif_mod)))
+  sw_vif <- sw_vif[, !(names(sw_vif) %in% high_vif_var)]
+  vif_mod <- lm(Y ~ ., data = sw_vif)
+}
+
+summary(vif_mod)
+vif(vif_mod)
+```
+
+After removing the most overlapping predictors, the retained model is much easier to interpret because the VIF values are now comfortably low.
+
+# Fit the Selected Model
+
+We can now fit the candidate model set more sensibly. In this example, forward selection from the intercept-only model leads to the same reduced model retained after the VIF screen.
+
+```{r code-forward-selection}
+mod1 <- stepAIC(
+  lm(Y ~ 1, data = sw_vif),
+  scope = list(lower = lm(Y ~ 1, data = sw_vif), upper = vif_mod),
+  direction = "forward",
+  trace = FALSE
+)
+
+formula(mod1)
+summary(mod1)
+anova(mod1)
+```
+
+The selected model is:
+
+$$
+Y = \alpha + \beta_1 \text{augMean} + \beta_2 \text{febSD} + \beta_3 \text{augSD} + \epsilon
+$$
+
+This is a useful teaching example because it shows that model building is not simply about keeping every plausible variable. It is about arriving at a model that is both statistically stable and biologically interpretable.
+
+# Interpret the Results
+
+The fitted model shows that `augMean`, `febSD`, and `augSD` are all positively related to Sørensen dissimilarity in the East Coast Transition Zone once they are considered together. The strongest partial effect is associated with `augMean`, while `febSD` and `augSD` make smaller but still clearly positive contributions.
+
+The model fit is strong: the adjusted $R^2$ is about 0.84, so the selected predictors explain a large proportion of the observed variation in `Y`. The overall model test provides very strong evidence that the model explains more variation than an intercept-only model ($p < 0.001$).
+
+The crucial interpretive point is that each coefficient is now a **partial** effect. For example, the coefficient of `augMean` describes the expected change in `Y` for a one-unit increase in `augMean` while `febSD` and `augSD` are held constant.
+
+# Reporting
+
+When reporting a multiple regression, include:
+
+-   the response variable and the retained predictors;
+-   the fitted coefficients and their direction;
+-   the overall fit of the model;
+-   the logic used to deal with collinearity or redundant predictors;
+-   a biological interpretation of the retained effects.
+
+For example:
+
+> In the East Coast Transition Zone, mean Sørensen dissimilarity was well explained by a multiple linear regression containing August mean temperature, February temperature variability, and August temperature variability (adjusted $R^2 = 0.84$; overall model $p < 0.001$). All three retained predictors had positive partial effects, with August mean temperature showing the strongest contribution ($\beta = 0.283$), followed by February temperature variability ($\beta = 0.050$) and August temperature variability ($\beta = 0.022$). Predictors with problematic overlap were removed before final interpretation, so the reported coefficients represent comparatively stable partial relationships.
+
+# Categorical Predictors and Model Specification
+
+Multiple regression can include both continuous and categorical predictors. In R, this is done by entering the categorical variable as a factor. That matters because many ecological questions involve a mixture of environmental gradients and group structure.
+
 For example:
 
 ```{r}
 #| eval: false
-lm(growth ~ temperature + nutrients + light, data = kelp_df)
+lm(response ~ dist + factor(bio), data = df)
 ```
 
-An interaction is written as:
-
-```{r}
-#| eval: false
-lm(growth ~ temperature * nutrients, data = kelp_df)
-```
-
-The `*` expands to the main effects plus their interaction.
+Once categorical predictors are included, multiple regression and ANOVA become part of the same linear-model family. This is one reason the earlier ANOVA chapter and the present modelling chapters connect so naturally.
 
 # What This Chapter Does Not Yet Solve
 
-Multiple regression opens the door to several important complications that are treated more fully later:
+This chapter establishes the logic of fitting several predictors at once, but it also opens the door to a set of harder problems that deserve separate treatment:
 
--   **collinearity**, when predictors overlap strongly,
--   **confounding**, when a third variable distorts interpretation,
--   **measurement error**, when predictors are imperfect,
--   **model evaluation**, when several candidate models compete, and
--   **dependence**, when observations are not independent.
+-   interaction terms, when the effect of one predictor depends on another;
+-   confounding and measurement error;
+-   model checking and model comparison;
+-   dependence among observations.
 
-Those are not side issues. They are central reasons why regression modelling requires judgement, not just software.
+Those are the subjects of the next three chapters.
 
 # Summary
 
--   Multiple regression models one response using several predictors.
--   Model specification is the translation of biological hypotheses into statistical form.
--   Predictors should be included for defensible scientific reasons, not just because they are available.
--   Omitted variables, poor functional form, and unjustified interactions can distort inference.
--   A good model is one that can be explained in biological language before it is fitted.
+-   Multiple regression extends simple regression to several predictors.
+-   Model specification is not a side issue; it is part of the scientific argument.
+-   The meaning of each coefficient depends on the other predictors included in the model.
+-   Collinearity can make a model statistically unstable and biologically difficult to interpret.
+-   A useful multiple regression is one that is both statistically adequate and scientifically defensible.
 
-This chapter sets up the more detailed treatment of interactions, collinearity, confounding, and model evaluation that follows.
+The next chapter builds directly on this one by examining interaction terms, where the effect of one predictor depends on the level of another.

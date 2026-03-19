@@ -1064,9 +1064,20 @@ cookieconsent.run({
   <ul>
 <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
   <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts"><span class="header-section-number">2</span> Key Concepts</a></li>
-  <li><a href="#common-biological-glms" id="toc-common-biological-glms" class="nav-link" data-scroll-target="#common-biological-glms"><span class="header-section-number">3</span> Common Biological GLMs</a></li>
-  <li><a href="#why-glms-matter" id="toc-why-glms-matter" class="nav-link" data-scroll-target="#why-glms-matter"><span class="header-section-number">4</span> Why GLMs Matter</a></li>
-  <li><a href="#source" id="toc-source" class="nav-link" data-scroll-target="#source"><span class="header-section-number">5</span> Source</a></li>
+  <li><a href="#when-this-method-is-appropriate" id="toc-when-this-method-is-appropriate" class="nav-link" data-scroll-target="#when-this-method-is-appropriate"><span class="header-section-number">3</span> When This Method Is Appropriate</a></li>
+  <li>
+<a href="#common-glm-families" id="toc-common-glm-families" class="nav-link" data-scroll-target="#common-glm-families"><span class="header-section-number">4</span> Common GLM Families</a>
+  <ul class="collapse">
+<li><a href="#logistic-regression" id="toc-logistic-regression" class="nav-link" data-scroll-target="#logistic-regression"><span class="header-section-number">4.1</span> Logistic regression</a></li>
+  <li><a href="#poisson-regression" id="toc-poisson-regression" class="nav-link" data-scroll-target="#poisson-regression"><span class="header-section-number">4.2</span> Poisson regression</a></li>
+  <li><a href="#overdispersed-count-models" id="toc-overdispersed-count-models" class="nav-link" data-scroll-target="#overdispersed-count-models"><span class="header-section-number">4.3</span> Overdispersed count models</a></li>
+  </ul>
+</li>
+  <li><a href="#r-functions" id="toc-r-functions" class="nav-link" data-scroll-target="#r-functions"><span class="header-section-number">5</span> R Functions</a></li>
+  <li><a href="#a-practical-workflow" id="toc-a-practical-workflow" class="nav-link" data-scroll-target="#a-practical-workflow"><span class="header-section-number">6</span> A Practical Workflow</a></li>
+  <li><a href="#interpretation-and-reporting" id="toc-interpretation-and-reporting" class="nav-link" data-scroll-target="#interpretation-and-reporting"><span class="header-section-number">7</span> Interpretation and Reporting</a></li>
+  <li><a href="#common-mistakes" id="toc-common-mistakes" class="nav-link" data-scroll-target="#common-mistakes"><span class="header-section-number">8</span> Common Mistakes</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">9</span> Summary</a></li>
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/18-generalised-linear-models.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
@@ -1100,44 +1111,121 @@ cookieconsent.run({
 
 </header><section id="introduction" class="level1" data-number="1"><h1 data-number="1">
 <span class="header-section-number">1</span> Introduction</h1>
-<p>Linear regression assumes a normally distributed response with constant variance. Many biological data do not satisfy that structure. Counts, proportions, and binary outcomes require a broader framework.</p>
-<p>Generalised linear models (GLMs) provide that framework by combining:</p>
-<ul>
-<li>a response distribution,</li>
-<li>a linear predictor, and</li>
-<li>a link function.</li>
-</ul></section><section id="key-concepts" class="level1" data-number="2"><h1 data-number="2">
+<p>The linear model assumes a normally distributed response with constant variance. Many biological data do not have that structure. Counts, proportions, presences and absences, and success-failure outcomes require a broader framework. Generalised linear models (GLMs) provide that framework while retaining the central logic of regression.</p>
+<p>A GLM combines three parts:</p>
+<ol type="1">
+<li>a response distribution;</li>
+<li>a linear predictor;</li>
+<li>a link function that connects the linear predictor to the expected response scale.</li>
+</ol>
+<p>The important point is that GLMs do not replace the regression logic you have already learned. They extend it to different kinds of response variables.</p>
+</section><section id="key-concepts" class="level1" data-number="2"><h1 data-number="2">
 <span class="header-section-number">2</span> Key Concepts</h1>
-<p>The GLM framework rests on a few core components.</p>
 <ul>
 <li>
-<strong>GLMs</strong> extend linear-model logic to non-normal responses.</li>
+<strong>GLMs</strong> extend regression to non-normal response variables.</li>
 <li>
-<strong>Response distributions</strong> should match the data-generating structure, such as counts or proportions.</li>
+<strong>The family</strong> should match the data-generating structure, such as binomial data for binary outcomes or Poisson data for counts.</li>
 <li>
-<strong>Link functions</strong> connect the linear predictor to the expected response scale.</li>
+<strong>The link function</strong> connects the linear predictor to the response scale.</li>
 <li>
-<strong>Overdispersion</strong> is a practical warning sign that the simplest count model may be inadequate.</li>
+<strong>Interpretation still depends on the biological question</strong>, not only on the model family.</li>
 <li>
-<strong>Interpretation still depends on biological question and design</strong>, not only on family choice.</li>
-</ul></section><section id="common-biological-glms" class="level1" data-number="3"><h1 data-number="3">
-<span class="header-section-number">3</span> Common Biological GLMs</h1>
+<strong>Overdispersion</strong> is a warning sign that the simplest GLM may be inadequate.</li>
+</ul></section><section id="when-this-method-is-appropriate" class="level1" data-number="3"><h1 data-number="3">
+<span class="header-section-number">3</span> When This Method Is Appropriate</h1>
+<p>You should consider a GLM when:</p>
 <ul>
-<li>
-<strong>Binomial GLM</strong> for presence/absence or success/failure data.</li>
-<li>
-<strong>Poisson GLM</strong> for count data.</li>
-<li>
-<strong>Negative binomial models</strong> when count data are overdispersed.</li>
-</ul></section><section id="why-glms-matter" class="level1" data-number="4"><h1 data-number="4">
-<span class="header-section-number">4</span> Why GLMs Matter</h1>
-<p>GLMs let us keep the logic of regression while matching the model more closely to the data-generating process.</p>
-</section><section id="source" class="level1" data-number="5"><h1 data-number="5">
-<span class="header-section-number">5</span> Source</h1>
-<p>This chapter will draw primarily on the material in:</p>
-<ul>
-<li><code>/Users/ajsmit/Documents/R_local/BCB_Stats/generalised_linear_models.qmd</code></li>
+<li>the response is binary, such as alive/dead or present/absent;</li>
+<li>the response is a proportion based on counts of successes and failures;</li>
+<li>the response is a count and cannot sensibly be modelled with a normal distribution;</li>
+<li>the variance changes with the mean in a way that a standard linear model does not handle well.</li>
 </ul>
+<p>This chapter therefore picks up directly from the earlier proportion-testing work and places it in the broader modelling framework where binary and count responses can be analysed with predictors.</p>
+</section><section id="common-glm-families" class="level1" data-number="4"><h1 data-number="4">
+<span class="header-section-number">4</span> Common GLM Families</h1>
+<section id="logistic-regression" class="level2" data-number="4.1"><h2 data-number="4.1" class="anchored" data-anchor-id="logistic-regression">
+<span class="header-section-number">4.1</span> Logistic regression</h2>
+<p>Use a <strong>binomial GLM</strong> when the response is binary or a proportion.</p>
+<p>Examples:</p>
+<ul>
+<li>infection status as a function of temperature and host size;</li>
+<li>settlement success as a function of habitat and season;</li>
+<li>survival as a function of treatment.</li>
+</ul></section><section id="poisson-regression" class="level2" data-number="4.2"><h2 data-number="4.2" class="anchored" data-anchor-id="poisson-regression">
+<span class="header-section-number">4.2</span> Poisson regression</h2>
+<p>Use a <strong>Poisson GLM</strong> when the response is a count.</p>
+<p>Examples:</p>
+<ul>
+<li>number of individuals per quadrat;</li>
+<li>number of flowers per plant;</li>
+<li>number of parasite eggs per host.</li>
+</ul></section><section id="overdispersed-count-models" class="level2" data-number="4.3"><h2 data-number="4.3" class="anchored" data-anchor-id="overdispersed-count-models">
+<span class="header-section-number">4.3</span> Overdispersed count models</h2>
+<p>If the count variance is much larger than the mean, a simple Poisson model may be too restrictive. In such cases, a <strong>negative binomial model</strong> or another overdispersion-aware model is often more appropriate.</p>
+</section></section><section id="r-functions" class="level1" data-number="5"><h1 data-number="5">
+<span class="header-section-number">5</span> R Functions</h1>
+<p>The main function is <code><a href="https://rdrr.io/r/stats/glm.html">glm()</a></code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">glm</span>(response <span class="sc">~</span> predictors, <span class="at">family =</span> ..., <span class="at">data =</span> df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A logistic regression might look like:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">glm</span>(<span class="fu">cbind</span>(successes, failures) <span class="sc">~</span> temperature <span class="sc">+</span> treatment,</span>
+<span id="cb2-2"><a href="#cb2-2"></a>    <span class="at">family =</span> binomial,</span>
+<span id="cb2-3"><a href="#cb2-3"></a>    <span class="at">data =</span> df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>or, for a binary response:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">glm</span>(presence <span class="sc">~</span> salinity <span class="sc">+</span> habitat,</span>
+<span id="cb3-2"><a href="#cb3-2"></a>    <span class="at">family =</span> binomial,</span>
+<span id="cb3-3"><a href="#cb3-3"></a>    <span class="at">data =</span> df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>A count model might look like:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">glm</span>(count <span class="sc">~</span> reef <span class="sc">+</span> depth,</span>
+<span id="cb4-2"><a href="#cb4-2"></a>    <span class="at">family =</span> poisson,</span>
+<span id="cb4-3"><a href="#cb4-3"></a>    <span class="at">data =</span> df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="a-practical-workflow" class="level1" data-number="6"><h1 data-number="6">
+<span class="header-section-number">6</span> A Practical Workflow</h1>
+<p>The teaching workflow remains familiar:</p>
+<ol type="1">
+<li>identify the biological question;</li>
+<li>identify the response structure;</li>
+<li>choose a family that matches the response;</li>
+<li>fit the model;</li>
+<li>inspect model adequacy, especially for overdispersion and fit;</li>
+<li>interpret coefficients on the correct scale.</li>
+</ol>
+<p>The new difficulty is that the coefficients are often estimated on the <strong>link scale</strong>, so interpretation requires more care than in an ordinary linear model.</p>
+</section><section id="interpretation-and-reporting" class="level1" data-number="7"><h1 data-number="7">
+<span class="header-section-number">7</span> Interpretation and Reporting</h1>
+<p>In GLMs, interpretation often needs to distinguish between:</p>
+<ul>
+<li>the coefficient on the link scale;</li>
+<li>the effect on the response scale;</li>
+<li>the biological meaning of that effect.</li>
+</ul>
+<p>For example, in logistic regression a positive coefficient means the log-odds of success increase with the predictor. In practice, it is often clearer to translate that into statements about the probability of success increasing or decreasing rather than reporting only the raw coefficient.</p>
+</section><section id="common-mistakes" class="level1" data-number="8"><h1 data-number="8">
+<span class="header-section-number">8</span> Common Mistakes</h1>
+<p>Common mistakes include:</p>
+<ul>
+<li>choosing a family because it is familiar rather than because it matches the response;</li>
+<li>fitting Poisson models to strongly overdispersed counts;</li>
+<li>interpreting link-scale coefficients as though they were ordinary linear slopes;</li>
+<li>forgetting that diagnostics still matter in GLMs.</li>
+</ul></section><section id="summary" class="level1" data-number="9"><h1 data-number="9">
+<span class="header-section-number">9</span> Summary</h1>
+<ul>
+<li>GLMs extend regression to binary, proportional, and count responses.</li>
+<li>The model family should match the response structure.</li>
+<li>Logistic and Poisson models are the most common introductory GLMs.</li>
+<li>Overdispersion is an important practical warning sign.</li>
+<li>The regression logic is unchanged, but interpretation becomes more careful because of the link function.</li>
+</ul>
+<p>This chapter broadens the modelling family. The next chapter turns from non-normal responses to relationships that are not well described by straight lines.</p>
 
 
 <!-- -->
@@ -1620,64 +1708,165 @@ Smit, A. J., J. Smit A (2026) 18. Generalised Linear Models. <a href="http://tan
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">---</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a><span class="an">title:</span><span class="co"> "18. Generalised Linear Models"</span></span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="an">subtitle:</span><span class="co"> "Extending Regression Beyond Normal Responses"</span></span>
-<span id="cb1-4"><a href="#cb1-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
-<span id="cb1-5"><a href="#cb1-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a><span class="co">---</span></span>
-<span id="cb1-8"><a href="#cb1-8"></a></span>
-<span id="cb1-9"><a href="#cb1-9"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
-<span id="cb1-11"><a href="#cb1-11"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
-<span id="cb1-12"><a href="#cb1-12"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb1-13"><a href="#cb1-13"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb1-14"><a href="#cb1-14"></a>  <span class="at">fig.width =</span> <span class="fl">6.5</span>,</span>
-<span id="cb1-15"><a href="#cb1-15"></a>  <span class="at">fig.height =</span> <span class="fl">4.5</span>,</span>
-<span id="cb1-16"><a href="#cb1-16"></a>  <span class="at">out.width =</span> <span class="st">"88%"</span>,</span>
-<span id="cb1-17"><a href="#cb1-17"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
-<span id="cb1-18"><a href="#cb1-18"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
-<span id="cb1-19"><a href="#cb1-19"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
-<span id="cb1-20"><a href="#cb1-20"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
-<span id="cb1-21"><a href="#cb1-21"></a>)</span>
-<span id="cb1-22"><a href="#cb1-22"></a><span class="in">```</span></span>
-<span id="cb1-23"><a href="#cb1-23"></a></span>
-<span id="cb1-24"><a href="#cb1-24"></a><span class="fu"># Introduction</span></span>
-<span id="cb1-25"><a href="#cb1-25"></a></span>
-<span id="cb1-26"><a href="#cb1-26"></a>Linear regression assumes a normally distributed response with constant variance. Many biological data do not satisfy that structure. Counts, proportions, and binary outcomes require a broader framework.</span>
-<span id="cb1-27"><a href="#cb1-27"></a></span>
-<span id="cb1-28"><a href="#cb1-28"></a>Generalised linear models (GLMs) provide that framework by combining:</span>
-<span id="cb1-29"><a href="#cb1-29"></a></span>
-<span id="cb1-30"><a href="#cb1-30"></a><span class="ss">-   </span>a response distribution,</span>
-<span id="cb1-31"><a href="#cb1-31"></a><span class="ss">-   </span>a linear predictor, and</span>
-<span id="cb1-32"><a href="#cb1-32"></a><span class="ss">-   </span>a link function.</span>
-<span id="cb1-33"><a href="#cb1-33"></a></span>
-<span id="cb1-34"><a href="#cb1-34"></a><span class="fu"># Key Concepts</span></span>
-<span id="cb1-35"><a href="#cb1-35"></a></span>
-<span id="cb1-36"><a href="#cb1-36"></a>The GLM framework rests on a few core components.</span>
-<span id="cb1-37"><a href="#cb1-37"></a></span>
-<span id="cb1-38"><a href="#cb1-38"></a><span class="ss">-   </span>**GLMs** extend linear-model logic to non-normal responses.</span>
-<span id="cb1-39"><a href="#cb1-39"></a><span class="ss">-   </span>**Response distributions** should match the data-generating structure, such as counts or proportions.</span>
-<span id="cb1-40"><a href="#cb1-40"></a><span class="ss">-   </span>**Link functions** connect the linear predictor to the expected response scale.</span>
-<span id="cb1-41"><a href="#cb1-41"></a><span class="ss">-   </span>**Overdispersion** is a practical warning sign that the simplest count model may be inadequate.</span>
-<span id="cb1-42"><a href="#cb1-42"></a><span class="ss">-   </span>**Interpretation still depends on biological question and design**, not only on family choice.</span>
-<span id="cb1-43"><a href="#cb1-43"></a></span>
-<span id="cb1-44"><a href="#cb1-44"></a><span class="fu"># Common Biological GLMs</span></span>
-<span id="cb1-45"><a href="#cb1-45"></a></span>
-<span id="cb1-46"><a href="#cb1-46"></a><span class="ss">-   </span>**Binomial GLM** for presence/absence or success/failure data.</span>
-<span id="cb1-47"><a href="#cb1-47"></a><span class="ss">-   </span>**Poisson GLM** for count data.</span>
-<span id="cb1-48"><a href="#cb1-48"></a><span class="ss">-   </span>**Negative binomial models** when count data are overdispersed.</span>
-<span id="cb1-49"><a href="#cb1-49"></a></span>
-<span id="cb1-50"><a href="#cb1-50"></a><span class="fu"># Why GLMs Matter</span></span>
-<span id="cb1-51"><a href="#cb1-51"></a></span>
-<span id="cb1-52"><a href="#cb1-52"></a>GLMs let us keep the logic of regression while matching the model more closely to the data-generating process.</span>
-<span id="cb1-53"><a href="#cb1-53"></a></span>
-<span id="cb1-54"><a href="#cb1-54"></a><span class="fu"># Source</span></span>
-<span id="cb1-55"><a href="#cb1-55"></a></span>
-<span id="cb1-56"><a href="#cb1-56"></a>This chapter will draw primarily on the material in:</span>
-<span id="cb1-57"><a href="#cb1-57"></a></span>
-<span id="cb1-58"><a href="#cb1-58"></a><span class="ss">-   </span><span class="in">`/Users/ajsmit/Documents/R_local/BCB_Stats/generalised_linear_models.qmd`</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1"></a><span class="co">---</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="an">title:</span><span class="co"> "18. Generalised Linear Models"</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="an">subtitle:</span><span class="co"> "Extending Regression Beyond Normal Responses"</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a><span class="co">---</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a></span>
+<span id="cb5-10"><a href="#cb5-10"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
+<span id="cb5-11"><a href="#cb5-11"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb5-12"><a href="#cb5-12"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
+<span id="cb5-13"><a href="#cb5-13"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-14"><a href="#cb5-14"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-15"><a href="#cb5-15"></a>  <span class="at">fig.width =</span> <span class="fl">6.5</span>,</span>
+<span id="cb5-16"><a href="#cb5-16"></a>  <span class="at">fig.height =</span> <span class="fl">4.5</span>,</span>
+<span id="cb5-17"><a href="#cb5-17"></a>  <span class="at">out.width =</span> <span class="st">"88%"</span>,</span>
+<span id="cb5-18"><a href="#cb5-18"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
+<span id="cb5-19"><a href="#cb5-19"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
+<span id="cb5-20"><a href="#cb5-20"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
+<span id="cb5-21"><a href="#cb5-21"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb5-22"><a href="#cb5-22"></a>)</span>
+<span id="cb5-23"><a href="#cb5-23"></a><span class="in">```</span></span>
+<span id="cb5-24"><a href="#cb5-24"></a></span>
+<span id="cb5-25"><a href="#cb5-25"></a><span class="fu"># Introduction</span></span>
+<span id="cb5-26"><a href="#cb5-26"></a></span>
+<span id="cb5-27"><a href="#cb5-27"></a>The linear model assumes a normally distributed response with constant variance. Many biological data do not have that structure. Counts, proportions, presences and absences, and success-failure outcomes require a broader framework. Generalised linear models (GLMs) provide that framework while retaining the central logic of regression.</span>
+<span id="cb5-28"><a href="#cb5-28"></a></span>
+<span id="cb5-29"><a href="#cb5-29"></a>A GLM combines three parts:</span>
+<span id="cb5-30"><a href="#cb5-30"></a></span>
+<span id="cb5-31"><a href="#cb5-31"></a><span class="ss">1. </span>a response distribution;</span>
+<span id="cb5-32"><a href="#cb5-32"></a><span class="ss">2. </span>a linear predictor;</span>
+<span id="cb5-33"><a href="#cb5-33"></a><span class="ss">3. </span>a link function that connects the linear predictor to the expected response scale.</span>
+<span id="cb5-34"><a href="#cb5-34"></a></span>
+<span id="cb5-35"><a href="#cb5-35"></a>The important point is that GLMs do not replace the regression logic you have already learned. They extend it to different kinds of response variables.</span>
+<span id="cb5-36"><a href="#cb5-36"></a></span>
+<span id="cb5-37"><a href="#cb5-37"></a><span class="fu"># Key Concepts</span></span>
+<span id="cb5-38"><a href="#cb5-38"></a></span>
+<span id="cb5-39"><a href="#cb5-39"></a><span class="ss">-   </span>**GLMs** extend regression to non-normal response variables.</span>
+<span id="cb5-40"><a href="#cb5-40"></a><span class="ss">-   </span>**The family** should match the data-generating structure, such as binomial data for binary outcomes or Poisson data for counts.</span>
+<span id="cb5-41"><a href="#cb5-41"></a><span class="ss">-   </span>**The link function** connects the linear predictor to the response scale.</span>
+<span id="cb5-42"><a href="#cb5-42"></a><span class="ss">-   </span>**Interpretation still depends on the biological question**, not only on the model family.</span>
+<span id="cb5-43"><a href="#cb5-43"></a><span class="ss">-   </span>**Overdispersion** is a warning sign that the simplest GLM may be inadequate.</span>
+<span id="cb5-44"><a href="#cb5-44"></a></span>
+<span id="cb5-45"><a href="#cb5-45"></a><span class="fu"># When This Method Is Appropriate</span></span>
+<span id="cb5-46"><a href="#cb5-46"></a></span>
+<span id="cb5-47"><a href="#cb5-47"></a>You should consider a GLM when:</span>
+<span id="cb5-48"><a href="#cb5-48"></a></span>
+<span id="cb5-49"><a href="#cb5-49"></a><span class="ss">-   </span>the response is binary, such as alive/dead or present/absent;</span>
+<span id="cb5-50"><a href="#cb5-50"></a><span class="ss">-   </span>the response is a proportion based on counts of successes and failures;</span>
+<span id="cb5-51"><a href="#cb5-51"></a><span class="ss">-   </span>the response is a count and cannot sensibly be modelled with a normal distribution;</span>
+<span id="cb5-52"><a href="#cb5-52"></a><span class="ss">-   </span>the variance changes with the mean in a way that a standard linear model does not handle well.</span>
+<span id="cb5-53"><a href="#cb5-53"></a></span>
+<span id="cb5-54"><a href="#cb5-54"></a>This chapter therefore picks up directly from the earlier proportion-testing work and places it in the broader modelling framework where binary and count responses can be analysed with predictors.</span>
+<span id="cb5-55"><a href="#cb5-55"></a></span>
+<span id="cb5-56"><a href="#cb5-56"></a><span class="fu"># Common GLM Families</span></span>
+<span id="cb5-57"><a href="#cb5-57"></a></span>
+<span id="cb5-58"><a href="#cb5-58"></a><span class="fu">## Logistic regression</span></span>
+<span id="cb5-59"><a href="#cb5-59"></a></span>
+<span id="cb5-60"><a href="#cb5-60"></a>Use a **binomial GLM** when the response is binary or a proportion.</span>
+<span id="cb5-61"><a href="#cb5-61"></a></span>
+<span id="cb5-62"><a href="#cb5-62"></a>Examples:</span>
+<span id="cb5-63"><a href="#cb5-63"></a></span>
+<span id="cb5-64"><a href="#cb5-64"></a><span class="ss">-   </span>infection status as a function of temperature and host size;</span>
+<span id="cb5-65"><a href="#cb5-65"></a><span class="ss">-   </span>settlement success as a function of habitat and season;</span>
+<span id="cb5-66"><a href="#cb5-66"></a><span class="ss">-   </span>survival as a function of treatment.</span>
+<span id="cb5-67"><a href="#cb5-67"></a></span>
+<span id="cb5-68"><a href="#cb5-68"></a><span class="fu">## Poisson regression</span></span>
+<span id="cb5-69"><a href="#cb5-69"></a></span>
+<span id="cb5-70"><a href="#cb5-70"></a>Use a **Poisson GLM** when the response is a count.</span>
+<span id="cb5-71"><a href="#cb5-71"></a></span>
+<span id="cb5-72"><a href="#cb5-72"></a>Examples:</span>
+<span id="cb5-73"><a href="#cb5-73"></a></span>
+<span id="cb5-74"><a href="#cb5-74"></a><span class="ss">-   </span>number of individuals per quadrat;</span>
+<span id="cb5-75"><a href="#cb5-75"></a><span class="ss">-   </span>number of flowers per plant;</span>
+<span id="cb5-76"><a href="#cb5-76"></a><span class="ss">-   </span>number of parasite eggs per host.</span>
+<span id="cb5-77"><a href="#cb5-77"></a></span>
+<span id="cb5-78"><a href="#cb5-78"></a><span class="fu">## Overdispersed count models</span></span>
+<span id="cb5-79"><a href="#cb5-79"></a></span>
+<span id="cb5-80"><a href="#cb5-80"></a>If the count variance is much larger than the mean, a simple Poisson model may be too restrictive. In such cases, a **negative binomial model** or another overdispersion-aware model is often more appropriate.</span>
+<span id="cb5-81"><a href="#cb5-81"></a></span>
+<span id="cb5-82"><a href="#cb5-82"></a><span class="fu"># R Functions</span></span>
+<span id="cb5-83"><a href="#cb5-83"></a></span>
+<span id="cb5-84"><a href="#cb5-84"></a>The main function is <span class="in">`glm()`</span>:</span>
+<span id="cb5-85"><a href="#cb5-85"></a></span>
+<span id="cb5-88"><a href="#cb5-88"></a><span class="in">```{r}</span></span>
+<span id="cb5-89"><a href="#cb5-89"></a><span class="co">#| eval: false</span></span>
+<span id="cb5-90"><a href="#cb5-90"></a><span class="fu">glm</span>(response <span class="sc">~</span> predictors, <span class="at">family =</span> ..., <span class="at">data =</span> df)</span>
+<span id="cb5-91"><a href="#cb5-91"></a><span class="in">```</span></span>
+<span id="cb5-92"><a href="#cb5-92"></a></span>
+<span id="cb5-93"><a href="#cb5-93"></a>A logistic regression might look like:</span>
+<span id="cb5-94"><a href="#cb5-94"></a></span>
+<span id="cb5-97"><a href="#cb5-97"></a><span class="in">```{r}</span></span>
+<span id="cb5-98"><a href="#cb5-98"></a><span class="co">#| eval: false</span></span>
+<span id="cb5-99"><a href="#cb5-99"></a><span class="fu">glm</span>(<span class="fu">cbind</span>(successes, failures) <span class="sc">~</span> temperature <span class="sc">+</span> treatment,</span>
+<span id="cb5-100"><a href="#cb5-100"></a>    <span class="at">family =</span> binomial,</span>
+<span id="cb5-101"><a href="#cb5-101"></a>    <span class="at">data =</span> df)</span>
+<span id="cb5-102"><a href="#cb5-102"></a><span class="in">```</span></span>
+<span id="cb5-103"><a href="#cb5-103"></a></span>
+<span id="cb5-104"><a href="#cb5-104"></a>or, for a binary response:</span>
+<span id="cb5-105"><a href="#cb5-105"></a></span>
+<span id="cb5-108"><a href="#cb5-108"></a><span class="in">```{r}</span></span>
+<span id="cb5-109"><a href="#cb5-109"></a><span class="co">#| eval: false</span></span>
+<span id="cb5-110"><a href="#cb5-110"></a><span class="fu">glm</span>(presence <span class="sc">~</span> salinity <span class="sc">+</span> habitat,</span>
+<span id="cb5-111"><a href="#cb5-111"></a>    <span class="at">family =</span> binomial,</span>
+<span id="cb5-112"><a href="#cb5-112"></a>    <span class="at">data =</span> df)</span>
+<span id="cb5-113"><a href="#cb5-113"></a><span class="in">```</span></span>
+<span id="cb5-114"><a href="#cb5-114"></a></span>
+<span id="cb5-115"><a href="#cb5-115"></a>A count model might look like:</span>
+<span id="cb5-116"><a href="#cb5-116"></a></span>
+<span id="cb5-119"><a href="#cb5-119"></a><span class="in">```{r}</span></span>
+<span id="cb5-120"><a href="#cb5-120"></a><span class="co">#| eval: false</span></span>
+<span id="cb5-121"><a href="#cb5-121"></a><span class="fu">glm</span>(count <span class="sc">~</span> reef <span class="sc">+</span> depth,</span>
+<span id="cb5-122"><a href="#cb5-122"></a>    <span class="at">family =</span> poisson,</span>
+<span id="cb5-123"><a href="#cb5-123"></a>    <span class="at">data =</span> df)</span>
+<span id="cb5-124"><a href="#cb5-124"></a><span class="in">```</span></span>
+<span id="cb5-125"><a href="#cb5-125"></a></span>
+<span id="cb5-126"><a href="#cb5-126"></a><span class="fu"># A Practical Workflow</span></span>
+<span id="cb5-127"><a href="#cb5-127"></a></span>
+<span id="cb5-128"><a href="#cb5-128"></a>The teaching workflow remains familiar:</span>
+<span id="cb5-129"><a href="#cb5-129"></a></span>
+<span id="cb5-130"><a href="#cb5-130"></a><span class="ss">1. </span>identify the biological question;</span>
+<span id="cb5-131"><a href="#cb5-131"></a><span class="ss">2. </span>identify the response structure;</span>
+<span id="cb5-132"><a href="#cb5-132"></a><span class="ss">3. </span>choose a family that matches the response;</span>
+<span id="cb5-133"><a href="#cb5-133"></a><span class="ss">4. </span>fit the model;</span>
+<span id="cb5-134"><a href="#cb5-134"></a><span class="ss">5. </span>inspect model adequacy, especially for overdispersion and fit;</span>
+<span id="cb5-135"><a href="#cb5-135"></a><span class="ss">6. </span>interpret coefficients on the correct scale.</span>
+<span id="cb5-136"><a href="#cb5-136"></a></span>
+<span id="cb5-137"><a href="#cb5-137"></a>The new difficulty is that the coefficients are often estimated on the **link scale**, so interpretation requires more care than in an ordinary linear model.</span>
+<span id="cb5-138"><a href="#cb5-138"></a></span>
+<span id="cb5-139"><a href="#cb5-139"></a><span class="fu"># Interpretation and Reporting</span></span>
+<span id="cb5-140"><a href="#cb5-140"></a></span>
+<span id="cb5-141"><a href="#cb5-141"></a>In GLMs, interpretation often needs to distinguish between:</span>
+<span id="cb5-142"><a href="#cb5-142"></a></span>
+<span id="cb5-143"><a href="#cb5-143"></a><span class="ss">-   </span>the coefficient on the link scale;</span>
+<span id="cb5-144"><a href="#cb5-144"></a><span class="ss">-   </span>the effect on the response scale;</span>
+<span id="cb5-145"><a href="#cb5-145"></a><span class="ss">-   </span>the biological meaning of that effect.</span>
+<span id="cb5-146"><a href="#cb5-146"></a></span>
+<span id="cb5-147"><a href="#cb5-147"></a>For example, in logistic regression a positive coefficient means the log-odds of success increase with the predictor. In practice, it is often clearer to translate that into statements about the probability of success increasing or decreasing rather than reporting only the raw coefficient.</span>
+<span id="cb5-148"><a href="#cb5-148"></a></span>
+<span id="cb5-149"><a href="#cb5-149"></a><span class="fu"># Common Mistakes</span></span>
+<span id="cb5-150"><a href="#cb5-150"></a></span>
+<span id="cb5-151"><a href="#cb5-151"></a>Common mistakes include:</span>
+<span id="cb5-152"><a href="#cb5-152"></a></span>
+<span id="cb5-153"><a href="#cb5-153"></a><span class="ss">-   </span>choosing a family because it is familiar rather than because it matches the response;</span>
+<span id="cb5-154"><a href="#cb5-154"></a><span class="ss">-   </span>fitting Poisson models to strongly overdispersed counts;</span>
+<span id="cb5-155"><a href="#cb5-155"></a><span class="ss">-   </span>interpreting link-scale coefficients as though they were ordinary linear slopes;</span>
+<span id="cb5-156"><a href="#cb5-156"></a><span class="ss">-   </span>forgetting that diagnostics still matter in GLMs.</span>
+<span id="cb5-157"><a href="#cb5-157"></a></span>
+<span id="cb5-158"><a href="#cb5-158"></a><span class="fu"># Summary</span></span>
+<span id="cb5-159"><a href="#cb5-159"></a></span>
+<span id="cb5-160"><a href="#cb5-160"></a><span class="ss">-   </span>GLMs extend regression to binary, proportional, and count responses.</span>
+<span id="cb5-161"><a href="#cb5-161"></a><span class="ss">-   </span>The model family should match the response structure.</span>
+<span id="cb5-162"><a href="#cb5-162"></a><span class="ss">-   </span>Logistic and Poisson models are the most common introductory GLMs.</span>
+<span id="cb5-163"><a href="#cb5-163"></a><span class="ss">-   </span>Overdispersion is an important practical warning sign.</span>
+<span id="cb5-164"><a href="#cb5-164"></a><span class="ss">-   </span>The regression logic is unchanged, but interpretation becomes more careful because of the link function.</span>
+<span id="cb5-165"><a href="#cb5-165"></a></span>
+<span id="cb5-166"><a href="#cb5-166"></a>This chapter broadens the modelling family. The next chapter turns from non-normal responses to relationships that are not well described by straight lines.</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

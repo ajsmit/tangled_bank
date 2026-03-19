@@ -4,6 +4,7 @@ subtitle: "When Observations Are Not Independent"
 author: "A. J. Smit"
 date: last-modified
 date-format: "YYYY/MM/DD"
+reference-location: margin
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -23,45 +24,96 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Many datasets contain dependence that simple regression and ANOVA do not handle well. Repeated measures, nested sampling, temporal autocorrelation, and spatial clustering all violate the assumption that observations contribute fully independent information.
+The regression and ANOVA chapters up to this point have assumed that observations are independent. That assumption is often violated in biological data. Repeated measures on the same individual, quadrats within sites, sites within regions, and observations collected through time or space all create structure that ordinary regression does not handle well.
 
-This chapter links that problem to the logic of mixed-effects models.
+When dependence is ignored, the analysis often becomes overconfident. Standard errors become too small, tests become too optimistic, and the model starts treating repeated information as though it were new information. That is one of the main ways pseudoreplication appears at the analysis stage.
+
+Mixed-effects models are one of the main tools for dealing with this problem. They allow us to model systematic effects of biological interest while also accounting for structured variation among groups, individuals, sites, years, or other sampling units.
 
 # Key Concepts
 
-These ideas explain why mixed models enter the workflow.
+-   **Dependence** means observations are not fully independent of one another.
+-   **Hierarchical structure** arises when observations are nested within larger units such as sites, transects, or years.
+-   **Repeated measures** create dependence because the same unit is observed more than once.
+-   **Fixed effects** represent the systematic effects of primary interest.
+-   **Random effects** represent structured variation among groups or sampling units.
 
--   **Dependence** means observations share structure and are not fully independent.
--   **Nested and repeated-measures data** are common sources of dependence.
--   **Mixed-effects models** separate fixed effects from group-level random variation.
--   **Ignoring dependence** often produces overconfident inference.
--   **Model structure should reflect sampling structure** as well as the biological question.
+# When This Method Is Appropriate
 
-# Main Ideas
+You should begin thinking about mixed models when:
 
--   **Dependence** can arise from time, space, hierarchy, or repeated measurement.
--   **Pseudoreplication** can occur at the analysis stage when dependence is ignored.
--   **Mixed-effects models** allow part of the variation to be modelled at the group level rather than forcing all observations into a single independent structure.
+-   the same individual, plot, site, or unit is measured repeatedly;
+-   samples are nested within larger sampling units;
+-   the design has obvious grouping structure;
+-   you suspect pseudoreplication if the data are analysed as though they were independent.
 
-# Common Cases
+Typical cases include:
 
--   quadrats within sites,
--   repeated measures on the same individual,
--   observations nested within years, bays, or transects,
--   temporal or spatial autocorrelation.
+-   quadrats within sites;
+-   repeated measurements on the same animals;
+-   transects within bays;
+-   observations nested within years or regions.
 
-# Why Mixed Models Help
+# Why Dependence Matters
 
-Mixed models separate:
+If dependence is ignored, the model behaves as though the effective sample size is larger than it really is. That is dangerous because the model may report precise-looking coefficients and small *p*-values that are artefacts of the design rather than genuine evidence.
 
--   **fixed effects**, which represent the systematic effects of interest, and
--   **random effects**, which capture structured variation among groups or units.
+The first question should therefore not be "which function shall I use?" but "what is the sampling structure of the data?" In mixed modelling, the sampling structure is part of the model specification.
 
-They are often the right next step when dependence is real and biologically meaningful.
+# R Functions
 
-# Links
+The most common R functions for mixed models include:
 
-This chapter consolidates:
+-   `lmer()` from **lme4** for linear mixed-effects models;
+-   `glmer()` from **lme4** for generalised mixed-effects models;
+-   `nlme::lme()` for linear mixed models with more explicit correlation structures.
 
--   `22-data-dependence.qmd`
--   `23-mixed-models.qmd`
+The basic idea is to extend the linear predictor by adding random effects. For example:
+
+```{r}
+#| eval: false
+lme4::lmer(response ~ treatment + (1 | site), data = df)
+```
+
+This model says:
+
+-   the fixed effect of `treatment` is of primary interest;
+-   observations are grouped by `site`;
+-   each site has its own random intercept.
+
+A model with repeated observations on the same individual might look like:
+
+```{r}
+#| eval: false
+lme4::lmer(response ~ time * treatment + (1 | individual), data = df)
+```
+
+# A Practical Workflow
+
+For these chapters, the main workflow is:
+
+1. identify the biological question;
+2. identify the unit of replication and the grouping structure;
+3. decide which effects are fixed and which are random;
+4. fit the mixed model only after the sampling structure is clear;
+5. interpret the fixed effects in the light of the grouping structure.
+
+This sequence matters because mixed models are not simply more complicated regressions. They are a response to a different kind of data structure.
+
+# Common Mistakes
+
+Common mistakes include:
+
+-   treating repeated measurements as though they were independent observations;
+-   using a mixed model without being able to explain the random effect biologically;
+-   confusing random effects with nuisance terms that can be added thoughtlessly;
+-   trying to use mixed models to rescue a fundamentally weak design.
+
+# Summary
+
+-   Mixed models are needed when observations are not independent.
+-   The grouping structure of the data is part of the model, not an afterthought.
+-   Random effects help account for repeated measures and hierarchical sampling.
+-   Ignoring dependence often leads to overconfident inference.
+
+This chapter marks the transition from ordinary models for independent data to models that better reflect real sampling structure. In later work, mixed models also combine naturally with generalised and nonlinear modelling frameworks.
