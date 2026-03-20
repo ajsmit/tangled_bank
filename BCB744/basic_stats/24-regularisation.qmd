@@ -43,6 +43,16 @@ lambdas_to_try <- 10 ^ seq(-3, 3, length.out = 100)
 alphas_to_try <- seq(0, 1, by = 0.1)
 ```
 
+::: {.callout-note appearance="simple"}
+## In This Chapter
+
+-   Why regularisation is useful in high-dimensional or collinear settings
+-   The logic of ridge, lasso, and elastic net
+-   How coefficient shrinkage changes model behaviour
+-   Why cross-validation is needed
+-   How regularisation relates to prediction and explanation
+:::
+
 # Introduction
 
 Regularisation techniques are useful when ordinary multiple regression starts to struggle under the weight of many predictors, overlapping predictors, or a modelling goal that leans more toward prediction than explanation. In that setting, ordinary least squares can produce unstable coefficients, poor generalisation, and models that appear stronger in the sample than they really are.
@@ -88,19 +98,29 @@ The point is not to recover perfectly unbiased coefficients. The point is to get
 
 ## Ridge Regression
 
-Ridge regression adds a penalty proportional to the squared size of the coefficients. Large coefficients are penalised more heavily, so the fitted model shrinks them towards zero without setting them exactly to zero.
+Ridge regression adds a penalty proportional to the squared size of the coefficients. Large coefficients are penalised more heavily, so the fitted model shrinks them towards zero without setting them exactly to zero:
+
+$$\min_{\beta}\left\{\sum_{i=1}^{n}(y_i-\hat{y}_i)^2 + \lambda \sum_{j=1}^{p}\beta_j^2\right\}$$ {#eq-ridge}
 
 The practical effect is that all predictors remain in the model, but the most unstable coefficients are tamed. Ridge is therefore especially useful when multicollinearity is the main problem and you do not necessarily want automatic variable removal.
 
 ## Lasso Regression
 
-Lasso regression uses a penalty based on the absolute values of the coefficients. This has an important consequence: some coefficients can be shrunk all the way to zero.
+Lasso regression uses a penalty based on the absolute values of the coefficients:
+
+$$\min_{\beta}\left\{\sum_{i=1}^{n}(y_i-\hat{y}_i)^2 + \lambda \sum_{j=1}^{p}|\beta_j|\right\}$$ {#eq-lasso}
+
+This has an important consequence: some coefficients can be shrunk all the way to zero.
 
 That means lasso does two jobs at once. It shrinks the model, and it can also perform automatic variable selection. When you have many candidate predictors and suspect that some contribute little to predictive performance, lasso can be attractive.
 
 ## Elastic Net
 
-Elastic net combines the ridge and lasso penalties. It is useful when predictors are strongly correlated and you want a compromise between coefficient shrinkage and variable selection.
+Elastic net combines the ridge and lasso penalties:
+
+$$\min_{\beta}\left\{\sum_{i=1}^{n}(y_i-\hat{y}_i)^2 + \lambda \left[(1-\alpha)\sum_{j=1}^{p}\beta_j^2 + \alpha \sum_{j=1}^{p}|\beta_j|\right]\right\}$$ {#eq-elastic}
+
+Equations @eq-ridge, @eq-lasso, and @eq-elastic all use $\lambda$ to control the strength of shrinkage, while the elastic-net parameter $\alpha$ controls the balance between ridge-like and lasso-like behaviour.
 
 In practice, elastic net is often a strong default when you are unsure whether ridge or lasso is the more appropriate starting point.
 
@@ -223,9 +243,21 @@ In this seaweed example, the regularised model still retains all climatic predic
 
 ## Reporting
 
-A journal-style Results statement could read:
+::: {.callout-note appearance="simple"}
+## Marine Biology Write-Up
 
-Ridge regression was fitted to the seaweed climate data using 10-fold cross-validation to select the optimal penalty parameter. The final model retained all five climatic predictors and explained a substantial proportion of the variation in the response (`R^2` approximately `r round(ridge_rsq, 2)`). The purpose of the analysis was not strict coefficient interpretation, but improved coefficient stability and predictive behaviour under overlapping climatic predictors.
+**Methods**
+
+> Ridge regression was fitted to the seaweed climate data using 10-fold cross-validation to select the optimal penalty parameter. The predictors were entered as a matrix and the response was centred prior to fitting.
+
+**Results**
+
+> The final ridge model retained all five climatic predictors and explained a substantial proportion of the variation in the response (`R^2` approximately `r round(ridge_rsq, 2)`). The regularised fit reduced coefficient instability while preserving the full predictor set.
+
+**Discussion**
+
+> The point of ridge regression is not exact coefficient interpretation. In Discussion, the emphasis would be that shrinkage improved model stability and predictive behaviour under overlapping climatic predictors.
+:::
 
 # Example 2: Lasso Regression
 
@@ -297,9 +329,21 @@ In the seaweed example, the chosen penalty reduces the effective model complexit
 
 ## Reporting
 
-A journal-style Results statement could read:
+::: {.callout-note appearance="simple"}
+## Marine Biology Write-Up
 
-Lasso regression was fitted to the seaweed climate data with the penalty chosen by 10-fold cross-validation. The regularised fit reduced model complexity by shrinking weak coefficients strongly and, where appropriate, setting some coefficients to zero. The final model explained substantial variation in the response (`R^2` approximately `r round(lasso_rsq, 2)`) while providing a more compact predictor set than ridge regression.
+**Methods**
+
+> Lasso regression was fitted to the seaweed climate data, with the amount of shrinkage selected by 10-fold cross-validation. The purpose was to assess whether coefficient shrinkage combined with variable removal could produce a more compact predictive model.
+
+**Results**
+
+> The regularised fit reduced model complexity by shrinking weak coefficients strongly and, where appropriate, setting some coefficients to zero. The final model explained substantial variation in the response (`R^2` approximately `r round(lasso_rsq, 2)`) while providing a more compact predictor set than ridge regression.
+
+**Discussion**
+
+> Lasso offers a bridge between prediction and variable selection. The simplified model is useful when the goal is not only stability, but also a more compact predictor set.
+:::
 
 # Example 3: Elastic Net Regression
 
@@ -374,9 +418,21 @@ Elastic net is often useful when predictors occur in correlated groups. Lasso ma
 
 ## Reporting
 
-A journal-style Results statement could read:
+::: {.callout-note appearance="simple"}
+## Marine Biology Write-Up
 
-Elastic net regression was used to model the seaweed response with both the mixing parameter and penalty term selected by cross-validation. The optimal model combined coefficient shrinkage with variable reduction (`alpha =` `r best_alpha`), explained substantial variation in the response (`R^2` approximately `r round(elastic_rsq, 2)`), and provided a stable compromise between ridge and lasso behaviour.
+**Methods**
+
+> Elastic net regression was used to model the seaweed response, with both the mixing parameter and the penalty term selected by cross-validation. This allowed the model to combine ridge-like shrinkage with lasso-like variable reduction.
+
+**Results**
+
+> The optimal model combined coefficient shrinkage with variable reduction (`alpha =` `r best_alpha`), explained substantial variation in the response (`R^2` approximately `r round(elastic_rsq, 2)`), and provided a stable compromise between ridge and lasso behaviour.
+
+**Discussion**
+
+> The value of elastic net is pragmatic balance: it handles correlated predictors more flexibly than lasso alone while still allowing the model to simplify where the data support that.
+:::
 
 # Theory-Driven and Data-Driven Variable Selection
 
