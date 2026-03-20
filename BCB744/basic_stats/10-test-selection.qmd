@@ -28,8 +28,9 @@ ggplot2::theme_set(
 
 -   How to connect the biological question to the statistical method
 -   Choosing among the core methods already introduced
+-   A visual decision aid for moving from question to method
 -   When to consider non-parametric alternatives
--   How this chapter links the inferential material to the modelling chapters
+-   How this chapter links the inferential material to the modelling chapters and later extensions
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -37,6 +38,10 @@ ggplot2::theme_set(
 
 -   None
 :::
+
+```{r code-libraries, echo=FALSE}
+library(tidyverse)
+```
 
 # Introduction
 
@@ -50,21 +55,21 @@ By the time you reach this chapter, you have already met the main inferential to
 -   proportion tests;
 -   their most common non-parametric alternatives.
 
-This chapter draws those threads together. Its purpose is to help you choose among the tests you already know.
+This chapter helps you choose among the tests you already know.
 
 # Key Concepts
 
-The practical rule is to choose a method by question, data structure, and design together.
+A rule of thumb to follow is to choose a method by question, data structure, and design together.
 
 -   **Test selection starts with the question**, not the software function.
--   **Variable type matters** because some methods are only appropriate for continuous data, others for counts, categories, or binary outcomes.
--   **Design matters** because independence, pairing, and repeated measurement change the appropriate analysis.
+-   **Variable type is important** because some methods are only appropriate for continuous data, others for counts, categories, or binary outcomes.
+-   **Design is also important** because independence, pairing, and repeated measurement change the appropriate analysis.
 -   **Assumptions matter** because they determine whether a parametric method is reasonable or whether an alternative is needed.
 -   **Methods connect** because the logic of one-sample tests, group comparisons, association, and modelling forms a sequence rather than a collection of unrelated techniques.
 
-# The Decision Sequence
+# The Decision Steps
 
-Before naming a test, work through the following questions in order:
+To find the right test, work through the following questions in order:
 
 1. What is the biological question?
 2. What is the response variable, and what kind of data is it?
@@ -73,6 +78,56 @@ Before naming a test, work through the following questions in order:
 5. Are the assumptions of the preferred method plausible?
 
 If you can answer those five questions clearly, the correct family of methods is usually obvious.
+
+# A Visual Decision Aid
+
+The chapter approach is summarised in @fig-method-selection-grid. Although you cannot avoid understanding the methods, the figure provides a quick glance to take you from the biological question to the method family.
+
+```{r fig-method-selection-grid}
+#| echo: false
+#| fig-cap: "A compact decision grid linking common biological question types to the core method and the next extension when the problem becomes more complex."
+#| fig-width: 9
+#| fig-height: 5.5
+
+decision_grid <- tribble(
+  ~question, ~core_method, ~next_extension,
+  "One mean or one proportion", "One-sample t-test or proportion test", "Wilcoxon signed-rank test or binomial / GLM extension",
+  "Two independent groups", "Two-sample t-test", "Wilcoxon rank-sum test or regression / GLM",
+  "Paired or before-after data", "Paired t-test", "Wilcoxon signed-rank test or mixed model",
+  "Three or more groups", "ANOVA", "Kruskal-Wallis or factorial / mixed-model extension",
+  "Two variables vary together", "Pearson / Spearman / Kendall correlation", "Regression if one variable is a response",
+  "Continuous response with predictors", "Linear regression", "Polynomial, multiple regression, interactions",
+  "Binary or proportional response", "Proportion tests (simple cases)", "GLMs: logistic or beta-style approaches",
+  "Count response", "Not a core introductory test", "GLMs: Poisson / negative binomial",
+  "Repeated or nested observations", "Not handled by core independent-sample tests", "Mixed models / hierarchical models",
+  "Curved but smooth relationship", "Not handled well by straight-line models", "GAMs",
+  "Mechanistic nonlinear response", "Not handled well by straight-line models", "Nonlinear regression / GNLM-style extensions"
+) |>
+  mutate(row = rev(row_number()))
+
+tile_cols <- c(
+  question = "#D9E6F2",
+  core_method = "#E8F0D8",
+  next_extension = "#F6E1C3"
+)
+
+bind_rows(
+  decision_grid |> transmute(column = "Question Structure", row, text = question, fill = tile_cols["question"]),
+  decision_grid |> transmute(column = "Core Choice", row, text = core_method, fill = tile_cols["core_method"]),
+  decision_grid |> transmute(column = "Next Extension", row, text = next_extension, fill = tile_cols["next_extension"])
+) |>
+  ggplot(aes(x = column, y = row)) +
+  geom_tile(aes(fill = fill), colour = "white", width = 0.98, height = 0.95) +
+  geom_text(aes(label = text), size = 2.8, lineheight = 0.95) +
+  scale_fill_identity() +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(x = NULL) +
+  theme_grey() +
+  theme(
+    axis.text.x = element_text(size = 9, face = "bold"),
+    panel.grid = element_blank()
+  )
+```
 
 # Choosing by Question Type
 
@@ -84,7 +139,12 @@ If you have a single sample and want to compare it against a known or hypothesis
 -   use a **one-sample Wilcoxon signed-rank test** when the one-sample *t*-test assumptions fail badly;
 -   use a **one-sample proportion test** when the response is binary and the question concerns a probability of success.
 
-This is the logic developed in [07-t_tests.qmd](07-t_tests.qmd).
+Typical example questions include:
+
+-   Is the mean height of a sample of *Protea* plants different from a known population mean?
+-   Is the proportion of African penguins foraging in one colony different from an established reference proportion?
+
+This is the approach developed in [Chapter 7: *t*-Tests](07-t_tests.qmd).
 
 ## Is the question about two groups?
 
@@ -96,7 +156,13 @@ If you want to compare two groups:
 -   use a **Wilcoxon signed-rank test** for non-parametric paired data;
 -   use a **two-sample proportion test** when the response is binary and the question concerns two proportions.
 
-Again, this logic comes directly out of [07-t_tests.qmd](07-t_tests.qmd).
+Typical example questions include:
+
+-   Is the average number of leopard cubs per female different between the Overberg and Cederberg regions?
+-   Did piglet body mass change between the start and end of a feeding period?
+-   Do two beaches differ in the proportion of hatchling sea turtles that reach the ocean?
+
+Again, this thinking is developed [Chapter 7: *t*-Tests](07-t_tests.qmd).
 
 ## Is the question about three or more groups?
 
@@ -106,7 +172,12 @@ If the response is continuous and the predictor is a categorical factor with thr
 -   use a **factorial ANOVA** when more than one categorical factor is involved;
 -   use a **Kruskal-Wallis test** when a one-way ANOVA is not appropriate and a rank-based alternative is acceptable.
 
-This is the territory of [08-anova.qmd](08-anova.qmd).
+Typical example questions include:
+
+-   Does grasshopper chirp rate differ among the four seasons?
+-   Do mean responses differ among several treatments, habitats, or vegetation types?
+
+See [Chapter 8: ANOVA](08-anova.qmd) for further information about ANOVAs.
 
 ## Is the question about association between two variables?
 
@@ -114,9 +185,14 @@ If the question is whether two variables vary together:
 
 -   use **Pearson correlation** for approximately linear association among continuous variables;
 -   use **Spearman** or **Kendall** correlation when rank-based association is more appropriate;
--   move to **regression** if the real question is one of response and predictor rather than simple association.
+-   use **regression** instead if the real question is one of response and predictor rather than simple association.
 
-This is the logic developed in [09-correlation-and-association.qmd](09-correlation-and-association.qmd).
+Typical example questions include:
+
+-   Do kelp stipe length and frond length co-vary across individuals?
+-   Do two ranked biological traits increase together even when a linear model is not the right first description?
+
+These methods are explored in [Chapter 9: Correlation and Association](09-correlation-and-association.qmd).
 
 # Choosing by Data Structure
 
@@ -124,7 +200,7 @@ Another way to choose a method is to start with the data structure.
 
 ## Continuous response with a categorical predictor
 
-This is the classical comparison-of-means setting:
+This is the basic comparison-of-means method:
 
 -   one group against a reference value → one-sample *t*-test;
 -   two groups → two-sample *t*-test;
@@ -133,23 +209,73 @@ This is the classical comparison-of-means setting:
 
 ## Continuous response with a continuous explanatory variable
 
-This is where the distinction between association and modelling becomes important:
+Here the distinction between *association* and *modelling* becomes important:
 
 -   use **correlation** when the goal is to quantify association;
 -   use **regression** when the goal is to model a response.
 
+Typical example questions include:
+
+-   How does bill length change with body mass in Adelie penguins?
+-   Does algal abundance change with nutrient concentration once other predictors are considered?
+
 ## Binary response
 
-When the response is a success/failure outcome summarised as a proportion:
+When the response is, for example, a success/failure outcome summarised as a proportion:
 
 -   use **proportion tests** for one-sample or two-sample proportion questions;
--   move later to **generalised linear models** when the structure becomes more complicated.
+-   go later to **generalised linear models** when the structure becomes more complicated.
+
+Typical example questions include:
+
+-   Does settlement success change with habitat or salinity?
+-   Is survival probability better modelled as a function of treatment, size, or site?
+
+## Count response
+
+Counts such as numbers of offspring, parasites, seeds, or individuals per quadrat usually do not belong in the same family as mean-comparison tests.
+
+-   use **generalised linear models** with Poisson or negative-binomial logic when the response is a count;
+-   consider overdispersion explicitly rather than forcing count data into a normal model.
+
+Typical example questions include:
+
+-   How does parasite load change with host size?
+-   Does quadrat-level abundance depend on reef, depth, or season?
+
+## Repeated, clustered, or hierarchical data
+
+If observations are repeated on the same individual, nested within sites, repeated within a time stratum, then the basic independent-sample tests are no longer enough.
+
+-   move to **mixed-effects or hierarchical models** when repeated or nested structure matters;
+-   treat this as a design issue (*i.e.*, it is implicit in experimental design) first, not as a software fix added at the end.
+
+Typical example questions include:
+
+-   Do repeated chlorophyll-*a* measurements differ through time once bay or year is accounted for?
+-   Does a treatment effect persist after recognising sites as random sampling units?
+
+# Extending Beyond the Staple Tests
+
+The first half of this module focuses on the staple or core inferential statistical tools because they teach the reasoning behind matching a question to the data. But the full statistical toolbox is broader than the introductory named tests.
+
+The important extensions are:
+
+-   **Simple linear regression** when the response is continuous and the question is about one predictor and one response.
+-   **Multiple linear regression** when the response is continuous and several predictors are needed together.
+-   **Generalised linear models (GLMs)** when the response is binary, proportional, or count-based.
+-   **Generalised additive models (GAMs)** when the response is clearly curved and a smooth data-driven mean structure is needed.
+-   **Nonlinear regression** when the biology suggests a specific mechanistic curve.
+-   **Generalised nonlinear models (GNLM-style extensions)** when the response is both non-normal and nonlinear; these are advanced extensions rather than basic introductory methods, but they belong in the broader conceptual landscape.
+-   **Mixed and hierarchical models** when observations are repeated, clustered, or nested.
+
+Those methods are not random extras. They are what the introductory tests grow into once the question becomes richer, the data structure becomes more realistic, or the response no longer fits the simple Gaussian setting.
 
 # Assumptions and Alternatives
 
-Parametric methods are often preferred because they use more information from the data and are usually more powerful when their assumptions are reasonable. But this does not mean that you force a parametric method onto unsuitable data.
+Parametric methods are preferred because they use more information from the data and are usually more powerful when their assumptions are reasonable. However, this does not mean that you must force a parametric method onto unsuitable data.
 
-The practical sequence is:
+A practical guide is:
 
 1. choose the method that matches the question and design;
 2. check whether its assumptions are plausible;
@@ -162,7 +288,7 @@ For the material covered so far, the most important alternatives are:
 -   one-way ANOVA → `kruskal.test()`;
 -   Pearson correlation → Spearman or Kendall correlation.
 
-Assumption checking itself is discussed in [06-assumptions-and-transformations.qmd](06-assumptions-and-transformations.qmd).
+Assumption checking itself is discussed in [Chapter 6](06-assumptions-and-transformations.qmd).
 
 # Common Mistakes in Test Selection
 
@@ -175,21 +301,24 @@ These are the most common reasons students choose the wrong method:
 -   switching to a non-parametric test without first understanding which assumption has failed;
 -   treating a binary response as if it were continuous.
 
-# Where This Leads Next
+# Now Where?
 
-This chapter closes the first inferential block of the course. The next chapters move into modelling:
+This chapter closes the first inferential block ("basic statistics") of the course. The next chapters turn to modelling:
 
--   [11-simple-linear-regression.qmd](11-simple-linear-regression.qmd)
--   [12-polynomial-regression.qmd](12-polynomial-regression.qmd)
--   [13-multiple-regression-and-model-specification.qmd](13-multiple-regression-and-model-specification.qmd)
+-   [Chapter 11: Simple Linear Regression](11-simple-linear-regression.qmd)
+-   [Chapter 12: Polynomial Regression](12-polynomial-regression.qmd)
+-   [Chapter 13: Multipleregression and Model Specification](13-multiple-regression-and-model-specification.qmd)
 
-Later in the sequence, those core modelling chapters extend into specialised models, then into:
+In later chapters, those modelling chapters extend into specialised models, then into:
 
--   [23-prediction-and-explanation.qmd](23-prediction-and-explanation.qmd)
--   [24-regularisation.qmd](24-regularisation.qmd)
--   [25-reproducible-workflow.qmd](25-reproducible-workflow.qmd)
+-   [Chapter 19: Generalised Linear Models](19-generalised-linear-models.qmd)
+-   [Chapter 20: Generalised Additive Models](20-generalised-additive-models.qmd)
+-   [Chapter 21: Nonlinear Regression](21-nonlinear-regression.qmd)
+-   [Chapter 23: Prediction and Explanation](23-prediction-and-explanation.qmd)
+-   [Chapter 24: Regularisation](24-regularisation.qmd)
+-   [Chapter 25: Reproducible Workflow](25-reproducible-workflow.qmd)
 
-That transition matters. Once your question becomes one of explicit response modelling rather than group comparison or simple association, you are leaving the world of named introductory tests and entering the world of models.
+Once your question becomes one of explicit response modelling rather than group comparison or simple association, you are leaving the world of named introductory tests and entering the world of model building.
 
 # Summary
 
@@ -200,5 +329,6 @@ Choose a method in this order:
 3. Decide whether observations are independent, paired, or repeated.
 4. Match the problem to the correct method family.
 5. Check assumptions and use alternatives only for a clear reason.
+6. Move to the richer model family when the response structure or design requires it.
 
-If you follow this sequence, you will usually arrive at the right test without having to memorise statistics as a disconnected list.
+If you follow this sequence, you will usually arrive at the right method family without having to memorise statistics as a disconnected list.
