@@ -31,6 +31,7 @@ library(car)
 library(ggfortify)
 library(viridis)
 library(broom)
+library(gt)
 palette(viridis(8))
 ```
 
@@ -41,6 +42,7 @@ palette(viridis(8))
 -   how a multiple regression extends the simple linear model;
 -   why model specification is part of the scientific argument;
 -   how to think about omitted variables, proxies, and categorical predictors;
+-   how dummy-variable coding works in practice for real bioregions;
 -   how to fit and interpret a worked multiple regression example;
 -   how interactions and contrasts fit into the broader multiple-regression workflow.
 :::
@@ -168,7 +170,7 @@ sw_ectz <- sw |>
 sw_sub1 <- sw_ectz[, c("Y", "augMean", "febRange", "febSD", "augSD", "annMean")]
 ```
 
-# Do an Exploratory Data Analysis (EDA)
+## Do an Exploratory Data Analysis (EDA)
 
 We first inspect the scale and range of the variables in the subset we intend to model.
 
@@ -204,7 +206,7 @@ ggpubr::ggarrange(plotlist = plts1, ncol = 2,
 
 The individual plots show that each predictor appears to relate positively and approximately linearly to the response when considered alone. But those one-predictor views do not tell us how the predictors behave once they are considered together, and they do not tell us whether some predictors overlap so strongly that their coefficients become unstable.
 
-# State the Hypotheses
+## State the Hypotheses
 
 The null hypothesis for the overall model is that there is no significant relationship between the response `Y` and any of the entered climatological variables, implying that the coefficients for all predictors are equal to zero:
 
@@ -221,7 +223,7 @@ $$H_{a}: \beta_i \ne 0$$
 
 However, as soon as several predictors are included in the model, each coefficient becomes a **partial** effect. Its interpretation depends on the presence of the others.
 
-# Fit the Initial Model
+## Fit the Initial Model
 
 We first fit a full model containing the five climate predictors, and a null model containing only the intercept.
 
@@ -235,7 +237,7 @@ summary(full_mod1)
 
 The full model fits strongly, but the coefficient table already hints at a practical problem: some variables that looked useful on their own are no longer clearly interpretable once the others are included. This is a common sign of multicollinearity.
 
-# Check for Multicollinearity
+## Check for Multicollinearity
 
 Some of the predictors may be highly correlated with each other, and this can make the model less precise and harder to interpret because the coefficients' standard errors become inflated. A formal way to detect multicollinearity is to calculate the variance inflation factor (VIF) for each predictor.
 
@@ -273,7 +275,7 @@ This process leaves a much more interpretable candidate model. The retained pred
 
 Regularisation techniques such as ridge regression, lasso regression, or elastic net can also be used to deal with multicollinearity. These are discussed later in [Chapter 24](24-regularisation.qmd).
 
-# Fit the Selected Model
+## Fit the Selected Model
 
 It may be that not all variables retained after the VIF screen are needed to explain the response. We can therefore use forward selection to identify the most parsimonious model within this reduced candidate set.
 
@@ -298,7 +300,7 @@ $$
 
 This is a useful teaching result because it shows that model building is not simply about keeping every plausible variable. It is about arriving at a model that is statistically stable and biologically interpretable.
 
-# Test the Assumptions / Check Diagnostics
+## Test the Assumptions / Check Diagnostics
 
 Before interpreting the model in earnest, we must check whether its assumptions are adequate. Added-variable plots are useful because they show the relationship between the response and each predictor while accounting for the effect of the other predictors.
 
@@ -336,7 +338,7 @@ Component-plus-residual plots provide another useful perspective because they sh
 crPlots(mod1, col = "dodgerblue4", col.lines = "magenta")
 ```
 
-# Interpret the Results
+## Interpret the Results
 
 The fitted model shows that `augMean`, `febSD`, and `augSD` are all positively related to Sørensen dissimilarity in the East Coast Transition Zone once they are considered together. The strongest partial effect is associated with `augMean`, while `febSD` and `augSD` make smaller but still clearly positive contributions.
 
@@ -346,7 +348,7 @@ The model fit is strong: the adjusted $R^2$ is about 0.84, so the selected predi
 
 The ANOVA table is useful here because it shows how much variance each predictor adds sequentially to the model. But remember that this sequential interpretation depends on the order in which predictors are entered.
 
-# Reporting
+## Reporting
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
@@ -364,7 +366,7 @@ In the East Coast Transition Zone, mean Sørensen dissimilarity was well explain
 The main discussion point is that the model identifies a small set of comparatively stable climatic predictors, rather than treating every candidate variable as independently meaningful. This is why model specification and collinearity screening matter in multiple regression.
 :::
 
-# Categorical Predictors and Model Specification
+# Example 2: Categorical Predictors and Interaction of Distance and Bioregion
 
 Multiple regression can include both continuous and categorical predictors. In R, this is done by entering the categorical variable as a factor. This matters because many ecological questions involve a mixture of environmental gradients and group structure.
 
@@ -403,7 +405,51 @@ This is the coding that `lm()` uses by default for factors. The first level of t
 
 If an interaction between a continuous predictor and a factor is added, the same reasoning extends to the slopes. The main slope belongs to the reference level, and the interaction terms show how the slope changes in the other levels relative to that reference. You need to understand this to interpret the `dist * bio` example below.
 
-# Example 2: Interaction of Distance and Bioregion
+## What the coding looks like in practice
+
+The abstract notation above is necessary, but it becomes much easier once we look at the actual coding used for the seaweed bioregions. We first create one row for each bioregion and then inspect the model matrix that `lm()` would construct internally.
+
+```{r code-bio-demo}
+bio_demo <- tibble(
+  bio = factor(c("AMP", "B-ATZ", "BMP", "ECTZ"),
+               levels = levels(factor(sw$bio)))
+)
+
+bio_model_matrix <- model.matrix(~ bio, data = bio_demo) |>
+  as.data.frame() |>
+  mutate(bio = bio_demo$bio) |>
+  relocate(bio)
+
+bio_model_matrix
+```
+
+```{r tbl-bio-demo}
+#| echo: false
+#| tbl-cap: "How the seaweed bioregions are represented by default dummy coding when `AMP` is the reference level."
+
+bio_model_matrix |>
+  gt()
+```
+
+```{r fig-bio-dummy-coding}
+#| fig-cap: "Dummy-variable coding for the seaweed bioregions. `AMP` is the reference level, so its dummy columns are all zero."
+#| fig-width: 4
+#| fig-height: 3
+
+bio_model_matrix |>
+  pivot_longer(cols = -bio, names_to = "term", values_to = "value") |>
+  ggplot(aes(x = term, y = bio, fill = factor(value))) +
+  geom_tile(colour = "white") +
+  scale_fill_manual(values = c("0" = "grey85", "1" = "steelblue4")) +
+  labs(x = NULL, y = "Bioregion", fill = "Value") +
+  theme_grey()
+```
+
+This picture makes the bookkeeping explicit. `AMP` is the reference level, so all the dummy columns are zero there. `B-ATZ`, `BMP`, and `ECTZ` each receive a `1` in their own indicator column, which is why their fitted coefficients must be read as differences from `AMP`, not as stand-alone group means.
+
+The same logic carries directly into the interaction model. Once `dist * bio` is fitted, the coefficient for `dist` is the slope for `AMP`, and each `dist:bio...` term tells you how much the slope changes in the corresponding bioregion relative to `AMP`.
+
+## State the Biological Question
 
 The seaweed dataset includes two additional variables that we have not yet considered closely:
 
@@ -416,7 +462,7 @@ These variables lend themselves to a few interesting questions:
 2. Does the average Sørensen dissimilarity vary among bioregions?
 3. Is the effect of geographic distance on Sørensen dissimilarity different for each bioregion?
 
-The third question requires that we consider possible interaction between the drivers, geographic distance and bioregion.
+The third question requires that we consider possible interaction between the drivers, geographic distance and bioregion. So Example 2 extends the Chapter 13 workflow by combining continuous and categorical predictors in the same multiple-regression model.
 
 ## State the model and hypotheses
 
@@ -534,6 +580,8 @@ The biologically important point is that compositional turnover is structured jo
 # Example 3: The Final Model
 
 We can now expand the selected climate model to include `bio` as a predictor alongside `augMean`, `febSD`, and `augSD`. This creates a richer model in which the continuous climate effects may differ among bioregions.
+
+## Fit the richer model
 
 ```{r code-mod3-fit}
 sw_sub2 <- sw |>

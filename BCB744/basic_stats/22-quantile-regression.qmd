@@ -130,7 +130,9 @@ anova(model_multi_tau)                              # compare slopes across quan
 
 The syntax is similar to `lm()`, which makes quantile regression easy to adopt once you are comfortable with ordinary regression.
 
-# Example Dataset
+# Example 1: Blade-length envelopes in *Laminaria pallida*
+
+## Example Dataset
 
 We use the `laminaria.csv` dataset from the course data folder. These data come from a morphometric sampling campaign on the kelp *Laminaria pallida* at 13 sites along the Cape Peninsula, spanning the west coast and False Bay regions. The sampled plants were large adult kelps, and several blade and stipe measurements were recorded for each individual.
 
@@ -139,6 +141,7 @@ Here we focus on the relationship between `stipe_length` and `blade_length`.
 The biological question is simply, **does increasing stipe length shift the whole distribution of blade length in the same way, or is the effect stronger for the upper envelope of blade length than for the lower envelope?**
 
 ```{r code-data}
+#| tbl-cap: "A subset of the `laminaria.csv` data used in the quantile-regression example."
 laminaria <- read_csv(file.path("..", "..", "data", "BCB744", "laminaria.csv"),
                       show_col_types = FALSE) |>
   select(region, site, blade_length, stipe_length) |>
@@ -147,7 +150,7 @@ laminaria <- read_csv(file.path("..", "..", "data", "BCB744", "laminaria.csv"),
 gt(head(laminaria, 10))
 ```
 
-# Do an Exploratory Data Analysis (EDA)
+## Do an Exploratory Data Analysis (EDA)
 
 ```{r code-summary}
 laminaria |>
@@ -177,7 +180,7 @@ ggplot(laminaria, aes(x = stipe_length, y = blade_length)) +
 
 The scatterplot does not suggest a single, uniform linear effect. Blade length generally increases with stipe length, but the spread also changes across the predictor range. In particular, the upper edge of the point cloud steepens more strongly than the lower edge. That is exactly the kind of pattern for which quantile regression is useful.
 
-# State the Model Question and Hypotheses
+## State the Model Question and Hypotheses
 
 We want to know whether stipe length affects the lower, median, and upper parts of the blade-length distribution differently.
 
@@ -193,7 +196,7 @@ Because the chapter is about comparing quantiles, we also care about whether the
 $$H_{0}: \beta_{1}(0.1) = \beta_{1}(0.5) = \beta_{1}(0.9)$$
 $$H_{a}: \text{not all quantile slopes are equal}$$
 
-# Fit the Models
+## Fit the Models
 
 We fit one ordinary least squares regression for comparison, and then three quantile regressions for the 10th, 50th, and 90th quantiles.
 
@@ -212,6 +215,7 @@ fit_rq_all <- rq(blade_length ~ stipe_length,
 The coefficient summaries are:
 
 ```{r code-coefficient-table}
+#| tbl-cap: "Coefficient summaries for the ordinary least squares fit and the 0.1, 0.5, and 0.9 quantile-regression fits."
 coef_tbl <- bind_rows(
   as.data.frame(summary(fit_ols)$coefficients) |>
     rownames_to_column("term") |>
@@ -243,7 +247,7 @@ To compare the quantile slopes directly, we test whether the fitted slopes are e
 anova(fit_rq_all)
 ```
 
-# Test Assumptions / Check Diagnostics
+## Test Assumptions / Check Diagnostics
 
 Quantile regression does not require homoscedasticity or normal residuals, so diagnostics focus more on whether the fitted lines are sensible and whether the model form is adequate.
 
@@ -329,7 +333,7 @@ ggplot(slope_grid, aes(x = tau, y = slope)) +
 
 In this example the fitted lines do not cross in the observed data range, and the slope increases steadily towards the upper quantiles. That is consistent with a biologically meaningful quantile effect rather than a numerical artefact.
 
-# Interpret the Results
+## Interpret the Results
 
 The ordinary least squares fit gives the average change in blade length with stipe length. In these data that mean slope is positive, but it understates what is happening at the upper edge of the distribution.
 
@@ -345,7 +349,7 @@ The joint quantile comparison must also be considered. The quantile ANOVA indica
 
 Biologically, the result reveals that increasing stipe length appears to raise the upper potential for blade elongation more strongly than it shifts the lower end of the distribution. That is the kind of edge-case ecological pattern that mean ordinary least squares regression can hide; it is visible directly in @fig-qr-lines.
 
-# Reporting
+## Reporting
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up

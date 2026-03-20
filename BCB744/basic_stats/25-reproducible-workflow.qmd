@@ -17,16 +17,25 @@ knitr::opts_chunk$set(
   fig.retina = 2,
   dpi = 300
 )
+
+ggplot2::theme_set(
+  ggplot2::theme_grey(base_size = 8)
+)
+```
+
+```{r code-libraries, echo=FALSE}
+library(tidyverse)
+library(gt)
 ```
 
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   Why reproducibility is part of statistical practice
--   The basic principles of a reproducible workflow
--   How code, data, and reporting should remain linked
--   Common failures of reproducibility
--   What good workflow looks like in practice
+-   why reproducibility is part of statistical practice rather than an optional extra;
+-   how a Quarto project links data, code, figures, tables, and narrative;
+-   what a practical reproducible workflow looks like in this project;
+-   how to generate a small report component directly from source data and code;
+-   how to write up results in a way that remains traceable to the analysis.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -37,64 +46,194 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-A sound analysis is not complete until it is transparent, traceable, and reproducible. Reproducibility is not an optional extra added after the statistics are finished. It is the workflow that keeps data, code, figures, tables, interpretation, and reporting connected from the start.
+A statistically correct analysis remains incomplete until everyone can see how it was produced. Reproducibility is the workflow that keeps data, code, tables, figures, and written interpretation linked from the beginning rather than cobbled together at the end, as one would do if MS Word is our writing tool of preference.
 
-In practical terms, reproducibility means that someone else, or you six months later, can see what was done, why it was done, and how the reported results were generated.
+In practice, reproducibility means that:
+
+-   the data source can be identified;
+-   the analysis steps can be rerun from code;
+-   figures and tables are generated from source, not edited by hand;
+-   the final report remains connected to the analysis that produced it.
+
+This is implicit in maintaining scientific credibility. Quarto gives us this ability.
 
 # Key Concepts
 
--   **Reproducibility** means the analysis can be traced and rerun from source.
--   **Transparency** means the analytical choices are visible, not hidden in undocumented steps.
--   **Literate workflow** keeps code, output, and narrative close together.
--   **Diagnostics and limitations** are part of the reproducible record, not optional extras.
--   **Good workflow supports better science**, not just better formatting.
+-   **Reproducibility** means the analysis can be rerun from source.
+-   **Transparency** means analytical decisions are visible and documented.
+-   **Traceability** means every reported result has a path back to data and code.
+-   **Literate analysis** means code, output, and prose are kept close together.
+-   **Project structure matters** because disorder is one of the main causes of irreproducible work.
 
-# Core Principles
+# When This Method Is Appropriate
 
-The practical principles are straightforward:
+This chapter is unusual because it is less about a single statistical test and more about the workflow philosophy, which we must keep in mind **all the time** when:
 
--   keep raw data separate from derived outputs;
--   keep code and narrative connected where possible;
--   distinguish exploratory work from confirmatory claims;
--   document the analytical decisions that affect interpretation;
--   make tables and figures reproducible from source rather than by hand editing.
+-   exploring data;
+-   fitting models;
+-   producing figures and tables;
+-   writing interpretations;
+-   revising a report after feedback.
+
+In the earlier chapters we *what* to analyse and *how* to do it, but here we focus on *how* to keep that analysis reproducible from beginning to end.
+
+# Nature of the Data and Assumptions
+
+Reproducibility has practical assumptions of its own:
+
+1. data files should live in stable, known locations;
+2. analysis steps should be saved in code rather than performed only interactively;
+3. outputs should be regenerated rather than edited manually;
+4. the report (or scientific publication, even) should be linked directly to the analysis that created it.
+
+If any of those fail, reproducibility begins to collapse, even if the statistical model itself is fine.
 
 # Tools and Practice
 
-In this module, reproducibility is supported mainly through:
+Reproducibility relies mainly on:
 
--   R scripts;
--   Quarto documents;
--   stable project structure;
--   explicit reporting of assumptions, diagnostics, and limitations.
+-   a stable project structure;
+-   data stored in known subdirectories such as `data/BCB744/`;
+-   Quarto source files (`.qmd`);
+-   R code embedded directly in those source files;
+-   rendered outputs in `_site/` and cached or frozen outputs in `_freeze/`.
 
-The practical habit to build is simple: if a figure, table, or model result appears in your report, there should be a clear path back to the code and data that generated it.
+The practical habit to build is, if a figure, table, or result appears in the report, there should be a clear path back to the code and data that generated it.
 
-# A Practical Workflow
+# Example 1: A reproducible Quarto workflow built from project files
 
-An effective reproducible workflow often looks like this:
+## Example Dataset
 
-1. organise the project clearly;
-2. keep data import, cleaning, analysis, and reporting traceable;
-3. generate outputs from code rather than manual editing;
-4. write interpretations close to the analysis that supports them;
-5. leave enough information for another person to rerun the analysis.
+We use the `laminaria.csv` dataset once more because it allows us to demonstrate a complete mini-workflow from source data to rendered output inside the project itself.
+
+```{r code-data}
+#| tbl-cap: "A subset of the `laminaria.csv` dataset used in the reproducible-workflow example."
+kelp <- read_csv(file.path("..", "..", "data", "BCB744", "laminaria.csv"),
+                 show_col_types = FALSE)
+
+gt(head(kelp, 10))
+```
+
+## Do an Exploratory Data Analysis (EDA)
+
+```{r code-summary}
+#| tbl-cap: "Grouped summary statistics for the Laminaria dataset, generated directly from code in the chapter source."
+kelp_summary <- kelp |>
+  group_by(region) |>
+  summarise(
+    n = n(),
+    mean_stipe = mean(stipe_length),
+    mean_blade = mean(blade_length),
+    sd_blade = sd(blade_length),
+    .groups = "drop"
+  )
+
+gt(kelp_summary)
+```
+
+```{r fig-kelp-workflow}
+#| fig-cap: "A reproducibly generated figure showing blade length as a function of stipe length in the Laminaria dataset."
+#| fig-width: 4
+#| fig-height: 3
+
+ggplot(kelp, aes(x = stipe_length, y = blade_length, colour = region)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = "Stipe length (cm)",
+    y = "Blade length (cm)"
+  )
+```
+
+Even this small example already illustrates the table and figure are not separate objects made by hand, but that they are generated from the dataset by code embedded directly in the document.
+
+Similarly, you can also write the Introduction, Methods, Discussion, and Conclusion, *i.e.*, all the textual material that comprises the report or paper. I don't show those here, but the principle is the same. All of it is contained in the *same* Quarto document that accomplishes and reports the analysis.
+
+## State the Workflow Question
+
+The workflow question is not a hypothesis test or even a research question, although it certainly guides the logical steps needed to complete the analysis and write-up. It is:
+
+**Can the reported table and figure be regenerated directly from the project data and source code without manual reconstruction?**
+
+In a good workflow, the answer should always be yes. In fact, an excellent workflow may accommodate the entire report or article, as I have already pointed out.
+
+## Generate the Outputs
+
+In a Quarto document, the analysis, output, and prose remain connected because the code that generates the result is part of the source document itself.
+
+The practical sequence is:
+
+1. import the data from a stable relative path;
+2. generate the summary table and figure from code;
+3. write the interpretation next to the code that produced the output;
+4. render the document with Quarto.
+
+Steps 1-3 may also be accompanied by justifications of reasoned decisions or our acknoledgement of any assumptions made. So, a reproducible workflow can double as a research notebook of sorts. It can be read by you in the future, or shared with colleagues.
+
+The render step is a command such as:
+
+```bash
+quarto render BCB744/basic_stats/25-reproducible-workflow.qmd
+```
+
+That one command rebuilds the chapter from source. If the data or code change, the outputs change with them. In fact, it created the document (website page) you are reading right now.
+
+## Check the Workflow
+
+The most useful diagnostic questions in a reproducible workflow are:
+
+-   are the data paths explicit and stable;
+-   can the document be rendered from source without manual intervention;
+-   are the figures and tables generated in code rather than edited after export;
+-   can another person inspect the source and understand what was done.
+
+For this project, a minimal reproducible structure looks like:
+
+```{r code-project-structure}
+#| echo: false
+#| tbl-cap: "Minimal project components needed to regenerate the chapter from source."
+
+project_paths <- tibble(
+  component = c("data source", "chapter source", "rendered output", "shared styling"),
+  path = c(
+    "data/BCB744/laminaria.csv",
+    "BCB744/basic_stats/25-reproducible-workflow.qmd",
+    "_site/BCB744/basic_stats/25-reproducible-workflow.html",
+    "styles/styles.css"
+  )
+)
+
+gt(project_paths)
+```
+
+The purpose of these components, woven together in the Quarto file, is that the workflow remains legible from source to output.
+
+## What this Means for Us
+
+The result of a reproducible workflow is the scientific conclusion and, as importantly, the fact that the conclusion, table, and figure remain traceable to the same source analysis.
+
+In this mini-example, anyone with the project can:
+
+-   locate the source dataset;
+-   inspect the code used to create the grouped summary and figure;
+-   rerender the chapter;
+-   verify that the reported output matches the source.
+
+That makes revision safer, collaboration easier, and error detection more likely.
 
 # Common Failures
 
-The most common failures of reproducibility are not technical sophistication problems. They are workflow problems:
+The most common failures of reproducibility are usually workflow failures rather than advanced technical problems:
 
--   analyses performed interactively without a saved script;
--   figures edited by hand after export;
--   undocumented exclusions or transformations;
--   final reports disconnected from the code that generated the results;
--   no clear distinction between exploratory and confirmatory steps.
+-   doing the analysis interactively without saving code;
+-   editing figures by hand after export;
+-   keeping the final report separate from the analysis that generated it;
+-   changing data or exclusions without documenting those changes;
+-   using paths that only work on one computer and are not stable within the project.
 
 # Summary
 
--   Reproducibility links data, code, output, interpretation, and reporting.
--   A transparent workflow makes analyses easier to evaluate, revise, and trust.
--   Quarto and scripted analysis support reproducibility by design.
--   Reporting diagnostics, assumptions, and limitations is part of reproducible science.
-
-This closes the `basic_stats` sequence by connecting statistical reasoning to scientific practice. A good analysis is not only statistically defensible. It is also traceable from source to conclusion.
+-   Reproducibility links data, code, output, and interpretation.
+-   In a Quarto-based workflow, the report can be regenerated from source rather than rebuilt manually.
+-   A reproducible figure or table is more scientifically valuable than a hand-edited one with unclear provenance.
+-   Good workflow is therefore part of good statistics, not an optional final step.

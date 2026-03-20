@@ -105,18 +105,21 @@ lm(y ~ poly(x, degree = 3), data = df)              # orthogonal polynomial basi
 
 For teaching and biological interpretation, raw powers (`I(x^2)`, `I(x^3)`) are usually easier to explain.
 
-# Example Dataset
+# Example 1: CO$_2$ uptake and curved response
+
+## Example Dataset
 
 We use the classic `CO2` dataset from base R. These are real measurements of carbon dioxide uptake by grass plants, measured across increasing ambient CO$_2$ concentrations. The biological expectation is that uptake should increase at low concentrations and then begin to level off, so a straight line may be too simple.
 
 ```{r code-data}
+#| tbl-cap: "A subset of the `CO2` dataset showing chilled Quebec plants used in the polynomial-regression example."
 co2_df <- as_tibble(CO2) |> 
   filter(Treatment == "chilled", Type == "Quebec")
 
 gt(head(co2_df, 10))
 ```
 
-# Do an Exploratory Data Analysis (EDA)
+## Do an Exploratory Data Analysis (EDA)
 
 ```{r code-summary}
 co2_df |>
@@ -142,7 +145,7 @@ ggplot(co2_df, aes(x = conc, y = uptake)) +
 
 The relationship is clearly positive, but it is not perfectly straight. Uptake rises quickly at low to moderate concentrations and then appears to flatten. That pattern motivates trying a polynomial extension.
 
-# State the Model Question and Hypotheses
+## State the Model Question and Hypotheses
 
 The primary model question is whether including curvature meaningfully improves fit relative to a straight-line model.
 
@@ -153,7 +156,7 @@ $$H_{a}: \beta_2 \ne 0$$
 
 If $\beta_2 = 0$, the model collapses to a straight-line form. If $\beta_2 \neq 0$, the data support curvature.
 
-# Fit the Models
+## Fit the Models
 
 ```{r code-fit-models}
 mod_lin  <- lm(uptake ~ conc, data = co2_df)
@@ -172,7 +175,7 @@ anova(mod_lin, mod_quad, mod_cub)
 AIC(mod_lin, mod_quad, mod_cub)
 ```
 
-# Test Assumptions / Check Diagnostics
+## Test Assumptions / Check Diagnostics
 
 ```{r code-quad-diagnostics}
 quad_aug <- augment(mod_quad)
@@ -192,7 +195,7 @@ par(mfrow = c(1, 1))
 
 No model is perfect, but if diagnostics are broadly acceptable and the residual curvature seen in the straight-line fit is reduced, the polynomial extension is usually justified.
 
-# Interpret the Results
+## Interpret the Results
 
 ```{r fig-poly-fits}
 #| fig-cap: "Linear, quadratic, and cubic polynomial fits to the CO$_2$ uptake data."
@@ -220,7 +223,7 @@ In this dataset, the quadratic model captures biologically plausible deceleratio
 
 The practical interpretation is not usually about the standalone value of $\beta_2$. Instead, it is about the shape of the response: uptake increases with concentration, but the rate of increase slows across the observed range.
 
-# Reporting
+## Reporting
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up

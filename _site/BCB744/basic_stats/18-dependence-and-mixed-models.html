@@ -78,7 +78,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-a06763021a52c43c40a351ac8b799b8f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-cf7d1ca223b3301b9feb19f20683f621.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/bootstrap/bootstrap-cf7d1ca223b3301b9feb19f20683f621.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
   "collapse-after": 3,
@@ -129,12 +132,38 @@ cookieconsent.run({
   window.document.addEventListener("DOMContentLoaded", function (_event) {
     document.body.classList.add('hypothesis-enabled');
   });
+</script><script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
 </script><link rel="stylesheet" href="../../styles/styles.css">
 <meta property="og:title" content="18. Dependence and Mixed Models – The Tangled Bank">
 <meta property="og:description" content="When Observations Are Not Independent">
+<meta property="og:image" content="http://tangledbank.netlify.app/BCB744/basic_stats/18-dependence-and-mixed-models_files/figure-html/fig-birds-site-1.svg">
 <meta property="og:site_name" content="The Tangled Bank">
 </head>
-<body class="nav-sidebar floating nav-fixed quarto-light">
+<body class="nav-sidebar floating nav-fixed slimcontent quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
@@ -1091,15 +1120,27 @@ cookieconsent.run({
 <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
   <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts"><span class="header-section-number">2</span> Key Concepts</a></li>
   <li><a href="#when-this-method-is-appropriate" id="toc-when-this-method-is-appropriate" class="nav-link" data-scroll-target="#when-this-method-is-appropriate"><span class="header-section-number">3</span> When This Method Is Appropriate</a></li>
-  <li><a href="#why-dependence-matters" id="toc-why-dependence-matters" class="nav-link" data-scroll-target="#why-dependence-matters"><span class="header-section-number">4</span> Why Dependence Matters</a></li>
-  <li><a href="#r-functions" id="toc-r-functions" class="nav-link" data-scroll-target="#r-functions"><span class="header-section-number">5</span> R Functions</a></li>
-  <li><a href="#a-practical-workflow" id="toc-a-practical-workflow" class="nav-link" data-scroll-target="#a-practical-workflow"><span class="header-section-number">6</span> A Practical Workflow</a></li>
-  <li><a href="#common-mistakes" id="toc-common-mistakes" class="nav-link" data-scroll-target="#common-mistakes"><span class="header-section-number">7</span> Common Mistakes</a></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
+  <li><a href="#nature-of-the-data-and-assumptions" id="toc-nature-of-the-data-and-assumptions" class="nav-link" data-scroll-target="#nature-of-the-data-and-assumptions"><span class="header-section-number">4</span> Nature of the Data and Assumptions</a></li>
+  <li><a href="#the-core-equations" id="toc-the-core-equations" class="nav-link" data-scroll-target="#the-core-equations"><span class="header-section-number">5</span> The Core Equations</a></li>
+  <li><a href="#r-functions" id="toc-r-functions" class="nav-link" data-scroll-target="#r-functions"><span class="header-section-number">6</span> R Functions</a></li>
+  <li>
+<a href="#example-1-shorebird-landing-distance-with-site-level-dependence" id="toc-example-1-shorebird-landing-distance-with-site-level-dependence" class="nav-link" data-scroll-target="#example-1-shorebird-landing-distance-with-site-level-dependence"><span class="header-section-number">7</span> Example 1: Shorebird landing distance with site-level dependence</a>
+  <ul class="collapse">
+<li><a href="#example-dataset" id="toc-example-dataset" class="nav-link" data-scroll-target="#example-dataset"><span class="header-section-number">7.1</span> Example Dataset</a></li>
+  <li><a href="#do-an-exploratory-data-analysis-eda" id="toc-do-an-exploratory-data-analysis-eda" class="nav-link" data-scroll-target="#do-an-exploratory-data-analysis-eda"><span class="header-section-number">7.2</span> Do an Exploratory Data Analysis (EDA)</a></li>
+  <li><a href="#state-the-model-question-and-hypotheses" id="toc-state-the-model-question-and-hypotheses" class="nav-link" data-scroll-target="#state-the-model-question-and-hypotheses"><span class="header-section-number">7.3</span> State the Model Question and Hypotheses</a></li>
+  <li><a href="#fit-the-model" id="toc-fit-the-model" class="nav-link" data-scroll-target="#fit-the-model"><span class="header-section-number">7.4</span> Fit the Model</a></li>
+  <li><a href="#test-assumptions-check-diagnostics" id="toc-test-assumptions-check-diagnostics" class="nav-link" data-scroll-target="#test-assumptions-check-diagnostics"><span class="header-section-number">7.5</span> Test Assumptions / Check Diagnostics</a></li>
+  <li><a href="#interpret-the-results" id="toc-interpret-the-results" class="nav-link" data-scroll-target="#interpret-the-results"><span class="header-section-number">7.6</span> Interpret the Results</a></li>
+  <li><a href="#reporting" id="toc-reporting" class="nav-link" data-scroll-target="#reporting"><span class="header-section-number">7.7</span> Reporting</a></li>
+  </ul>
+</li>
+  <li><a href="#what-to-do-when-assumptions-fail-alternatives" id="toc-what-to-do-when-assumptions-fail-alternatives" class="nav-link" data-scroll-target="#what-to-do-when-assumptions-fail-alternatives"><span class="header-section-number">8</span> What to Do When Assumptions Fail / Alternatives</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">9</span> Summary</a></li>
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/18-dependence-and-mixed-models.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../BCB744/index.html">BCB744: Biostatistics</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/18-dependence-and-mixed-models.html">18. Dependence and Mixed Models</a></li></ol></nav><div class="quarto-title">
+<main class="content page-columns page-full" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../BCB744/index.html">BCB744: Biostatistics</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/18-dependence-and-mixed-models.html">18. Dependence and Mixed Models</a></li></ol></nav><div class="quarto-title">
 <div class="quarto-title-block"><div><h1 class="title">18. Dependence and Mixed Models</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 <p class="subtitle lead">When Observations Are Not Independent</p>
 </div>
@@ -1138,11 +1179,11 @@ cookieconsent.run({
 </div>
 <div class="callout-body-container callout-body">
 <ul>
-<li>Why dependence causes trouble in ordinary analyses</li>
-<li>How repeated measures and nested designs create structure</li>
-<li>The difference between fixed and random effects</li>
-<li>When mixed models are appropriate</li>
-<li>How mixed models help avoid pseudoreplication</li>
+<li>why non-independence creates misleadingly confident analyses;</li>
+<li>how grouped and nested sampling structures arise in ecology;</li>
+<li>the difference between fixed and random effects;</li>
+<li>how to fit and interpret a simple random-intercept mixed model in R;</li>
+<li>how to report a mixed model in the same journal style used elsewhere in the course.</li>
 </ul>
 </div>
 </div>
@@ -1163,94 +1204,853 @@ cookieconsent.run({
 </div>
 <section id="introduction" class="level1" data-number="1"><h1 data-number="1">
 <span class="header-section-number">1</span> Introduction</h1>
-<p>The regression and ANOVA chapters up to this point have assumed that observations are independent. That assumption is often violated in biological data. Repeated measures on the same individual, quadrats within sites, sites within regions, and observations collected through time or space all create structure that ordinary regression does not handle well.</p>
-<p>When dependence is ignored, the analysis often becomes overconfident. Standard errors become too small, tests become too optimistic, and the model starts treating repeated information as though it were new information. That is one of the main ways pseudoreplication appears at the analysis stage.</p>
-<p>Mixed-effects models are one of the main tools for dealing with this problem. They allow us to model systematic effects of biological interest while also accounting for structured variation among groups, individuals, sites, years, or other sampling units.</p>
+<p>Most of the models in the earlier chapters assume that each observation contributes genuinely new information. In ecological sampling that is often false, because measurements taken from the same site, transect, colony, quadrat, or individual tend to resemble one another more than measurements taken from different sampling units.</p>
+<p>That is what <strong>dependence</strong> means in practice. So, the observations are not fully independent because they share context, history, or structure.</p>
+<p>If we ignore that structure, the analysis becomes overconfident. Standard errors shrink, degrees of freedom are effectively exaggerated, and the model can start reporting strong-looking results that are partly artefacts of the sampling design.</p>
+<p>Mixed-effects models provide one of the main solutions to this challenge. They allow us to keep the fixed effects that address the biological question while accounting for variation among grouped sampling units through <strong>random effects</strong>.</p>
 </section><section id="key-concepts" class="level1" data-number="2"><h1 data-number="2">
 <span class="header-section-number">2</span> Key Concepts</h1>
 <ul>
 <li>
 <strong>Dependence</strong> means observations are not fully independent of one another.</li>
 <li>
-<strong>Hierarchical structure</strong> arises when observations are nested within larger units such as sites, transects, or years.</li>
+<strong>Grouped structure</strong> arises when observations are clustered within sites, years, individuals, or other units.</li>
 <li>
-<strong>Repeated measures</strong> create dependence because the same unit is observed more than once.</li>
+<strong>Fixed effects</strong> represent systematic effects of direct biological interest.</li>
 <li>
-<strong>Fixed effects</strong> represent the systematic effects of primary interest.</li>
+<strong>Random effects</strong> represent structured variation among sampling units.</li>
 <li>
-<strong>Random effects</strong> represent structured variation among groups or sampling units.</li>
+<strong>A random intercept model</strong> allows each site or group to have its own baseline level.</li>
+<li>
+<strong>Mixed models are tailored to a specific sampling structure or design</strong>.</li>
 </ul></section><section id="when-this-method-is-appropriate" class="level1" data-number="3"><h1 data-number="3">
 <span class="header-section-number">3</span> When This Method Is Appropriate</h1>
-<p>You should begin thinking about mixed models when:</p>
+<p>You should start thinking about mixed models when:</p>
 <ul>
-<li>the same individual, plot, site, or unit is measured repeatedly;</li>
-<li>samples are nested within larger sampling units;</li>
-<li>the design has obvious grouping structure;</li>
-<li>you suspect pseudoreplication if the data are analysed as though they were independent.</li>
+<li>observations are nested within sites, transects, plots, years, or individuals;</li>
+<li>the same unit is measured repeatedly;</li>
+<li>the sampling design clearly has hierarchical structure;</li>
+<li>treating all observations as independent would create pseudoreplication.</li>
 </ul>
 <p>Typical cases include:</p>
 <ul>
 <li>quadrats within sites;</li>
+<li>birds sampled within beaches;</li>
 <li>repeated measurements on the same animals;</li>
-<li>transects within bays;</li>
-<li>observations nested within years or regions.</li>
-</ul></section><section id="why-dependence-matters" class="level1" data-number="4"><h1 data-number="4">
-<span class="header-section-number">4</span> Why Dependence Matters</h1>
-<p>If dependence is ignored, the model behaves as though the effective sample size is larger than it really is. That is dangerous because the model may report precise-looking coefficients and small <em>p</em>-values that are artefacts of the design rather than genuine evidence.</p>
-<p>The first question should therefore not be “which function shall I use?” but “what is the sampling structure of the data?” In mixed modelling, the sampling structure is part of the model specification.</p>
-</section><section id="r-functions" class="level1" data-number="5"><h1 data-number="5">
-<span class="header-section-number">5</span> R Functions</h1>
-<p>The most common R functions for mixed models include:</p>
-<ul>
-<li>
-<code>lmer()</code> from <strong>lme4</strong> for linear mixed-effects models;</li>
-<li>
-<code>glmer()</code> from <strong>lme4</strong> for generalised mixed-effects models;</li>
-<li>
-<code><a href="https://rdrr.io/pkg/nlme/man/lme.html">nlme::lme()</a></code> for linear mixed models with more explicit correlation structures.</li>
-</ul>
-<p>The basic idea is to extend the linear predictor by adding random effects. For example:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>lme4<span class="sc">::</span><span class="fu">lmer</span>(response <span class="sc">~</span> treatment <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> site), <span class="at">data =</span> df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>This model says:</p>
-<ul>
-<li>the fixed effect of <code>treatment</code> is of primary interest;</li>
-<li>observations are grouped by <code>site</code>;</li>
-<li>each site has its own random intercept.</li>
-</ul>
-<p>A model with repeated observations on the same individual might look like:</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>lme4<span class="sc">::</span><span class="fu">lmer</span>(response <span class="sc">~</span> time <span class="sc">*</span> treatment <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> individual), <span class="at">data =</span> df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</section><section id="a-practical-workflow" class="level1" data-number="6"><h1 data-number="6">
-<span class="header-section-number">6</span> A Practical Workflow</h1>
-<p>For these chapters, the main workflow is:</p>
+<li>monthly observations within monitoring stations.</li>
+</ul></section><section id="nature-of-the-data-and-assumptions" class="level1" data-number="4"><h1 data-number="4">
+<span class="header-section-number">4</span> Nature of the Data and Assumptions</h1>
+<p>Mixed models do not remove the need for ordinary model checking. So, for a Gaussian linear mixed model, the main assumptions are still:</p>
 <ol type="1">
-<li>identify the biological question;</li>
-<li>identify the unit of replication and the grouping structure;</li>
-<li>decide which effects are fixed and which are random;</li>
-<li>fit the mixed model only after the sampling structure is clear;</li>
-<li>interpret the fixed effects in the light of the grouping structure.</li>
+<li>independence <strong>between</strong> higher-level units such as sites or individuals;</li>
+<li>approximately normal residuals;</li>
+<li>reasonably constant residual variance;</li>
+<li>a sensible specification of the random-effects structure.</li>
 </ol>
-<p>This sequence matters because mixed models are not simply more complicated regressions. They are a response to a different kind of data structure.</p>
-</section><section id="common-mistakes" class="level1" data-number="7"><h1 data-number="7">
-<span class="header-section-number">7</span> Common Mistakes</h1>
-<p>Common mistakes include:</p>
+<p>The important difference is that we now no longer assume independence among observations inside the same group.</p>
+</section><section id="the-core-equations" class="level1" data-number="5"><h1 data-number="5">
+<span class="header-section-number">5</span> The Core Equations</h1>
+<p>A simple random-intercept mixed model can be written as:</p>
+<p><span id="eq-lmm"><span class="math display">\[Y_{ij} = \alpha + \beta_{1}X_{1ij} + \cdots + \beta_{p}X_{pij} + b_{j} + \epsilon_{ij} \tag{1}\]</span></span></p>
+<p>In <a href="#eq-lmm" class="quarto-xref">Equation&nbsp;1</a>, <span class="math inline">\(Y_{ij}\)</span> is the response for observation <span class="math inline">\(i\)</span> in group <span class="math inline">\(j\)</span>, the <span class="math inline">\(\beta\)</span> terms are the fixed effects, <span class="math inline">\(b_{j}\)</span> is the random intercept for group <span class="math inline">\(j\)</span>, and <span class="math inline">\(\epsilon_{ij}\)</span> is the residual error.</p>
+<p>The important idea is that the model has two sources of variation:</p>
 <ul>
-<li>treating repeated measurements as though they were independent observations;</li>
-<li>using a mixed model without being able to explain the random effect biologically;</li>
-<li>confusing random effects with nuisance terms that can be added thoughtlessly;</li>
-<li>trying to use mixed models to rescue a fundamentally weak design.</li>
-</ul></section><section id="summary" class="level1" data-number="8"><h1 data-number="8">
-<span class="header-section-number">8</span> Summary</h1>
-<ul>
-<li>Mixed models are needed when observations are not independent.</li>
-<li>The grouping structure of the data is part of the model, not an afterthought.</li>
-<li>Random effects help account for repeated measures and hierarchical sampling.</li>
-<li>Ignoring dependence often leads to overconfident inference.</li>
+<li>
+<strong>between-group variation</strong>, captured by the random effect <span class="math inline">\(b_j\)</span>;</li>
+<li>
+<strong>within-group variation</strong>, captured by the residual term <span class="math inline">\(\epsilon_{ij}\)</span>.</li>
 </ul>
-<p>This chapter marks the transition from ordinary models for independent data to models that better reflect real sampling structure. In later work, mixed models also combine naturally with generalised and nonlinear modelling frameworks.</p>
+<p>Mixed models help with dependence because the they explicitly allow observations from the same site or individual to share a common baseline.</p>
+</section><section id="r-functions" class="level1" data-number="6"><h1 data-number="6">
+<span class="header-section-number">6</span> R Functions</h1>
+<p>The most common functions are:</p>
+<ul>
+<li>
+<code>lmer()</code> from <strong>lme4</strong> for Gaussian linear mixed models;</li>
+<li>
+<code>glmer()</code> from <strong>lme4</strong> for generalised mixed models;</li>
+<li>
+<code><a href="https://rdrr.io/pkg/nlme/man/lme.html">nlme::lme()</a></code> when more explicit correlation structures are needed.</li>
+</ul>
+<p>A simple random-intercept model looks like this:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">lmer</span>(response <span class="sc">~</span> predictors <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> group), <span class="at">data =</span> df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The term <code>(1 | group)</code> means that each group has its own intercept.</p>
+</section><section id="example-1-shorebird-landing-distance-with-site-level-dependence" class="level1 page-columns page-full" data-number="7"><h1 data-number="7">
+<span class="header-section-number">7</span> Example 1: Shorebird landing distance with site-level dependence</h1>
+<section id="example-dataset" class="level2 page-columns page-full" data-number="7.1"><h2 data-number="7.1" class="anchored" data-anchor-id="example-dataset">
+<span class="header-section-number">7.1</span> Example Dataset</h2>
+<p>We use the <code>BeachBirds.csv</code> dataset from the course data folder. These data contain flight-initiation distances and landing distances for several shorebird species sampled across multiple beach sites. The important point emerging from this example is that observations collected at the same site are likely to be more similar to one another than observations collected at different sites.</p>
+<p>Here we model <code>land.dist</code> as a function of bird <code>Species</code> and <code>Sex</code>, while allowing each <code>Site</code> to have its own baseline intercept.</p>
+<div class="cell page-columns page-full" data-tbl-cap="A subset of the `BeachBirds.csv` data used in the mixed-model example.">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>birds <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">file.path</span>(<span class="st">".."</span>, <span class="st">".."</span>, <span class="st">"data"</span>, <span class="st">"BCB744"</span>, <span class="st">"BeachBirds.csv"</span>),</span>
+<span id="cb2-2"><a href="#cb2-2"></a>                  <span class="at">show_col_types =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb2-4"><a href="#cb2-4"></a>    <span class="at">Site =</span> <span class="fu">factor</span>(Site),</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="at">Species =</span> <span class="fu">factor</span>(Species),</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    <span class="at">Sex =</span> <span class="fu">factor</span>(Sex)</span>
+<span id="cb2-7"><a href="#cb2-7"></a>  )</span>
+<span id="cb2-8"><a href="#cb2-8"></a></span>
+<span id="cb2-9"><a href="#cb2-9"></a><span class="fu">gt</span>(<span class="fu">head</span>(birds, <span class="dv">10</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display page-columns page-full">
+<div id="nxtpmiqmfw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;" class="page-columns page-full">
+<style>#nxtpmiqmfw table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#nxtpmiqmfw thead, #nxtpmiqmfw tbody, #nxtpmiqmfw tfoot, #nxtpmiqmfw tr, #nxtpmiqmfw td, #nxtpmiqmfw th {
+  border-style: none;
+}
+
+#nxtpmiqmfw p {
+  margin: 0;
+  padding: 0;
+}
+
+#nxtpmiqmfw .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#nxtpmiqmfw .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#nxtpmiqmfw .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#nxtpmiqmfw .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#nxtpmiqmfw .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#nxtpmiqmfw .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#nxtpmiqmfw .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#nxtpmiqmfw .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#nxtpmiqmfw .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#nxtpmiqmfw .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#nxtpmiqmfw .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#nxtpmiqmfw .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#nxtpmiqmfw .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#nxtpmiqmfw .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#nxtpmiqmfw .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nxtpmiqmfw .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#nxtpmiqmfw .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#nxtpmiqmfw .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#nxtpmiqmfw .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nxtpmiqmfw .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#nxtpmiqmfw .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nxtpmiqmfw .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#nxtpmiqmfw .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nxtpmiqmfw .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nxtpmiqmfw .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nxtpmiqmfw .gt_left {
+  text-align: left;
+}
+
+#nxtpmiqmfw .gt_center {
+  text-align: center;
+}
+
+#nxtpmiqmfw .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#nxtpmiqmfw .gt_font_normal {
+  font-weight: normal;
+}
+
+#nxtpmiqmfw .gt_font_bold {
+  font-weight: bold;
+}
+
+#nxtpmiqmfw .gt_font_italic {
+  font-style: italic;
+}
+
+#nxtpmiqmfw .gt_super {
+  font-size: 65%;
+}
+
+#nxtpmiqmfw .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#nxtpmiqmfw .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#nxtpmiqmfw .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#nxtpmiqmfw .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#nxtpmiqmfw .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#nxtpmiqmfw .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#nxtpmiqmfw .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#nxtpmiqmfw .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#nxtpmiqmfw div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="gt_table table table-sm table-striped small" data-quarto-bootstrap="false">
+
+<thead><tr class="gt_col_headings header">
+<th id="Site" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Site</th>
+<th id="Species" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Species</th>
+<th id="Sex" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Sex</th>
+<th id="flush.dist" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">flush.dist</th>
+<th id="land.dist" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">land.dist</th>
+</tr></thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Female</td>
+<td class="gt_row gt_right" headers="flush.dist">12.8</td>
+<td class="gt_row gt_right" headers="land.dist">150.9</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Male</td>
+<td class="gt_row gt_right" headers="flush.dist">4.4</td>
+<td class="gt_row gt_right" headers="land.dist">114.1</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Female</td>
+<td class="gt_row gt_right" headers="flush.dist">9.5</td>
+<td class="gt_row gt_right" headers="land.dist">153.7</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Female</td>
+<td class="gt_row gt_right" headers="flush.dist">12.2</td>
+<td class="gt_row gt_right" headers="land.dist">137.7</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Female</td>
+<td class="gt_row gt_right" headers="flush.dist">10.1</td>
+<td class="gt_row gt_right" headers="land.dist">143.3</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Male</td>
+<td class="gt_row gt_right" headers="flush.dist">6.6</td>
+<td class="gt_row gt_right" headers="land.dist">142.8</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Male</td>
+<td class="gt_row gt_right" headers="flush.dist">15.4</td>
+<td class="gt_row gt_right" headers="land.dist">134.1</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Male</td>
+<td class="gt_row gt_right" headers="flush.dist">11.3</td>
+<td class="gt_row gt_right" headers="land.dist">159.5</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Male</td>
+<td class="gt_row gt_right" headers="flush.dist">13.8</td>
+<td class="gt_row gt_right" headers="land.dist">150.4</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Site">1</td>
+<td class="gt_row gt_center" headers="Species">Oystercatcher</td>
+<td class="gt_row gt_center" headers="Sex">Female</td>
+<td class="gt_row gt_right" headers="flush.dist">12.9</td>
+<td class="gt_row gt_right" headers="land.dist">161.9</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-table-caption margin-caption">A subset of the <code>BeachBirds.csv</code> data used in the mixed-model example.</div></div>
+</div>
+</div>
+</section><section id="do-an-exploratory-data-analysis-eda" class="level2" data-number="7.2"><h2 data-number="7.2" class="anchored" data-anchor-id="do-an-exploratory-data-analysis-eda">
+<span class="header-section-number">7.2</span> Do an Exploratory Data Analysis (EDA)</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>birds <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb3-3"><a href="#cb3-3"></a>    <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb3-4"><a href="#cb3-4"></a>    <span class="at">n_sites =</span> <span class="fu">n_distinct</span>(Site),</span>
+<span id="cb3-5"><a href="#cb3-5"></a>    <span class="at">n_species =</span> <span class="fu">n_distinct</span>(Species),</span>
+<span id="cb3-6"><a href="#cb3-6"></a>    <span class="at">mean_land =</span> <span class="fu">mean</span>(land.dist),</span>
+<span id="cb3-7"><a href="#cb3-7"></a>    <span class="at">sd_land =</span> <span class="fu">sd</span>(land.dist)</span>
+<span id="cb3-8"><a href="#cb3-8"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 5
+      n n_sites n_species mean_land sd_land
+  &lt;int&gt;   &lt;int&gt;     &lt;int&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+1   399       5         4      73.1    44.2</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">ggplot</span>(birds, <span class="fu">aes</span>(<span class="at">x =</span> Site, <span class="at">y =</span> land.dist)) <span class="sc">+</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.1</span>, <span class="at">alpha =</span> <span class="fl">0.35</span>, <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-5"><a href="#cb5-5"></a>    <span class="at">x =</span> <span class="st">"Site"</span>,</span>
+<span id="cb5-6"><a href="#cb5-6"></a>    <span class="at">y =</span> <span class="st">"Landing distance (m)"</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-birds-site" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-birds-site-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="18-dependence-and-mixed-models_files/figure-html/fig-birds-site-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Landing distance by beach site for the sampled shorebirds."><img src="18-dependence-and-mixed-models_files/figure-html/fig-birds-site-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-birds-site-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Landing distance by beach site for the sampled shorebirds.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">ggplot</span>(birds, <span class="fu">aes</span>(<span class="at">x =</span> Species, <span class="at">y =</span> land.dist, <span class="at">fill =</span> Species)) <span class="sc">+</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>  <span class="fu">labs</span>(</span>
+<span id="cb6-4"><a href="#cb6-4"></a>    <span class="at">x =</span> <span class="st">"Species"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5"></a>    <span class="at">y =</span> <span class="st">"Landing distance (m)"</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-birds-species" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-birds-species-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="18-dependence-and-mixed-models_files/figure-html/fig-birds-species-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Landing distance differs strongly among shorebird species, but values also vary among sites."><img src="18-dependence-and-mixed-models_files/figure-html/fig-birds-species-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-birds-species-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Landing distance differs strongly among shorebird species, but values also vary among sites.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>The EDA already shows why an ordinary model may be too simple. Landing distance differs among species, but there is also clear site-to-site variability. That suggests a grouped structure in which site should not be ignored.</p>
+</section><section id="state-the-model-question-and-hypotheses" class="level2" data-number="7.3"><h2 data-number="7.3" class="anchored" data-anchor-id="state-the-model-question-and-hypotheses">
+<span class="header-section-number">7.3</span> State the Model Question and Hypotheses</h2>
+<p>The main biological question is whether landing distance differs among species after accounting for the fact that birds were sampled within sites.</p>
+<p>For the primary fixed effect, the hypothesis pair is:</p>
+<p><span class="math display">\[H_{0}: \text{landing distance does not differ among species once site-level grouping is accounted for}\]</span> <span class="math display">\[H_{a}: \text{landing distance differs among species after accounting for site-level grouping}\]</span></p>
+<p>The random effect is not interpreted through a simple null-hypothesis pair in the same way. Its role is to account for the grouped sampling structure.</p>
+</section><section id="fit-the-model" class="level2" data-number="7.4"><h2 data-number="7.4" class="anchored" data-anchor-id="fit-the-model">
+<span class="header-section-number">7.4</span> Fit the Model</h2>
+<p>We first fit an ordinary linear model that ignores site, and then a mixed model with a random intercept for <code>Site</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>fit_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(land.dist <span class="sc">~</span> Species <span class="sc">+</span> Sex, <span class="at">data =</span> birds)</span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a>fit_lmer <span class="ot">&lt;-</span> <span class="fu">lmer</span>(land.dist <span class="sc">~</span> Species <span class="sc">+</span> Sex <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Site), <span class="at">data =</span> birds)</span>
+<span id="cb7-4"><a href="#cb7-4"></a></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="fu">summary</span>(fit_lm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = land.dist ~ Species + Sex, data = birds)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-51.779 -14.413   0.021  12.883  51.754 
+
+Coefficients:
+                     Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)            42.637      1.852  23.028  &lt; 2e-16 ***
+SpeciesOystercatcher  120.509      2.938  41.014  &lt; 2e-16 ***
+SpeciesPlover          36.942      2.232  16.554  &lt; 2e-16 ***
+SpeciesStint           17.228      3.355   5.135 4.45e-07 ***
+SexMale                -1.591      1.933  -0.823    0.411    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 19.15 on 394 degrees of freedom
+Multiple R-squared:  0.8139,    Adjusted R-squared:  0.812 
+F-statistic: 430.8 on 4 and 394 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">summary</span>(fit_lmer)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: land.dist ~ Species + Sex + (1 | Site)
+   Data: birds
+
+REML criterion at convergence: 3178.2
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.9082 -0.7167 -0.0061  0.6730  3.2716 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ Site     (Intercept) 256.0    16.00   
+ Residual             167.9    12.96   
+Number of obs: 399, groups:  Site, 5
+
+Fixed effects:
+                     Estimate Std. Error      df t value Pr(&gt;|t|)    
+(Intercept)            43.061      7.265   4.177   5.927  0.00354 ** 
+SpeciesOystercatcher  119.638      1.991 390.017  60.089  &lt; 2e-16 ***
+SpeciesPlover          37.689      1.515 390.044  24.870  &lt; 2e-16 ***
+SpeciesStint           18.858      2.275 390.024   8.290 1.85e-15 ***
+SexMale                -2.260      1.311 390.029  -1.724  0.08550 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) SpcsOy SpcsPl SpcsSt
+SpcsOystrct -0.074                     
+SpeciesPlvr -0.100  0.334              
+SpeciesStnt -0.072  0.228  0.300       
+SexMale     -0.104  0.045  0.085  0.106</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>vc <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">VarCorr</span>(fit_lmer))</span>
+<span id="cb11-2"><a href="#cb11-2"></a>site_var <span class="ot">&lt;-</span> vc<span class="sc">$</span>vcov[vc<span class="sc">$</span>grp <span class="sc">==</span> <span class="st">"Site"</span>]</span>
+<span id="cb11-3"><a href="#cb11-3"></a>resid_var <span class="ot">&lt;-</span> vc<span class="sc">$</span>vcov[vc<span class="sc">$</span>grp <span class="sc">==</span> <span class="st">"Residual"</span>]</span>
+<span id="cb11-4"><a href="#cb11-4"></a>icc <span class="ot">&lt;-</span> site_var <span class="sc">/</span> (site_var <span class="sc">+</span> resid_var)</span>
+<span id="cb11-5"><a href="#cb11-5"></a></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="fu">tibble</span>(</span>
+<span id="cb11-7"><a href="#cb11-7"></a>  <span class="at">model =</span> <span class="fu">c</span>(<span class="st">"ordinary linear model"</span>, <span class="st">"mixed model"</span>),</span>
+<span id="cb11-8"><a href="#cb11-8"></a>  <span class="at">AIC =</span> <span class="fu">c</span>(<span class="fu">AIC</span>(fit_lm), <span class="fu">AIC</span>(fit_lmer))</span>
+<span id="cb11-9"><a href="#cb11-9"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 2
+  model                   AIC
+  &lt;chr&gt;                 &lt;dbl&gt;
+1 ordinary linear model 3495.
+2 mixed model           3192.</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>icc</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.603998</code></pre>
+</div>
+</div>
+</section><section id="test-assumptions-check-diagnostics" class="level2" data-number="7.5"><h2 data-number="7.5" class="anchored" data-anchor-id="test-assumptions-check-diagnostics">
+<span class="header-section-number">7.5</span> Test Assumptions / Check Diagnostics</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))</span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="co"># plot(fit_lmer)</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="fu">qqnorm</span>(<span class="fu">residuals</span>(fit_lmer))</span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="fu">qqline</span>(<span class="fu">residuals</span>(fit_lmer))</span>
+<span id="cb15-5"><a href="#cb15-5"></a><span class="fu">hist</span>(<span class="fu">residuals</span>(fit_lmer), <span class="at">main =</span> <span class="st">"Residuals"</span>, <span class="at">xlab =</span> <span class="st">"Residual"</span>)</span>
+<span id="cb15-6"><a href="#cb15-6"></a><span class="fu">plot</span>(<span class="fu">fitted</span>(fit_lmer), <span class="fu">residuals</span>(fit_lmer),</span>
+<span id="cb15-7"><a href="#cb15-7"></a>     <span class="at">xlab =</span> <span class="st">"Fitted values"</span>, <span class="at">ylab =</span> <span class="st">"Residuals"</span>)</span>
+<span id="cb15-8"><a href="#cb15-8"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb15-9"><a href="#cb15-9"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-lmm-diagnostics" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-lmm-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="18-dependence-and-mixed-models_files/figure-html/fig-lmm-diagnostics-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Standard residual diagnostics for the mixed model."><img src="18-dependence-and-mixed-models_files/figure-html/fig-lmm-diagnostics-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lmm-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Standard residual diagnostics for the mixed model.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>In a first-pass mixed-model workflow, the main questions are:</p>
+<ul>
+<li>are the residuals grossly non-normal or strongly patterned;</li>
+<li>does the random effect explain a meaningful share of the variance;</li>
+<li>does the mixed model fit better than the independence-assuming alternative.</li>
+</ul>
+<p>Here the random site effect is not trivial. The intra-class correlation is about 0.6, which means that roughly 60% of the variance represented by the model’s variance components is at the site level rather than purely within sites.</p>
+</section><section id="interpret-the-results" class="level2" data-number="7.6"><h2 data-number="7.6" class="anchored" data-anchor-id="interpret-the-results">
+<span class="header-section-number">7.6</span> Interpret the Results</h2>
+<p>The mixed model fit is clearly better than the ordinary model by AIC, which already suggests that site-level dependence matters.</p>
+<p>The species effects are also large. Relative to the reference species, landing distance is substantially greater for Oystercatchers and Plovers, with Stints intermediate. The sex effect is much weaker and does not provide strong evidence for a difference at the conventional 0.05 level.</p>
+<p>The ecological finding is that species differ, and those differences should be interpreted <strong>after accounting for site-level dependence</strong>, not before. If site is ignored, the analysis behaves as though all birds were sampled independently from one large homogeneous pool.</p>
+</section><section id="reporting" class="level2" data-number="7.7"><h2 data-number="7.7" class="anchored" data-anchor-id="reporting">
+<span class="header-section-number">7.7</span> Reporting</h2>
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Write-Up
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Methods</strong></p>
+<p>Landing distance was analysed for shorebirds sampled across multiple beach sites using a linear mixed-effects model. Species and sex were included as fixed effects, and site was included as a random intercept to account for the grouped sampling structure. An ordinary linear model that ignored site was fitted for comparison.</p>
+<p><strong>Results</strong></p>
+<p>The mixed model fit the data better than the ordinary linear model (AIC 3495.2 vs 3192.2), indicating that site-level dependence was important. The estimated site-level variance was substantial, with an intra-class correlation of approximately 0.6. After accounting for this grouped structure, landing distance remained much greater in Oystercatchers (<span class="math inline">\(\beta = 119.64\)</span>, <span class="math inline">\(p &lt; 0.001\)</span>), Plovers (<span class="math inline">\(\beta = 37.69\)</span>, <span class="math inline">\(p &lt; 0.001\)</span>), and Stints (<span class="math inline">\(\beta = 18.86\)</span>, <span class="math inline">\(p &lt; 0.001\)</span>) than in the reference species. The sex effect was weaker and not clearly different from zero (<span class="math inline">\(p &gt; 0.05\)</span>).</p>
+<p><strong>Discussion</strong></p>
+<p>Species differed in landing distance, but those differences were estimated while accounting for the non-independence of observations within sites. This makes the inference more defensible and avoids treating site-level similarity as if it were independent replication.</p>
+</div>
+</div>
+</section></section><section id="what-to-do-when-assumptions-fail-alternatives" class="level1" data-number="8"><h1 data-number="8">
+<span class="header-section-number">8</span> What to Do When Assumptions Fail / Alternatives</h1>
+<ul>
+<li>If the response is not Gaussian, move to a generalised mixed model with <code>glmer()</code>.</li>
+<li>If repeated measurements through time create autocorrelation, consider a model with explicit correlation structure rather than relying only on a random intercept.</li>
+<li>If the random-effects structure is biologically richer than a simple intercept, extend it cautiously to random slopes where the design supports that.</li>
+<li>If the design is fundamentally pseudoreplicated, a mixed model cannot rescue the study completely; it can only model the dependence that is actually observed.</li>
+</ul></section><section id="summary" class="level1" data-number="9"><h1 data-number="9">
+<span class="header-section-number">9</span> Summary</h1>
+<ul>
+<li>Mixed models are needed when observations are grouped or otherwise dependent.</li>
+<li>The random effect is not an afterthought; it represents the sampling structure directly.</li>
+<li>In the beach-bird example, site-level dependence was strong enough to improve model fit markedly.</li>
+<li>Species differences in landing distance remained important even after that dependence was accounted for.</li>
+</ul>
 
 
 <!-- -->
@@ -1733,138 +2533,297 @@ Smit, A. J., J. Smit A (2026) 18. Dependence and Mixed Models. <a href="http://t
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">---</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="an">title:</span><span class="co"> "18. Dependence and Mixed Models"</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a><span class="an">subtitle:</span><span class="co"> "When Observations Are Not Independent"</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
-<span id="cb3-5"><a href="#cb3-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
-<span id="cb3-6"><a href="#cb3-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
-<span id="cb3-7"><a href="#cb3-7"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a><span class="co">---</span></span>
-<span id="cb3-9"><a href="#cb3-9"></a></span>
-<span id="cb3-10"><a href="#cb3-10"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
-<span id="cb3-11"><a href="#cb3-11"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
-<span id="cb3-12"><a href="#cb3-12"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
-<span id="cb3-13"><a href="#cb3-13"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-14"><a href="#cb3-14"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb3-15"><a href="#cb3-15"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
-<span id="cb3-16"><a href="#cb3-16"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
-<span id="cb3-17"><a href="#cb3-17"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
-<span id="cb3-18"><a href="#cb3-18"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
-<span id="cb3-19"><a href="#cb3-19"></a>)</span>
-<span id="cb3-20"><a href="#cb3-20"></a><span class="in">```</span></span>
-<span id="cb3-21"><a href="#cb3-21"></a></span>
-<span id="cb3-22"><a href="#cb3-22"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb3-23"><a href="#cb3-23"></a><span class="fu">## In This Chapter</span></span>
-<span id="cb3-24"><a href="#cb3-24"></a></span>
-<span id="cb3-25"><a href="#cb3-25"></a><span class="ss">-   </span>Why dependence causes trouble in ordinary analyses</span>
-<span id="cb3-26"><a href="#cb3-26"></a><span class="ss">-   </span>How repeated measures and nested designs create structure</span>
-<span id="cb3-27"><a href="#cb3-27"></a><span class="ss">-   </span>The difference between fixed and random effects</span>
-<span id="cb3-28"><a href="#cb3-28"></a><span class="ss">-   </span>When mixed models are appropriate</span>
-<span id="cb3-29"><a href="#cb3-29"></a><span class="ss">-   </span>How mixed models help avoid pseudoreplication</span>
-<span id="cb3-30"><a href="#cb3-30"></a>:::</span>
-<span id="cb3-31"><a href="#cb3-31"></a></span>
-<span id="cb3-32"><a href="#cb3-32"></a>::: {.callout-important appearance="simple"}</span>
-<span id="cb3-33"><a href="#cb3-33"></a><span class="fu">## Tasks to Complete in This Chapter</span></span>
-<span id="cb3-34"><a href="#cb3-34"></a></span>
-<span id="cb3-35"><a href="#cb3-35"></a><span class="ss">-   </span>None</span>
-<span id="cb3-36"><a href="#cb3-36"></a>:::</span>
-<span id="cb3-37"><a href="#cb3-37"></a></span>
-<span id="cb3-38"><a href="#cb3-38"></a><span class="fu"># Introduction</span></span>
-<span id="cb3-39"><a href="#cb3-39"></a></span>
-<span id="cb3-40"><a href="#cb3-40"></a>The regression and ANOVA chapters up to this point have assumed that observations are independent. That assumption is often violated in biological data. Repeated measures on the same individual, quadrats within sites, sites within regions, and observations collected through time or space all create structure that ordinary regression does not handle well.</span>
-<span id="cb3-41"><a href="#cb3-41"></a></span>
-<span id="cb3-42"><a href="#cb3-42"></a>When dependence is ignored, the analysis often becomes overconfident. Standard errors become too small, tests become too optimistic, and the model starts treating repeated information as though it were new information. That is one of the main ways pseudoreplication appears at the analysis stage.</span>
-<span id="cb3-43"><a href="#cb3-43"></a></span>
-<span id="cb3-44"><a href="#cb3-44"></a>Mixed-effects models are one of the main tools for dealing with this problem. They allow us to model systematic effects of biological interest while also accounting for structured variation among groups, individuals, sites, years, or other sampling units.</span>
-<span id="cb3-45"><a href="#cb3-45"></a></span>
-<span id="cb3-46"><a href="#cb3-46"></a><span class="fu"># Key Concepts</span></span>
-<span id="cb3-47"><a href="#cb3-47"></a></span>
-<span id="cb3-48"><a href="#cb3-48"></a><span class="ss">-   </span>**Dependence** means observations are not fully independent of one another.</span>
-<span id="cb3-49"><a href="#cb3-49"></a><span class="ss">-   </span>**Hierarchical structure** arises when observations are nested within larger units such as sites, transects, or years.</span>
-<span id="cb3-50"><a href="#cb3-50"></a><span class="ss">-   </span>**Repeated measures** create dependence because the same unit is observed more than once.</span>
-<span id="cb3-51"><a href="#cb3-51"></a><span class="ss">-   </span>**Fixed effects** represent the systematic effects of primary interest.</span>
-<span id="cb3-52"><a href="#cb3-52"></a><span class="ss">-   </span>**Random effects** represent structured variation among groups or sampling units.</span>
-<span id="cb3-53"><a href="#cb3-53"></a></span>
-<span id="cb3-54"><a href="#cb3-54"></a><span class="fu"># When This Method Is Appropriate</span></span>
-<span id="cb3-55"><a href="#cb3-55"></a></span>
-<span id="cb3-56"><a href="#cb3-56"></a>You should begin thinking about mixed models when:</span>
-<span id="cb3-57"><a href="#cb3-57"></a></span>
-<span id="cb3-58"><a href="#cb3-58"></a><span class="ss">-   </span>the same individual, plot, site, or unit is measured repeatedly;</span>
-<span id="cb3-59"><a href="#cb3-59"></a><span class="ss">-   </span>samples are nested within larger sampling units;</span>
-<span id="cb3-60"><a href="#cb3-60"></a><span class="ss">-   </span>the design has obvious grouping structure;</span>
-<span id="cb3-61"><a href="#cb3-61"></a><span class="ss">-   </span>you suspect pseudoreplication if the data are analysed as though they were independent.</span>
-<span id="cb3-62"><a href="#cb3-62"></a></span>
-<span id="cb3-63"><a href="#cb3-63"></a>Typical cases include:</span>
-<span id="cb3-64"><a href="#cb3-64"></a></span>
-<span id="cb3-65"><a href="#cb3-65"></a><span class="ss">-   </span>quadrats within sites;</span>
-<span id="cb3-66"><a href="#cb3-66"></a><span class="ss">-   </span>repeated measurements on the same animals;</span>
-<span id="cb3-67"><a href="#cb3-67"></a><span class="ss">-   </span>transects within bays;</span>
-<span id="cb3-68"><a href="#cb3-68"></a><span class="ss">-   </span>observations nested within years or regions.</span>
-<span id="cb3-69"><a href="#cb3-69"></a></span>
-<span id="cb3-70"><a href="#cb3-70"></a><span class="fu"># Why Dependence Matters</span></span>
-<span id="cb3-71"><a href="#cb3-71"></a></span>
-<span id="cb3-72"><a href="#cb3-72"></a>If dependence is ignored, the model behaves as though the effective sample size is larger than it really is. That is dangerous because the model may report precise-looking coefficients and small *p*-values that are artefacts of the design rather than genuine evidence.</span>
-<span id="cb3-73"><a href="#cb3-73"></a></span>
-<span id="cb3-74"><a href="#cb3-74"></a>The first question should therefore not be "which function shall I use?" but "what is the sampling structure of the data?" In mixed modelling, the sampling structure is part of the model specification.</span>
-<span id="cb3-75"><a href="#cb3-75"></a></span>
-<span id="cb3-76"><a href="#cb3-76"></a><span class="fu"># R Functions</span></span>
-<span id="cb3-77"><a href="#cb3-77"></a></span>
-<span id="cb3-78"><a href="#cb3-78"></a>The most common R functions for mixed models include:</span>
-<span id="cb3-79"><a href="#cb3-79"></a></span>
-<span id="cb3-80"><a href="#cb3-80"></a><span class="ss">-   </span><span class="in">`lmer()`</span> from **lme4** for linear mixed-effects models;</span>
-<span id="cb3-81"><a href="#cb3-81"></a><span class="ss">-   </span><span class="in">`glmer()`</span> from **lme4** for generalised mixed-effects models;</span>
-<span id="cb3-82"><a href="#cb3-82"></a><span class="ss">-   </span><span class="in">`nlme::lme()`</span> for linear mixed models with more explicit correlation structures.</span>
-<span id="cb3-83"><a href="#cb3-83"></a></span>
-<span id="cb3-84"><a href="#cb3-84"></a>The basic idea is to extend the linear predictor by adding random effects. For example:</span>
-<span id="cb3-85"><a href="#cb3-85"></a></span>
-<span id="cb3-88"><a href="#cb3-88"></a><span class="in">```{r}</span></span>
-<span id="cb3-89"><a href="#cb3-89"></a><span class="co">#| eval: false</span></span>
-<span id="cb3-90"><a href="#cb3-90"></a>lme4<span class="sc">::</span><span class="fu">lmer</span>(response <span class="sc">~</span> treatment <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> site), <span class="at">data =</span> df)</span>
-<span id="cb3-91"><a href="#cb3-91"></a><span class="in">```</span></span>
-<span id="cb3-92"><a href="#cb3-92"></a></span>
-<span id="cb3-93"><a href="#cb3-93"></a>This model says:</span>
-<span id="cb3-94"><a href="#cb3-94"></a></span>
-<span id="cb3-95"><a href="#cb3-95"></a><span class="ss">-   </span>the fixed effect of <span class="in">`treatment`</span> is of primary interest;</span>
-<span id="cb3-96"><a href="#cb3-96"></a><span class="ss">-   </span>observations are grouped by <span class="in">`site`</span>;</span>
-<span id="cb3-97"><a href="#cb3-97"></a><span class="ss">-   </span>each site has its own random intercept.</span>
-<span id="cb3-98"><a href="#cb3-98"></a></span>
-<span id="cb3-99"><a href="#cb3-99"></a>A model with repeated observations on the same individual might look like:</span>
-<span id="cb3-100"><a href="#cb3-100"></a></span>
-<span id="cb3-103"><a href="#cb3-103"></a><span class="in">```{r}</span></span>
-<span id="cb3-104"><a href="#cb3-104"></a><span class="co">#| eval: false</span></span>
-<span id="cb3-105"><a href="#cb3-105"></a>lme4<span class="sc">::</span><span class="fu">lmer</span>(response <span class="sc">~</span> time <span class="sc">*</span> treatment <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> individual), <span class="at">data =</span> df)</span>
-<span id="cb3-106"><a href="#cb3-106"></a><span class="in">```</span></span>
-<span id="cb3-107"><a href="#cb3-107"></a></span>
-<span id="cb3-108"><a href="#cb3-108"></a><span class="fu"># A Practical Workflow</span></span>
-<span id="cb3-109"><a href="#cb3-109"></a></span>
-<span id="cb3-110"><a href="#cb3-110"></a>For these chapters, the main workflow is:</span>
-<span id="cb3-111"><a href="#cb3-111"></a></span>
-<span id="cb3-112"><a href="#cb3-112"></a><span class="ss">1. </span>identify the biological question;</span>
-<span id="cb3-113"><a href="#cb3-113"></a><span class="ss">2. </span>identify the unit of replication and the grouping structure;</span>
-<span id="cb3-114"><a href="#cb3-114"></a><span class="ss">3. </span>decide which effects are fixed and which are random;</span>
-<span id="cb3-115"><a href="#cb3-115"></a><span class="ss">4. </span>fit the mixed model only after the sampling structure is clear;</span>
-<span id="cb3-116"><a href="#cb3-116"></a><span class="ss">5. </span>interpret the fixed effects in the light of the grouping structure.</span>
-<span id="cb3-117"><a href="#cb3-117"></a></span>
-<span id="cb3-118"><a href="#cb3-118"></a>This sequence matters because mixed models are not simply more complicated regressions. They are a response to a different kind of data structure.</span>
-<span id="cb3-119"><a href="#cb3-119"></a></span>
-<span id="cb3-120"><a href="#cb3-120"></a><span class="fu"># Common Mistakes</span></span>
-<span id="cb3-121"><a href="#cb3-121"></a></span>
-<span id="cb3-122"><a href="#cb3-122"></a>Common mistakes include:</span>
-<span id="cb3-123"><a href="#cb3-123"></a></span>
-<span id="cb3-124"><a href="#cb3-124"></a><span class="ss">-   </span>treating repeated measurements as though they were independent observations;</span>
-<span id="cb3-125"><a href="#cb3-125"></a><span class="ss">-   </span>using a mixed model without being able to explain the random effect biologically;</span>
-<span id="cb3-126"><a href="#cb3-126"></a><span class="ss">-   </span>confusing random effects with nuisance terms that can be added thoughtlessly;</span>
-<span id="cb3-127"><a href="#cb3-127"></a><span class="ss">-   </span>trying to use mixed models to rescue a fundamentally weak design.</span>
-<span id="cb3-128"><a href="#cb3-128"></a></span>
-<span id="cb3-129"><a href="#cb3-129"></a><span class="fu"># Summary</span></span>
-<span id="cb3-130"><a href="#cb3-130"></a></span>
-<span id="cb3-131"><a href="#cb3-131"></a><span class="ss">-   </span>Mixed models are needed when observations are not independent.</span>
-<span id="cb3-132"><a href="#cb3-132"></a><span class="ss">-   </span>The grouping structure of the data is part of the model, not an afterthought.</span>
-<span id="cb3-133"><a href="#cb3-133"></a><span class="ss">-   </span>Random effects help account for repeated measures and hierarchical sampling.</span>
-<span id="cb3-134"><a href="#cb3-134"></a><span class="ss">-   </span>Ignoring dependence often leads to overconfident inference.</span>
-<span id="cb3-135"><a href="#cb3-135"></a></span>
-<span id="cb3-136"><a href="#cb3-136"></a>This chapter marks the transition from ordinary models for independent data to models that better reflect real sampling structure. In later work, mixed models also combine naturally with generalised and nonlinear modelling frameworks.</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">---</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="an">title:</span><span class="co"> "18. Dependence and Mixed Models"</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="an">subtitle:</span><span class="co"> "When Observations Are Not Independent"</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a><span class="co">---</span></span>
+<span id="cb16-9"><a href="#cb16-9"></a></span>
+<span id="cb16-10"><a href="#cb16-10"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
+<span id="cb16-11"><a href="#cb16-11"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb16-12"><a href="#cb16-12"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
+<span id="cb16-13"><a href="#cb16-13"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb16-14"><a href="#cb16-14"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb16-15"><a href="#cb16-15"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
+<span id="cb16-16"><a href="#cb16-16"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
+<span id="cb16-17"><a href="#cb16-17"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
+<span id="cb16-18"><a href="#cb16-18"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb16-19"><a href="#cb16-19"></a>)</span>
+<span id="cb16-20"><a href="#cb16-20"></a></span>
+<span id="cb16-21"><a href="#cb16-21"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb16-22"><a href="#cb16-22"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb16-23"><a href="#cb16-23"></a>)</span>
+<span id="cb16-24"><a href="#cb16-24"></a><span class="in">```</span></span>
+<span id="cb16-25"><a href="#cb16-25"></a></span>
+<span id="cb16-26"><a href="#cb16-26"></a><span class="in">```{r code-libraries, echo=FALSE}</span></span>
+<span id="cb16-27"><a href="#cb16-27"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb16-28"><a href="#cb16-28"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb16-29"><a href="#cb16-29"></a><span class="fu">library</span>(lmerTest)</span>
+<span id="cb16-30"><a href="#cb16-30"></a><span class="fu">library</span>(gt)</span>
+<span id="cb16-31"><a href="#cb16-31"></a><span class="in">```</span></span>
+<span id="cb16-32"><a href="#cb16-32"></a></span>
+<span id="cb16-33"><a href="#cb16-33"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb16-34"><a href="#cb16-34"></a><span class="fu">## In This Chapter</span></span>
+<span id="cb16-35"><a href="#cb16-35"></a></span>
+<span id="cb16-36"><a href="#cb16-36"></a><span class="ss">-   </span>why non-independence creates misleadingly confident analyses;</span>
+<span id="cb16-37"><a href="#cb16-37"></a><span class="ss">-   </span>how grouped and nested sampling structures arise in ecology;</span>
+<span id="cb16-38"><a href="#cb16-38"></a><span class="ss">-   </span>the difference between fixed and random effects;</span>
+<span id="cb16-39"><a href="#cb16-39"></a><span class="ss">-   </span>how to fit and interpret a simple random-intercept mixed model in R;</span>
+<span id="cb16-40"><a href="#cb16-40"></a><span class="ss">-   </span>how to report a mixed model in the same journal style used elsewhere in the course.</span>
+<span id="cb16-41"><a href="#cb16-41"></a>:::</span>
+<span id="cb16-42"><a href="#cb16-42"></a></span>
+<span id="cb16-43"><a href="#cb16-43"></a>::: {.callout-important appearance="simple"}</span>
+<span id="cb16-44"><a href="#cb16-44"></a><span class="fu">## Tasks to Complete in This Chapter</span></span>
+<span id="cb16-45"><a href="#cb16-45"></a></span>
+<span id="cb16-46"><a href="#cb16-46"></a><span class="ss">-   </span>None</span>
+<span id="cb16-47"><a href="#cb16-47"></a>:::</span>
+<span id="cb16-48"><a href="#cb16-48"></a></span>
+<span id="cb16-49"><a href="#cb16-49"></a><span class="fu"># Introduction</span></span>
+<span id="cb16-50"><a href="#cb16-50"></a></span>
+<span id="cb16-51"><a href="#cb16-51"></a>Most of the models in the earlier chapters assume that each observation contributes genuinely new information. In ecological sampling that is often false, because measurements taken from the same site, transect, colony, quadrat, or individual tend to resemble one another more than measurements taken from different sampling units.</span>
+<span id="cb16-52"><a href="#cb16-52"></a></span>
+<span id="cb16-53"><a href="#cb16-53"></a>That is what **dependence** means in practice. So, the observations are not fully independent because they share context, history, or structure.</span>
+<span id="cb16-54"><a href="#cb16-54"></a></span>
+<span id="cb16-55"><a href="#cb16-55"></a>If we ignore that structure, the analysis becomes overconfident. Standard errors shrink, degrees of freedom are effectively exaggerated, and the model can start reporting strong-looking results that are partly artefacts of the sampling design.</span>
+<span id="cb16-56"><a href="#cb16-56"></a></span>
+<span id="cb16-57"><a href="#cb16-57"></a>Mixed-effects models provide one of the main solutions to this challenge. They allow us to keep the fixed effects that address the biological question while accounting for variation among grouped sampling units through **random effects**.</span>
+<span id="cb16-58"><a href="#cb16-58"></a></span>
+<span id="cb16-59"><a href="#cb16-59"></a><span class="fu"># Key Concepts</span></span>
+<span id="cb16-60"><a href="#cb16-60"></a></span>
+<span id="cb16-61"><a href="#cb16-61"></a><span class="ss">-   </span>**Dependence** means observations are not fully independent of one another.</span>
+<span id="cb16-62"><a href="#cb16-62"></a><span class="ss">-   </span>**Grouped structure** arises when observations are clustered within sites, years, individuals, or other units.</span>
+<span id="cb16-63"><a href="#cb16-63"></a><span class="ss">-   </span>**Fixed effects** represent systematic effects of direct biological interest.</span>
+<span id="cb16-64"><a href="#cb16-64"></a><span class="ss">-   </span>**Random effects** represent structured variation among sampling units.</span>
+<span id="cb16-65"><a href="#cb16-65"></a><span class="ss">-   </span>**A random intercept model** allows each site or group to have its own baseline level.</span>
+<span id="cb16-66"><a href="#cb16-66"></a><span class="ss">-   </span>**Mixed models are tailored to a specific sampling structure or design**.</span>
+<span id="cb16-67"><a href="#cb16-67"></a></span>
+<span id="cb16-68"><a href="#cb16-68"></a><span class="fu"># When This Method Is Appropriate</span></span>
+<span id="cb16-69"><a href="#cb16-69"></a></span>
+<span id="cb16-70"><a href="#cb16-70"></a>You should start thinking about mixed models when:</span>
+<span id="cb16-71"><a href="#cb16-71"></a></span>
+<span id="cb16-72"><a href="#cb16-72"></a><span class="ss">-   </span>observations are nested within sites, transects, plots, years, or individuals;</span>
+<span id="cb16-73"><a href="#cb16-73"></a><span class="ss">-   </span>the same unit is measured repeatedly;</span>
+<span id="cb16-74"><a href="#cb16-74"></a><span class="ss">-   </span>the sampling design clearly has hierarchical structure;</span>
+<span id="cb16-75"><a href="#cb16-75"></a><span class="ss">-   </span>treating all observations as independent would create pseudoreplication.</span>
+<span id="cb16-76"><a href="#cb16-76"></a></span>
+<span id="cb16-77"><a href="#cb16-77"></a>Typical cases include:</span>
+<span id="cb16-78"><a href="#cb16-78"></a></span>
+<span id="cb16-79"><a href="#cb16-79"></a><span class="ss">-   </span>quadrats within sites;</span>
+<span id="cb16-80"><a href="#cb16-80"></a><span class="ss">-   </span>birds sampled within beaches;</span>
+<span id="cb16-81"><a href="#cb16-81"></a><span class="ss">-   </span>repeated measurements on the same animals;</span>
+<span id="cb16-82"><a href="#cb16-82"></a><span class="ss">-   </span>monthly observations within monitoring stations.</span>
+<span id="cb16-83"><a href="#cb16-83"></a></span>
+<span id="cb16-84"><a href="#cb16-84"></a><span class="fu"># Nature of the Data and Assumptions</span></span>
+<span id="cb16-85"><a href="#cb16-85"></a></span>
+<span id="cb16-86"><a href="#cb16-86"></a>Mixed models do not remove the need for ordinary model checking. So, for a Gaussian linear mixed model, the main assumptions are still:</span>
+<span id="cb16-87"><a href="#cb16-87"></a></span>
+<span id="cb16-88"><a href="#cb16-88"></a><span class="ss">1. </span>independence **between** higher-level units such as sites or individuals;</span>
+<span id="cb16-89"><a href="#cb16-89"></a><span class="ss">2. </span>approximately normal residuals;</span>
+<span id="cb16-90"><a href="#cb16-90"></a><span class="ss">3. </span>reasonably constant residual variance;</span>
+<span id="cb16-91"><a href="#cb16-91"></a><span class="ss">4. </span>a sensible specification of the random-effects structure.</span>
+<span id="cb16-92"><a href="#cb16-92"></a></span>
+<span id="cb16-93"><a href="#cb16-93"></a>The important difference is that we now no longer assume independence among observations inside the same group.</span>
+<span id="cb16-94"><a href="#cb16-94"></a></span>
+<span id="cb16-95"><a href="#cb16-95"></a><span class="fu"># The Core Equations</span></span>
+<span id="cb16-96"><a href="#cb16-96"></a></span>
+<span id="cb16-97"><a href="#cb16-97"></a>A simple random-intercept mixed model can be written as:</span>
+<span id="cb16-98"><a href="#cb16-98"></a></span>
+<span id="cb16-99"><a href="#cb16-99"></a>$$Y_{ij} = \alpha + \beta_{1}X_{1ij} + \cdots + \beta_{p}X_{pij} + b_{j} + \epsilon_{ij}$$ {#eq-lmm}</span>
+<span id="cb16-100"><a href="#cb16-100"></a></span>
+<span id="cb16-101"><a href="#cb16-101"></a>In @eq-lmm, $Y_{ij}$ is the response for observation $i$ in group $j$, the $\beta$ terms are the fixed effects, $b_{j}$ is the random intercept for group $j$, and $\epsilon_{ij}$ is the residual error.</span>
+<span id="cb16-102"><a href="#cb16-102"></a></span>
+<span id="cb16-103"><a href="#cb16-103"></a>The important idea is that the model has two sources of variation:</span>
+<span id="cb16-104"><a href="#cb16-104"></a></span>
+<span id="cb16-105"><a href="#cb16-105"></a><span class="ss">-   </span>**between-group variation**, captured by the random effect $b_j$;</span>
+<span id="cb16-106"><a href="#cb16-106"></a><span class="ss">-   </span>**within-group variation**, captured by the residual term $\epsilon_{ij}$.</span>
+<span id="cb16-107"><a href="#cb16-107"></a></span>
+<span id="cb16-108"><a href="#cb16-108"></a>Mixed models help with dependence because the they explicitly allow observations from the same site or individual to share a common baseline.</span>
+<span id="cb16-109"><a href="#cb16-109"></a></span>
+<span id="cb16-110"><a href="#cb16-110"></a><span class="fu"># R Functions</span></span>
+<span id="cb16-111"><a href="#cb16-111"></a></span>
+<span id="cb16-112"><a href="#cb16-112"></a>The most common functions are:</span>
+<span id="cb16-113"><a href="#cb16-113"></a></span>
+<span id="cb16-114"><a href="#cb16-114"></a><span class="ss">-   </span><span class="in">`lmer()`</span> from **lme4** for Gaussian linear mixed models;</span>
+<span id="cb16-115"><a href="#cb16-115"></a><span class="ss">-   </span><span class="in">`glmer()`</span> from **lme4** for generalised mixed models;</span>
+<span id="cb16-116"><a href="#cb16-116"></a><span class="ss">-   </span><span class="in">`nlme::lme()`</span> when more explicit correlation structures are needed.</span>
+<span id="cb16-117"><a href="#cb16-117"></a></span>
+<span id="cb16-118"><a href="#cb16-118"></a>A simple random-intercept model looks like this:</span>
+<span id="cb16-119"><a href="#cb16-119"></a></span>
+<span id="cb16-122"><a href="#cb16-122"></a><span class="in">```{r}</span></span>
+<span id="cb16-123"><a href="#cb16-123"></a><span class="co">#| eval: false</span></span>
+<span id="cb16-124"><a href="#cb16-124"></a><span class="fu">lmer</span>(response <span class="sc">~</span> predictors <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> group), <span class="at">data =</span> df)</span>
+<span id="cb16-125"><a href="#cb16-125"></a><span class="in">```</span></span>
+<span id="cb16-126"><a href="#cb16-126"></a></span>
+<span id="cb16-127"><a href="#cb16-127"></a>The term <span class="in">`(1 | group)`</span> means that each group has its own intercept.</span>
+<span id="cb16-128"><a href="#cb16-128"></a></span>
+<span id="cb16-129"><a href="#cb16-129"></a><span class="fu"># Example 1: Shorebird landing distance with site-level dependence</span></span>
+<span id="cb16-130"><a href="#cb16-130"></a></span>
+<span id="cb16-131"><a href="#cb16-131"></a><span class="fu">## Example Dataset</span></span>
+<span id="cb16-132"><a href="#cb16-132"></a></span>
+<span id="cb16-133"><a href="#cb16-133"></a>We use the <span class="in">`BeachBirds.csv`</span> dataset from the course data folder. These data contain flight-initiation distances and landing distances for several shorebird species sampled across multiple beach sites. The important point emerging from this example is that observations collected at the same site are likely to be more similar to one another than observations collected at different sites.</span>
+<span id="cb16-134"><a href="#cb16-134"></a></span>
+<span id="cb16-135"><a href="#cb16-135"></a>Here we model <span class="in">`land.dist`</span> as a function of bird <span class="in">`Species`</span> and <span class="in">`Sex`</span>, while allowing each <span class="in">`Site`</span> to have its own baseline intercept.</span>
+<span id="cb16-136"><a href="#cb16-136"></a></span>
+<span id="cb16-137"><a href="#cb16-137"></a><span class="in">```{r code-data}</span></span>
+<span id="cb16-138"><a href="#cb16-138"></a><span class="co">#| tbl-cap: "A subset of the `BeachBirds.csv` data used in the mixed-model example."</span></span>
+<span id="cb16-139"><a href="#cb16-139"></a>birds <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">file.path</span>(<span class="st">".."</span>, <span class="st">".."</span>, <span class="st">"data"</span>, <span class="st">"BCB744"</span>, <span class="st">"BeachBirds.csv"</span>),</span>
+<span id="cb16-140"><a href="#cb16-140"></a>                  <span class="at">show_col_types =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb16-141"><a href="#cb16-141"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb16-142"><a href="#cb16-142"></a>    <span class="at">Site =</span> <span class="fu">factor</span>(Site),</span>
+<span id="cb16-143"><a href="#cb16-143"></a>    <span class="at">Species =</span> <span class="fu">factor</span>(Species),</span>
+<span id="cb16-144"><a href="#cb16-144"></a>    <span class="at">Sex =</span> <span class="fu">factor</span>(Sex)</span>
+<span id="cb16-145"><a href="#cb16-145"></a>  )</span>
+<span id="cb16-146"><a href="#cb16-146"></a></span>
+<span id="cb16-147"><a href="#cb16-147"></a><span class="fu">gt</span>(<span class="fu">head</span>(birds, <span class="dv">10</span>))</span>
+<span id="cb16-148"><a href="#cb16-148"></a><span class="in">```</span></span>
+<span id="cb16-149"><a href="#cb16-149"></a></span>
+<span id="cb16-150"><a href="#cb16-150"></a><span class="fu">## Do an Exploratory Data Analysis (EDA)</span></span>
+<span id="cb16-151"><a href="#cb16-151"></a></span>
+<span id="cb16-152"><a href="#cb16-152"></a><span class="in">```{r code-summary}</span></span>
+<span id="cb16-153"><a href="#cb16-153"></a>birds <span class="sc">|&gt;</span></span>
+<span id="cb16-154"><a href="#cb16-154"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb16-155"><a href="#cb16-155"></a>    <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb16-156"><a href="#cb16-156"></a>    <span class="at">n_sites =</span> <span class="fu">n_distinct</span>(Site),</span>
+<span id="cb16-157"><a href="#cb16-157"></a>    <span class="at">n_species =</span> <span class="fu">n_distinct</span>(Species),</span>
+<span id="cb16-158"><a href="#cb16-158"></a>    <span class="at">mean_land =</span> <span class="fu">mean</span>(land.dist),</span>
+<span id="cb16-159"><a href="#cb16-159"></a>    <span class="at">sd_land =</span> <span class="fu">sd</span>(land.dist)</span>
+<span id="cb16-160"><a href="#cb16-160"></a>  )</span>
+<span id="cb16-161"><a href="#cb16-161"></a><span class="in">```</span></span>
+<span id="cb16-162"><a href="#cb16-162"></a></span>
+<span id="cb16-163"><a href="#cb16-163"></a><span class="in">```{r fig-birds-site}</span></span>
+<span id="cb16-164"><a href="#cb16-164"></a><span class="co">#| fig-cap: "Landing distance by beach site for the sampled shorebirds."</span></span>
+<span id="cb16-165"><a href="#cb16-165"></a><span class="co">#| fig-width: 4</span></span>
+<span id="cb16-166"><a href="#cb16-166"></a><span class="co">#| fig-height: 3</span></span>
+<span id="cb16-167"><a href="#cb16-167"></a></span>
+<span id="cb16-168"><a href="#cb16-168"></a><span class="fu">ggplot</span>(birds, <span class="fu">aes</span>(<span class="at">x =</span> Site, <span class="at">y =</span> land.dist)) <span class="sc">+</span></span>
+<span id="cb16-169"><a href="#cb16-169"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb16-170"><a href="#cb16-170"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.1</span>, <span class="at">alpha =</span> <span class="fl">0.35</span>, <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb16-171"><a href="#cb16-171"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-172"><a href="#cb16-172"></a>    <span class="at">x =</span> <span class="st">"Site"</span>,</span>
+<span id="cb16-173"><a href="#cb16-173"></a>    <span class="at">y =</span> <span class="st">"Landing distance (m)"</span></span>
+<span id="cb16-174"><a href="#cb16-174"></a>  )</span>
+<span id="cb16-175"><a href="#cb16-175"></a><span class="in">```</span></span>
+<span id="cb16-176"><a href="#cb16-176"></a></span>
+<span id="cb16-177"><a href="#cb16-177"></a><span class="in">```{r fig-birds-species}</span></span>
+<span id="cb16-178"><a href="#cb16-178"></a><span class="co">#| fig-cap: "Landing distance differs strongly among shorebird species, but values also vary among sites."</span></span>
+<span id="cb16-179"><a href="#cb16-179"></a><span class="co">#| fig-width: 4</span></span>
+<span id="cb16-180"><a href="#cb16-180"></a><span class="co">#| fig-height: 3</span></span>
+<span id="cb16-181"><a href="#cb16-181"></a></span>
+<span id="cb16-182"><a href="#cb16-182"></a><span class="fu">ggplot</span>(birds, <span class="fu">aes</span>(<span class="at">x =</span> Species, <span class="at">y =</span> land.dist, <span class="at">fill =</span> Species)) <span class="sc">+</span></span>
+<span id="cb16-183"><a href="#cb16-183"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb16-184"><a href="#cb16-184"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-185"><a href="#cb16-185"></a>    <span class="at">x =</span> <span class="st">"Species"</span>,</span>
+<span id="cb16-186"><a href="#cb16-186"></a>    <span class="at">y =</span> <span class="st">"Landing distance (m)"</span></span>
+<span id="cb16-187"><a href="#cb16-187"></a>  )</span>
+<span id="cb16-188"><a href="#cb16-188"></a><span class="in">```</span></span>
+<span id="cb16-189"><a href="#cb16-189"></a></span>
+<span id="cb16-190"><a href="#cb16-190"></a>The EDA already shows why an ordinary model may be too simple. Landing distance differs among species, but there is also clear site-to-site variability. That suggests a grouped structure in which site should not be ignored.</span>
+<span id="cb16-191"><a href="#cb16-191"></a></span>
+<span id="cb16-192"><a href="#cb16-192"></a><span class="fu">## State the Model Question and Hypotheses</span></span>
+<span id="cb16-193"><a href="#cb16-193"></a></span>
+<span id="cb16-194"><a href="#cb16-194"></a>The main biological question is whether landing distance differs among species after accounting for the fact that birds were sampled within sites.</span>
+<span id="cb16-195"><a href="#cb16-195"></a></span>
+<span id="cb16-196"><a href="#cb16-196"></a>For the primary fixed effect, the hypothesis pair is:</span>
+<span id="cb16-197"><a href="#cb16-197"></a></span>
+<span id="cb16-198"><a href="#cb16-198"></a>$$H_{0}: \text{landing distance does not differ among species once site-level grouping is accounted for}$$</span>
+<span id="cb16-199"><a href="#cb16-199"></a>$$H_{a}: \text{landing distance differs among species after accounting for site-level grouping}$$</span>
+<span id="cb16-200"><a href="#cb16-200"></a></span>
+<span id="cb16-201"><a href="#cb16-201"></a>The random effect is not interpreted through a simple null-hypothesis pair in the same way. Its role is to account for the grouped sampling structure.</span>
+<span id="cb16-202"><a href="#cb16-202"></a></span>
+<span id="cb16-203"><a href="#cb16-203"></a><span class="fu">## Fit the Model</span></span>
+<span id="cb16-204"><a href="#cb16-204"></a></span>
+<span id="cb16-205"><a href="#cb16-205"></a>We first fit an ordinary linear model that ignores site, and then a mixed model with a random intercept for <span class="in">`Site`</span>.</span>
+<span id="cb16-206"><a href="#cb16-206"></a></span>
+<span id="cb16-207"><a href="#cb16-207"></a><span class="in">```{r code-fit-models}</span></span>
+<span id="cb16-208"><a href="#cb16-208"></a>fit_lm <span class="ot">&lt;-</span> <span class="fu">lm</span>(land.dist <span class="sc">~</span> Species <span class="sc">+</span> Sex, <span class="at">data =</span> birds)</span>
+<span id="cb16-209"><a href="#cb16-209"></a></span>
+<span id="cb16-210"><a href="#cb16-210"></a>fit_lmer <span class="ot">&lt;-</span> <span class="fu">lmer</span>(land.dist <span class="sc">~</span> Species <span class="sc">+</span> Sex <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Site), <span class="at">data =</span> birds)</span>
+<span id="cb16-211"><a href="#cb16-211"></a></span>
+<span id="cb16-212"><a href="#cb16-212"></a><span class="fu">summary</span>(fit_lm)</span>
+<span id="cb16-213"><a href="#cb16-213"></a><span class="fu">summary</span>(fit_lmer)</span>
+<span id="cb16-214"><a href="#cb16-214"></a><span class="in">```</span></span>
+<span id="cb16-215"><a href="#cb16-215"></a></span>
+<span id="cb16-216"><a href="#cb16-216"></a><span class="in">```{r code-compare-models}</span></span>
+<span id="cb16-217"><a href="#cb16-217"></a>vc <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">VarCorr</span>(fit_lmer))</span>
+<span id="cb16-218"><a href="#cb16-218"></a>site_var <span class="ot">&lt;-</span> vc<span class="sc">$</span>vcov[vc<span class="sc">$</span>grp <span class="sc">==</span> <span class="st">"Site"</span>]</span>
+<span id="cb16-219"><a href="#cb16-219"></a>resid_var <span class="ot">&lt;-</span> vc<span class="sc">$</span>vcov[vc<span class="sc">$</span>grp <span class="sc">==</span> <span class="st">"Residual"</span>]</span>
+<span id="cb16-220"><a href="#cb16-220"></a>icc <span class="ot">&lt;-</span> site_var <span class="sc">/</span> (site_var <span class="sc">+</span> resid_var)</span>
+<span id="cb16-221"><a href="#cb16-221"></a></span>
+<span id="cb16-222"><a href="#cb16-222"></a><span class="fu">tibble</span>(</span>
+<span id="cb16-223"><a href="#cb16-223"></a>  <span class="at">model =</span> <span class="fu">c</span>(<span class="st">"ordinary linear model"</span>, <span class="st">"mixed model"</span>),</span>
+<span id="cb16-224"><a href="#cb16-224"></a>  <span class="at">AIC =</span> <span class="fu">c</span>(<span class="fu">AIC</span>(fit_lm), <span class="fu">AIC</span>(fit_lmer))</span>
+<span id="cb16-225"><a href="#cb16-225"></a>)</span>
+<span id="cb16-226"><a href="#cb16-226"></a></span>
+<span id="cb16-227"><a href="#cb16-227"></a>icc</span>
+<span id="cb16-228"><a href="#cb16-228"></a><span class="in">```</span></span>
+<span id="cb16-229"><a href="#cb16-229"></a></span>
+<span id="cb16-230"><a href="#cb16-230"></a><span class="fu">## Test Assumptions / Check Diagnostics</span></span>
+<span id="cb16-231"><a href="#cb16-231"></a></span>
+<span id="cb16-232"><a href="#cb16-232"></a><span class="in">```{r fig-lmm-diagnostics}</span></span>
+<span id="cb16-233"><a href="#cb16-233"></a><span class="co">#| fig-cap: "Standard residual diagnostics for the mixed model."</span></span>
+<span id="cb16-234"><a href="#cb16-234"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb16-235"><a href="#cb16-235"></a><span class="co">#| fig-height: 5</span></span>
+<span id="cb16-236"><a href="#cb16-236"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))</span>
+<span id="cb16-237"><a href="#cb16-237"></a><span class="co"># plot(fit_lmer)</span></span>
+<span id="cb16-238"><a href="#cb16-238"></a><span class="fu">qqnorm</span>(<span class="fu">residuals</span>(fit_lmer))</span>
+<span id="cb16-239"><a href="#cb16-239"></a><span class="fu">qqline</span>(<span class="fu">residuals</span>(fit_lmer))</span>
+<span id="cb16-240"><a href="#cb16-240"></a><span class="fu">hist</span>(<span class="fu">residuals</span>(fit_lmer), <span class="at">main =</span> <span class="st">"Residuals"</span>, <span class="at">xlab =</span> <span class="st">"Residual"</span>)</span>
+<span id="cb16-241"><a href="#cb16-241"></a><span class="fu">plot</span>(<span class="fu">fitted</span>(fit_lmer), <span class="fu">residuals</span>(fit_lmer),</span>
+<span id="cb16-242"><a href="#cb16-242"></a>     <span class="at">xlab =</span> <span class="st">"Fitted values"</span>, <span class="at">ylab =</span> <span class="st">"Residuals"</span>)</span>
+<span id="cb16-243"><a href="#cb16-243"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb16-244"><a href="#cb16-244"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb16-245"><a href="#cb16-245"></a><span class="in">```</span></span>
+<span id="cb16-246"><a href="#cb16-246"></a></span>
+<span id="cb16-247"><a href="#cb16-247"></a>In a first-pass mixed-model workflow, the main questions are:</span>
+<span id="cb16-248"><a href="#cb16-248"></a></span>
+<span id="cb16-249"><a href="#cb16-249"></a><span class="ss">-   </span>are the residuals grossly non-normal or strongly patterned;</span>
+<span id="cb16-250"><a href="#cb16-250"></a><span class="ss">-   </span>does the random effect explain a meaningful share of the variance;</span>
+<span id="cb16-251"><a href="#cb16-251"></a><span class="ss">-   </span>does the mixed model fit better than the independence-assuming alternative.</span>
+<span id="cb16-252"><a href="#cb16-252"></a></span>
+<span id="cb16-253"><a href="#cb16-253"></a>Here the random site effect is not trivial. The intra-class correlation is about <span class="in">`r round(icc, 2)`</span>, which means that roughly 60% of the variance represented by the model's variance components is at the site level rather than purely within sites.</span>
+<span id="cb16-254"><a href="#cb16-254"></a></span>
+<span id="cb16-255"><a href="#cb16-255"></a><span class="fu">## Interpret the Results</span></span>
+<span id="cb16-256"><a href="#cb16-256"></a></span>
+<span id="cb16-257"><a href="#cb16-257"></a>The mixed model fit is clearly better than the ordinary model by AIC, which already suggests that site-level dependence matters.</span>
+<span id="cb16-258"><a href="#cb16-258"></a></span>
+<span id="cb16-259"><a href="#cb16-259"></a>The species effects are also large. Relative to the reference species, landing distance is substantially greater for Oystercatchers and Plovers, with Stints intermediate. The sex effect is much weaker and does not provide strong evidence for a difference at the conventional 0.05 level.</span>
+<span id="cb16-260"><a href="#cb16-260"></a></span>
+<span id="cb16-261"><a href="#cb16-261"></a>The ecological finding is that species differ, and those differences should be interpreted **after accounting for site-level dependence**, not before. If site is ignored, the analysis behaves as though all birds were sampled independently from one large homogeneous pool.</span>
+<span id="cb16-262"><a href="#cb16-262"></a></span>
+<span id="cb16-263"><a href="#cb16-263"></a><span class="fu">## Reporting</span></span>
+<span id="cb16-264"><a href="#cb16-264"></a></span>
+<span id="cb16-265"><a href="#cb16-265"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb16-266"><a href="#cb16-266"></a><span class="fu">## Write-Up</span></span>
+<span id="cb16-267"><a href="#cb16-267"></a></span>
+<span id="cb16-268"><a href="#cb16-268"></a>**Methods**</span>
+<span id="cb16-269"><a href="#cb16-269"></a></span>
+<span id="cb16-270"><a href="#cb16-270"></a>Landing distance was analysed for shorebirds sampled across multiple beach sites using a linear mixed-effects model. Species and sex were included as fixed effects, and site was included as a random intercept to account for the grouped sampling structure. An ordinary linear model that ignored site was fitted for comparison.</span>
+<span id="cb16-271"><a href="#cb16-271"></a></span>
+<span id="cb16-272"><a href="#cb16-272"></a>**Results**</span>
+<span id="cb16-273"><a href="#cb16-273"></a></span>
+<span id="cb16-274"><a href="#cb16-274"></a>The mixed model fit the data better than the ordinary linear model (AIC <span class="in">`r round(AIC(fit_lm), 1)`</span> vs <span class="in">`r round(AIC(fit_lmer), 1)`</span>), indicating that site-level dependence was important. The estimated site-level variance was substantial, with an intra-class correlation of approximately <span class="in">`r round(icc, 2)`</span>. After accounting for this grouped structure, landing distance remained much greater in Oystercatchers ($\beta = 119.64$, $p &lt; 0.001$), Plovers ($\beta = 37.69$, $p &lt; 0.001$), and Stints ($\beta = 18.86$, $p &lt; 0.001$) than in the reference species. The sex effect was weaker and not clearly different from zero ($p &gt; 0.05$).</span>
+<span id="cb16-275"><a href="#cb16-275"></a></span>
+<span id="cb16-276"><a href="#cb16-276"></a>**Discussion**</span>
+<span id="cb16-277"><a href="#cb16-277"></a></span>
+<span id="cb16-278"><a href="#cb16-278"></a>Species differed in landing distance, but those differences were estimated while accounting for the non-independence of observations within sites. This makes the inference more defensible and avoids treating site-level similarity as if it were independent replication.</span>
+<span id="cb16-279"><a href="#cb16-279"></a>:::</span>
+<span id="cb16-280"><a href="#cb16-280"></a></span>
+<span id="cb16-281"><a href="#cb16-281"></a><span class="fu"># What to Do When Assumptions Fail / Alternatives</span></span>
+<span id="cb16-282"><a href="#cb16-282"></a></span>
+<span id="cb16-283"><a href="#cb16-283"></a><span class="ss">-   </span>If the response is not Gaussian, move to a generalised mixed model with <span class="in">`glmer()`</span>.</span>
+<span id="cb16-284"><a href="#cb16-284"></a><span class="ss">-   </span>If repeated measurements through time create autocorrelation, consider a model with explicit correlation structure rather than relying only on a random intercept.</span>
+<span id="cb16-285"><a href="#cb16-285"></a><span class="ss">-   </span>If the random-effects structure is biologically richer than a simple intercept, extend it cautiously to random slopes where the design supports that.</span>
+<span id="cb16-286"><a href="#cb16-286"></a><span class="ss">-   </span>If the design is fundamentally pseudoreplicated, a mixed model cannot rescue the study completely; it can only model the dependence that is actually observed.</span>
+<span id="cb16-287"><a href="#cb16-287"></a></span>
+<span id="cb16-288"><a href="#cb16-288"></a><span class="fu"># Summary</span></span>
+<span id="cb16-289"><a href="#cb16-289"></a></span>
+<span id="cb16-290"><a href="#cb16-290"></a><span class="ss">-   </span>Mixed models are needed when observations are grouped or otherwise dependent.</span>
+<span id="cb16-291"><a href="#cb16-291"></a><span class="ss">-   </span>The random effect is not an afterthought; it represents the sampling structure directly.</span>
+<span id="cb16-292"><a href="#cb16-292"></a><span class="ss">-   </span>In the beach-bird example, site-level dependence was strong enough to improve model fit markedly.</span>
+<span id="cb16-293"><a href="#cb16-293"></a><span class="ss">-   </span>Species differences in landing distance remained important even after that dependence was accounted for.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
@@ -1879,7 +2838,38 @@ Smit, A. J., J. Smit A (2026) 18. Dependence and Mixed Models. <a href="http://t
       &nbsp;
     </div>
   </div>
-</footer>
+</footer><script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 <script src="../../site_libs/quarto-html/zenscroll-min.js"></script>

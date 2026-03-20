@@ -27,7 +27,7 @@ ggplot2::theme_set(
 library(tidyverse)
 library(ggpubr)
 library(corrplot)
-library(kableExtra)
+library(gt)
 ```
 
 ::: {.callout-note appearance="simple"}
@@ -38,6 +38,7 @@ library(kableExtra)
 -   Spearman's rank correlation
 -   Kendall's rank correlation
 -   Pairwise correlation matrices and heatmaps
+-   Why non-independent data can mislead a correlation analysis
 -   Correlation versus regression
 :::
 
@@ -233,14 +234,21 @@ ecklonia_sub <- ecklonia_sub[, order(colnames(ecklonia_sub))]
 
 ```{r tbl-ecklonia-pearson}
 #| column: page
+#| tbl-cap: "A pairwise correlation matrix of the _Ecklonia_ dataset."
 ecklonia_pearson <- round(cor(ecklonia_sub), 2)
 
 ecklonia_pearson |>
-  kbl(caption = "A pairwise correlation matrix of the _Ecklonia_ dataset.") |>
-  kable_classic(full_width = FALSE)
+  as.data.frame() |>
+  tibble::rownames_to_column("variable") |>
+  gt() |>
+  fmt_number(columns = -variable, decimals = 2) |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels(everything())
+  )
 ```
 
-Pairwise matrices are useful for identifying patterns and relationships between variables that may be hidden in the overall structure of a dataset. This is particularly useful when several variables have been measured on the same individuals.
+Pairwise matrices are useful for identifying patterns and relationships between variables that may be hidden in the overall structure of a dataset. This is particularly useful when several variables have been measured on the same individuals. The numerical values in @tbl-ecklonia-pearson make it easier to identify especially strong positive or negative relationships before moving on to a visual summary.
 
 ## Visualise the Matrix
 
@@ -293,42 +301,39 @@ These graphs are useful for quickly identifying subsets of variables that are st
 
 Spearman correlation is used to measure the strength and direction of the relationship between two variables based on their rank order. Unlike Pearson correlation, which assumes that the relationship between the variables is linear, Spearman correlation can be used when the relationship is monotonic but not necessarily linear. It is also useful when the data are not normally distributed, or when outliers make Pearson's correlation less reliable. The usual textbook formula is given in @eq-spearman-rho.
 
-## Example 2: A rank-based association with Spearman's $\rho$
-
-To create an ordinal variable for demonstration, we will add a simple ranked body-length variable to `ecklonia`:
-
-```{r code-ecklonia-length-as-numeric}
-ecklonia$length <- as.numeric(
-  cut(ecklonia$stipe_length + ecklonia$frond_length, breaks = 3)
-)
-
-head(select(ecklonia, species, site, stipe_length, frond_length, length), 10)
-```
+## Example 2: Spearman's $\rho$ when the rank pattern is clearer than the linear one
 
 ## Do an Exploratory Data Analysis (EDA)
 
-Before fitting the test, we should check whether higher body-length classes also tend to be associated with larger digit counts.
+In the `ecklonia` data, the relationship between stipe diameter and primary blade length is not especially well described by a straight line, but there is still a biological suggestion that thicker stipes may tend to occur with longer primary blades. This is a good setting in which to compare Pearson's and Spearman's outcomes.
 
 ```{r code-ecklonia-spearman-summary}
 ecklonia |>
-  count(length, digits)
+  summarise(
+    n = n(),
+    mean_stipe_diameter = mean(stipe_diameter),
+    sd_stipe_diameter = sd(stipe_diameter),
+    mean_primary_blade_length = mean(primary_blade_length),
+    sd_primary_blade_length = sd(primary_blade_length)
+  )
 ```
 
 ```{r fig-ecklonia-spearman}
-#| fig-cap: "Digit counts across the ordinal body-length classes used in the Spearman example."
+#| fig-cap: "Relationship between stipe diameter and primary blade length in _Ecklonia maxima_. The fitted line is shown only as a visual guide to the overall trend."
 #| fig-width: 4
 #| fig-height: 3
 
-ggplot(ecklonia, aes(x = factor(length), y = digits)) +
-  geom_jitter(width = 0.15, height = 0, alpha = 0.7, colour = "dodgerblue4") +
-  labs(x = "Body-length class", y = "Digits")
+ggplot(ecklonia, aes(x = stipe_diameter, y = primary_blade_length)) +
+  geom_point(shape = 1, colour = "dodgerblue4") +
+  geom_smooth(method = "lm", se = FALSE, colour = "firebrick") +
+  labs(x = "Stipe diameter (mm)", y = "Primary blade length (cm)")
 ```
 
-The plot suggests a weak positive monotonic tendency: larger body-length classes often have more digits, but the relationship is not especially strong and there is substantial overlap among classes.
+The scatterplot suggests a generally increasing trend, but not a particularly tidy linear one. A few observations have disproportionate influence on the straight-line fit, and the biological question is more about ordered increase than about exact linear scaling, which is the kind of situation in which a rank-based correlation can be more informative.
 
 ## State the Hypotheses
 
-The biological question is whether body-length class and digit number tend to increase together in rank order.
+The biological question is whether larger stipe diameters also tend to be associated with longer primary blades in rank order.
 
 $$H_{0}: \rho_{s} = 0$$
 $$H_{a}: \rho_{s} \ne 0$$
@@ -337,11 +342,22 @@ Here $\rho_{s}$ is the population Spearman rank-correlation coefficient. A value
 
 ## Apply the Test
 
-```{r code-cor-test-ecklonia-length}
-cor.test(ecklonia$length, ecklonia$digits, method = "spearman")
+```{r code-cor-test-ecklonia-spearman}
+cor.test(ecklonia$stipe_diameter,
+         ecklonia$primary_blade_length,
+         method = "spearman",
+         exact = FALSE)
 ```
 
-Spearman's $\rho$ asks whether the ranks of the two variables tend to increase together. This makes it a good option when the values themselves are not especially meaningful on a continuous scale, but their order is.
+It is useful to compare this directly with Pearson's correlation on the same pair of variables:
+
+```{r code-cor-test-ecklonia-spearman-compare}
+cor.test(ecklonia$stipe_diameter,
+         ecklonia$primary_blade_length,
+         method = "pearson")
+```
+
+This contrast is exactly why Spearman's $\rho$ exists. Pearson's $r$ asks about linear covariation and is weak here, whereas Spearman's $\rho$ asks whether the variables tend to increase together in rank order. In these data, that rank-based question is better aligned with the pattern visible in @fig-ecklonia-spearman.
 
 ## Reporting
 
@@ -350,15 +366,15 @@ Spearman's $\rho$ asks whether the ranks of the two variables tend to increase t
 
 **Methods**
 
-A Spearman rank correlation was used to assess the monotonic association between ordinal body-length class and the number of digits. A rank-based method was preferred here because the analysis concerned ordered values rather than strict linear covariation on a continuous scale.
+A Spearman rank correlation was used to assess the monotonic association between stipe diameter and primary blade length in *Ecklonia maxima*. A rank-based method was preferred because the visual pattern suggested an ordered increase that was not especially well captured by a single straight-line relationship.
 
 **Results**
 
-Body-length class and digit number showed a weak positive rank association, but the relationship was not statistically convincing at the 5% level (Spearman correlation: $\rho = 0.34$, $n = 26$, $p = 0.089$). Larger body-length classes therefore tended to have more digits, but the evidence for a consistent monotonic relationship was limited in this example.
+Stipe diameter and primary blade length showed a moderate positive rank association (Spearman correlation: $\rho = 0.51$, $n = 26$, $p < 0.01$), indicating that kelps with thicker stipes also tended to have longer primary blades. On the same variable pair, the Pearson correlation was weaker and not statistically convincing at the 5% level ($r = 0.32$, $p > 0.05$), which shows that the main signal in these data is monotonic rather than cleanly linear.
 
 **Discussion**
 
-Spearman's $\rho$ describes the tendency of ranks to increase together. It is therefore useful when relative order matters more than exact distance between measurements.
+Spearman's $\rho$ is useful when the biological interpretation concerns ordered increase rather than a precise linear scaling. In this example, that distinction changes the practical conclusion of the analysis.
 :::
 
 # Kendall Rank Correlation
@@ -430,11 +446,61 @@ It is important not to confuse correlation with regression.
 
 This distinction is not just technical. If your question is "do these variables co-vary?", correlation is appropriate. If your question is "how does the response change with the predictor?", then you are already in the territory of regression. That is why this chapter naturally leads into the next one.
 
+# Correlation and Non-Independent Data
+
+Even when the right coefficient has been chosen, correlation can still mislead if the observations are not independent. This matters a great deal in ecology because measurements are often grouped within sites, transects, quadrats, times, or individuals.
+
+In the `ecklonia` data, the observations come from two sites. If individuals within a site resemble one another, then a naive overall correlation may partly reflect site structure rather than an individual-level biological relationship.
+
+## Example 4: A correlation can be inflated by site structure
+
+### Do an Exploratory Data Analysis (EDA)
+
+```{r code-ecklonia-site-correlation}
+ecklonia |>
+  group_by(site) |>
+  summarise(
+    n = n(),
+    r_site = cor(stipe_length, epiphyte_length)
+  )
+```
+
+```{r fig-ecklonia-site-structure}
+#| fig-cap: "Relationship between stipe length and epiphyte length in _Ecklonia maxima_, coloured by site. The black dashed line is the naive overall fit, while the coloured lines show the within-site trends."
+#| fig-width: 4
+#| fig-height: 3
+
+ggplot(ecklonia, aes(x = stipe_length, y = epiphyte_length, colour = site)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.7) +
+  geom_smooth(aes(group = 1),
+              method = "lm",
+              se = FALSE,
+              colour = "black",
+              linetype = "dashed",
+              linewidth = 0.6) +
+  labs(x = "Stipe length (cm)", y = "Epiphyte length (cm)", colour = "Site")
+```
+
+The pooled correlation across all 26 observations is clearly positive, but @fig-ecklonia-site-structure shows that the data are also clustered by site. The within-site relationships are not identical, and part of the overall association comes from the sites differing in their average sizes.
+
+### Interpret the results
+
+This does not mean the pooled correlation is "wrong". It means its meaning is limited. The naive overall coefficient mixes at least two sources of structure:
+
+-   how individuals vary within a site; and
+-   how sites differ from one another.
+
+If the biological question is about site-level differences, then averaging or modelling site explicitly may be appropriate. If the question is about individual-level association, then a grouped or mixed-effects framework is more defensible than a simple pooled correlation.
+
+This is one reason a correlation coefficient should never be interpreted without first understanding the sampling design.
+
 # If Assumptions Fail
 
 If the relationship is not linear, the variables are ordinal, or the data contain influential outliers, Pearson correlation may not be appropriate. In such cases:
 
 -   use Spearman or Kendall correlation for rank-based association;
+-   ask whether the apparent pattern is partly driven by site, time, or repeated-measures clustering;
 -   inspect the scatterplot carefully before interpreting any coefficient;
 -   use pairwise matrices as exploratory tools rather than as substitutes for biological reasoning;
 -   move to a regression model if the real question is one of response and predictor rather than simple association.
@@ -448,6 +514,7 @@ Correlation is a measure of association, not a model of response. The important 
 1. Plot the data.
 2. Decide whether the question is really about association.
 3. Choose Pearson, Spearman, or Kendall according to the data and relationship.
-4. Interpret the coefficient, uncertainty, and *p*-value together.
-5. Use pairwise correlation matrices as exploratory summaries when several continuous variables are available.
-6. Do not confuse association with causation, or correlation with regression.
+4. Check whether the observations are genuinely independent before trusting the coefficient.
+5. Interpret the coefficient, uncertainty, and *p*-value together.
+6. Use pairwise correlation matrices as exploratory summaries when several continuous variables are available.
+7. Do not confuse association with causation, or correlation with regression.

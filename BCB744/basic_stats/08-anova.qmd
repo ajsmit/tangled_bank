@@ -22,17 +22,17 @@ ggplot2::theme_set(
 )
 ```
 
-![A meme about fancy statistics.](../../images/fancy_stats.jpg){width=50%}   
+![A meme about fancy statistics.](../../images/fancy_stats.jpg){fig-align="center" width="250"}
 
 > *"He uses statistics as a drunken man uses lamp posts --- for support rather than for illumination."*
 >
 > --- Marissa Mayer
 
-```{r tbl-knitr-opts-chunk-set, echo=FALSE}
+```{r code-knitr-opts-chunk-set, echo=FALSE}
 library(tidyverse)
 library(ggpubr)
 library(ggthemes)
-library(kableExtra)
+library(gt)
 ```
 
 ::: {.callout-note appearance="simple"}
@@ -171,13 +171,13 @@ If some of the above assumptions are violated, then your module of action is to 
 
 Rather than talking about *t*-tests and ANOVAs as if they do different things, let us acknowledge that they ask a similar question. That question being, "are the means of these two, more things we want to compare different or are they the same?" At this stage it is important to note that, as with *t*-tests, the independent variable is expected to be categorical (*i.e.* a factor denoting two, more different treatments or sampling conditions) and that the dependent variable must be continuous. You may perhaps be more familiar with this question when it is presented as a set of hypotheses as we saw in a *t*-test:
 
-$$H_{0}: \text{Group A is not different from Group B}$$
-$$H_{a}: \text{Group A is different from Group B}$$
+$$H_{0}: \mu_A = \mu_B$$
+$$H_{a}: \mu_A \ne \mu_B$$
 
 In an ANOVA, hypotheses will be more similar to these:
 
-$$H_{0}: \text{There are no differences among Groups A, B, \text{ or } C}$$
-$$H_{a}: \text{There are differences among Groups A, B, \text{ or } C}$$
+$$H_{0}: \mu_A = \mu_B = \mu_C$$
+$$H_{a}: \text{not all group means are equal}$$
 
 This is a scientific question in the simplest sense. Often, for basic inquiries such as that posed above, we need to see if one group differs significantly from another. The way in which we accomplish this is by looking at the mean variation among groups relative to the variation within groups. Formally, ANOVA does this through the decomposition in @eq-anova-ss and the *F*-ratio in @eq-anova-f.
 
@@ -253,7 +253,8 @@ $$H_{0}: \mu_2 = \mu_3$$
 $$H_{0}: \mu_2 = \mu_4$$
 $$H_{0}: \mu_3 = \mu_4$$
 
-This would be invalid. The problem is that the chance of committing a Type I error increases as more multiple comparisons are done. So, the overall chance of rejecting the *H*~0~ increases. Why? If one sets $\alpha=0.05$ (the significance level below which the *H*~0~ is no longer accepted), one will still reject the *H*~0~ 5% of the time when it is in fact true (*i.e.* when there is no difference between the groups). When many pairwise comparisons are made, the probability of rejecting the *H*~0~ at least once is higher because we take this 5% risk each time we repeat a *t*-test. In the case of the chicken diets, we would have to perform six *t*-tests, and the error rate would increase to slightly less than $6\times5\%$. See Table 1. 
+This would be invalid. The problem is that the chance of committing a Type I error increases as more multiple comparisons are done. So, the overall chance of rejecting the *H*~0~ increases. Why? If one sets $\alpha=0.05$ (the significance level below which the *H*~0~ is no longer accepted), one will still reject the *H*~0~ 5% of the time when it is in fact true (*i.e.* when there is no difference between the groups). When many pairwise comparisons are made, the probability of rejecting the *H*~0~ at least once is higher because we take this 5% risk each time we repeat a *t*-test. In the case of the chicken diets, we would have to perform six *t*-tests, and the error rate would increase to slightly less than $6\times5\%$. See @tbl-kbl-results-long-digits. 
+
 ```{r fn-type-one-error-probability-function-k-alpha}
 #| echo: false
 # Function to calculate the probability of Type I error
@@ -286,14 +287,19 @@ results_long <- results |>
   pivot_wider(names_from = Alpha, values_from = Type1ErrorProbability)
 ```
 
-::: {#kable-table-div}
 ```{r tbl-kbl-results-long-digits}
-#| tbl-cap: "**Table 1.** Probability of committing a Type I error due to applying multiple *t*-tests to test for differences between *K* means. *α* from `0.2` to `0.0001` are shown."
+#| tbl-cap: "Probability of committing a Type I error due to applying multiple *t*-tests to test for differences between *K* means. *α* from `0.2` to `0.0001` are shown."
 #| echo: false
-    kbl(results_long, digits = 2) |>
-      kable_classic(bootstrap_options = "striped", full_width = FALSE)
+
+results_long |>
+  gt() |>
+  fmt_number(columns = -K, decimals = 2) |>
+  cols_label(K = "K") |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels(everything())
+  )
 ```
-:::
 
 If you insist in creating more work for yourself and do *t*-tests many times, one way to overcome the problem of committing Type I errors that stem from multiple comparisons is to apply a Bonferroni correction.
 
