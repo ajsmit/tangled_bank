@@ -12,13 +12,14 @@ knitr::opts_chunk$set(
   comment = "R>",
   warning = FALSE,
   message = FALSE,
-  fig.width = 6.5,
-  fig.height = 4.5,
-  out.width = "88%",
   fig.asp = NULL,
   fig.align = "center",
   fig.retina = 2,
   dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_grey(base_size = 8)
 )
 ```
 
@@ -30,6 +31,12 @@ knitr::opts_chunk$set(
 -   Logistic regression for binary data
 -   Poisson and related models for counts
 -   What overdispersion tells us
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to Complete in This Chapter
+
+-   None
 :::
 
 # Introduction
@@ -63,13 +70,13 @@ You should consider a GLM when:
 
 This chapter therefore picks up directly from the earlier proportion-testing work and places it in the broader modelling framework where binary and count responses can be analysed with predictors.
 
-# The GLM Structure
+# The Core Equation
 
 A generalised linear model combines a response distribution with a linear predictor and a link function. A compact way to write this is:
 
 $$g(\mu_i) = \eta_i = \alpha + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_p X_{pi}$$ {#eq-glm}
 
-In @eq-glm, $\mu_i$ is the expected response for observation $i$, $g(\cdot)$ is the link function, and $\eta_i$ is the linear predictor.
+In @eq-glm, $\mu_i$ is the expected response for observation $i$, $g(\cdot)$ is the link function, and $\eta_i$ is the linear predictor. This equation is the common template. Logistic and Poisson regression are then just special cases with different response distributions and different link functions.
 
 # Common GLM Families
 
@@ -168,24 +175,53 @@ In GLMs, interpretation often needs to distinguish between:
 
 For example, in logistic regression a positive coefficient means the log-odds of success increase with the predictor. In practice, it is often clearer to translate that into statements about the probability of success increasing or decreasing rather than reporting only the raw coefficient.
 
+# A Compact Logistic Example
+
+To make the reporting logic concrete, consider a small illustrative logistic-regression example in which occurrence depends on salinity and habitat.
+
+```{r code-glm-demo-data, echo=FALSE}
+set.seed(74419)
+
+glm_demo <- data.frame(
+  salinity = runif(120, 28, 38),
+  habitat = factor(sample(c("reef", "sand"), 120, replace = TRUE))
+  )
+
+glm_demo$eta <- -7.6983417 +
+  0.2532772 * glm_demo$salinity +
+  ifelse(glm_demo$habitat == "sand", -1.0056404, 0)
+glm_demo$probability <- plogis(glm_demo$eta)
+glm_demo$presence <- rbinom(nrow(glm_demo), 1, glm_demo$probability)
+
+glm_demo_mod <- glm(presence ~ salinity + habitat,
+                    family = binomial,
+                    data = glm_demo)
+```
+
+```{r code-glm-demo-summary}
+summary(glm_demo_mod)
+```
+
+The fitted coefficients show that occurrence becomes more likely as salinity increases, while sand habitat has a lower probability of occurrence than reef habitat at the same salinity.
+
 # Reporting
 
-Even when the fitted model is not developed as a full worked example in this chapter, the reporting logic should follow the same pattern used elsewhere in the sequence: the model structure belongs in Methods, the fitted effect belongs in Results, and the biological meaning belongs in Discussion.
+Even when a GLM chapter is mostly conceptual, the reporting logic should still follow the same pattern used elsewhere in the sequence: the model structure belongs in Methods, the fitted effect belongs in Results, and the biological meaning belongs in Discussion.
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> Presence-absence data were analysed using a generalised linear model with a binomial error structure and logit link function. Predictor variables were selected to reflect the hypothesised effects of habitat and salinity on the probability of occurrence.
+Presence-absence data were analysed using a generalised linear model with a binomial error structure and logit link function. Salinity and habitat were included as predictors to test whether occurrence probability changed across the salinity gradient and between reef and sand habitats.
 
 **Results**
 
-> The fitted model indicated that the probability of occurrence changed systematically with the predictors included in the analysis. On the logit scale, the coefficients described the direction and relative strength of these effects, while back-transformation to the response scale showed how the estimated probability of occurrence increased or decreased across the observed predictor range.
+Occurrence probability increased significantly with salinity (logit coefficient $= 0.25 \pm 0.07$ SE, $z = 3.41$, $p < 0.001$) and was lower on sand than on reef habitat (logit coefficient $= -1.01 \pm 0.40$ SE, $z = -2.50$, $p = 0.012$). Across the observed salinity range, the fitted probability of occurrence for sand habitat rose from about 0.18 to 0.71, indicating a substantial but habitat-dependent increase in occurrence with salinity.
 
 **Discussion**
 
-> In a biological interpretation, the emphasis should fall on the ecological meaning of the change in probability rather than on the link-scale coefficients alone. The value of the GLM framework is that it allows a response with non-normal error structure to be analysed in a way that remains statistically coherent and biologically interpretable.
+In a biological interpretation, the emphasis should fall on the ecological meaning of the change in probability rather than on the link-scale coefficients alone. In this illustrative example, higher salinity increased the likelihood of occurrence, but occurrence remained consistently less likely on sand than on reef habitat at comparable salinity.
 :::
 
 # Common Mistakes

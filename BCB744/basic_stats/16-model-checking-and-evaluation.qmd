@@ -12,9 +12,6 @@ knitr::opts_chunk$set(
   comment = "R>",
   warning = FALSE,
   message = FALSE,
-  fig.width = 6.5,
-  fig.height = 4.5,
-  out.width = "88%",
   fig.asp = NULL,
   fig.align = "center",
   fig.retina = 2,
@@ -26,10 +23,9 @@ ggplot2::theme_set(
 )
 ```
 
-```{r code-knitr-opts-chunk-set, echo=FALSE}
+```{r code-libraries, echo=FALSE}
 library(tidyverse)
 library(car)
-library(MASS)
 library(broom)
 ```
 
@@ -68,6 +64,27 @@ The chapter turns on the following ideas.
 -   **Model comparison** is about competing explanations, not just numerical optimisation.
 -   **Generalisation** matters because good fit to the present data does not guarantee useful prediction elsewhere.
 
+# Nature of the Data and Assumptions
+
+Model checking begins only after a model has been fitted, but the logic depends on the same assumptions introduced earlier in the regression sequence.
+
+-   **Independence** remains fundamental because residual dependence can make a model look better behaved than it really is.
+-   **Linearity of the mean structure** still matters unless a more flexible model class has been justified.
+-   **Homoscedasticity** affects the reliability of standard errors and confidence intervals.
+-   **Residual distribution** should be broadly compatible with the inferential use of the model, even though mild deviations are common.
+-   **Generalisation** depends on whether the fitted model captures signal rather than noise.
+
+The practical aim is not to prove that a model is perfect. It is to decide whether the fitted model is adequate for the scientific question being asked.
+
+# R Functions
+
+The main functions used in this chapter are:
+
+-   `plot()` for the standard diagnostic panels from a fitted `lm()` object;
+-   `cooks.distance()` for a summary of influence;
+-   `AIC()` for comparing biologically plausible candidate models;
+-   `augment()` from **broom** when fitted values, residuals, or leverage diagnostics need to be joined back to the data.
+
 # A Worked Diagnostic Example
 
 We continue with the seaweed example from the previous chapters and fit the selected multiple regression model again.
@@ -81,7 +98,7 @@ mod_eval <- lm(Y ~ augMean + febSD + augSD, data = sw_ectz)
 summary(mod_eval)
 ```
 
-# Residual Diagnostics
+## Residual Diagnostics
 
 Residual plots are the natural first step in model checking.
 
@@ -89,7 +106,6 @@ Residual plots are the natural first step in model checking.
 #| echo: false
 #| fig-width: 7
 #| fig-height: 7
-#| out-width: "88%"
 par(mfrow = c(2, 2))
 plot(mod_eval)
 par(mfrow = c(1, 1))
@@ -104,7 +120,7 @@ These four standard plots allow us to assess several things at once:
 
 No diagnostic plot should be read mechanically. The question is whether the pattern is severe enough to undermine the scientific use of the model. In this example the plots suggest that the model is broadly adequate, although, as always, no real dataset is perfectly obedient.
 
-# Influence and Leverage
+## Influence and Leverage
 
 Not all unusual observations matter equally.
 
@@ -126,7 +142,7 @@ An influential point should not be deleted automatically. It may reflect:
 -   a biologically informative extreme case;
 -   or a model that is too simple for the pattern in the data.
 
-# Assumption Checks and Their Limits
+## Assumption Checks and Their Limits
 
 Formal tests can be useful, but they should not replace residual plots and biological judgement.
 
@@ -137,7 +153,7 @@ The practical points are these:
 -   visual residual structure is usually more informative than a single assumption test;
 -   the real question is whether the model is adequate for the inferential goal, not whether it is mathematically perfect.
 
-# Model Comparison
+## Model Comparison
 
 Biological analysis often involves several plausible models, not just one. Model comparison should therefore be framed as comparing **competing explanations**.
 
@@ -156,7 +172,7 @@ AIC(null_mod, mod_eval, full_mod)
 
 The selected model is far better than the null model, and its performance is competitive with the larger model while remaining easier to interpret. That is an important general lesson: a more complex model is not automatically a better scientific model.
 
-# Overfitting and Generalisation
+## Overfitting and Generalisation
 
 A model can fit the present data very well while performing poorly on new data. This is **overfitting**.
 
@@ -172,7 +188,7 @@ The key distinction is between:
 -   **in-sample fit**, how well the model describes the data used to estimate it;
 -   **generalisation**, how well it would perform on new or unseen data.
 
-## Cross-validation
+### Cross-validation
 
 Cross-validation is one practical way to assess predictive performance:
 
@@ -182,6 +198,62 @@ Cross-validation is one practical way to assess predictive performance:
 4. repeat across multiple splits.
 
 This is especially useful when the modelling goal is prediction rather than explanation.
+
+We can make that concrete by comparing the selected three-predictor model with the larger five-predictor model using 10-fold cross-validation on the same seaweed subset.
+
+```{r code-cross-validation}
+set.seed(74416)
+
+fold_id <- sample(rep(1:10, length.out = nrow(sw_ectz)))
+
+cv_rmse <- function(formula, data, folds) {
+  tibble(fold = sort(unique(folds))) |>
+    mutate(
+      rmse = map_dbl(fold, \(k) {
+        train_dat <- data[folds != k, , drop = FALSE]
+        test_dat <- data[folds == k, , drop = FALSE]
+
+        mod <- lm(formula, data = train_dat)
+        pred <- predict(mod, newdata = test_dat)
+
+        sqrt(mean((test_dat$Y - pred) ^ 2))
+      })
+    )
+}
+
+cv_mod_eval <- cv_rmse(Y ~ augMean + febSD + augSD, sw_ectz, fold_id) |>
+  mutate(model = "Selected three-predictor model")
+
+cv_full_mod <- cv_rmse(Y ~ augMean + febRange + febSD + augSD + annMean,
+                       sw_ectz,
+                       fold_id) |>
+  mutate(model = "Larger five-predictor model")
+
+cv_results <- bind_rows(cv_mod_eval, cv_full_mod)
+
+cv_results |>
+  group_by(model) |>
+  summarise(
+    mean_rmse = mean(rmse),
+    sd_rmse = sd(rmse),
+    .groups = "drop"
+  )
+```
+
+```{r fig-cross-validation}
+#| fig-cap: "Ten-fold cross-validation RMSE for the selected three-predictor seaweed model and a larger five-predictor alternative."
+#| fig-width: 5
+#| fig-height: 3
+
+ggplot(cv_results, aes(x = model, y = rmse, fill = model)) +
+  geom_boxplot(alpha = 0.8, width = 0.55, show.legend = FALSE) +
+  geom_jitter(width = 0.08, alpha = 0.8, size = 1.4, show.legend = FALSE) +
+  labs(x = NULL, y = "Cross-validated RMSE") +
+  theme_grey() +
+  theme(axis.text.x = element_text(angle = 12, hjust = 1))
+```
+
+The cross-validation results show that the larger model does improve out-of-sample prediction, but only modestly. In this run, the mean RMSE decreased from about 0.066 for the selected three-predictor model to about 0.058 for the larger five-predictor model. That is a real predictive gain, but it is not dramatic, so the trade-off between predictive improvement and interpretability still needs to be judged explicitly.
 
 # A Practical Workflow
 
@@ -199,19 +271,19 @@ After fitting a regression model:
 A journal article should not present model checking as a raw list of diagnostics. Instead, it should state what was checked, what problems were looked for, and what conclusion was reached about the adequacy of the model.
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> After fitting the selected multiple regression model, diagnostic plots were examined to assess linearity, homoscedasticity, and the approximate normality of residuals. Leverage and influence were also inspected to identify observations that might disproportionately affect the fitted model. Model performance was compared with that of both an intercept-only model and a larger alternative model using information-theoretic criteria.
+After fitting the selected multiple regression model, diagnostic plots were examined to assess linearity, homoscedasticity, and the approximate normality of residuals. Leverage and influence were also inspected to identify observations that might disproportionately affect the fitted model. Model performance was compared with that of both an intercept-only model and a larger alternative model using information-theoretic criteria, and predictive performance was further assessed using 10-fold cross-validation.
 
 **Results**
 
-> Diagnostic evaluation of the selected multiple regression revealed no major departures from model assumptions. Residuals were distributed reasonably evenly across the fitted range, the Q-Q plot suggested only mild deviation from normality, and no individual observation appeared sufficiently influential to undermine interpretation. Model comparison further indicated that the selected three-predictor model was strongly preferred to the intercept-only model and achieved a fit comparable to that of the larger five-predictor model while retaining a simpler and more interpretable structure.
+Diagnostic evaluation of the selected multiple regression revealed no major departures from model assumptions. Residuals were distributed reasonably evenly across the fitted range, the Q-Q plot suggested only mild deviation from normality, and no individual observation appeared sufficiently influential to undermine interpretation. Model comparison further indicated that the selected three-predictor model was strongly preferred to the intercept-only model and achieved a fit comparable to that of the larger five-predictor model while retaining a simpler and more interpretable structure. Ten-fold cross-validation showed that the larger model reduced mean out-of-sample RMSE from about 0.066 to 0.058, indicating a modest predictive advantage at the cost of additional complexity.
 
 **Discussion**
 
-> These results suggest that the selected model provides an adequate statistical description of the data and that its biological interpretation is not driven by obvious assumption violations or isolated influential observations. The comparison with the larger candidate model also reinforces a central modelling principle: additional complexity is justified only when it yields a clearer or substantially better explanation, not simply because it increases fit.
+These results suggest that the selected model provides an adequate statistical description of the data and that its biological interpretation is not driven by obvious assumption violations or isolated influential observations. The comparison with the larger candidate model also reinforces a central modelling principle: additional complexity is justified only when it yields a clearer or substantially better explanation, not simply because it increases fit.
 :::
 
 # Summary

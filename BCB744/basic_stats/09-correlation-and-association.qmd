@@ -1,10 +1,10 @@
 ---
 title: "9. Correlation and Association"
 subtitle: "Quantifying Relationships Without Imposing a Response Model"
+author: "A. J. Smit"
 date: last-modified
 date-format: "YYYY/MM/DD"
 reference-location: margin
-number-sections: true
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -26,7 +26,6 @@ ggplot2::theme_set(
 ```{r code-libraries, echo=FALSE}
 library(tidyverse)
 library(ggpubr)
-library(ggthemes)
 library(corrplot)
 library(kableExtra)
 ```
@@ -97,6 +96,28 @@ Correlation analysis has its own set of expectations about the data.
 
 Before calculating a correlation coefficient, it is therefore necessary to make a scatterplot and inspect the overall pattern in the data.
 
+# The Core Equations
+
+Different correlation coefficients answer slightly different questions, but they all attempt to summarise how two variables vary together.
+
+For Pearson correlation, the coefficient is:
+
+$$r_{xy} = \frac{\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^{n}(x_i - \bar{x})^2}\sqrt{\sum_{i=1}^{n}(y_i - \bar{y})^2}}$$ {#eq-pearson-r}
+
+In @eq-pearson-r, $r_{xy}$ is the Pearson correlation coefficient, $x_i$ and $y_i$ are the observed values of the two variables for observation $i$, $\bar{x}$ and $\bar{y}$ are the sample means, and $n$ is the sample size. The equation expresses the covariance between the variables scaled by their standard deviations, which is why $r$ is unitless and ranges from `-1` to `1`.
+
+For Spearman rank correlation, the textbook version is:
+
+$$\rho = 1 - \frac{6 \sum_{i=1}^n d_i^2}{n(n^2-1)}$$ {#eq-spearman-rho}
+
+Here $\rho$ is Spearman's rank correlation, $d_i$ is the difference between the ranks of the two variables for the $i^{th}$ observation, and $n$ is the sample size.
+
+For Kendall rank correlation, the coefficient is:
+
+$$\tau = \frac{n_c - n_d}{\binom{n}{2}}$$ {#eq-kendall-tau}
+
+In @eq-kendall-tau, $n_c$ is the number of concordant pairs, $n_d$ is the number of discordant pairs, and $\binom{n}{2}$ is the total number of possible pairs. Kendall's formulation therefore focuses directly on agreement in rank order.
+
 # R Functions
 
 The main function used in this chapter is `cor.test()`. It can be applied with different methods:
@@ -109,15 +130,9 @@ The base function `cor()` calculates the coefficient itself, but `cor.test()` is
 
 # Pearson Correlation
 
-Pearson's $r$ is a measure of the linear relationship between two variables. It assumes that the relationship between the variables is approximately linear, and is calculated as the ratio of the covariance between the variables to the product of their standard deviations:
+Pearson's $r$ is a measure of the linear relationship between two variables, as defined in @eq-pearson-r. The value of $r$ varies from `-1` to `1`, with `0` indicating no linear association, `1` showing a perfect positive association, and `-1` a perfect negative association.
 
-$$r_{xy} = \frac{\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^{n}(x_i - \bar{x})^2}\sqrt{\sum_{i=1}^{n}(y_i - \bar{y})^2}}$$ {#eq-pearson-r}
-
-In @eq-pearson-r, $r_{xy}$ is the Pearson correlation coefficient, $x_i$ and $y_i$ are the observed values of the two variables for each observation $i$, $\bar{x}$ and $\bar{y}$ are the sample means of the two variables, and $n$ is the sample size.
-
-The value of $r$ varies from `-1` to `1`, with `0` indicating no linear association, `1` showing a perfect positive association, and `-1` a perfect negative association.
-
-## A Worked Pearson Example
+## Example 1: Pearson correlation in *Ecklonia maxima*
 
 In order to investigate correlations in biological data let us load the `ecklonia` dataset.
 
@@ -154,8 +169,7 @@ ggplot(data = ecklonia, aes(x = stipe_length, y = frond_length)) +
   geom_smooth(method = "lm", colour = "blue3", se = FALSE, linewidth = 1) +
   geom_point(size = 2.7, colour = "red3", shape = 16) +
   geom_label(x = 300, y = 240, label = r_print) +
-  labs(x = "Stipe length (cm)", y = "Frond length (cm)") +
-  theme_pubclean()
+  labs(x = "Stipe length (cm)", y = "Frond length (cm)")
 ```
 
 The scatterplot suggests that these data increase together at a roughly similar rate. The relationship is not perfect, but it is clearly positive. This makes a Pearson correlation sensible.
@@ -189,19 +203,19 @@ The result does not imply that stipe length causes frond length or vice versa. I
 ### Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> The linear association between stipe length and frond length in *Ecklonia maxima* was assessed with a Pearson product-moment correlation. The analysis focused on whether the two continuous variables co-varied positively across individuals.
+The linear association between stipe length and frond length in *Ecklonia maxima* was assessed with a Pearson product-moment correlation. The analysis focused on whether the two continuous variables co-varied positively across individuals.
 
 **Results**
 
-> Stipe length and frond length in *Ecklonia maxima* were positively correlated (Pearson correlation: $r = 0.65$, $n = 26$, $p < 0.001$), indicating that kelps with longer stipes also tended to have longer fronds.
+Stipe length and frond length in *Ecklonia maxima* were positively correlated (Pearson correlation: $r = 0.65$, $n = 26$, $p < 0.001$), indicating that kelps with longer stipes also tended to have longer fronds.
 
 **Discussion**
 
-> The main discussion point is that the two morphological variables co-vary strongly. At the same time, the interpretation should remain disciplined: correlation alone does not establish a causal relationship between them.
+The main discussion point is that the two morphological variables co-vary strongly. At the same time, the interpretation should remain disciplined: correlation alone does not establish a causal relationship between them.
 :::
 
 # Pairwise Correlation Matrices
@@ -234,8 +248,8 @@ One way to visualise a pairwise matrix is with `corrplot()`:
 
 ```{r fig-corr2}
 #| fig-cap: "Pairwise correlations showing the strength of all correlations between all variables as a scale from red (negative) to blue (positive)."
-#| fig-width: 5
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 4
 
 ecklonia_pearson[upper.tri(ecklonia_pearson)] <- NA
 corrplot(ecklonia_pearson, method = "circle", na.label.col = "white")
@@ -245,8 +259,8 @@ We may also do this in **ggplot2** as a heatmap:
 
 ```{r fig-corr3}
 #| fig-cap: "Pairwise correlations of the _Ecklonia_ dataset visualised as a heatmap in **ggplot2**."
-#| fig-width: 5
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 4
 
 ecklonia_pearson |>
   as.data.frame() |>
@@ -269,7 +283,6 @@ ecklonia_pearson |>
     name = "r"
   ) +
   labs(x = NULL, y = NULL) +
-  theme_grey() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
   coord_fixed()
 ```
@@ -278,13 +291,9 @@ These graphs are useful for quickly identifying subsets of variables that are st
 
 # Spearman Rank Correlation
 
-Spearman correlation is used to measure the strength and direction of the relationship between two variables based on their rank order. Unlike Pearson correlation, which assumes that the relationship between the variables is linear, Spearman correlation can be used when the relationship is monotonic but not necessarily linear. It is also useful when the data are not normally distributed, or when outliers make Pearson's correlation less reliable. The usual textbook formula is:
+Spearman correlation is used to measure the strength and direction of the relationship between two variables based on their rank order. Unlike Pearson correlation, which assumes that the relationship between the variables is linear, Spearman correlation can be used when the relationship is monotonic but not necessarily linear. It is also useful when the data are not normally distributed, or when outliers make Pearson's correlation less reliable. The usual textbook formula is given in @eq-spearman-rho.
 
-$$\rho = 1 - \frac{6 \sum_{i=1}^n d_i^2}{n(n^2-1)}$$ {#eq-spearman-rho}
-
-In @eq-spearman-rho, $\rho$ is the Spearman correlation, $d_i$ is the difference between the ranks of the two variables for the $i^{th}$ observation, and $n$ is the sample size.
-
-## Worked Spearman Example
+## Example 2: A rank-based association with Spearman's $\rho$
 
 To create an ordinal variable for demonstration, we will add a simple ranked body-length variable to `ecklonia`:
 
@@ -296,7 +305,37 @@ ecklonia$length <- as.numeric(
 head(select(ecklonia, species, site, stipe_length, frond_length, length), 10)
 ```
 
-Now we correlate this ordinal `length` variable with `digits`:
+## Do an Exploratory Data Analysis (EDA)
+
+Before fitting the test, we should check whether higher body-length classes also tend to be associated with larger digit counts.
+
+```{r code-ecklonia-spearman-summary}
+ecklonia |>
+  count(length, digits)
+```
+
+```{r fig-ecklonia-spearman}
+#| fig-cap: "Digit counts across the ordinal body-length classes used in the Spearman example."
+#| fig-width: 4
+#| fig-height: 3
+
+ggplot(ecklonia, aes(x = factor(length), y = digits)) +
+  geom_jitter(width = 0.15, height = 0, alpha = 0.7, colour = "dodgerblue4") +
+  labs(x = "Body-length class", y = "Digits")
+```
+
+The plot suggests a weak positive monotonic tendency: larger body-length classes often have more digits, but the relationship is not especially strong and there is substantial overlap among classes.
+
+## State the Hypotheses
+
+The biological question is whether body-length class and digit number tend to increase together in rank order.
+
+$$H_{0}: \rho_{s} = 0$$
+$$H_{a}: \rho_{s} \ne 0$$
+
+Here $\rho_{s}$ is the population Spearman rank-correlation coefficient. A value of zero means there is no monotonic association in rank between the two variables.
+
+## Apply the Test
 
 ```{r code-cor-test-ecklonia-length}
 cor.test(ecklonia$length, ecklonia$digits, method = "spearman")
@@ -307,32 +346,28 @@ Spearman's $\rho$ asks whether the ranks of the two variables tend to increase t
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> A Spearman rank correlation was used to assess the monotonic association between ordinal body-length class and the number of digits. A rank-based method was preferred here because the analysis concerned ordered values rather than strict linear covariation on a continuous scale.
+A Spearman rank correlation was used to assess the monotonic association between ordinal body-length class and the number of digits. A rank-based method was preferred here because the analysis concerned ordered values rather than strict linear covariation on a continuous scale.
 
 **Results**
 
-> In a journal Results section, the Spearman coefficient, sample size, and *p*-value would be reported directly from the `cor.test()` output, together with a short statement on the direction of the rank association between body-length class and digit number.
+Body-length class and digit number showed a weak positive rank association, but the relationship was not statistically convincing at the 5% level (Spearman correlation: $\rho = 0.34$, $n = 26$, $p = 0.089$). Larger body-length classes therefore tended to have more digits, but the evidence for a consistent monotonic relationship was limited in this example.
 
 **Discussion**
 
-> Spearman's $\rho$ describes the tendency of ranks to increase together. It is therefore useful when relative order matters more than exact distance between measurements.
+Spearman's $\rho$ describes the tendency of ranks to increase together. It is therefore useful when relative order matters more than exact distance between measurements.
 :::
 
 # Kendall Rank Correlation
 
-Kendall's $\tau$ is another non-parametric correlation method for assessing the strength and direction of the relationship between two variables. It is similar to Spearman's correlation, but it is calculated from the number of concordant and discordant pairs of observations:
-
-$$\tau = \frac{n_c - n_d}{\binom{n}{2}}$$ {#eq-kendall-tau}
-
-In @eq-kendall-tau, $\tau$ is Kendall's correlation coefficient, $n_c$ is the number of concordant pairs, $n_d$ is the number of discordant pairs, and $\binom{n}{2}$ is the total number of possible pairs.
+Kendall's $\tau$ is another non-parametric correlation method for assessing the strength and direction of the relationship between two variables. It is similar to Spearman's correlation, but it is calculated from the number of concordant and discordant pairs of observations, as shown in @eq-kendall-tau.
 
 Kendall's $\tau$ is useful for ordinal or non-parametric data and is robust to outliers and non-normal distributions.
 
-## Worked Kendall Example
+## Example 3: Kendall's $\tau$ for concordance in rank order
 
 Let us inspect the normality of the `ecklonia_sub` variables so that we can identify a case where a rank-based correlation may be sensible:
 
@@ -347,6 +382,17 @@ ecklonia_norm
 
 From this analysis we can see that some variables are not especially well behaved. Let us therefore examine the association between `primary_blade_length` and `primary_blade_width` using Kendall's $\tau$:
 
+## State the Hypotheses
+
+The biological question is whether longer primary blades also tend to be wider in rank order.
+
+$$H_{0}: \tau = 0$$
+$$H_{a}: \tau \ne 0$$
+
+Here $\tau$ is the population Kendall rank-correlation coefficient. A value of zero means there is no concordance in the rank ordering of blade length and blade width.
+
+## Apply the Test
+
 ```{r code-cor-test-ecklonia-primary-blade-length}
 cor.test(
   ecklonia$primary_blade_length,
@@ -360,19 +406,19 @@ Here the coefficient is called Kendall's $\tau$, but the interpretation is simil
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> Kendall's $\tau$ was used to assess the association between primary blade length and primary blade width because the variables were not especially well behaved under normal-theory assumptions and a rank-based measure of concordance was therefore more appropriate.
+Kendall's $\tau$ was used to assess the association between primary blade length and primary blade width because the variables were not especially well behaved under normal-theory assumptions and a rank-based measure of concordance was therefore more appropriate.
 
 **Results**
 
-> In a Marine Biology-style Results section, the Kendall coefficient, sample size, and *p*-value would be reported together with a short statement on whether longer blades also tended to be wider. The emphasis would be on concordance in rank order rather than on a linear effect size.
+Primary blade length and primary blade width showed a positive association in rank order (Kendall correlation: $\tau = 0.34$, $n = 26$, $p = 0.018$), indicating that longer blades also tended to be wider. The concordance was moderate rather than strong, but it was sufficiently consistent to support a positive rank-based relationship in these data.
 
 **Discussion**
 
-> Kendall's $\tau$ is especially helpful when the scientific message concerns ordered agreement rather than precise linear scaling. That distinction should be made explicit so the result is not over-interpreted as if it were a regression slope.
+Kendall's $\tau$ is especially helpful when the scientific message concerns ordered agreement rather than precise linear scaling. That distinction should be made explicit so the result is not over-interpreted as if it were a regression slope.
 :::
 
 # Correlation Versus Regression

@@ -2,6 +2,7 @@
 date: "2021-01-01"
 title: "7. *t*-Tests"
 subtitle: "One-Sample, Two-Sample, and Paired Mean Comparisons"
+author: "A. J. Smit"
 reference-location: margin
 ---
 
@@ -10,9 +11,6 @@ knitr::opts_chunk$set(
   comment = "R>", 
   warning = FALSE, 
   message = FALSE,
-  fig.width = 6.5,
-  fig.height = 4.5,
-  out.width = "88%",
   fig.asp = NULL, # control via width/height
   fig.align = "center",
   fig.retina = 2,
@@ -44,14 +42,9 @@ two_assum <- function(x) {
 ## In This Chapter
 
 -   One-sample *t*-tests
--   Two-sample s *t*-tests
+-   Two-sample *t*-tests
 -   Paired *t*-tests
 -   Comparison of proportions
-:::
-
-::: {.callout-note appearance="simple"}
-## Required Reading
-- My book chapter on [one sample hypotheses](../../docs/AJ Smit - Biostatistics--The-Book - One-sample Hypotheses.pdf) (DRAFT).
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -108,6 +101,40 @@ The appropriateness of a *t*-test hinges on the nature of the response data and 
 
 Before carrying out a *t*-test, you should examine the data visually and statistically. Histograms, boxplots, Q-Q plots, and tests such as `shapiro.test()` or Levene's test help you decide whether the parametric route is appropriate. When assumptions fail badly, please refer back to [Chapter 6](06-assumptions-and-transformations.qmd) for remedies and alternatives.
 
+# The Core Equations
+
+The purpose of a *t*-test is to compare an observed mean difference with the amount of variation expected from sampling. The precise formula changes with the design, but the teaching approach does not.
+
+For a one-sample *t*-test, the test statistic is:
+
+$$t = \frac{\bar{x} - \mu_0}{s / \sqrt{n}}$$ {#eq-onesample}
+
+In @eq-onesample, $\bar{x}$ is the sample mean, $\mu_0$ is the hypothesised mean under the null hypothesis, $s$ is the sample standard deviation, and $n$ is the sample size. The numerator is the difference we want to test, while the denominator scales that difference by the expected sampling variability.
+
+For Student's two-sample *t*-test, where a common variance is assumed, the same approach becomes:
+
+$$t = \frac{\bar{A} - \bar{B}}{s_p\sqrt{\frac{1}{n_A} + \frac{1}{n_B}}}$$ {#eq-student-t}
+
+The pooled standard deviation in @eq-student-t is:
+
+$$s_p^2 = \frac{(n_A - 1)s_A^2 + (n_B - 1)s_B^2}{n_A + n_B - 2}$$ {#eq-pooledvar}
+
+Here $\bar{A}$ and $\bar{B}$ are the sample means, $s_A^2$ and $s_B^2$ are the sample variances, and $n_A$ and $n_B$ are the sample sizes of the two groups. Student's formulation is useful when the two groups are reasonably similar in variance.
+
+For Welch's two-sample *t*-test, which does not assume equal variances, the test statistic is:
+
+$$t = \frac{\bar{A} - \bar{B}}{\sqrt{\frac{s_A^2}{n_A} + \frac{s_B^2}{n_B}}}$$ {#eq-welch}
+
+The associated degrees of freedom are approximated by the Welch-Satterthwaite expression:
+
+$$\text{d.f.} = \frac{\left(\frac{s_A^2}{n_A} + \frac{s_B^2}{n_B}\right)^2}{\frac{(s_A^2 / n_A)^2}{n_A - 1} + \frac{(s_B^2 / n_B)^2}{n_B - 1}}$$ {#eq-satterthwaite}
+
+For a paired *t*-test, the data are first reduced to within-pair differences, $d_i$, and the test is then carried out as a one-sample *t*-test on those differences:
+
+$$t = \frac{\bar{d}}{s_d/\sqrt{n}}$$ {#eq-paired-t}
+
+Here $\bar{d}$ is the mean of the paired differences, $s_d$ is the standard deviation of those differences, and $n$ is the number of pairs. This is why paired designs should always be understood as tests of the mean difference, not as tests of two independent sample means.
+
 # R Functions
 
 The main function used throughout this chapter is `t.test()`. It can be used for:
@@ -125,7 +152,7 @@ The most important arguments are:
 
 When the assumptions for a *t*-test are not met, the main alternative used in this chapter is `wilcox.test()`. For one-sample and paired settings it serves as a rank-based alternative to the *t*-test, and for two independent groups it provides the Mann-Whitney or Wilcoxon rank-sum approach, depending on the argument structure.
 
-# A Simple Experimental Logic
+# A Simple Experiment
 
 ::: callout-important
 ## Do This Now!
@@ -182,8 +209,7 @@ If you already know the direction of the expected effect before seeing the data,
 
 ## Two-sided one-sample *t*-test
 
-::: {.callout-note}
-## Hypothesis for two-sided one-sample *t*-test
+For a two-sided one-sample *t*-test, the hypotheses are:
 
 $$H_{0}: \bar{x} = \mu_{0}$$
 $$H_{a}: \bar{x} \ne \mu_{0}$$
@@ -196,19 +222,10 @@ $$H_{a}: \bar{x} - \mu_{0} \ne 0$$
 Here $\bar{x}$ is the sample mean and $\mu_{0}$ is the hypothesised population mean against which the sample is being compared.
 
 Because this is a two-sided test, the alternative hypothesis does not specify direction. We are asking whether $\bar{x}$ differs from $\mu_{0}$, not whether it is specifically less than or greater than $\mu_{0}$.
-:::
 
 In R, a one-sample *t*-test is done with `t.test(x, mu = ...)`. The default is a two-sided test, so unless you specify otherwise, `t.test()` evaluates whether the sample mean differs from $\mu_{0}$ in either direction.
 
-::: {.column-margin}
-**The one-sample *t*-test:**
-
-$$t = \frac{\overline{x} - \mu}{s / \sqrt{n}}$$ {#eq-onesample}
-
-where $t$ is the calculated test statistic, $\overline{x}$ is the sample mean, $\mu$ is the hypothesised population mean, $s$ is the sample standard deviation, and $n$ is the sample size.
-:::
-
-## A worked one-sample example
+## Example 1: A one-sample comparison against a reference mean
 
 ```{r code-set-seed}
 # create a single sample of random normal data
@@ -233,9 +250,8 @@ The sample is small, so it is useful to check both the summary statistics and th
 
 ```{r fig-boxplot1}
 #| fig-cap: "Boxplot of random normal data with. A hypothetical (reference) population mean of 20 is shown as a blue line, with the red line showing another reference mean of 30."
-#| fig-width: 5.5
-#| fig-height: 3.75
-#| out-width: "78%"
+#| fig-width: 4
+#| fig-height: 3
 
 ggplot(data = r_one, aes(y = dat, x = sample)) +
   geom_boxplot(fill = "indianred", notch = TRUE,
@@ -247,8 +263,7 @@ ggplot(data = r_one, aes(y = dat, x = sample)) +
   geom_hline(yintercept = 30, colour = "indianred2", 
              size = 0.9) +
   labs(y = "Value", x = NULL) +
-  coord_flip() +
-  theme_pubclean()
+  coord_flip()
 ```
 
 The boxplot shows the sample distribution relative to two possible hypothesised means. Visually, the sample appears to be centred much closer to 20 than to 30. That immediately suggests that a test against 20 may not be significant, whereas a test against 30 may be.
@@ -284,35 +299,31 @@ This is the key inferential logic of the one-sample *t*-test: the same data can 
 ### Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> A one-sample *t*-test was used to compare the sample mean with a hypothesised reference value. Separate tests were considered for two biologically distinct null values, $\mu_0 = 20$ and $\mu_0 = 30$, to illustrate how inference depends on the chosen reference mean.
+A one-sample *t*-test was used to compare the sample mean with a hypothesised reference value. Separate tests were considered for two biologically distinct null values, $\mu_0 = 20$ and $\mu_0 = 30$, to illustrate how inference depends on the chosen reference mean.
 
 **Results**
 
-> The mean of the sample ($\bar{x} = 20.01$, SD = 6.61, $n = 20$) did not differ from the hypothesised value of $\mu_0 = 20$ (one-sample *t*-test: $t_{19} = 0.005$, $p > 0.05$). The 95% confidence interval for the mean (16.91 to 23.10) included the reference value, indicating that the observed data are consistent with a population mean of 20. In contrast, the sample mean differed from a hypothesised value of $\mu_0 = 30$ ($t_{19} = -6.76$, $p < 0.001$). The same confidence interval did not include 30, indicating that the observed values are not compatible with a population mean of 30.
+The mean of the sample ($\bar{x} = 20.01$, SD = 6.61, $n = 20$) did not differ from the hypothesised value of $\mu_0 = 20$ (one-sample *t*-test: $t_{19} = 0.005$, $p > 0.05$). The 95% confidence interval for the mean (16.91 to 23.10) included the reference value, indicating that the observed data are consistent with a population mean of 20. In contrast, the sample mean differed from a hypothesised value of $\mu_0 = 30$ ($t_{19} = -6.76$, $p < 0.001$). The same confidence interval did not include 30, indicating that the observed values are not compatible with a population mean of 30.
 
 **Discussion**
 
-> The important point is not simply that one test was significant and the other was not. The important point is that the inference depends on the biological meaning of the null value. These data support a mean near 20, but they provide strong evidence against a mean as large as 30.
+The important point is not simply that one test was significant and the other was not. The important point is that the inference depends on the biological meaning of the null value. These data support a mean near 20, but they provide strong evidence against a mean as large as 30.
 :::
 
 
 
 ## One-sided one-sample *t*-tests
 
-::: {.callout-note}
-## Hypothesis for one-sided one-sample *t*-test
-
-For example, when we are concerned that our sample mean, $\bar{x}$, should be less than the *a priori* established value, $\mu_{0}$:
+For example, when we are concerned that our sample mean, $\bar{x}$, should be less than the *a priori* established value, $\mu_{0}$, the hypotheses are:
 
 $$H_{0}: \bar{x} \ge \mu_{0}$$
 $$H_{a}: \bar{x} \lt \mu_{0}$$
 
-Only one of the two options is shown.
-:::
+Only one of the two directional options is shown here, but the same logic applies if the alternative is that the mean should be greater than $\mu_{0}$.
 
 One-sided tests are used when the direction of the alternative hypothesis is specified before the data are analysed. For example, we may wish to know whether the sample mean is specifically less than $\mu_{0}$, or specifically greater than $\mu_{0}$. This must be justified by the scientific question.
 
@@ -357,8 +368,7 @@ At this point we must also decide which two-sample *t*-test is appropriate. If t
 
 ## Two-sided two-sample *t*-test
 
-::: {.callout-note}
-## Hypothesis for two-sided two-sample *t*-test
+For a two-sided two-sample *t*-test, the hypotheses are:
 
 $$H_{0}: \bar{A} = \bar{B}$$
 $$H_{a}: \bar{A} \ne \bar{B}$$
@@ -371,37 +381,16 @@ $$H_{0}: \bar{A} - \bar{B} = 0$$
 $$H_{a}: \bar{A} - \bar{B} \ne 0$$
 
 Again, $H_{0}$ does not distinguish between whether the difference is greater than or less than 0. We are simply asking whether the two means differ.
-:::
 
 This is the most common *t*-test in experimental biology. We use it when our two samples come from different individuals or sampling units, and when there is no natural pairing between the observations.
 
 ## Student's versus Welch's *t*-test
 
-There are two main varieties of the two-sample *t*-test. In the case of samples whose variances do not differ appreciably, we may perform a **Student's *t*-test**. @eq-tstat shows how the *t*-statistic is calculated for Student's *t*-test. If the variances differ between the two groups, we instead perform **Welch's *t*-test** as written in @eq-welch. Welch's *t*-test is more robust and is therefore the default in R's `t.test()` function.
-
-::: {.column-margin}
-**Student's *t*-test:**
-$$t=\frac{\bar{A}-\bar{B}}{\sqrt{\frac{S^{2}}{n}+\frac{S^{2}}{m}}}$$ {#eq-tstat}
-
-$\bar{A}$$\bar{B}$ are the means for groups $A$$B$, respectively; $n$$m$ are the sample sizes of the two sets of samples, respectively;$S^{2}$ is the pooled variance, which is calculated as per @eq-pooledvar:
-
-$$S^{2}=\frac{(n-1)S_{A}^{2}+(m-1)S_{B}^{2} }{n+m-2}$$ {#eq-pooledvar}
-
-The degrees of freedom, *d.f.*, in the equation for the shared variance is $n_{A}+m_{B}-2$.
-:::
-
-::: {.column-margin}
-**Welch's *t*-test:**
-$$t=\frac{\bar{A}-\bar{B}}{\sqrt{\frac{S^{2}_{A}}{n}+\frac{S^{2}_{B}}{m}}}$$ {#eq-welch}
-
-Here, $S_{A}^{2}$ and $S_{B}^{2}$ are the sample variances of groups $A$ and $B$, respectively. The *d.f.* to use with Welch's *t*-test is obtained using the Welch--Satterthwaite equation (@eq-satterthwaite):
-
-$$d.f. = \frac{\left( \frac{S^{2}_{A}}{n}+\frac{S^{2}_{B}}{m} \right)^{2}}{\left( \frac{S^{4}_{A}}{n-1} + \frac{S^{4}_{B}}{m-1} \right)}$$ {#eq-satterthwaite}
-:::
+There are two main varieties of the two-sample *t*-test. In the case of samples whose variances do not differ appreciably, we may perform a **Student's *t*-test**, which uses the pooled-variance formulation in @eq-student-t and @eq-pooledvar. If the variances differ between the two groups, we instead perform **Welch's *t*-test** as written in @eq-welch and @eq-satterthwaite. Welch's *t*-test is more robust and is therefore the default in R's `t.test()` function.
 
 In the olden days, we had to calculate the *t*-statistic and degrees of freedom by hand and then read probabilities from a printed table. R now does this for us automatically, but the formulas still matter because they explain why Student's and Welch's tests differ.
 
-## A worked two-sample example
+## Example 2: Two independent groups
 
 Let us generate some new random normal data and ask whether the values in two independent groups differ from one another.
 
@@ -434,15 +423,13 @@ The summaries tell us whether the two groups differ in their sample means and wh
 
 ```{r fig-boxplot2}
 #| fig-cap: "Boxplots of two independent samples. Group B has a slightly higher mean than Group A, but the spread is similar."
-#| fig-width: 5.5
-#| fig-height: 3.75
-#| out-width: "78%"
+#| fig-width: 4
+#| fig-height: 3
 
 ggplot(data = r_two, aes(x = sample, y = dat, fill = sample)) +
   geom_boxplot(alpha = 0.35, colour = "black", outlier.shape = NA) +
   geom_jitter(width = 0.08, alpha = 0.7, size = 1.8) +
   labs(x = "Group", y = "Value") +
-  theme_pubclean() +
   theme(legend.position = "none")
 ```
 
@@ -485,44 +472,20 @@ The confidence interval is also important. It gives an estimated range for the m
 ### Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> Group means were compared with a two-sample Student's *t*-test because the simulated data were generated with similar variances and equal sample sizes. Group means, standard deviations, and the confidence interval for the mean difference were used to support interpretation of the test outcome.
+Group means were compared with a two-sample Student's *t*-test because the simulated data were generated with similar variances and equal sample sizes. Group means, standard deviations, and the confidence interval for the mean difference were used to support interpretation of the test outcome.
 
 **Results**
 
-> The mean value in Group A was $4.00 \pm 1.32$ (SD, $n = 20$), while the mean value in Group B was $4.75 \pm 1.08$ (SD, $n = 20$). A two-sample Student's *t*-test indicated that this difference was not statistically significant at the 0.05 level ($t_{38} = -1.95$, $p > 0.05$). The 95% confidence interval for the mean difference between the groups ranged from $-1.52$ to $0.03$, which included zero.
+The mean value in Group A was $4.00 \pm 1.32$ (SD, $n = 20$), while the mean value in Group B was $4.75 \pm 1.08$ (SD, $n = 20$). A two-sample Student's *t*-test indicated that this difference was not statistically significant at the 0.05 level ($t_{38} = -1.95$, $p > 0.05$). The 95% confidence interval for the mean difference between the groups ranged from $-1.52$ to $0.03$, which included zero.
 
 **Discussion**
 
-> Although Group B tended to have the higher mean, the evidence was not quite strong enough to conclude that the population means differ. In a manuscript, the observed pattern and the inferential conclusion should be kept distinct.
+Although Group B tended to have the higher mean, the evidence was not quite strong enough to conclude that the population means differ. In a manuscript, the observed pattern and the inferential conclusion should be kept distinct.
 :::
-
-```{r fig-t-test-plot3, echo=FALSE, include=FALSE, eval=FALSE}
-#| fig-cap: "T test plot3."
-library(beeswarm)
-
-# Create random data
-r_norm <- data.frame(dat = c(rnorm(n = 20, mean = 4, sd = 1),
-                            rnorm(n = 20, mean = 5, sd = 1)),
-                    sample = c(rep("A", 20), rep("B", 20)))
-
-# Create a swarm
-r_norm_swarm <- beeswarm(dat ~ sample, 
-            data = r_norm, method = 'swarm', 
-            do.plot = F, pwcol = sample)[, c(1, 2, 4, 6)]
-colnames(r_norm_swarm) <- c("x", "y", "colour", "sample") 
-
-beeswarm.plot <- ggplot(r_norm_swarm, aes(x, y))
-beeswarm.plot2 <- beeswarm.plot + geom_boxplot(aes(x, y,
-  group = round(x, 1)), outlier.shape = NA)
-beeswarm.plot3 <- beeswarm.plot2 + geom_point() +
-  scale_x_continuous(breaks = c(1:2), 
-         labels = c("Sample A", "SampleB"), expand = c(0, 0.5))
-beeswarm.plot3
-```
 
 ::: callout-important
 ## Do This Now!
@@ -531,16 +494,12 @@ Create a visualisation to graphically demonstrate the outcome of this *t*-test.
 
 ## One-sided two-sample *t*-test
 
-::: {.callout-note}
-## Hypothesis for one-sided two-sample *t*-test
-
-For example, when we are concerned that the sample mean of the first population, $\bar{A}$, should be greater than that of the second, $\bar{B}$:
+For example, when we are concerned that the sample mean of the first population, $\bar{A}$, should be greater than that of the second, $\bar{B}$, the hypotheses are:
 
 $$H_{0}: \bar{A} \le \bar{B}$$
 $$H_{a}: \bar{A} \gt \bar{B}$$
 
-Only one of the two options is shown.
-:::
+Only one of the two directional formulations is shown here.
 
 Just as with the one-sample *t*-tests above, we may also specify which tail of the distribution we are interested in when we compare the means of two samples. This is a **one-sided two-sample *t*-test**. Here too we may use either Student's or Welch's form, depending on the variances. The direction of the test must be justified before looking at the results.
 
@@ -581,8 +540,7 @@ Use a paired *t*-test when:
 
 The crucial point is that the analysis focuses on the **differences within pairs**, not on the raw values considered as though they came from independent groups.
 
-::: {.callout-note}
-## Hypothesis for two-sided Paired *t*-test
+For a two-sided paired *t*-test, the hypotheses are:
 
 $$H_{0}: \bar{d} = 0$$
 $$H_{a}: \bar{d} \ne 0$$
@@ -590,20 +548,12 @@ $$H_{a}: \bar{d} \ne 0$$
 where $\bar{d}$ is the mean population difference based on the matched pairs.
 
 Again, here $H_{0}$ does not consider if differences are greater than or less than 0 --- a difference in either direction is significant. One-sided versions of the hypothesis can be stated as well.
-:::
-
-::: {.column-margin}
-**Paired *t*-test:**
-$$t = \frac{\bar{d}}{s_d/\sqrt{n}}$$
-
-where $\bar{d}$ is the sample mean of the differences between paired observations, $s_d$ is the sample standard deviation of the differences,$n$ is the number of pairs. The resulting $t$-statistic is then compared to the appropriate $t$-distribution with $n-1$ degrees of freedom to determine the $p$-value.
-:::
 
 Paired *t*-tests are therefore used when the dependence between observations is not a problem to be ignored, but the central feature of the design. This test is also sometimes called a dependent-samples *t*-test or a repeated-measures *t*-test.
 
 For example, we might want to determine whether the right arms of a group of people differ in length from their left arms. For each individual, the right arm measurement is matched to the left arm measurement from the same person. Or, we may wish to determine whether piglets weigh more after a feeding trial than they did at the start of the trial. Each individual piglet then contributes a before-and-after pair of measurements.
 
-## A worked paired example
+## Example 3: Before-and-after measurements on piglets
 
 Let us use a small example in which piglets are weighed before and after a three-week feeding period. The inferential question is whether body mass increases over time within the same individuals.
 
@@ -631,15 +581,13 @@ shapiro.test(piglets$diff)
 
 ```{r fig-paired-differences}
 #| fig-cap: "Distribution of paired differences in piglet body mass after minus before the feeding period."
-#| fig-width: 5.5
-#| fig-height: 3.75
-#| out-width: "78%"
+#| fig-width: 4
+#| fig-height: 3
 
 ggplot(data = piglets, aes(x = diff)) +
   geom_histogram(binwidth = 0.5, fill = "indianred", colour = "black", alpha = 0.5) +
   geom_vline(xintercept = 0, colour = "dodgerblue2", linewidth = 0.9) +
-  labs(x = "Paired difference in mass (after - before)", y = "Frequency") +
-  theme_pubclean()
+  labs(x = "Paired difference in mass (after - before)", y = "Frequency")
 ```
 
 The distribution of paired differences is centred above zero, which already suggests that the piglets tended to be heavier after the feeding period. The Shapiro-Wilk test also indicates that the differences are reasonably consistent with normality, so a paired *t*-test is appropriate.
@@ -668,19 +616,19 @@ The paired *t*-test asks whether the mean of the within-individual differences i
 ### Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> Piglet body mass was measured before and after a three-week feeding period, and the resulting paired observations were analysed with a paired *t*-test. The test was based on the within-individual differences in mass, with normality assessed on those paired differences.
+Piglet body mass was measured before and after a three-week feeding period, and the resulting paired observations were analysed with a paired *t*-test. The test was based on the within-individual differences in mass, with normality assessed on those paired differences.
 
 **Results**
 
-> Piglet body mass increased over the three-week feeding period. A paired *t*-test showed that the mean within-individual change in body mass differed significantly from zero ($t_{11} = 2.21$, $p < 0.05$). The mean paired difference was 0.815 kg, with a 95% confidence interval from 0.004 to 1.626 kg, indicating that the piglets were, on average, heavier after the feeding period than at the start.
+Piglet body mass increased over the three-week feeding period. A paired *t*-test showed that the mean within-individual change in body mass differed significantly from zero ($t_{11} = 2.21$, $p < 0.05$). The mean paired difference was 0.815 kg, with a 95% confidence interval from 0.004 to 1.626 kg, indicating that the piglets were, on average, heavier after the feeding period than at the start.
 
 **Discussion**
 
-> The paired design strengthens the inference because each piglet acts as its own control. In a Discussion section, the emphasis therefore falls on biological change within individuals rather than on a comparison of two independent group means.
+The paired design strengthens the inference because each piglet acts as its own control. In a Discussion section, the emphasis therefore falls on biological change within individuals rather than on a comparison of two independent group means.
 :::
 
 ## If assumptions fail
@@ -752,19 +700,19 @@ The inferential logic is therefore identical to what we saw with one-sample *t*-
 ### Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> One-sample proportion tests were used to compare observed success frequencies against a null expectation of 0.50. The analyses were based on the number of successes out of the total number of trials, and confidence intervals were used to judge compatibility with the hypothesised population proportion.
+One-sample proportion tests were used to compare observed success frequencies against a null expectation of 0.50. The analyses were based on the number of successes out of the total number of trials, and confidence intervals were used to judge compatibility with the hypothesised population proportion.
 
 **Results**
 
-> In 45 successes out of 100 trials, the observed proportion was 0.45. A one-sample proportion test indicated that this did not differ from the hypothesised probability of 0.50 ($\chi^2 = 0.81$, $p > 0.05$). The 95% confidence interval for the observed proportion ranged from 0.351 to 0.552, which included the null value of 0.50. In contrast, 33 successes out of 100 trials yielded an observed proportion of 0.33, which differed significantly from 0.50 ($\chi^2 = 10.89$, $p < 0.001$). The 95% confidence interval ranged from 0.241 to 0.432.
+In 45 successes out of 100 trials, the observed proportion was 0.45. A one-sample proportion test indicated that this did not differ from the hypothesised probability of 0.50 ($\chi^2 = 0.81$, $p > 0.05$). The 95% confidence interval for the observed proportion ranged from 0.351 to 0.552, which included the null value of 0.50. In contrast, 33 successes out of 100 trials yielded an observed proportion of 0.33, which differed significantly from 0.50 ($\chi^2 = 10.89$, $p < 0.001$). The 95% confidence interval ranged from 0.241 to 0.432.
 
 **Discussion**
 
-> As with one-sample *t*-tests, the key issue is the biological meaning of the null expectation. A result near 0.50 is compatible with the null model, whereas a markedly lower success proportion provides evidence that the underlying probability differs from that expectation.
+As with one-sample *t*-tests, the key issue is the biological meaning of the null expectation. A result near 0.50 is compatible with the null model, whereas a markedly lower success proportion provides evidence that the underlying probability differs from that expectation.
 :::
 
 ## Two-sample proportion tests
@@ -796,19 +744,19 @@ The *p*-value here is about 0.059, which is just above the conventional 0.05 thr
 ### Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> The biting frequencies recorded for Jack and Jill were compared with a two-sample test for equality of proportions. The analysis used the number of bites and non-bites in each subject and estimated both the difference in observed bite proportions and the corresponding confidence interval.
+The biting frequencies recorded for Jack and Jill were compared with a two-sample test for equality of proportions. The analysis used the number of bites and non-bites in each subject and estimated both the difference in observed bite proportions and the corresponding confidence interval.
 
 **Results**
 
-> Mosquitoes bit Jack in 70 of 120 trials (proportion = 0.583) and Jill in 85 of 120 trials (proportion = 0.708). A two-sample test for equality of proportions indicated that this difference was not statistically significant at the 0.05 level ($\chi^2 = 3.57$, $p > 0.05$). The 95% confidence interval for the difference in proportions ranged from $-0.253$ to $0.003$, indicating that although Jill appeared to be bitten more often, the data do not provide quite enough evidence to conclude that the two bite probabilities differ.
+Mosquitoes bit Jack in 70 of 120 trials (proportion = 0.583) and Jill in 85 of 120 trials (proportion = 0.708). A two-sample test for equality of proportions indicated that this difference was not statistically significant at the 0.05 level ($\chi^2 = 3.57$, $p > 0.05$). The 95% confidence interval for the difference in proportions ranged from $-0.253$ to $0.003$, indicating that although Jill appeared to be bitten more often, the data do not provide quite enough evidence to conclude that the two bite probabilities differ.
 
 **Discussion**
 
-> In a paper, the Discussion would distinguish between the observed pattern and the inferential conclusion. The sample proportions suggest that Jill may have been bitten more often, but the uncertainty around the estimated difference is still too large for a firm claim that the underlying bite probabilities differ.
+In a paper, the Discussion would distinguish between the observed pattern and the inferential conclusion. The sample proportions suggest that Jill may have been bitten more often, but the uncertainty around the estimated difference is still too large for a firm claim that the underlying bite probabilities differ.
 :::
 
 ::: callout-important
@@ -866,8 +814,7 @@ With our data loaded, let us visualise them in order to ensure that these are in
 
 ggplot(data = ecklonia, aes(x = variable, y = value, fill = site)) +
   geom_boxplot(colour = "black", fill = "dodgerblue4", alpha = 0.4) +
-  coord_flip() +
-  theme_grey()
+  coord_flip()
 ```
 
 The first thing we should notice from the figure above is that our different measurements are on very different scales. This makes comparing all of our data visually rather challenging. Even given this complication, one should readily be able to make out that the measurement values at Batsata Rock appear to be greater than at Boulders Beach. Within the framework of the scientific process, that is what we would call an 'observation', and is the first step towards formulating a hypothesis. The next step is to refine our observation into a hypothesis. By what measurement are the kelps greater at one site than the other?
@@ -889,19 +836,15 @@ ggplot(data = ecklonia_sub, aes(x = variable, y = value, fill = site)) +
   coord_flip() +
   labs(y = "Stipe mass (kg)", x = "") +
   theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank()) +
-  theme_grey()
+        axis.ticks.y = element_blank())
 ```
 
 Now we have a more interesting comparison at hand. The question I think of when I look at these data is "Are the stipe masses at Batsata Rock greater than at Boulders Beach?". The hypothesis necessary to answer this question would look like this:
 
--   *H*~0~: Stipe mass at Batsata Rock **is not** greater than at Boulders Beach.
--   *H*~a~: Stipe mass at Batsata Rock **is** greater than at Boulders Beach.
+$$H_{0}: \bar{A} \leq \bar{B}$$
+$$H_{a}: \bar{A} > \bar{B}$$
 
-Or more formally:
-
--   $H_{0}: \bar{A} \leq \bar{B}$
--   $H_{a}: \bar{A} > \bar{B}$.
+In words, the null hypothesis says that stipe mass at Batsata Rock is not greater than at Boulders Beach, while the alternative says that it is.
 
 Which test must we use for this hypothesis?
 
@@ -948,9 +891,23 @@ We may reject the null hypothesis that the stipe mass of kelps at Batsata Rock i
 
 There are many ways to present one's findings. Style, without *too much* flourish, is encouraged as long as certain necessary pieces of information are provided. In a scientific paper, the results section would normally report the sample means, the test used, the test statistic, degrees of freedom, the *p*-value, and the biological interpretation in one compact paragraph.
 
-For example, one might report:
+## Reporting
 
-> Mean stipe mass of *Ecklonia maxima* was higher at Batsata Rock ($6.12 \pm 1.41$ kg SD, $n = 13$) than at Boulders Beach ($5.00 \pm 1.63$ kg SD, $n = 13$). A one-sided two-sample Student's *t*-test indicated that stipe mass at Batsata Rock was significantly greater than at Boulders Beach ($t_{24} = 1.87$, $p < 0.05$). The 95% confidence interval for the mean difference was $0.10$ kg to $\infty$, supporting the conclusion that kelp at Batsata Rock had greater stipe mass.
+::: {.callout-note appearance="simple"}
+## Write-Up
+
+**Methods**
+
+Stipe mass of *Ecklonia maxima* was compared between Batsata Rock and Boulders Beach using a one-sided two-sample Student's *t*-test. The analysis treated site as the grouping factor and stipe mass as the continuous response variable, after checking that the sample variances were similar and that the data were approximately normally distributed.
+
+**Results**
+
+Mean stipe mass of *Ecklonia maxima* was higher at Batsata Rock ($6.12 \pm 1.41$ kg SD, $n = 13$) than at Boulders Beach ($5.00 \pm 1.63$ kg SD, $n = 13$). A one-sided two-sample Student's *t*-test indicated that stipe mass at Batsata Rock was significantly greater than at Boulders Beach ($t_{24} = 1.87$, $p < 0.05$). The 95% confidence interval for the mean difference was $0.10$ kg to $\infty$, supporting the conclusion that kelp at Batsata Rock had greater stipe mass.
+
+**Discussion**
+
+The biological conclusion is that kelps at Batsata Rock had heavier stipes than those at Boulders Beach in this comparison. A Discussion section would then move beyond the statistical result itself and ask what local ecological or hydrodynamic factors might account for that difference.
+:::
 
 ## Going Further
 

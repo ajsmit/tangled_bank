@@ -13,10 +13,6 @@ knitr::opts_chunk$set(
   comment = "R>",
   warning = FALSE,
   message = FALSE,
-  dev = "svglite",
-  fig.width = 6.5,
-  fig.height = 4.5,
-  out.width = "88%",
   fig.asp = NULL,
   fig.align = "center",
   fig.retina = 2,
@@ -28,10 +24,12 @@ knitr::opts_chunk$set(
 #| echo: false
 library(tidyverse)
 library(ggpubr)
+# `mgcv` is used only for the GAM panel in `fig-main-families`;
+# the dedicated GAM workflow is developed in Chapter 20.
 library(mgcv)
 
 set.seed(13)
-theme_set(theme_grey(base_size = 11))
+theme_set(theme_grey(base_size = 8))
 
 mm_fun <- function(S, Vmax, Km) {
   Vmax * S / (Km + S)
@@ -109,6 +107,14 @@ The key distinction is that the mean structure is explicitly nonlinear and tied 
 
 The practical point is that you do not choose a curved model just because it draws a pleasing bendy line through the points. You choose it because the straight-line model is inadequate and because the curved alternative matches the biological process or the inferential question more closely.
 
+# The Core Equation
+
+The general form of a nonlinear regression is:
+
+$$Y_i = f(X_i, \theta) + \epsilon_i$$ {#eq-nonlinear}
+
+In @eq-nonlinear, $f(\cdot)$ is a biologically chosen nonlinear function and $\theta$ represents the parameter set that defines its shape. This chapter then uses a Michaelis-Menten curve as the main worked example of that general idea.
+
 # R Functions
 
 Some of the most useful R functions are:
@@ -135,8 +141,8 @@ The first decision is whether the biology gives you a reason to prefer a specifi
 ```{r fig-main-families}
 #| echo: false
 #| fig-cap: "Examples of curved models fitted to simulated data. A polynomial can capture modest curvature, a GAM can adapt flexibly to the data, and a mechanistic nonlinear model can represent a known saturating biological response."
-#| fig-width: 6
-#| fig-height: 4
+#| fig-width: 4
+#| fig-height: 3
 set.seed(13)
 
 x_poly <- seq(-10, 10, length.out = 30)
@@ -346,19 +352,19 @@ The model comparison also matters. If the linear and Michaelis-Menten models are
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> Nutrient uptake rate was modelled as a function of substrate concentration with a Michaelis-Menten nonlinear regression fitted by nonlinear least squares. The nonlinear model was compared with a simple linear regression using information criteria and nested model comparison to assess whether the saturating form provided a better description of the data.
+Nutrient uptake rate was modelled as a function of substrate concentration with a Michaelis-Menten nonlinear regression fitted by nonlinear least squares. The nonlinear model was compared with a simple linear regression using information criteria and nested model comparison to assess whether the saturating form provided a better description of the data.
 
 **Results**
 
-> Nutrient uptake increased rapidly with substrate concentration at low concentrations and then approached an asymptote, consistent with Michaelis-Menten kinetics (@fig-mf-fit). The fitted nonlinear model estimated a maximum uptake rate of `r round(Vmax_est, 2)` and a half-saturation constant of `r round(Km_est, 2)`. Relative to a simple linear regression, the Michaelis-Menten model provided the better description of the data, with lower AIC and BIC values and a significant improvement in fit (`r paste0("F = ", round(f_stat, 2))`, `p < 0.05`).
+Nutrient uptake increased rapidly with substrate concentration at low concentrations and then approached an asymptote, consistent with Michaelis-Menten kinetics (@fig-mf-fit). The fitted nonlinear model estimated a maximum uptake rate of `r round(Vmax_est, 2)` and a half-saturation constant of `r round(Km_est, 2)`. Relative to a simple linear regression, the Michaelis-Menten model provided the better description of the data, with lower AIC and BIC values and a significant improvement in fit (`r paste0("F = ", round(f_stat, 2))`, `p < 0.05`).
 
 **Discussion**
 
-> The main biological point is that uptake is saturating rather than indefinitely linear over the observed concentration range. That matters because the fitted parameters now speak directly to uptake capacity and nutrient affinity.
+The main biological point is that uptake is saturating rather than indefinitely linear over the observed concentration range. That matters because the fitted parameters now speak directly to uptake capacity and nutrient affinity.
 :::
 
 ## What If We Add Treatments?

@@ -12,9 +12,6 @@ knitr::opts_chunk$set(
   comment = "R>",
   warning = FALSE,
   message = FALSE,
-  fig.width = 6.5,
-  fig.height = 4.5,
-  out.width = "88%",
   fig.asp = NULL,
   fig.align = "center",
   fig.retina = 2,
@@ -89,11 +86,13 @@ The same broad assumptions that apply in simple linear regression apply here too
 
 The additional difficulty in multiple regression is that the model must be judged as a fitted statistical object *and* also as a biological specification. Even if the residual assumptions are acceptable, the model can still be weak because the variables are badly chosen or badly motivated. We return to the interpretive problems created by multicollinearity, confounding, and measurement error in [Chapter 15](15-collinearity-confounding-measurement-error.qmd).
 
+# The Core Equation
+
 The general multiple-regression model can be written as:
 
 $$Y_i = \alpha + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_p X_{pi} + \epsilon_i$$ {#eq-mlr}
 
-In @eq-mlr, each $\beta_j$ is a partial slope. That means each coefficient is interpreted while holding the other predictors in the model constant.
+In @eq-mlr, each $\beta_j$ is a partial slope. That means each coefficient is interpreted while holding the other predictors in the model constant. This is the main mathematical difference from simple linear regression and the reason multiple-regression coefficients require more careful biological interpretation.
 
 # Outliers
 
@@ -190,7 +189,7 @@ models <- map(predictors, ~ lm(as.formula(paste("Y ~", .x)),
                                data = sw_ectz))
 
 plts1 <- map(predictors, function(predictor) {
-  ggplot(sw_ectz, aes_string(x = predictor, y = "Y")) +
+  ggplot(sw_ectz, aes(x = .data[[predictor]], y = Y)) +
     geom_point(shape = 1, colour = "dodgerblue4") +
     geom_smooth(method = "lm", col = "magenta", fill = "pink") +
     labs(title = paste("Y vs", predictor),
@@ -350,19 +349,19 @@ The ANOVA table is useful here because it shows how much variance each predictor
 # Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> Multiple linear regression was used to model mean Sørensen dissimilarity in the East Coast Transition Zone as a function of candidate climate predictors. Collinearity among predictors was assessed before final interpretation, and overlapping predictors were removed to obtain a more stable final model.
+Multiple linear regression was used to model mean Sørensen dissimilarity in the East Coast Transition Zone as a function of candidate climate predictors. Collinearity among predictors was assessed before final interpretation, and overlapping predictors were removed to obtain a more stable final model.
 
 **Results**
 
-> In the East Coast Transition Zone, mean Sørensen dissimilarity was well explained by a multiple linear regression containing August mean temperature, February temperature variability, and August temperature variability (adjusted $R^2 = 0.84$; overall model $p < 0.001$). All three retained predictors had positive partial effects, with August mean temperature showing the strongest contribution ($\beta = 0.283$), followed by February temperature variability ($\beta = 0.050$) and August temperature variability ($\beta = 0.022$). Predictors with problematic overlap were removed before final interpretation, so the reported coefficients represent comparatively stable partial relationships.
+In the East Coast Transition Zone, mean Sørensen dissimilarity was well explained by a multiple linear regression containing August mean temperature, February temperature variability, and August temperature variability (adjusted $R^2 = 0.84$; overall model $p < 0.001$). All three retained predictors had positive partial effects, with August mean temperature showing the strongest contribution ($\beta = 0.283$), followed by February temperature variability ($\beta = 0.050$) and August temperature variability ($\beta = 0.022$). Predictors with problematic overlap were removed before final interpretation, so the reported coefficients represent comparatively stable partial relationships.
 
 **Discussion**
 
-> The main discussion point is that the model identifies a small set of comparatively stable climatic predictors, rather than treating every candidate variable as independently meaningful. This is why model specification and collinearity screening matter in multiple regression.
+The main discussion point is that the model identifies a small set of comparatively stable climatic predictors, rather than treating every candidate variable as independently meaningful. This is why model specification and collinearity screening matter in multiple regression.
 :::
 
 # Categorical Predictors and Model Specification
@@ -517,22 +516,22 @@ That last point is the biologically important one. Different bioregions show dif
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> Nested linear models were used to test whether the relationship between Sørensen dissimilarity and geographic distance differed among bioregions. The interaction between distance and bioregion was assessed by comparing a single-slope model with a richer model containing both the bioregional main effect and the `dist × bio` interaction.
+Nested linear models were used to test whether the relationship between Sørensen dissimilarity and geographic distance differed among bioregions. The interaction between distance and bioregion was assessed by comparing a single-slope model with a richer model containing both the bioregional main effect and the `dist × bio` interaction.
 
 **Results**
 
-> Sørensen dissimilarity increased strongly with geographic distance, but the rate of increase differed among bioregions in the fitted interaction model. Adding bioregional main effects and the `dist × bio` interaction improved model fit substantially relative to a single-slope distance model ($F = 390.95$, $p < 0.001$), and the interaction model explained a large proportion of the variation in dissimilarity ($R^2 = 0.86$; adjusted $R^2 = 0.86$). The baseline distance effect was strongly positive ($\beta = 3.53 \times 10^{-4}$, $p < 0.001$), but this slope was steeper in some bioregions and shallower in others, confirming that the relationship between geographic separation and compositional turnover is not spatially uniform along the South African coast.
+Sørensen dissimilarity increased strongly with geographic distance, but the rate of increase differed among bioregions in the fitted interaction model. Adding bioregional main effects and the `dist × bio` interaction improved model fit substantially relative to a single-slope distance model ($F = 390.95$, $p < 0.001$), and the interaction model explained a large proportion of the variation in dissimilarity ($R^2 = 0.86$; adjusted $R^2 = 0.86$). The baseline distance effect was strongly positive ($\beta = 3.53 \times 10^{-4}$, $p < 0.001$), but this slope was steeper in some bioregions and shallower in others, confirming that the relationship between geographic separation and compositional turnover is not spatially uniform along the South African coast.
 
 **Discussion**
 
-> The biologically important point is that compositional turnover is structured jointly by distance and bioregional context. The interaction is therefore biologically meaningful rather than a technical complication in the model formula.
+The biologically important point is that compositional turnover is structured jointly by distance and bioregional context. The interaction is therefore biologically meaningful rather than a technical complication in the model formula.
 :::
 
-# Example 3: A Richer Final Model
+# Example 3: The Final Model
 
 We can now expand the selected climate model to include `bio` as a predictor alongside `augMean`, `febSD`, and `augSD`. This creates a richer model in which the continuous climate effects may differ among bioregions.
 
@@ -550,11 +549,11 @@ summary(full_mod3)
 anova(full_mod3)
 ```
 
-The interaction-rich model is clearly better than the reduced additive model. The AIC is lower, and the nested comparison indicates that allowing the slopes to differ among bioregions improves fit strongly.
+The final interaction model is clearly better than the reduced additive model. The AIC is lower, and the nested comparison indicates that allowing the slopes to differ among bioregions improves fit strongly.
 
-This is a good place to pause and reflect on model specification. The model is now much richer than the one we began with. That does not automatically make it better in every sense. It is better only if the biological question genuinely concerns whether the climate relationships differ among bioregions.
+The model is now much more interesting and insightful than the one we began with. That does not necessarily make it better in every sense, but it may be better if the biological question really concerns whether the climate relationships differ among bioregions.
 
-## Interpret the richer model
+## Interpret the more interesting model
 
 The summary of `full_mod3` shows that:
 
@@ -562,24 +561,24 @@ The summary of `full_mod3` shows that:
 -   several interaction terms are important, which means the climate-response relationships differ among bioregions;
 -   the overall model explains a substantial proportion of the variation in the response.
 
-In words, the message is this: the relationship between the seaweed dissimilarity index and the selected climate variables is not spatially uniform. The influence of those variables changes among the bioregions. That is a much richer ecological statement than anything we could obtain from a single-predictor regression.
+So, the outcome is that the relationship between the seaweed dissimilarity index and the selected climate variables is not spatially uniform, but that the influence of those variables changes among the bioregions. That is a much more insightful ecological statement than anything we could obtain from a single-predictor regression.
 
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> A richer interaction model was fitted to evaluate whether the relationships between Sørensen dissimilarity and the selected climate predictors differed among bioregions. The interaction-rich model was compared with the corresponding additive model using information criteria and nested model comparison.
+A more insightful interaction model was fitted to evaluate whether the relationships between Sørensen dissimilarity and the selected climate predictors differed among bioregions. The interaction-rich model was compared with the corresponding additive model using information criteria and nested model comparison.
 
 **Results**
 
-> The interaction-rich multiple regression explained a large proportion of the variation in mean Sørensen dissimilarity ($R^2 = 0.78$; adjusted $R^2 = 0.78$) and fit the data substantially better than the corresponding additive model (lower AIC; nested model comparison $F = 47.54$, $p < 0.001$). August mean temperature remained the dominant positive predictor in the reference bioregion ($\beta = 0.344$, $p < 0.001$), but several significant interaction terms showed that the effects of August mean temperature, February temperature variability, and August temperature variability differed among bioregions. In particular, the slopes associated with `augMean` were weaker in `BMP` and `ECTZ` than in the reference bioregion, while positive interactions involving `febSD` and `augSD` indicated that the effect of short-term temperature variability was stronger in some bioregions than in others.
+The full interaction multiple regression explained a large proportion of the variation in mean Sørensen dissimilarity ($R^2 = 0.78$; adjusted $R^2 = 0.78$) and fit the data substantially better than the corresponding additive model (lower AIC; nested model comparison $F = 47.54$, $p < 0.001$). August mean temperature remained the dominant positive predictor in the reference bioregion ($\beta = 0.344$, $p < 0.001$), but several significant interaction terms showed that the effects of August mean temperature, February temperature variability, and August temperature variability differed among bioregions. In particular, the slopes associated with `augMean` were weaker in `BMP` and `ECTZ` than in the reference bioregion, while positive interactions involving `febSD` and `augSD` indicated that the effect of short-term temperature variability was stronger in some bioregions than in others.
 
 **Discussion**
 
-> This richer model supports the broader ecological interpretation that the climatic drivers of compositional turnover are not spatially uniform along the South African coast. In a manuscript, that would be the main discussion point rather than a long catalogue of coefficient values.
+This final model with interactions supports the broader ecological interpretation that the climatic drivers of compositional turnover are not spatially uniform along the South African coast. In a manuscript, that would be the main discussion point rather than a long catalogue of coefficient values.
 :::
 
 # Alternative Categorical Variable Coding Schemes (Contrasts)

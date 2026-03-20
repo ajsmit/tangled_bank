@@ -12,7 +12,6 @@ knitr::opts_chunk$set(
   comment = "R>",
   warning = FALSE,
   message = FALSE,
-  out.width = "88%",
   fig.asp = NULL,
   fig.align = "center",
   fig.retina = 2,
@@ -24,7 +23,7 @@ ggplot2::theme_set(
 )
 ```
 
-```{r code-knitr-opts-chunk-set, echo=FALSE}
+```{r code-libraries, echo=FALSE}
 library(tidyverse)
 library(ggpubr)
 library(ggthemes)
@@ -97,19 +96,7 @@ As in the earlier inferential chapters, the workflow is important. We first insp
 
 # The Model
 
-The simple linear model is:
-
-$$
-Y_i = \alpha + \beta X_i + \epsilon_i
-$$
-
-where:
-
--   $Y_i$ is the response for observation $i$;
--   $X_i$ is the predictor for observation $i$;
--   $\alpha$ is the intercept;
--   $\beta$ is the slope; and
--   $\epsilon_i$ is the residual error.
+Simple linear regression is the first modelling framework in the sequence in which we write an explicit equation for the mean response and then estimate its parameters from data. The model itself and the least-squares fitting rule are set out more carefully in the `Core Equations` section below.
 
 The line is fitted by minimising the sum of squared residuals. This is why ordinary linear regression is often called an **ordinary least squares** method.
 
@@ -130,12 +117,6 @@ In most regression models we assume that the residuals are independent and ident
 Violation of these assumptions can lead to biased or inefficient parameter estimates, poor uncertainty estimates, and misleading inference.
 :::
 
-# Outliers and Their Impact on Simple Linear Regression
-
-Outliers can have disproportionate effects on a simple linear regression because the fitted line is estimated by minimising squared residuals, as in @eq-rss. Extreme observations may therefore influence the slope, the intercept, the standard errors, the confidence intervals, and the diagnostic patterns.
-
-This does not mean that unusual observations must automatically be removed. Some are recording errors and should be corrected or excluded. Others are rare but real biological events and may carry important information. The correct response is therefore to identify potentially influential points, inspect them carefully, and decide whether they reveal error, unusual but valid biology, or a more fundamental model problem.
-
 # R Function
 
 The main function used in this chapter is `lm()`:
@@ -147,15 +128,21 @@ lm(response ~ predictor, data = df)
 
 You can read the formula `response ~ predictor` as "the response is modelled as a function of the predictor."
 
-In its simplest form, the fitted model is written as:
+# The Core Equations
+
+Simple linear regression has two equations that students should keep conceptually separate. The first describes the model for the mean response. The second describes how the fitted line is chosen from the data.
+
+The model itself is:
 
 $$Y_i = \alpha + \beta X_i + \epsilon_i$$ {#eq-slr}
 
-where $Y_i$ is the response for observation $i$, $X_i$ is the predictor, $\alpha$ is the intercept, $\beta$ is the slope, and $\epsilon_i$ is the residual error.
+In @eq-slr, $Y_i$ is the response for observation $i$, $X_i$ is the predictor, $\alpha$ is the intercept, $\beta$ is the slope, and $\epsilon_i$ is the residual error. This is the equation that says what a straight-line mean structure looks like.
 
-The least-squares criterion used by `lm()` is to choose $\alpha$ and $\beta$ so that the residual sum of squares is as small as possible:
+The least-squares criterion used by `lm()` is then to choose $\alpha$ and $\beta$ so that the residual sum of squares is as small as possible:
 
 $$\text{RSS} = \sum_{i=1}^{n}(Y_i - \hat{Y}_i)^2$$ {#eq-rss}
+
+Equation @eq-rss is not a second regression model. It is the fitting rule. It tells us how the software decides which of all possible straight lines is the best-fitting one.
 
 The fitted model can then be explored with functions such as:
 
@@ -166,7 +153,13 @@ The fitted model can then be explored with functions such as:
 -   `plot()` for standard diagnostic plots;
 -   `bptest()` from **lmtest** for a formal test of heteroscedasticity.
 
-# Example Dataset
+# Outliers and Their Impact on Simple Linear Regression
+
+Outliers can have disproportionate effects on a simple linear regression because the fitted line is estimated by minimising squared residuals, as in @eq-rss. Extreme observations may therefore influence the slope, the intercept, the standard errors, the confidence intervals, and the diagnostic patterns.
+
+This does not mean that unusual observations must automatically be removed. Some are recording errors and should be corrected or excluded. Others are rare but real biological events and may carry important information. The correct response is therefore to identify potentially influential points, inspect them carefully, and decide whether they reveal error, unusual but valid biology, or a more fundamental model problem.
+
+# Example 1: Sparrow wing length and age
 
 We begin with a very small sparrow dataset because it makes the general logic transparent. We then move to a fuller worked example using the Adelie penguin data from the `palmerpenguins` package, which is much closer to the style and level of complexity encountered in real biological analyses.
 
@@ -191,7 +184,7 @@ gt(sparrows) |>
   )
 ```
 
-# Do an Exploratory Data Analysis (EDA)
+## Do an Exploratory Data Analysis (EDA)
 
 We start with the sparrow data to see the basic form of a simple linear model.
 
@@ -202,19 +195,18 @@ summary(sparrows)
 ```{r fig-sparrow}
 #| echo: false
 #| fig-cap: "Wing length of sparrows at different ages."
-#| fig-width: 4.6
-#| fig-height: 2.6
+#| fig-width: 4
+#| fig-height: 3
 
 ggplot(sparrows, aes(x = age, y = wing)) +
   geom_point(size = 3, col = "red3", shape = 16) +
   geom_smooth(method = "lm", se = FALSE, linewidth = 1.2, colour = "black") +
-  labs(x = "Age (days)", y = "Wing length (cm)") +
-  theme_grey()
+  labs(x = "Age (days)", y = "Wing length (cm)")
 ```
 
 The scatter plot suggests a clear positive linear relationship: older sparrows tend to have longer wings, and the relationship appears close to linear over the range of the data. This small example is useful because it makes the fitted line and the slope easy to understand before we move to a noisier biological dataset.
 
-# State the Model Question and Hypothesis
+## State the Model Question and Hypothesis
 
 The biological question in the sparrow example is whether wing length changes systematically with age.
 
@@ -225,7 +217,7 @@ $$H_{a}: \beta \ne 0$$
 
 If the slope is zero (a more-or-less horizontal line), there is no linear relationship between the predictor and the expected value of the response. If the slope differs from zero, then the predictor helps explain variation in the response.
 
-# Fit the Model
+## Fit the Model
 
 ```{r code-sparrow-lm}
 sparrow_mod <- lm(wing ~ age, data = sparrows)
@@ -234,7 +226,7 @@ summary(sparrow_mod)
 
 The output provides the intercept, the slope, their standard errors, a test of whether the coefficients differ from zero, the residual standard error, and the model $R^2$.
 
-# Test the Assumptions
+## Test the Assumptions
 
 Assumptions in regression are checked after fitting the model.
 
@@ -249,7 +241,6 @@ sparrow_aug |>
 #| echo: false
 #| fig-width: 6
 #| fig-height: 5
-#| out-width: "88%"
 par(mfrow = c(2, 2))
 plot(sparrow_mod)
 par(mfrow = c(1, 1))
@@ -257,7 +248,7 @@ par(mfrow = c(1, 1))
 
 The diagnostic plots suggest that the model is broadly adequate for these data. The residuals do not show severe curvature, the spread is reasonably even, and the Q-Q plot does not suggest a dramatic departure from normality. Because the dataset is small, these plots should be interpreted cautiously, but there is no obvious reason to abandon the linear model.
 
-# Interpret the Results
+## Interpret the Results
 
 The fitted slope is positive, which means that wing length increases with age. In this example, the slope estimate is about 0.27 cm per day, so the model implies that the expected wing length increases by roughly 0.27 cm for each additional day of age across the range of these observations.
 
@@ -265,25 +256,40 @@ The intercept is the expected wing length when age is zero. Here that value is n
 
 The model explains a large proportion of the variation in the observed wing lengths ($R^2 \approx 0.97$), and the test of the slope provides very strong evidence that the linear relationship is not zero ($p < 0.001$).
 
-# Reporting
+## Reporting
+
+```{r fig-penguin-results}
+#| echo: false
+#| fig-cap: "Bill length as a function of body mass for Adelie penguins. The straight line is the fitted simple linear regression and the blue shading is the 95% confidence interval."
+#| fig-width: 4
+#| fig-height: 3
+
+ggplot(Adelie,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(shape = 1, colour = "pink") +
+  geom_smooth(method = "lm", linewidth = 0.4, alpha = 0.2,
+              colour = "red", se = TRUE, fill = "blue") +
+  labs(x = "Body mass (g)", y = "Bill length (mm)") +
+  theme_grey()
+```
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> The relationship between sparrow wing length and age was assessed with a simple linear regression, with wing length as the response variable and age as the continuous predictor. Model adequacy was evaluated from standard residual diagnostics.
+The relationship between sparrow wing length and age was assessed with a simple linear regression, with wing length as the response variable and age as the continuous predictor. Model adequacy was evaluated from standard residual diagnostics.
 
 **Results**
 
-> Sparrow wing length increased strongly with age in the fitted simple linear regression ($\beta = 0.270$, 95% CI: 0.241 to 0.300; $R^2 = 0.97$; $p < 0.001$). Across the observed age range, older birds therefore had consistently longer wings, with the expected wing length increasing by about 0.27 cm for each additional day of age.
+Sparrow wing length increased strongly with age in the fitted simple linear regression ($\beta = 0.270$, 95% CI: 0.241 to 0.300; $R^2 = 0.97$; $p < 0.001$). Across the observed age range, older birds therefore had consistently longer wings, with the expected wing length increasing by about 0.27 cm for each additional day of age.
 
 **Discussion**
 
-> This example is useful because it makes the biological interpretation of the slope very clear: age is associated with a strong increase in wing length over the observed range, and the fitted line captures most of the variation in these simple demonstration data.
+This example is useful because it makes the biological interpretation of the slope very clear: age is associated with a strong increase in wing length over the observed range, and the fitted line captures most of the variation in these simple demonstration data.
 :::
 
-# A Larger Worked Example: Penguin Data
+# Example 2: Adelie penguin bill length and body mass
 
 The sparrow example makes the general workflow clear, but it is useful to repeat the same approach in a more interesting dataset. The following example uses the `penguins` dataset from the `palmerpenguins` package to model bill length as a function of body mass in Adelie penguins.
 
@@ -322,6 +328,7 @@ We see that the dataset contains many more observations than the sparrow example
 ```{r fig-penguin-slr}
 #| fig-cap: "Scatter plot of the Palmer Station Adelie penguin data with a best fit line."
 #| fig-width: 4
+#| fig-height: 3
 
 ggplot(Adelie,
        aes(x = body_mass_g, y = bill_length_mm)) +
@@ -335,12 +342,10 @@ Although there is considerable scatter in the data, there is also a clear positi
 
 ## State the Hypothesis
 
--   Null hypothesis ($H_0$): there is no linear relationship between body mass and bill length in Adelie penguins.
--   Alternative hypothesis ($H_A$): there is a linear relationship between the two variables.
-
-This is again a test about the slope:
-
 $$H_{0}: \beta = 0$$
+$$H_{a}: \beta \ne 0$$
+
+That is, the null hypothesis is that body mass has no linear association with bill length, while the alternative is that the slope differs from zero.
 
 If the slope is zero, then the predictor does not explain systematic change in the expected response.
 
@@ -489,6 +494,7 @@ ggarrange(plt1, plt2, plt3, plt4, nrow = 2, ncol = 2, labels = "AUTO",
 #| echo: false
 #| fig-cap: "Scatter plot of Adelie penguin bill length against body mass, with observations exceeding the Cook's distance threshold highlighted."
 #| fig-width: 4
+#| fig-height: 3
 
 ggplot(mod1_data, aes(x = body_mass_g, y = bill_length_mm)) +
   geom_point(aes(size = .cooksd, colour = colour), shape = 1) +
@@ -515,39 +521,21 @@ The test of the slope provides strong evidence that the relationship is not zero
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> The data analysed in this example were drawn from the Palmer Penguins dataset, which contains measurements on penguins sampled in the Palmer Archipelago, Antarctica. For this worked example, only Adelie penguins were retained. Bill length was treated as the response variable and body mass as the continuous predictor.
->
-> A simple linear regression model was fitted using `lm()` in R, with bill length modelled as a function of body mass. Model adequacy was assessed by inspecting residual plots, by applying the Shapiro-Wilk test to the residuals, and by using the Breusch-Pagan test to assess homoscedasticity. Influential observations were explored using Cook's distance, DFFITS, and leverage-based diagnostics.
+The data analysed in this example were drawn from the Palmer Penguins dataset, which contains measurements on penguins sampled in the Palmer Archipelago, Antarctica. For this worked example, only Adelie penguins were retained. Bill length was treated as the response variable and body mass as the continuous predictor.
+
+A simple linear regression model was fitted using `lm()` in R, with bill length modelled as a function of body mass. Model adequacy was assessed by inspecting residual plots, by applying the Shapiro-Wilk test to the residuals, and by using the Breusch-Pagan test to assess homoscedasticity. Influential observations were explored using Cook's distance, DFFITS, and leverage-based diagnostics.
 
 **Results**
 
-The journal-style Results statement for this worked example might read as follows:
-
-```{r fig-penguin-results}
-#| echo: false
-#| fig-cap: "Bill length as a function of body mass for Adelie penguins. The straight line is the fitted simple linear regression and the blue shading is the 95% confidence interval."
-#| fig-width: 4
-
-ggplot(Adelie,
-       aes(x = body_mass_g, y = bill_length_mm)) +
-  geom_point(shape = 1, colour = "pink") +
-  geom_smooth(method = "lm", linewidth = 0.4, alpha = 0.2,
-              colour = "red", se = TRUE, fill = "blue") +
-  labs(x = "Body mass (g)", y = "Bill length (mm)") +
-  theme_grey()
-```
-
-> Bill length increased with body mass in the fitted simple linear regression ($\beta = 0.00319$, SE = 0.00040, $t = 8.02$, $p < 0.001$) (@fig-penguin-results). The model explained about 30% of the variation in bill length ($R^2 = 0.30$), indicating that body mass was an informative but incomplete predictor of bill length. The overall model was also strongly supported by the ANOVA ($F = 64.25$, $p < 0.001$, d.f. = 1, 149).
+Bill length increased with body mass in the fitted simple linear regression ($\beta = 0.00319$, SE = 0.00040, $t = 8.02$, $p < 0.001$) (@fig-penguin-results). The model explained about 30% of the variation in bill length ($R^2 = 0.30$), indicating that body mass was an informative but incomplete predictor of bill length. The overall model was also strongly supported by the ANOVA ($F = 64.25$, $p < 0.001$, d.f. = 1, 149).
 
 **Discussion**
 
-A Discussion might read:
-
-> In summary, the worked example supports a positive relationship between body mass and bill length in Adelie penguins. The model is clearly informative, but substantial unexplained variation remains, which suggests that additional biological predictors would be needed for a fuller account of bill-length variation.
+In summary, the worked example supports a positive relationship between body mass and bill length in Adelie penguins. The model is clearly informative, but substantial unexplained variation remains, which suggests that additional biological predictors would be needed for a fuller account of bill-length variation.
 :::
 
 # Confidence and Prediction Intervals
@@ -570,6 +558,7 @@ We can also visualise the same distinction in the penguin example.
 ```{r fig-penguin-intervals}
 #| fig-cap: "Adelie penguin bill length model with confidence interval (blue) and prediction interval (pink) around the fitted values."
 #| fig-width: 4
+#| fig-height: 3
 
 pred_conf <- as.data.frame(predict(mod1,
                                    newdata = Adelie,

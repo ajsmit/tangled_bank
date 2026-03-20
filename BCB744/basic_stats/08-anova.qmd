@@ -2,8 +2,8 @@
 date: "2021-01-01"
 title: "8. ANOVA"
 subtitle: "Comparing the Means of More than Two Groups"
+author: "A. J. Smit"
 reference-location: margin
-number-sections: true
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -11,9 +11,6 @@ knitr::opts_chunk$set(
   comment = "R>", 
   warning = FALSE, 
   message = FALSE,
-  fig.width = 6.5,
-  fig.height = 4.5,
-  out.width = "88%",
   fig.asp = NULL, # control via width/height
   fig.align = "center",
   fig.retina = 2,
@@ -106,11 +103,37 @@ The main functions used in this chapter are:
 -   `oneway.test()` for Welch's ANOVA when variances differ;
 -   `kruskal.test()` for the Kruskal-Wallis rank-sum test.
 
-# The ANOVA Test Statistic
+# The Core Equation
 
-ANOVA tests whether variation among the group means is large relative to the variation within the groups. That comparison is expressed through the *F*-statistic:
+ANOVA is built on a simple decomposition of variation. Suppose there are $k$ groups, $Y_{ij}$ is the $j$-th observation in group $i$, $\bar{Y}_i$ is the mean of group $i$, and $\bar{Y}$ is the overall grand mean.
 
-$$F = \frac{\text{mean square among groups}}{\text{mean square within groups}}$$ {#eq-anova-f}
+$$SS_{\text{total}} = SS_{\text{among}} + SS_{\text{within}}$$ {#eq-anova-ss}
+
+Equation @eq-anova-ss states that the total variation in the response can be split into variation among the group means and variation among observations within groups.
+
+The total sum of squares is:
+
+$$SS_{\text{total}} = \sum_{i=1}^{k}\sum_{j=1}^{n_i}(Y_{ij} - \bar{Y})^2$$ {#eq-anova-sstotal}
+
+This measures how far all observations lie from the grand mean. The among-groups sum of squares is:
+
+$$SS_{\text{among}} = \sum_{i=1}^{k} n_i(\bar{Y}_i - \bar{Y})^2$$ {#eq-anova-ssamong}
+
+This measures how far the group means lie from the grand mean, weighted by group size. The within-groups sum of squares is:
+
+$$SS_{\text{within}} = \sum_{i=1}^{k}\sum_{j=1}^{n_i}(Y_{ij} - \bar{Y}_i)^2$$ {#eq-anova-sswithin}
+
+This measures how much variation remains among observations after the group means have been taken into account.
+
+ANOVA then converts sums of squares to mean squares by dividing by their degrees of freedom:
+
+$$MS_{\text{among}} = \frac{SS_{\text{among}}}{k - 1}, \qquad MS_{\text{within}} = \frac{SS_{\text{within}}}{N - k}$$ {#eq-anova-ms}
+
+Here $N$ is the total sample size across all groups. The mean squares are therefore variance estimates: one based on differences among the group means, and one based on residual variation within groups.
+
+ANOVA finally compares these two sources of variation through the *F*-ratio:
+
+$$F = \frac{MS_{\text{among}}}{MS_{\text{within}}}$$ {#eq-anova-f}
 
 When the null hypothesis is true and the assumptions are reasonably met, the ratio in @eq-anova-f follows an *F* distribution. Large values therefore indicate that the group means differ more than we would expect from within-group variation alone.
 
@@ -148,15 +171,15 @@ If some of the above assumptions are violated, then your module of action is to 
 
 Rather than talking about *t*-tests and ANOVAs as if they do different things, let us acknowledge that they ask a similar question. That question being, "are the means of these two, more things we want to compare different or are they the same?" At this stage it is important to note that, as with *t*-tests, the independent variable is expected to be categorical (*i.e.* a factor denoting two, more different treatments or sampling conditions) and that the dependent variable must be continuous. You may perhaps be more familiar with this question when it is presented as a set of hypotheses as we saw in a *t*-test:
 
--   ***H*~0~** Group A is not different from Group B.
--   ***H*~a~** Group A is different from Group B.
+$$H_{0}: \text{Group A is not different from Group B}$$
+$$H_{a}: \text{Group A is different from Group B}$$
 
 In an ANOVA, hypotheses will be more similar to these:
 
--   ***H*~0~** There are no differences among Groups A, B, or C.
--   ***H*~a~** There are differences among Groups A, B, or C.
+$$H_{0}: \text{There are no differences among Groups A, B, \text{ or } C}$$
+$$H_{a}: \text{There are differences among Groups A, B, \text{ or } C}$$
 
-This is a scientific question in the simplest sense. Often, for basic inquiries such as that posed above, we need to see if one group differs significantly from another. The way in which we accomplish this is by looking at the mean, variance within a set of data compared against another similar set. Formally, ANOVA does this through the *F*-ratio in @eq-anova-f.
+This is a scientific question in the simplest sense. Often, for basic inquiries such as that posed above, we need to see if one group differs significantly from another. The way in which we accomplish this is by looking at the mean variation among groups relative to the variation within groups. Formally, ANOVA does this through the decomposition in @eq-anova-ss and the *F*-ratio in @eq-anova-f.
 
 ## Remember the *t*-test
 
@@ -221,14 +244,14 @@ That was a nice revision. But applied to the `chicks` data it seemed a bit silly
 
 ## Why Not Do Multiple *t*-tests?
 
-In the `chicks` data we have four diets, not only two as in the *t*-test example just performed. Why not then simply do a *t*-test multiple times, once for each pair of diets given to the chickens? Multiple *t*-tests would be written as:
+In the `chicks` data we have four diets, not only two as in the *t*-test example just performed. Why not then simply do a *t*-test multiple times, once for each pair of diets given to the chickens? That would amount to six separate null hypotheses:
 
--   $H_{0}: \mu_1 = \mu_2$
--   $H_{0}: \mu_1 = \mu_3$
--   $H_{0}: \mu_1 = \mu_4$
--   $H_{0}: \mu_2 = \mu_3$
--   $H_{0}: \mu_2 = \mu_4$
--   $H_{0}: \mu_3 = \mu_4$
+$$H_{0}: \mu_1 = \mu_2$$
+$$H_{0}: \mu_1 = \mu_3$$
+$$H_{0}: \mu_1 = \mu_4$$
+$$H_{0}: \mu_2 = \mu_3$$
+$$H_{0}: \mu_2 = \mu_4$$
+$$H_{0}: \mu_3 = \mu_4$$
 
 This would be invalid. The problem is that the chance of committing a Type I error increases as more multiple comparisons are done. So, the overall chance of rejecting the *H*~0~ increases. Why? If one sets $\alpha=0.05$ (the significance level below which the *H*~0~ is no longer accepted), one will still reject the *H*~0~ 5% of the time when it is in fact true (*i.e.* when there is no difference between the groups). When many pairwise comparisons are made, the probability of rejecting the *H*~0~ at least once is higher because we take this 5% risk each time we repeat a *t*-test. In the case of the chicken diets, we would have to perform six *t*-tests, and the error rate would increase to slightly less than $6\times5\%$. See Table 1. 
 ```{r fn-type-one-error-probability-function-k-alpha}
@@ -287,21 +310,14 @@ On the downside, this method can be overly conservative, we may then increase th
 
 Or better still, we do an ANOVA that controls for these Type I errors so that it remains at 5%.
 
-# A Worked One-Way ANOVA Example
+# Example 1: Chick masses under four diets
 
-::: {.callout-note}
-## Hypothesis for an ANOVA
+If we have four groups whose means we want to compare, the hypotheses should be stated in the same explicit way used elsewhere in the course:
 
-If we have four groups whose means we want to compare, a suitable *H*~0~ would be:
-
-$H_{0}: \mu_1 = \mu_2 = \mu_3 = \mu_4$
-
-and
-
-$H_{a}$: the means of the four groups are not equal.
+$$H_{0}: \mu_1 = \mu_2 = \mu_3 = \mu_4$$
+$$H_{a}: \text{not all group means are equal}$$
 
 Here, $\mu_1$, $\mu_2$, $\mu_3$,$\mu_4$ are four population means. For the *H*~0~ to be rejected, all that is required is for one of the pairs of means to be different, not all of them.
-:::
 
 ## The one-way design
 
@@ -347,7 +363,7 @@ plot(TukeyHSD(chicks.aov1))
 We may also produce a nicer looking graphical summary in the form of a box-and-whisker plot and/or a violin plot. Here I combine both (@fig-boxwhisker2):
 
 ```{r fig-boxwhisker2}
-#| fig-cap: "Box-and-whisker plot showing the differences in means between chicks reared to 21 days old and fed four diets. Shown is a notched box plot where the extent of the notches is `1.58 * IQR / sqrt(n)`. This is approximately equivalent to a 95% confidence interval and may be used for comparing medians."
+#| fig-cap: "Box-and-whisker plot showing the differences in means between chicks reared to 21 days old and fed four diets. Shown is a notched box plot where the extent of the notches is approximately $1.58 \\times \\mathrm{IQR} / \\sqrt{n}$. This is approximately equivalent to a 95% confidence interval and may be used for comparing medians."
 
 set.seed(666)
 
@@ -380,19 +396,19 @@ Taken together, the ANOVA and Tukey outputs show that the global effect of diet 
 ### Reporting
 
 ::: {.callout-note appearance="simple"}
-## Marine Biology Write-Up
+## Write-Up
 
 **Methods**
 
-> Chick mass at Day 21 was compared among four diet treatments with a one-way ANOVA. Because the global ANOVA does not identify which groups differ, Tukey's HSD procedure was then used for post hoc pairwise comparisons.
+Chick mass at Day 21 was compared among four diet treatments with a one-way ANOVA. Because the global ANOVA does not identify which groups differ, Tukey's HSD procedure was then used for post hoc pairwise comparisons.
 
 **Results**
 
-> At Day 21, mean chick mass differed among diets (one-way ANOVA: $F_{3,41} = 4.66$, $p < 0.01$). Chicks fed Diet 1 had a mean mass of $177.8 \pm 58.7$ g (SD), compared with $214.7 \pm 78.1$ g for Diet 2, $270.3 \pm 71.6$ g for Diet 3, and $238.6 \pm 43.3$ g for Diet 4. Tukey's HSD test showed that the clearest pairwise difference was between Diet 1 and Diet 3 ($p < 0.01$), indicating that chicks on Diet 3 were heavier than those on Diet 1 by Day 21.
+At Day 21, mean chick mass differed among diets (one-way ANOVA: $F_{3,41} = 4.66$, $p < 0.01$). Chicks fed Diet 1 had a mean mass of $177.8 \pm 58.7$ g (SD), compared with $214.7 \pm 78.1$ g for Diet 2, $270.3 \pm 71.6$ g for Diet 3, and $238.6 \pm 43.3$ g for Diet 4. Tukey's HSD test showed that the clearest pairwise difference was between Diet 1 and Diet 3 ($p < 0.01$), indicating that chicks on Diet 3 were heavier than those on Diet 1 by Day 21.
 
 **Discussion**
 
-> The important point is not simply that the ANOVA was significant. The post hoc structure shows that diet-related differences in mass were selective rather than universal across all diet pairs.
+The important point is not simply that the ANOVA was significant. The post hoc structure shows that diet-related differences in mass were selective rather than universal across all diet pairs.
 :::
 
 :::: {.callout-important}
@@ -604,22 +620,20 @@ ggboxplot(sa_time_long, x = "term", y = "minutes",
           add = "jitter", shape = "term")
 ```
 
-# Extended Example
-
-## Snakes!
+# Example 2: Snake habituation across repeated days
 
 These data could be analysed by a two-way ANOVA without replication, or a repeated measures ANOVA. Here I will analyse it by using a two-way ANOVA without replication.
 
 Place and Abramson (2008) placed diamondback rattlesnakes (*Crotalus atrox*) in a 'rattlebox, ' a box with a lid that would slide open, shut every 5 minutes. At first and the snake would rattle its tail each time the box opened. After a while, the snake would become habituated to the box opening, stop rattling its tail. They counted the number of box openings until a snake stopped rattling; fewer box openings means the snake was more quickly habituated. They repeated this experiment on each snake on four successive days and which is treated as an influential variable here. Place and Abramson (2008) used 10 snakes, but some of them never became habituated; to simplify this example, data from the six snakes that did become habituated on each day are used.
 
-First, we read in the data, making sure to convert the column named `day` to a factor. Why? Because ANOVAs work with factor independent variables, while `day` as it is encoded by default is in fact a continuous variable.
+This second example follows the same appraoch as the first, but in a more interesting design where both day and snake identity matter. First, we read in the data and make sure to convert the column named `day` to a factor. Why? Because ANOVAs work with factor independent variables, while `day` as it is encoded by default is in fact a continuous variable.
 
 ```{r code-snakes-read-csv-here-here}
 snakes <- read_csv(file.path("..", "..", "data", "BCB744", "snakes.csv"))
 snakes$day = as.factor(snakes$day)
 ```
 
-The first thing we do is to create some summaries of the data. Refer to the summary statistics Chapter.
+The first thing we do is to create some summaries of the data. Refer to the summary statistics chapter [Chapter 2](02-summarise-and-describe.qmd).
 
 ```{r code-snakes-summary-snakes}
 snakes.summary <- snakes %>% 
@@ -672,10 +686,13 @@ ggplot(data = snakes, aes(x = day, y = openings)) +
   theme_pubclean()
 ```
 
-What are our null hypotheses?
+The two-factor design now requires one hypothesis pair for the snake effect and one for the day effect:
 
-1.  ***H*~0~** There is no difference between snakes with respect to the number of openings at which they habituate.
-2.  ***H*~0~** There is no difference between days in terms of the number of openings at which the snakes habituate.
+$$H_{0}: \text{there is no difference among snakes in the number of openings required for habituation}$$
+$$H_{a}: \text{there is a difference among snakes in the number of openings required for habituation}$$
+
+$$H_{0}: \text{there is no difference among days in the number of openings required for habituation}$$
+$$H_{a}: \text{there is a difference among days in the number of openings required for habituation}$$
 
 Fit the ANOVA model to test these hypotheses:
 
@@ -707,3 +724,27 @@ plot(fitted(snakes.aov), residuals(snakes.aov), col = "red")
 snakes.tukey <- TukeyHSD(snakes.aov, which = "day", conf.level = 0.90)
 plot(snakes.tukey, las = 1, col = "red")
 ```
+
+## Interpret the results
+
+Taken together, the ANOVA and Tukey results indicate that habituation changed across days. The main effect of day is statistically significant, which means that the mean number of box openings required for habituation was not constant through time. The effect of snake identity, however, is not statistically significant in this additive model.
+
+The pattern in the means is biologically sensible. On Day 1 the snakes required, on average, about 63 openings before habituating, whereas by Day 4 this had dropped to about 25 openings. The clearest post hoc contrast is between Day 1 and Day 4, which indicates that habituation became more rapid over repeated exposure to the apparatus.
+
+## Reporting
+
+::: {.callout-note appearance="simple"}
+## Write-Up
+
+**Methods**
+
+The number of box openings required for rattlesnakes to habituate was analysed with a two-factor ANOVA without replication, using day and snake identity as explanatory factors. Day was treated as a categorical factor in order to test whether habituation changed across repeated trials, and a Tukey post hoc test was applied to the day effect to identify which days differed.
+
+**Results**
+
+The number of box openings required for habituation differed among days (ANOVA: $F_{3,15} = 3.32$, $p < 0.05$), but did not differ significantly among snakes ($F_{5,15} = 1.24$, $p > 0.05$). Mean openings declined from $63.3 \pm 30.5$ (SD) on Day 1 to $47.0 \pm 12.2$ on Day 2, $34.5 \pm 26.0$ on Day 3, and $25.3 \pm 18.1$ on Day 4. Tukey's post hoc test indicated that the clearest difference was between Day 1 and Day 4 ($p < 0.05$), showing that snakes habituated after fewer box openings as the trials progressed.
+
+**Discussion**
+
+The main biological message is that repeated exposure reduced the number of box openings needed before habituation occurred. In a journal Discussion, the emphasis would therefore fall on temporal habituation to the repeated disturbance rather than on persistent differences among individual snakes.
+:::
