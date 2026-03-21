@@ -927,9 +927,11 @@ window.Quarto = {
 <li><a href="#prepare-the-data" id="toc-prepare-the-data" class="nav-link" data-scroll-target="#prepare-the-data"><span class="header-section-number">8.1</span> Prepare the Data</a></li>
   <li><a href="#fit-the-cross-validated-ridge-model" id="toc-fit-the-cross-validated-ridge-model" class="nav-link" data-scroll-target="#fit-the-cross-validated-ridge-model"><span class="header-section-number">8.2</span> Fit the Cross-Validated Ridge Model</a></li>
   <li><a href="#inspect-the-cross-validation-curve" id="toc-inspect-the-cross-validation-curve" class="nav-link" data-scroll-target="#inspect-the-cross-validation-curve"><span class="header-section-number">8.3</span> Inspect the Cross-Validation Curve</a></li>
-  <li><a href="#extract-the-fitted-model" id="toc-extract-the-fitted-model" class="nav-link" data-scroll-target="#extract-the-fitted-model"><span class="header-section-number">8.4</span> Extract the Fitted Model</a></li>
-  <li><a href="#interpret-the-ridge-results" id="toc-interpret-the-ridge-results" class="nav-link" data-scroll-target="#interpret-the-ridge-results"><span class="header-section-number">8.5</span> Interpret the Ridge Results</a></li>
-  <li><a href="#reporting" id="toc-reporting" class="nav-link" data-scroll-target="#reporting"><span class="header-section-number">8.6</span> Reporting</a></li>
+  <li><a href="#coefficient-paths-and-the-meaning-of-shrinkage" id="toc-coefficient-paths-and-the-meaning-of-shrinkage" class="nav-link" data-scroll-target="#coefficient-paths-and-the-meaning-of-shrinkage"><span class="header-section-number">8.4</span> Coefficient Paths and the Meaning of Shrinkage</a></li>
+  <li><a href="#extract-the-fitted-model" id="toc-extract-the-fitted-model" class="nav-link" data-scroll-target="#extract-the-fitted-model"><span class="header-section-number">8.5</span> Extract the Fitted Model</a></li>
+  <li><a href="#interpret-the-ridge-results" id="toc-interpret-the-ridge-results" class="nav-link" data-scroll-target="#interpret-the-ridge-results"><span class="header-section-number">8.6</span> Interpret the Ridge Results</a></li>
+  <li><a href="#lambda.min-versus-lambda.1se" id="toc-lambda.min-versus-lambda.1se" class="nav-link" data-scroll-target="#lambda.min-versus-lambda.1se"><span class="header-section-number">8.7</span> <code>lambda.min</code> Versus <code>lambda.1se</code></a></li>
+  <li><a href="#reporting" id="toc-reporting" class="nav-link" data-scroll-target="#reporting"><span class="header-section-number">8.8</span> Reporting</a></li>
   </ul>
 </li>
   <li>
@@ -1078,7 +1080,7 @@ window.Quarto = {
 </section><section id="r-functions" class="level1" data-number="7"><h1 data-number="7">
 <span class="header-section-number">7</span> R Functions</h1>
 <p>In R, the usual introductory function for regularised regression is <code><a href="https://glmnet.stanford.edu/reference/cv.glmnet.html">glmnet::cv.glmnet()</a></code>:</p>
-<div class="cell" data-layout-align="center">
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">0</span>)   <span class="co"># ridge</span></span>
 <span id="cb1-2"><a href="#cb1-2"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">1</span>)   <span class="co"># lasso</span></span>
 <span id="cb1-3"><a href="#cb1-3"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="co"># elastic net</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1090,7 +1092,7 @@ window.Quarto = {
 <section id="prepare-the-data" class="level2" data-number="8.1"><h2 data-number="8.1" class="anchored" data-anchor-id="prepare-the-data">
 <span class="header-section-number">8.1</span> Prepare the Data</h2>
 <p>The response is centred, and the predictors are supplied as a matrix:</p>
-<div class="cell" data-layout-align="center">
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>y <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
 <span id="cb2-2"><a href="#cb2-2"></a>  <span class="fu">select</span>(Y) <span class="sc">|&gt;</span></span>
 <span id="cb2-3"><a href="#cb2-3"></a>  <span class="fu">scale</span>(<span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
@@ -1102,7 +1104,7 @@ window.Quarto = {
 </div>
 </section><section id="fit-the-cross-validated-ridge-model" class="level2" data-number="8.2"><h2 data-number="8.2" class="anchored" data-anchor-id="fit-the-cross-validated-ridge-model">
 <span class="header-section-number">8.2</span> Fit the Cross-Validated Ridge Model</h2>
-<div class="cell" data-layout-align="center">
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb3-2"><a href="#cb3-2"></a>ridge_cv <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(</span>
 <span id="cb3-3"><a href="#cb3-3"></a>  X, y,</span>
@@ -1114,11 +1116,11 @@ window.Quarto = {
 </div>
 </section><section id="inspect-the-cross-validation-curve" class="level2" data-number="8.3"><h2 data-number="8.3" class="anchored" data-anchor-id="inspect-the-cross-validation-curve">
 <span class="header-section-number">8.3</span> Inspect the Cross-Validation Curve</h2>
-<div class="cell" data-layout-align="center">
+<div class="cell">
 <div class="cell-output-display">
-<div id="fig-ridge-cv" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<div id="fig-ridge-cv" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-ridge-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="24-regularisation_files/figure-html/fig-ridge-cv-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Cross-validation statistics for ridge regression applied to the seaweed data."><img src="24-regularisation_files/figure-html/fig-ridge-cv-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" width="1200"></a>
+<a href="24-regularisation_files/figure-html/fig-ridge-cv-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Cross-validation statistics for ridge regression applied to the seaweed data."><img src="24-regularisation_files/figure-html/fig-ridge-cv-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ridge-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: Cross-validation statistics for ridge regression applied to the seaweed data.
@@ -1127,9 +1129,40 @@ Figure&nbsp;1: Cross-validation statistics for ridge regression applied to the s
 </div>
 </div>
 <p>The two vertical lines in <a href="#fig-ridge-cv" class="quarto-xref">Figure&nbsp;1</a> identify the <span class="math inline">\(\lambda\)</span> that minimises cross-validated error (<code>lambda.min</code>) and the larger, more conservative value within one standard error of that minimum (<code>lambda.1se</code>). The latter is often chosen when a simpler, more stable model is preferred.</p>
-</section><section id="extract-the-fitted-model" class="level2" data-number="8.4"><h2 data-number="8.4" class="anchored" data-anchor-id="extract-the-fitted-model">
-<span class="header-section-number">8.4</span> Extract the Fitted Model</h2>
-<div class="cell" data-layout-align="center">
+</section><section id="coefficient-paths-and-the-meaning-of-shrinkage" class="level2" data-number="8.4"><h2 data-number="8.4" class="anchored" data-anchor-id="coefficient-paths-and-the-meaning-of-shrinkage">
+<span class="header-section-number">8.4</span> Coefficient Paths and the Meaning of Shrinkage</h2>
+<p>Cross-validation tells us which value of <span class="math inline">\(\lambda\)</span> is attractive for prediction, but it does not by itself show what the penalty is <em>doing</em> to the model. A coefficient-path plot fills that gap. It tracks each fitted coefficient as <span class="math inline">\(\lambda\)</span> changes from very small values (weak penalty) to large values (strong penalty).</p>
+<p>For ridge regression, the usual pattern is that all coefficients move smoothly towards zero, but none are dropped completely. For lasso, some coefficients are driven exactly to zero as the penalty strengthens. This is the visual expression of the conceptual difference between the two methods.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ridge-path" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-ridge-path-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="24-regularisation_files/figure-html/fig-ridge-path-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Coefficient paths for ridge regression. As the penalty increases, all coefficients are shrunk towards zero, but none are removed completely."><img src="24-regularisation_files/figure-html/fig-ridge-path-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ridge-path-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Coefficient paths for ridge regression. As the penalty increases, all coefficients are shrunk towards zero, but none are removed completely.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>In <a href="#fig-ridge-path" class="quarto-xref">Figure&nbsp;2</a>, each coloured trace is one predictor coefficient. Moving from left to right corresponds to stronger shrinkage. The lines contract towards zero, but ridge keeps every predictor in the model.</p>
+<p>The vertical reference lines show where the cross-validation procedure places <code>lambda.min</code> and <code>lambda.1se</code>. Reading the plot this way helps connect model selection to coefficient behaviour. At <code>lambda.min</code>, shrinkage is weaker because the model is allowed to keep more of the original coefficient size. At <code>lambda.1se</code>, shrinkage is stronger, so the fitted model is more conservative even though its estimated prediction error is still close to the minimum.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-lasso-path" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-lasso-path-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="24-regularisation_files/figure-html/fig-lasso-path-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Coefficient paths for lasso regression. As the penalty increases, some coefficients are shrunk all the way to zero."><img src="24-regularisation_files/figure-html/fig-lasso-path-1.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lasso-path-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Coefficient paths for lasso regression. As the penalty increases, some coefficients are shrunk all the way to zero.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>In <a href="#fig-lasso-path" class="quarto-xref">Figure&nbsp;3</a>, some traces hit the horizontal axis and stay there. Those are the predictors that lasso has excluded. This is why coefficient-path plots are so useful pedagogically: they let you see which variables remain influential across a range of penalties and which ones disappear quickly once shrinkage becomes strong.</p>
+</section><section id="extract-the-fitted-model" class="level2" data-number="8.5"><h2 data-number="8.5" class="anchored" data-anchor-id="extract-the-fitted-model">
+<span class="header-section-number">8.5</span> Extract the Fitted Model</h2>
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>ridge_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
 <span id="cb4-2"><a href="#cb4-2"></a>  X, y,</span>
 <span id="cb4-3"><a href="#cb4-3"></a>  <span class="at">alpha =</span> <span class="dv">0</span>,</span>
@@ -1141,22 +1174,73 @@ Figure&nbsp;1: Cross-validation statistics for ridge regression applied to the s
 <span id="cb4-9"><a href="#cb4-9"></a>ridge_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, ridge_pred) <span class="sc">^</span> <span class="dv">2</span></span>
 <span id="cb4-10"><a href="#cb4-10"></a><span class="fu">coef</span>(ridge_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>R&gt; 6 x 1 sparse Matrix of class "dgCMatrix"
-R&gt;                      s0
-R&gt; (Intercept) -0.12916991
-R&gt; augMean      0.25319971
-R&gt; febRange     0.03884481
-R&gt; febSD       -0.02964465
-R&gt; augSD        0.02599145
-R&gt; annMean      0.02672789</code></pre>
+<pre><code>6 x 1 sparse Matrix of class "dgCMatrix"
+                     s0
+(Intercept) -0.12916991
+augMean      0.25319971
+febRange     0.03884481
+febSD       -0.02964465
+augSD        0.02599145
+annMean      0.02672789</code></pre>
 </div>
 </div>
-</section><section id="interpret-the-ridge-results" class="level2" data-number="8.5"><h2 data-number="8.5" class="anchored" data-anchor-id="interpret-the-ridge-results">
-<span class="header-section-number">8.5</span> Interpret the Ridge Results</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>ridge_model_1se <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb6-2"><a href="#cb6-2"></a>  X, y,</span>
+<span id="cb6-3"><a href="#cb6-3"></a>  <span class="at">alpha =</span> <span class="dv">0</span>,</span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="at">lambda =</span> ridge_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se,</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a>)</span>
+<span id="cb6-7"><a href="#cb6-7"></a></span>
+<span id="cb6-8"><a href="#cb6-8"></a>ridge_pred_1se <span class="ot">&lt;-</span> <span class="fu">predict</span>(ridge_model_1se, X)</span>
+<span id="cb6-9"><a href="#cb6-9"></a>ridge_rsq_1se <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, ridge_pred_1se) <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb6-10"><a href="#cb6-10"></a>ridge_coef_norm <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(ridge_model))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">^</span> <span class="dv">2</span>))</span>
+<span id="cb6-11"><a href="#cb6-11"></a>ridge_coef_norm_1se <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(ridge_model_1se))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">^</span> <span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="interpret-the-ridge-results" class="level2" data-number="8.6"><h2 data-number="8.6" class="anchored" data-anchor-id="interpret-the-ridge-results">
+<span class="header-section-number">8.6</span> Interpret the Ridge Results</h2>
 <p>Ridge keeps all predictors in the model, but shrinks them towards zero. This means the coefficients remain interpretable in the broad sense, but their absolute values are biased by design. Ridge is therefore most useful when the main aim is stable prediction or improved behaviour under collinearity, rather than precise coefficient interpretation.</p>
 <p>In this seaweed example, the regularised model still retains all climatic predictors, but it reduces their instability and produces a model that is better suited to predictive use than an ordinary unpenalised fit under the same overlap among predictors.</p>
-</section><section id="reporting" class="level2" data-number="8.6"><h2 data-number="8.6" class="anchored" data-anchor-id="reporting">
-<span class="header-section-number">8.6</span> Reporting</h2>
+</section><section id="lambda.min-versus-lambda.1se" class="level2" data-number="8.7"><h2 data-number="8.7" class="anchored" data-anchor-id="lambda.min-versus-lambda.1se">
+<span class="header-section-number">8.7</span> <code>lambda.min</code> Versus <code>lambda.1se</code>
+</h2>
+<p>The choice between <code>lambda.min</code> and <code>lambda.1se</code> is often more important in practice than the choice between two nearby values of <span class="math inline">\(R^2\)</span>. These two tuning parameters answer slightly different modelling preferences:</p>
+<ul>
+<li>
+<code>lambda.min</code> gives the value of <span class="math inline">\(\lambda\)</span> with the lowest estimated cross-validated error.</li>
+<li>
+<code>lambda.1se</code> gives the largest value of <span class="math inline">\(\lambda\)</span> whose error is still within one standard error of the minimum.</li>
+</ul>
+<p>That means <code>lambda.1se</code> accepts a tiny loss in apparent predictive performance in exchange for stronger shrinkage and usually a more stable model. In ridge regression, that means smaller coefficients. In lasso or elastic net, it often means fewer non-zero predictors as well.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>ridge_compare <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="at">lambda_choice =</span> <span class="fu">c</span>(<span class="st">"lambda.min"</span>, <span class="st">"lambda.1se"</span>),</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="at">lambda_value =</span> <span class="fu">c</span>(ridge_cv<span class="sc">$</span>lambda.min, ridge_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se),</span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="at">training_rsq =</span> <span class="fu">c</span>(ridge_rsq, ridge_rsq_1se),</span>
+<span id="cb7-5"><a href="#cb7-5"></a>  <span class="at">non_zero =</span> <span class="fu">c</span>(</span>
+<span id="cb7-6"><a href="#cb7-6"></a>    <span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(ridge_model))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>),</span>
+<span id="cb7-7"><a href="#cb7-7"></a>    <span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(ridge_model_1se))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>)</span>
+<span id="cb7-8"><a href="#cb7-8"></a>  ),</span>
+<span id="cb7-9"><a href="#cb7-9"></a>  <span class="at">coefficient_norm =</span> <span class="fu">c</span>(ridge_coef_norm, ridge_coef_norm_1se)</span>
+<span id="cb7-10"><a href="#cb7-10"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb7-12"><a href="#cb7-12"></a>    <span class="at">lambda_value =</span> <span class="fu">signif</span>(lambda_value, <span class="dv">3</span>),</span>
+<span id="cb7-13"><a href="#cb7-13"></a>    <span class="at">training_rsq =</span> <span class="fu">round</span>(training_rsq, <span class="dv">3</span>),</span>
+<span id="cb7-14"><a href="#cb7-14"></a>    <span class="at">coefficient_norm =</span> <span class="fu">round</span>(coefficient_norm, <span class="dv">3</span>)</span>
+<span id="cb7-15"><a href="#cb7-15"></a>  )</span>
+<span id="cb7-16"><a href="#cb7-16"></a></span>
+<span id="cb7-17"><a href="#cb7-17"></a>ridge_compare</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 5
+  lambda_choice lambda_value training_rsq non_zero coefficient_norm
+  &lt;chr&gt;                &lt;dbl&gt;        &lt;dbl&gt;    &lt;int&gt;            &lt;dbl&gt;
+1 lambda.min          0.001         0.671        5            0.261
+2 lambda.1se          0.0248        0.664        5            0.218</code></pre>
+</div>
+</div>
+<p>In the seaweed example, ridge keeps all predictors at both tuning values, so the practical difference is not variable inclusion but coefficient size. The <code>lambda.1se</code> fit has the smaller coefficient norm, which means the predictor effects have been pulled closer to zero overall. That is the usual ridge trade-off: a small increase in penalty often changes the model by stabilising coefficients rather than by changing which predictors appear in the equation.</p>
+</section><section id="reporting" class="level2" data-number="8.8"><h2 data-number="8.8" class="anchored" data-anchor-id="reporting">
+<span class="header-section-number">8.8</span> Reporting</h2>
 <div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1178,52 +1262,85 @@ R&gt; annMean      0.02672789</code></pre>
 </section></section><section id="example-2-lasso-regression" class="level1" data-number="9"><h1 data-number="9">
 <span class="header-section-number">9</span> Example 2: Lasso Regression</h1>
 <p>Lasso uses the same data structure and the same cross-validation logic. The key difference is <code>alpha = 1</code>.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>lasso_cv <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(</span>
-<span id="cb6-2"><a href="#cb6-2"></a>  X, y,</span>
-<span id="cb6-3"><a href="#cb6-3"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
-<span id="cb6-4"><a href="#cb6-4"></a>  <span class="at">lambda =</span> lambdas_to_try,</span>
-<span id="cb6-5"><a href="#cb6-5"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb6-6"><a href="#cb6-6"></a>  <span class="at">nfolds =</span> <span class="dv">10</span></span>
-<span id="cb6-7"><a href="#cb6-7"></a>)</span>
-<span id="cb6-8"><a href="#cb6-8"></a></span>
-<span id="cb6-9"><a href="#cb6-9"></a>lasso_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
-<span id="cb6-10"><a href="#cb6-10"></a>  X, y,</span>
-<span id="cb6-11"><a href="#cb6-11"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
-<span id="cb6-12"><a href="#cb6-12"></a>  <span class="at">lambda =</span> lasso_cv<span class="sc">$</span>lambda.min,</span>
-<span id="cb6-13"><a href="#cb6-13"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
-<span id="cb6-14"><a href="#cb6-14"></a>)</span>
-<span id="cb6-15"><a href="#cb6-15"></a></span>
-<span id="cb6-16"><a href="#cb6-16"></a>lasso_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(lasso_model, X)</span>
-<span id="cb6-17"><a href="#cb6-17"></a>lasso_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, lasso_pred) <span class="sc">^</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>lasso_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb9-2"><a href="#cb9-2"></a>  X, y,</span>
+<span id="cb9-3"><a href="#cb9-3"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
+<span id="cb9-4"><a href="#cb9-4"></a>  <span class="at">lambda =</span> lasso_cv<span class="sc">$</span>lambda.min,</span>
+<span id="cb9-5"><a href="#cb9-5"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a>)</span>
+<span id="cb9-7"><a href="#cb9-7"></a></span>
+<span id="cb9-8"><a href="#cb9-8"></a>lasso_model_1se <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb9-9"><a href="#cb9-9"></a>  X, y,</span>
+<span id="cb9-10"><a href="#cb9-10"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
+<span id="cb9-11"><a href="#cb9-11"></a>  <span class="at">lambda =</span> lasso_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se,</span>
+<span id="cb9-12"><a href="#cb9-12"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb9-13"><a href="#cb9-13"></a>)</span>
+<span id="cb9-14"><a href="#cb9-14"></a></span>
+<span id="cb9-15"><a href="#cb9-15"></a>lasso_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(lasso_model, X)</span>
+<span id="cb9-16"><a href="#cb9-16"></a>lasso_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, lasso_pred) <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb9-17"><a href="#cb9-17"></a>lasso_pred_1se <span class="ot">&lt;-</span> <span class="fu">predict</span>(lasso_model_1se, X)</span>
+<span id="cb9-18"><a href="#cb9-18"></a>lasso_rsq_1se <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, lasso_pred_1se) <span class="sc">^</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div class="cell" data-layout-align="center">
+<div class="cell">
 <div class="cell-output-display">
-<div id="fig-lasso-cv" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<div id="fig-lasso-cv" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-lasso-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="24-regularisation_files/figure-html/fig-lasso-cv-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Cross-validation statistics for lasso regression applied to the seaweed data."><img src="24-regularisation_files/figure-html/fig-lasso-cv-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" width="1200"></a>
+<a href="24-regularisation_files/figure-html/fig-lasso-cv-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Cross-validation statistics for lasso regression applied to the seaweed data."><img src="24-regularisation_files/figure-html/fig-lasso-cv-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lasso-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Cross-validation statistics for lasso regression applied to the seaweed data.
+Figure&nbsp;4: Cross-validation statistics for lasso regression applied to the seaweed data.
 </figcaption></figure>
 </div>
 </div>
 </div>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">coef</span>(lasso_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">coef</span>(lasso_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>R&gt; 6 x 1 sparse Matrix of class "dgCMatrix"
-R&gt;                      s0
-R&gt; (Intercept) -0.12886019
-R&gt; augMean      0.26097296
-R&gt; febRange     0.03431981
-R&gt; febSD       -0.02497532
-R&gt; augSD        0.02441380
-R&gt; annMean      0.02021480</code></pre>
+<pre><code>6 x 1 sparse Matrix of class "dgCMatrix"
+                     s0
+(Intercept) -0.12886019
+augMean      0.26097296
+febRange     0.03431981
+febSD       -0.02497532
+augSD        0.02441380
+annMean      0.02021480</code></pre>
 </div>
 </div>
 <p>The important feature of lasso is that some coefficients can be set exactly to zero. This makes lasso useful when you want the model itself to carry out a degree of variable selection.</p>
 <p>In the seaweed example, the chosen penalty reduces the effective model complexity by shrinking weaker coefficients more strongly. The resulting model is easier to simplify than the ridge model because some predictors can be removed altogether.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>lmin_terms <span class="ot">&lt;-</span> <span class="fu">rownames</span>(<span class="fu">coef</span>(lasso_model))[<span class="sc">-</span><span class="dv">1</span>][<span class="fu">as.matrix</span>(<span class="fu">coef</span>(lasso_model))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>]</span>
+<span id="cb12-2"><a href="#cb12-2"></a>l1se_terms <span class="ot">&lt;-</span> <span class="fu">rownames</span>(<span class="fu">coef</span>(lasso_model_1se))[<span class="sc">-</span><span class="dv">1</span>][<span class="fu">as.matrix</span>(<span class="fu">coef</span>(lasso_model_1se))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>]</span>
+<span id="cb12-3"><a href="#cb12-3"></a></span>
+<span id="cb12-4"><a href="#cb12-4"></a>lasso_compare <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb12-5"><a href="#cb12-5"></a>  <span class="at">lambda_choice =</span> <span class="fu">c</span>(<span class="st">"lambda.min"</span>, <span class="st">"lambda.1se"</span>),</span>
+<span id="cb12-6"><a href="#cb12-6"></a>  <span class="at">lambda_value =</span> <span class="fu">c</span>(lasso_cv<span class="sc">$</span>lambda.min, lasso_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se),</span>
+<span id="cb12-7"><a href="#cb12-7"></a>  <span class="at">training_rsq =</span> <span class="fu">c</span>(lasso_rsq, lasso_rsq_1se),</span>
+<span id="cb12-8"><a href="#cb12-8"></a>  <span class="at">non_zero =</span> <span class="fu">c</span>(</span>
+<span id="cb12-9"><a href="#cb12-9"></a>    <span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(lasso_model))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>),</span>
+<span id="cb12-10"><a href="#cb12-10"></a>    <span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(lasso_model_1se))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>)</span>
+<span id="cb12-11"><a href="#cb12-11"></a>  ),</span>
+<span id="cb12-12"><a href="#cb12-12"></a>  <span class="at">retained_predictors =</span> <span class="fu">c</span>(</span>
+<span id="cb12-13"><a href="#cb12-13"></a>    <span class="fu">paste</span>(lmin_terms, <span class="at">collapse =</span> <span class="st">", "</span>),</span>
+<span id="cb12-14"><a href="#cb12-14"></a>    <span class="fu">paste</span>(l1se_terms, <span class="at">collapse =</span> <span class="st">", "</span>)</span>
+<span id="cb12-15"><a href="#cb12-15"></a>  )</span>
+<span id="cb12-16"><a href="#cb12-16"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb12-17"><a href="#cb12-17"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb12-18"><a href="#cb12-18"></a>    <span class="at">lambda_value =</span> <span class="fu">signif</span>(lambda_value, <span class="dv">3</span>),</span>
+<span id="cb12-19"><a href="#cb12-19"></a>    <span class="at">training_rsq =</span> <span class="fu">round</span>(training_rsq, <span class="dv">3</span>)</span>
+<span id="cb12-20"><a href="#cb12-20"></a>  )</span>
+<span id="cb12-21"><a href="#cb12-21"></a></span>
+<span id="cb12-22"><a href="#cb12-22"></a>lasso_compare</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 5
+  lambda_choice lambda_value training_rsq non_zero retained_predictors          
+  &lt;chr&gt;                &lt;dbl&gt;        &lt;dbl&gt;    &lt;int&gt; &lt;chr&gt;                        
+1 lambda.min         0.001          0.67         5 augMean, febRange, febSD, au…
+2 lambda.1se         0.00404        0.661        5 augMean, febRange, febSD, au…</code></pre>
+</div>
+</div>
+<p>For lasso, the <code>lambda.min</code> versus <code>lambda.1se</code> distinction is easiest to explain in terms of retained predictors. <code>lambda.min</code> usually gives the lowest estimated prediction error, while <code>lambda.1se</code> often keeps fewer predictors and gives a leaner model. If the two fits perform similarly, <code>lambda.1se</code> is often preferable when explanation, communication, or field interpretation matters. If prediction is the dominant aim and the larger active set clearly performs better under resampling, <code>lambda.min</code> may be the better choice.</p>
 <section id="reporting-1" class="level2" data-number="9.1"><h2 data-number="9.1" class="anchored" data-anchor-id="reporting-1">
 <span class="header-section-number">9.1</span> Reporting</h2>
 <div class="callout callout-style-simple callout-note callout-titled">
@@ -1247,54 +1364,54 @@ R&gt; annMean      0.02021480</code></pre>
 </section></section><section id="example-3-elastic-net-regression" class="level1" data-number="10"><h1 data-number="10">
 <span class="header-section-number">10</span> Example 3: Elastic Net Regression</h1>
 <p>Elastic net introduces a second tuning parameter, <code>alpha</code>, which controls the balance between ridge and lasso behaviour.</p>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>cv_results <span class="ot">&lt;-</span> <span class="fu">lapply</span>(alphas_to_try, <span class="cf">function</span>(a) {</span>
-<span id="cb9-2"><a href="#cb9-2"></a>  <span class="fu">cv.glmnet</span>(</span>
-<span id="cb9-3"><a href="#cb9-3"></a>    X, y,</span>
-<span id="cb9-4"><a href="#cb9-4"></a>    <span class="at">alpha =</span> a,</span>
-<span id="cb9-5"><a href="#cb9-5"></a>    <span class="at">lambda =</span> lambdas_to_try,</span>
-<span id="cb9-6"><a href="#cb9-6"></a>    <span class="at">standardize =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb9-7"><a href="#cb9-7"></a>    <span class="at">nfolds =</span> <span class="dv">10</span></span>
-<span id="cb9-8"><a href="#cb9-8"></a>  )</span>
-<span id="cb9-9"><a href="#cb9-9"></a>})</span>
-<span id="cb9-10"><a href="#cb9-10"></a></span>
-<span id="cb9-11"><a href="#cb9-11"></a>best_result <span class="ot">&lt;-</span> <span class="fu">which.min</span>(<span class="fu">sapply</span>(cv_results, <span class="cf">function</span>(x) <span class="fu">min</span>(x<span class="sc">$</span>cvm)))</span>
-<span id="cb9-12"><a href="#cb9-12"></a>best_alpha <span class="ot">&lt;-</span> alphas_to_try[best_result]</span>
-<span id="cb9-13"><a href="#cb9-13"></a>best_lambda <span class="ot">&lt;-</span> cv_results[[best_result]]<span class="sc">$</span>lambda.min</span>
-<span id="cb9-14"><a href="#cb9-14"></a></span>
-<span id="cb9-15"><a href="#cb9-15"></a>elastic_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
-<span id="cb9-16"><a href="#cb9-16"></a>  X, y,</span>
-<span id="cb9-17"><a href="#cb9-17"></a>  <span class="at">alpha =</span> best_alpha,</span>
-<span id="cb9-18"><a href="#cb9-18"></a>  <span class="at">lambda =</span> best_lambda,</span>
-<span id="cb9-19"><a href="#cb9-19"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
-<span id="cb9-20"><a href="#cb9-20"></a>)</span>
-<span id="cb9-21"><a href="#cb9-21"></a></span>
-<span id="cb9-22"><a href="#cb9-22"></a>elastic_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(elastic_model, X)</span>
-<span id="cb9-23"><a href="#cb9-23"></a>elastic_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, elastic_pred) <span class="sc">^</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>cv_results <span class="ot">&lt;-</span> <span class="fu">lapply</span>(alphas_to_try, <span class="cf">function</span>(a) {</span>
+<span id="cb14-2"><a href="#cb14-2"></a>  <span class="fu">cv.glmnet</span>(</span>
+<span id="cb14-3"><a href="#cb14-3"></a>    X, y,</span>
+<span id="cb14-4"><a href="#cb14-4"></a>    <span class="at">alpha =</span> a,</span>
+<span id="cb14-5"><a href="#cb14-5"></a>    <span class="at">lambda =</span> lambdas_to_try,</span>
+<span id="cb14-6"><a href="#cb14-6"></a>    <span class="at">standardize =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb14-7"><a href="#cb14-7"></a>    <span class="at">nfolds =</span> <span class="dv">10</span></span>
+<span id="cb14-8"><a href="#cb14-8"></a>  )</span>
+<span id="cb14-9"><a href="#cb14-9"></a>})</span>
+<span id="cb14-10"><a href="#cb14-10"></a></span>
+<span id="cb14-11"><a href="#cb14-11"></a>best_result <span class="ot">&lt;-</span> <span class="fu">which.min</span>(<span class="fu">sapply</span>(cv_results, <span class="cf">function</span>(x) <span class="fu">min</span>(x<span class="sc">$</span>cvm)))</span>
+<span id="cb14-12"><a href="#cb14-12"></a>best_alpha <span class="ot">&lt;-</span> alphas_to_try[best_result]</span>
+<span id="cb14-13"><a href="#cb14-13"></a>best_lambda <span class="ot">&lt;-</span> cv_results[[best_result]]<span class="sc">$</span>lambda.min</span>
+<span id="cb14-14"><a href="#cb14-14"></a></span>
+<span id="cb14-15"><a href="#cb14-15"></a>elastic_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb14-16"><a href="#cb14-16"></a>  X, y,</span>
+<span id="cb14-17"><a href="#cb14-17"></a>  <span class="at">alpha =</span> best_alpha,</span>
+<span id="cb14-18"><a href="#cb14-18"></a>  <span class="at">lambda =</span> best_lambda,</span>
+<span id="cb14-19"><a href="#cb14-19"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb14-20"><a href="#cb14-20"></a>)</span>
+<span id="cb14-21"><a href="#cb14-21"></a></span>
+<span id="cb14-22"><a href="#cb14-22"></a>elastic_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(elastic_model, X)</span>
+<span id="cb14-23"><a href="#cb14-23"></a>elastic_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, elastic_pred) <span class="sc">^</span> <span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div class="cell" data-layout-align="center">
+<div class="cell">
 <div class="cell-output-display">
-<div id="fig-elastic-cv" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<div id="fig-elastic-cv" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-elastic-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="24-regularisation_files/figure-html/fig-elastic-cv-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Cross-validation statistics for elastic net regression applied to the seaweed data."><img src="24-regularisation_files/figure-html/fig-elastic-cv-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" width="1200"></a>
+<a href="24-regularisation_files/figure-html/fig-elastic-cv-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Cross-validation statistics for elastic net regression applied to the seaweed data."><img src="24-regularisation_files/figure-html/fig-elastic-cv-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-elastic-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Cross-validation statistics for elastic net regression applied to the seaweed data.
+Figure&nbsp;5: Cross-validation statistics for elastic net regression applied to the seaweed data.
 </figcaption></figure>
 </div>
 </div>
 </div>
-<div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">coef</span>(elastic_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="fu">coef</span>(elastic_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>R&gt; 6 x 1 sparse Matrix of class "dgCMatrix"
-R&gt;                      s0
-R&gt; (Intercept) -0.12910260
-R&gt; augMean      0.25467960
-R&gt; febRange     0.03797258
-R&gt; febSD       -0.02874393
-R&gt; augSD        0.02568390
-R&gt; annMean      0.02547694</code></pre>
+<pre><code>6 x 1 sparse Matrix of class "dgCMatrix"
+                     s0
+(Intercept) -0.12910260
+augMean      0.25467960
+febRange     0.03797258
+febSD       -0.02874393
+augSD        0.02568390
+annMean      0.02547694</code></pre>
 </div>
 </div>
 <p>Elastic net is often useful when predictors occur in correlated groups. Lasso may select one predictor and drop the others. Ridge keeps them all. Elastic net often provides a more balanced compromise.</p>
@@ -1861,470 +1978,599 @@ document.addEventListener("DOMContentLoaded", function () {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">---</span></span>
-<span id="cb12-2"><a href="#cb12-2"></a><span class="an">title:</span><span class="co"> "24. Regularisation"</span></span>
-<span id="cb12-3"><a href="#cb12-3"></a><span class="an">subtitle:</span><span class="co"> "Ridge, Lasso, Elastic Net, and Cross-Validation"</span></span>
-<span id="cb12-4"><a href="#cb12-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
-<span id="cb12-5"><a href="#cb12-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
-<span id="cb12-6"><a href="#cb12-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
-<span id="cb12-7"><a href="#cb12-7"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
-<span id="cb12-8"><a href="#cb12-8"></a><span class="co">---</span></span>
-<span id="cb12-9"><a href="#cb12-9"></a></span>
-<span id="cb12-10"><a href="#cb12-10"></a><span class="in">```{r code-brewing-opts}</span></span>
-<span id="cb12-11"><a href="#cb12-11"></a><span class="co">#| echo: false</span></span>
-<span id="cb12-12"><a href="#cb12-12"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
-<span id="cb12-13"><a href="#cb12-13"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
-<span id="cb12-14"><a href="#cb12-14"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb12-15"><a href="#cb12-15"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb12-16"><a href="#cb12-16"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
-<span id="cb12-17"><a href="#cb12-17"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
-<span id="cb12-18"><a href="#cb12-18"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
-<span id="cb12-19"><a href="#cb12-19"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
-<span id="cb12-20"><a href="#cb12-20"></a>)</span>
-<span id="cb12-21"><a href="#cb12-21"></a><span class="in">```</span></span>
-<span id="cb12-22"><a href="#cb12-22"></a></span>
-<span id="cb12-23"><a href="#cb12-23"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb12-24"><a href="#cb12-24"></a><span class="fu">## In This Chapter</span></span>
-<span id="cb12-25"><a href="#cb12-25"></a></span>
-<span id="cb12-26"><a href="#cb12-26"></a><span class="ss">-   </span>Why regularisation is useful in high-dimensional or collinear settings</span>
-<span id="cb12-27"><a href="#cb12-27"></a><span class="ss">-   </span>The logic of ridge, lasso, and elastic net</span>
-<span id="cb12-28"><a href="#cb12-28"></a><span class="ss">-   </span>How coefficient shrinkage changes model behaviour</span>
-<span id="cb12-29"><a href="#cb12-29"></a><span class="ss">-   </span>Why cross-validation is needed</span>
-<span id="cb12-30"><a href="#cb12-30"></a><span class="ss">-   </span>How regularisation relates to prediction and explanation</span>
-<span id="cb12-31"><a href="#cb12-31"></a>:::</span>
-<span id="cb12-32"><a href="#cb12-32"></a></span>
-<span id="cb12-33"><a href="#cb12-33"></a>::: {.callout-important appearance="simple"}</span>
-<span id="cb12-34"><a href="#cb12-34"></a><span class="fu">## Tasks to Complete in This Chapter</span></span>
-<span id="cb12-35"><a href="#cb12-35"></a></span>
-<span id="cb12-36"><a href="#cb12-36"></a><span class="ss">-   </span>None</span>
-<span id="cb12-37"><a href="#cb12-37"></a>:::</span>
-<span id="cb12-38"><a href="#cb12-38"></a></span>
-<span id="cb12-39"><a href="#cb12-39"></a><span class="in">```{r code-libraries}</span></span>
-<span id="cb12-40"><a href="#cb12-40"></a><span class="co">#| echo: false</span></span>
-<span id="cb12-41"><a href="#cb12-41"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb12-42"><a href="#cb12-42"></a><span class="fu">library</span>(glmnet)</span>
-<span id="cb12-43"><a href="#cb12-43"></a></span>
-<span id="cb12-44"><a href="#cb12-44"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
-<span id="cb12-45"><a href="#cb12-45"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
-<span id="cb12-46"><a href="#cb12-46"></a>)</span>
-<span id="cb12-47"><a href="#cb12-47"></a></span>
-<span id="cb12-48"><a href="#cb12-48"></a>sw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"../../data/BCB743/seaweed/spp_df2.csv"</span>)</span>
-<span id="cb12-49"><a href="#cb12-49"></a></span>
-<span id="cb12-50"><a href="#cb12-50"></a>y <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
-<span id="cb12-51"><a href="#cb12-51"></a>  <span class="fu">select</span>(Y) <span class="sc">|&gt;</span></span>
-<span id="cb12-52"><a href="#cb12-52"></a>  <span class="fu">scale</span>(<span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb12-53"><a href="#cb12-53"></a>  <span class="fu">as.matrix</span>()</span>
-<span id="cb12-54"><a href="#cb12-54"></a></span>
-<span id="cb12-55"><a href="#cb12-55"></a>X <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
-<span id="cb12-56"><a href="#cb12-56"></a>  <span class="fu">select</span>(<span class="sc">-</span>X, <span class="sc">-</span>dist, <span class="sc">-</span>bio, <span class="sc">-</span>Y, <span class="sc">-</span>Y1, <span class="sc">-</span>Y2) <span class="sc">|&gt;</span></span>
-<span id="cb12-57"><a href="#cb12-57"></a>  <span class="fu">as.matrix</span>()</span>
-<span id="cb12-58"><a href="#cb12-58"></a></span>
-<span id="cb12-59"><a href="#cb12-59"></a>lambdas_to_try <span class="ot">&lt;-</span> <span class="dv">10</span> <span class="sc">^</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">100</span>)</span>
-<span id="cb12-60"><a href="#cb12-60"></a>alphas_to_try <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.1</span>)</span>
-<span id="cb12-61"><a href="#cb12-61"></a><span class="in">```</span></span>
-<span id="cb12-62"><a href="#cb12-62"></a></span>
-<span id="cb12-63"><a href="#cb12-63"></a><span class="fu"># Introduction</span></span>
-<span id="cb12-64"><a href="#cb12-64"></a></span>
-<span id="cb12-65"><a href="#cb12-65"></a>Regularisation techniques are useful when ordinary multiple regression starts to struggle under the weight of many predictors, overlapping predictors, or a modelling goal that leans more toward prediction than explanation. In that setting, ordinary least squares can produce unstable coefficients, poor generalisation, and models that appear stronger in the sample than they really are.</span>
-<span id="cb12-66"><a href="#cb12-66"></a></span>
-<span id="cb12-67"><a href="#cb12-67"></a>Regularisation addresses this by shrinking coefficients towards zero. In some cases, this simply stabilises them. In others, it also removes weak predictors from the model entirely. This makes regularisation relevant when we want to reduce overfitting, manage multicollinearity, or build models that predict more reliably on new data.</span>
-<span id="cb12-68"><a href="#cb12-68"></a></span>
-<span id="cb12-69"><a href="#cb12-69"></a>This chapter follows directly from the previous one. There we distinguished explanation from prediction. Here we develop one of the main statistical responses to that distinction.</span>
-<span id="cb12-70"><a href="#cb12-70"></a></span>
-<span id="cb12-71"><a href="#cb12-71"></a><span class="fu"># Key Concepts</span></span>
-<span id="cb12-72"><a href="#cb12-72"></a></span>
-<span id="cb12-73"><a href="#cb12-73"></a><span class="ss">-   </span>**Regularisation** shrinks coefficients to stabilise the model.</span>
-<span id="cb12-74"><a href="#cb12-74"></a><span class="ss">-   </span>**Ridge regression** shrinks all coefficients continuously towards zero.</span>
-<span id="cb12-75"><a href="#cb12-75"></a><span class="ss">-   </span>**Lasso regression** can shrink some coefficients exactly to zero.</span>
-<span id="cb12-76"><a href="#cb12-76"></a><span class="ss">-   </span>**Elastic net** combines ridge and lasso behaviour.</span>
-<span id="cb12-77"><a href="#cb12-77"></a><span class="ss">-   </span>**Cross-validation** is used to tune the amount of shrinkage.</span>
-<span id="cb12-78"><a href="#cb12-78"></a><span class="ss">-   </span>**The interpretation** of coefficients is changed by regularisation, which improves model stability, prediction, and objective variable reduction.</span>
-<span id="cb12-79"><a href="#cb12-79"></a></span>
-<span id="cb12-80"><a href="#cb12-80"></a><span class="fu"># When This Method Is Appropriate</span></span>
-<span id="cb12-81"><a href="#cb12-81"></a></span>
-<span id="cb12-82"><a href="#cb12-82"></a>You should consider regularisation when:</span>
-<span id="cb12-83"><a href="#cb12-83"></a></span>
-<span id="cb12-84"><a href="#cb12-84"></a><span class="ss">-   </span>the predictor set is large relative to the amount of data;</span>
-<span id="cb12-85"><a href="#cb12-85"></a><span class="ss">-   </span>several predictors are strongly correlated;</span>
-<span id="cb12-86"><a href="#cb12-86"></a><span class="ss">-   </span>ordinary multiple regression produces unstable coefficients;</span>
-<span id="cb12-87"><a href="#cb12-87"></a><span class="ss">-   </span>prediction on new data matters more than exact coefficient interpretation;</span>
-<span id="cb12-88"><a href="#cb12-88"></a><span class="ss">-   </span>you want a data-driven complement to the more theory-driven model selection discussed in <span class="co">[</span><span class="ot">Chapter 13</span><span class="co">](13-multiple-regression-and-model-specification.qmd)</span> and the collinearity material in <span class="co">[</span><span class="ot">Chapter 15</span><span class="co">](15-collinearity-confounding-measurement-error.qmd)</span>.</span>
-<span id="cb12-89"><a href="#cb12-89"></a></span>
-<span id="cb12-90"><a href="#cb12-90"></a>Regularisation is not a magic correction for weak scientific questions or poor study design. It is still your responsibility to define sensible predictors and to understand the biology of the system. These methods work best when they extend ecological reasoning rather than replace it.</span>
-<span id="cb12-91"><a href="#cb12-91"></a></span>
-<span id="cb12-92"><a href="#cb12-92"></a><span class="fu"># Why Regularisation Matters</span></span>
-<span id="cb12-93"><a href="#cb12-93"></a></span>
-<span id="cb12-94"><a href="#cb12-94"></a>Regularisation addresses several common modelling problems.</span>
-<span id="cb12-95"><a href="#cb12-95"></a></span>
-<span id="cb12-96"><a href="#cb12-96"></a>**Variable selection** becomes difficult when many candidate predictors are available and only some are genuinely useful. Traditional selection procedures often rely on stepwise inclusion or exclusion, or on statistics such as VIF. Regularisation offers an alternative data-driven route.</span>
-<span id="cb12-97"><a href="#cb12-97"></a></span>
-<span id="cb12-98"><a href="#cb12-98"></a>**Overfitting** occurs when the model begins to fit noise together with the underlying biological signal. Such a model often performs well on the observed data but poorly on new observations.</span>
-<span id="cb12-99"><a href="#cb12-99"></a></span>
-<span id="cb12-100"><a href="#cb12-100"></a>**Multicollinearity** inflates standard errors and destabilises coefficients when predictors overlap. Regularisation reduces this instability by shrinking coefficients, which usually improves model behaviour even if it introduces some bias.</span>
-<span id="cb12-101"><a href="#cb12-101"></a></span>
-<span id="cb12-102"><a href="#cb12-102"></a>Regularisation aims to produce a model that is more stable, more generalisable, and more useful for the modelling goal at hand, rather than to recover perfectly unbiased coefficients.</span>
-<span id="cb12-103"><a href="#cb12-103"></a></span>
-<span id="cb12-104"><a href="#cb12-104"></a><span class="fu"># The Core Equations</span></span>
-<span id="cb12-105"><a href="#cb12-105"></a></span>
-<span id="cb12-106"><a href="#cb12-106"></a>Regularisation methods all start from the ordinary least-squares objective and then add a penalty term. The key teaching point is therefore not to memorise three unrelated formulas, but to see how each method modifies the same underlying fitting problem.</span>
-<span id="cb12-107"><a href="#cb12-107"></a></span>
-<span id="cb12-108"><a href="#cb12-108"></a><span class="fu">## Ridge Regression</span></span>
-<span id="cb12-109"><a href="#cb12-109"></a></span>
-<span id="cb12-110"><a href="#cb12-110"></a>Ridge regression adds a penalty proportional to the squared size of the coefficients. Large coefficients are penalised more heavily, so the fitted model shrinks them towards zero without setting them exactly to zero:</span>
-<span id="cb12-111"><a href="#cb12-111"></a></span>
-<span id="cb12-112"><a href="#cb12-112"></a>$$\min_{\beta}\left<span class="sc">\{</span>\sum_{i=1}^{n}(Y_i-\hat{Y}_i)^2 + \lambda \sum_{j=1}^{p}\beta_j^2\right<span class="sc">\}</span>$$ {#eq-ridge}</span>
-<span id="cb12-113"><a href="#cb12-113"></a></span>
-<span id="cb12-114"><a href="#cb12-114"></a>The practical effect is that all predictors remain in the model, but the most unstable coefficients are tamed. Ridge is therefore especially useful when multicollinearity is the main problem and you do not necessarily want automatic variable removal.</span>
-<span id="cb12-115"><a href="#cb12-115"></a></span>
-<span id="cb12-116"><a href="#cb12-116"></a><span class="fu">## Lasso Regression</span></span>
-<span id="cb12-117"><a href="#cb12-117"></a></span>
-<span id="cb12-118"><a href="#cb12-118"></a>Lasso regression uses a penalty based on the absolute values of the coefficients:</span>
-<span id="cb12-119"><a href="#cb12-119"></a></span>
-<span id="cb12-120"><a href="#cb12-120"></a>$$\min_{\beta}\left<span class="sc">\{</span>\sum_{i=1}^{n}(Y_i-\hat{Y}_i)^2 + \lambda \sum_{j=1}^{p}|\beta_j|\right<span class="sc">\}</span>$$ {#eq-lasso}</span>
-<span id="cb12-121"><a href="#cb12-121"></a></span>
-<span id="cb12-122"><a href="#cb12-122"></a>This has an important consequence: some coefficients can be shrunk all the way to zero.</span>
-<span id="cb12-123"><a href="#cb12-123"></a></span>
-<span id="cb12-124"><a href="#cb12-124"></a>That means lasso does two jobs at once. It shrinks the model, and it can also perform automatic variable selection. When you have many candidate predictors and suspect that some contribute little to predictive performance, lasso can be attractive.</span>
-<span id="cb12-125"><a href="#cb12-125"></a></span>
-<span id="cb12-126"><a href="#cb12-126"></a><span class="fu">## Elastic Net</span></span>
-<span id="cb12-127"><a href="#cb12-127"></a></span>
-<span id="cb12-128"><a href="#cb12-128"></a>Elastic net combines the ridge and lasso penalties:</span>
-<span id="cb12-129"><a href="#cb12-129"></a></span>
-<span id="cb12-130"><a href="#cb12-130"></a>$$\min_{\beta}\left<span class="sc">\{</span>\sum_{i=1}^{n}(Y_i-\hat{Y}_i)^2 + \lambda \left[(1-\alpha)\sum_{j=1}^{p}\beta_j^2 + \alpha \sum_{j=1}^{p}|\beta_j|\right]\right<span class="sc">\}</span>$$ {#eq-elastic}</span>
-<span id="cb12-131"><a href="#cb12-131"></a></span>
-<span id="cb12-132"><a href="#cb12-132"></a>Equations @eq-ridge, @eq-lasso, and @eq-elastic all use $\lambda$ to control the strength of shrinkage, while the elastic-net parameter $\alpha$ controls the balance between ridge-like and lasso-like behaviour.</span>
-<span id="cb12-133"><a href="#cb12-133"></a></span>
-<span id="cb12-134"><a href="#cb12-134"></a>In practice, elastic net is often a strong default when you are unsure whether ridge or lasso is the more appropriate starting point.</span>
-<span id="cb12-135"><a href="#cb12-135"></a></span>
-<span id="cb12-136"><a href="#cb12-136"></a><span class="fu"># Cross-Validation</span></span>
-<span id="cb12-137"><a href="#cb12-137"></a></span>
-<span id="cb12-138"><a href="#cb12-138"></a>The amount of shrinkage is controlled by a tuning parameter, usually written as $\lambda$. When $\lambda = 0$, the fitted model behaves like ordinary least squares. As $\lambda$ increases, the penalty grows stronger and coefficients are shrunk more aggressively.</span>
-<span id="cb12-139"><a href="#cb12-139"></a></span>
-<span id="cb12-140"><a href="#cb12-140"></a>The problem is that we do not know the best value of $\lambda$ in advance. This is where cross-validation becomes central.</span>
-<span id="cb12-141"><a href="#cb12-141"></a></span>
-<span id="cb12-142"><a href="#cb12-142"></a>In *k*-fold cross-validation, the data are split into *k* subsets. The model is trained repeatedly on *k* - 1 folds and evaluated on the held-out fold. This gives an estimate of how well the model performs away from the data used to fit it. We then choose the tuning parameter that gives the best average predictive performance.</span>
-<span id="cb12-143"><a href="#cb12-143"></a></span>
-<span id="cb12-144"><a href="#cb12-144"></a>Cross-validation therefore helps us avoid selecting a model that is optimised only for the present sample.</span>
-<span id="cb12-145"><a href="#cb12-145"></a></span>
-<span id="cb12-146"><a href="#cb12-146"></a><span class="fu"># R Functions</span></span>
-<span id="cb12-147"><a href="#cb12-147"></a></span>
-<span id="cb12-148"><a href="#cb12-148"></a>In R, the usual introductory function for regularised regression is <span class="in">`glmnet::cv.glmnet()`</span>:</span>
-<span id="cb12-149"><a href="#cb12-149"></a></span>
-<span id="cb12-152"><a href="#cb12-152"></a><span class="in">```{r}</span></span>
-<span id="cb12-153"><a href="#cb12-153"></a><span class="co">#| eval: false</span></span>
-<span id="cb12-154"><a href="#cb12-154"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">0</span>)   <span class="co"># ridge</span></span>
-<span id="cb12-155"><a href="#cb12-155"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">1</span>)   <span class="co"># lasso</span></span>
-<span id="cb12-156"><a href="#cb12-156"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="co"># elastic net</span></span>
-<span id="cb12-157"><a href="#cb12-157"></a><span class="in">```</span></span>
-<span id="cb12-158"><a href="#cb12-158"></a></span>
-<span id="cb12-159"><a href="#cb12-159"></a>The important practical detail is that <span class="in">`glmnet`</span> expects a predictor matrix rather than the formula interface used by <span class="in">`lm()`</span>.</span>
-<span id="cb12-160"><a href="#cb12-160"></a></span>
-<span id="cb12-161"><a href="#cb12-161"></a><span class="fu"># Example 1: Ridge Regression with the Seaweed Data</span></span>
-<span id="cb12-162"><a href="#cb12-162"></a></span>
-<span id="cb12-163"><a href="#cb12-163"></a>The seaweed dataset should now be familiar. We will use the climatic predictors <span class="in">`annMean`</span>, <span class="in">`augMean`</span>, <span class="in">`augSD`</span>, <span class="in">`febSD`</span>, and <span class="in">`febRange`</span> to predict <span class="in">`Y`</span>.</span>
-<span id="cb12-164"><a href="#cb12-164"></a></span>
-<span id="cb12-165"><a href="#cb12-165"></a><span class="fu">## Prepare the Data</span></span>
-<span id="cb12-166"><a href="#cb12-166"></a></span>
-<span id="cb12-167"><a href="#cb12-167"></a>The response is centred, and the predictors are supplied as a matrix:</span>
-<span id="cb12-168"><a href="#cb12-168"></a></span>
-<span id="cb12-171"><a href="#cb12-171"></a><span class="in">```{r}</span></span>
-<span id="cb12-172"><a href="#cb12-172"></a><span class="co">#| eval: false</span></span>
-<span id="cb12-173"><a href="#cb12-173"></a>y <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
-<span id="cb12-174"><a href="#cb12-174"></a>  <span class="fu">select</span>(Y) <span class="sc">|&gt;</span></span>
-<span id="cb12-175"><a href="#cb12-175"></a>  <span class="fu">scale</span>(<span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb12-176"><a href="#cb12-176"></a>  <span class="fu">as.matrix</span>()</span>
-<span id="cb12-177"><a href="#cb12-177"></a></span>
-<span id="cb12-178"><a href="#cb12-178"></a>X <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
-<span id="cb12-179"><a href="#cb12-179"></a>  <span class="fu">select</span>(<span class="sc">-</span>X, <span class="sc">-</span>dist, <span class="sc">-</span>bio, <span class="sc">-</span>Y, <span class="sc">-</span>Y1, <span class="sc">-</span>Y2) <span class="sc">|&gt;</span></span>
-<span id="cb12-180"><a href="#cb12-180"></a>  <span class="fu">as.matrix</span>()</span>
-<span id="cb12-181"><a href="#cb12-181"></a><span class="in">```</span></span>
-<span id="cb12-182"><a href="#cb12-182"></a></span>
-<span id="cb12-183"><a href="#cb12-183"></a><span class="fu">## Fit the Cross-Validated Ridge Model</span></span>
-<span id="cb12-184"><a href="#cb12-184"></a></span>
-<span id="cb12-187"><a href="#cb12-187"></a><span class="in">```{r}</span></span>
-<span id="cb12-188"><a href="#cb12-188"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb12-189"><a href="#cb12-189"></a>ridge_cv <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(</span>
-<span id="cb12-190"><a href="#cb12-190"></a>  X, y,</span>
-<span id="cb12-191"><a href="#cb12-191"></a>  <span class="at">alpha =</span> <span class="dv">0</span>,</span>
-<span id="cb12-192"><a href="#cb12-192"></a>  <span class="at">lambda =</span> lambdas_to_try,</span>
-<span id="cb12-193"><a href="#cb12-193"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb12-194"><a href="#cb12-194"></a>  <span class="at">nfolds =</span> <span class="dv">10</span></span>
-<span id="cb12-195"><a href="#cb12-195"></a>)</span>
-<span id="cb12-196"><a href="#cb12-196"></a><span class="in">```</span></span>
-<span id="cb12-197"><a href="#cb12-197"></a></span>
-<span id="cb12-198"><a href="#cb12-198"></a><span class="fu">## Inspect the Cross-Validation Curve</span></span>
-<span id="cb12-199"><a href="#cb12-199"></a></span>
-<span id="cb12-202"><a href="#cb12-202"></a><span class="in">```{r}</span></span>
-<span id="cb12-203"><a href="#cb12-203"></a><span class="co">#| echo: false</span></span>
-<span id="cb12-204"><a href="#cb12-204"></a><span class="co">#| fig-width: 4</span></span>
-<span id="cb12-205"><a href="#cb12-205"></a><span class="co">#| fig-height: 3</span></span>
-<span id="cb12-206"><a href="#cb12-206"></a><span class="co">#| label: fig-ridge-cv</span></span>
-<span id="cb12-207"><a href="#cb12-207"></a><span class="co">#| fig-cap: "Cross-validation statistics for ridge regression applied to the seaweed data."</span></span>
-<span id="cb12-208"><a href="#cb12-208"></a>ridge_cv_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb12-209"><a href="#cb12-209"></a>  <span class="at">lambda =</span> ridge_cv<span class="sc">$</span>lambda,</span>
-<span id="cb12-210"><a href="#cb12-210"></a>  <span class="at">cvm =</span> ridge_cv<span class="sc">$</span>cvm,</span>
-<span id="cb12-211"><a href="#cb12-211"></a>  <span class="at">cvsd =</span> ridge_cv<span class="sc">$</span>cvsd,</span>
-<span id="cb12-212"><a href="#cb12-212"></a>  <span class="at">nzero =</span> ridge_cv<span class="sc">$</span>nzero</span>
-<span id="cb12-213"><a href="#cb12-213"></a>)</span>
-<span id="cb12-214"><a href="#cb12-214"></a></span>
-<span id="cb12-215"><a href="#cb12-215"></a><span class="fu">ggplot</span>(ridge_cv_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">log</span>(lambda), <span class="at">y =</span> cvm)) <span class="sc">+</span></span>
-<span id="cb12-216"><a href="#cb12-216"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> cvm <span class="sc">-</span> cvsd, <span class="at">ymax =</span> cvm <span class="sc">+</span> cvsd),</span>
-<span id="cb12-217"><a href="#cb12-217"></a>                <span class="at">width =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
-<span id="cb12-218"><a href="#cb12-218"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">fill =</span> <span class="st">"white"</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb12-219"><a href="#cb12-219"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
-<span id="cb12-220"><a href="#cb12-220"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> nzero <span class="sc">/</span> <span class="fu">max</span>(nzero) <span class="sc">*</span> <span class="fu">max</span>(cvm)), <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
-<span id="cb12-221"><a href="#cb12-221"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb12-222"><a href="#cb12-222"></a>    <span class="at">name =</span> <span class="st">"Mean squared error"</span>,</span>
-<span id="cb12-223"><a href="#cb12-223"></a>    <span class="at">sec.axis =</span> <span class="fu">sec_axis</span>(<span class="sc">~</span> . <span class="sc">/</span> <span class="fu">max</span>(ridge_cv_df<span class="sc">$</span>cvm) <span class="sc">*</span> <span class="fu">max</span>(ridge_cv_df<span class="sc">$</span>nzero),</span>
-<span id="cb12-224"><a href="#cb12-224"></a>                        <span class="at">name =</span> <span class="st">"No. non-zero coefficients"</span>)</span>
-<span id="cb12-225"><a href="#cb12-225"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-226"><a href="#cb12-226"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"log(lambda)"</span>) <span class="sc">+</span></span>
-<span id="cb12-227"><a href="#cb12-227"></a>  <span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
-<span id="cb12-228"><a href="#cb12-228"></a>  <span class="fu">theme</span>(</span>
-<span id="cb12-229"><a href="#cb12-229"></a>    <span class="at">axis.title.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
-<span id="cb12-230"><a href="#cb12-230"></a>    <span class="at">axis.title.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>),</span>
-<span id="cb12-231"><a href="#cb12-231"></a>    <span class="at">axis.text.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
-<span id="cb12-232"><a href="#cb12-232"></a>    <span class="at">axis.text.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>)</span>
-<span id="cb12-233"><a href="#cb12-233"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-234"><a href="#cb12-234"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(ridge_cv<span class="sc">$</span>lambda.min), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb12-235"><a href="#cb12-235"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(ridge_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se), <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
-<span id="cb12-236"><a href="#cb12-236"></a><span class="in">```</span></span>
-<span id="cb12-237"><a href="#cb12-237"></a></span>
-<span id="cb12-238"><a href="#cb12-238"></a>The two vertical lines in @fig-ridge-cv identify the $\lambda$ that minimises cross-validated error (<span class="in">`lambda.min`</span>) and the larger, more conservative value within one standard error of that minimum (<span class="in">`lambda.1se`</span>). The latter is often chosen when a simpler, more stable model is preferred.</span>
-<span id="cb12-239"><a href="#cb12-239"></a></span>
-<span id="cb12-240"><a href="#cb12-240"></a><span class="fu">## Extract the Fitted Model</span></span>
-<span id="cb12-241"><a href="#cb12-241"></a></span>
-<span id="cb12-244"><a href="#cb12-244"></a><span class="in">```{r}</span></span>
-<span id="cb12-245"><a href="#cb12-245"></a>ridge_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
-<span id="cb12-246"><a href="#cb12-246"></a>  X, y,</span>
-<span id="cb12-247"><a href="#cb12-247"></a>  <span class="at">alpha =</span> <span class="dv">0</span>,</span>
-<span id="cb12-248"><a href="#cb12-248"></a>  <span class="at">lambda =</span> ridge_cv<span class="sc">$</span>lambda.min,</span>
-<span id="cb12-249"><a href="#cb12-249"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
-<span id="cb12-250"><a href="#cb12-250"></a>)</span>
-<span id="cb12-251"><a href="#cb12-251"></a></span>
-<span id="cb12-252"><a href="#cb12-252"></a>ridge_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(ridge_model, X)</span>
-<span id="cb12-253"><a href="#cb12-253"></a>ridge_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, ridge_pred) <span class="sc">^</span> <span class="dv">2</span></span>
-<span id="cb12-254"><a href="#cb12-254"></a><span class="fu">coef</span>(ridge_model)</span>
-<span id="cb12-255"><a href="#cb12-255"></a><span class="in">```</span></span>
-<span id="cb12-256"><a href="#cb12-256"></a></span>
-<span id="cb12-257"><a href="#cb12-257"></a><span class="fu">## Interpret the Ridge Results</span></span>
-<span id="cb12-258"><a href="#cb12-258"></a></span>
-<span id="cb12-259"><a href="#cb12-259"></a>Ridge keeps all predictors in the model, but shrinks them towards zero. This means the coefficients remain interpretable in the broad sense, but their absolute values are biased by design. Ridge is therefore most useful when the main aim is stable prediction or improved behaviour under collinearity, rather than precise coefficient interpretation.</span>
-<span id="cb12-260"><a href="#cb12-260"></a></span>
-<span id="cb12-261"><a href="#cb12-261"></a>In this seaweed example, the regularised model still retains all climatic predictors, but it reduces their instability and produces a model that is better suited to predictive use than an ordinary unpenalised fit under the same overlap among predictors.</span>
-<span id="cb12-262"><a href="#cb12-262"></a></span>
-<span id="cb12-263"><a href="#cb12-263"></a><span class="fu">## Reporting</span></span>
-<span id="cb12-264"><a href="#cb12-264"></a></span>
-<span id="cb12-265"><a href="#cb12-265"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb12-266"><a href="#cb12-266"></a><span class="fu">## Write-Up</span></span>
-<span id="cb12-267"><a href="#cb12-267"></a></span>
-<span id="cb12-268"><a href="#cb12-268"></a>**Methods**</span>
-<span id="cb12-269"><a href="#cb12-269"></a></span>
-<span id="cb12-270"><a href="#cb12-270"></a>Ridge regression was fitted to the seaweed climate data using 10-fold cross-validation to select the optimal penalty parameter. The predictors were entered as a matrix and the response was centred prior to fitting.</span>
-<span id="cb12-271"><a href="#cb12-271"></a></span>
-<span id="cb12-272"><a href="#cb12-272"></a>**Results**</span>
-<span id="cb12-273"><a href="#cb12-273"></a></span>
-<span id="cb12-274"><a href="#cb12-274"></a>The final ridge model retained all five climatic predictors and explained a substantial proportion of the variation in the response (<span class="in">`R^2`</span> approximately <span class="in">`r round(ridge_rsq, 2)`</span>). The regularised fit reduced coefficient instability while preserving the full predictor set.</span>
-<span id="cb12-275"><a href="#cb12-275"></a></span>
-<span id="cb12-276"><a href="#cb12-276"></a>**Discussion**</span>
-<span id="cb12-277"><a href="#cb12-277"></a></span>
-<span id="cb12-278"><a href="#cb12-278"></a>The point of ridge regression is not exact coefficient interpretation. In Discussion, the emphasis would be that shrinkage improved model stability and predictive behaviour under overlapping climatic predictors.</span>
-<span id="cb12-279"><a href="#cb12-279"></a>:::</span>
-<span id="cb12-280"><a href="#cb12-280"></a></span>
-<span id="cb12-281"><a href="#cb12-281"></a><span class="fu"># Example 2: Lasso Regression</span></span>
-<span id="cb12-282"><a href="#cb12-282"></a></span>
-<span id="cb12-283"><a href="#cb12-283"></a>Lasso uses the same data structure and the same cross-validation logic. The key difference is <span class="in">`alpha = 1`</span>.</span>
-<span id="cb12-284"><a href="#cb12-284"></a></span>
-<span id="cb12-287"><a href="#cb12-287"></a><span class="in">```{r}</span></span>
-<span id="cb12-288"><a href="#cb12-288"></a>lasso_cv <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(</span>
-<span id="cb12-289"><a href="#cb12-289"></a>  X, y,</span>
-<span id="cb12-290"><a href="#cb12-290"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
-<span id="cb12-291"><a href="#cb12-291"></a>  <span class="at">lambda =</span> lambdas_to_try,</span>
-<span id="cb12-292"><a href="#cb12-292"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb12-293"><a href="#cb12-293"></a>  <span class="at">nfolds =</span> <span class="dv">10</span></span>
-<span id="cb12-294"><a href="#cb12-294"></a>)</span>
-<span id="cb12-295"><a href="#cb12-295"></a></span>
-<span id="cb12-296"><a href="#cb12-296"></a>lasso_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
-<span id="cb12-297"><a href="#cb12-297"></a>  X, y,</span>
-<span id="cb12-298"><a href="#cb12-298"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
-<span id="cb12-299"><a href="#cb12-299"></a>  <span class="at">lambda =</span> lasso_cv<span class="sc">$</span>lambda.min,</span>
-<span id="cb12-300"><a href="#cb12-300"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
-<span id="cb12-301"><a href="#cb12-301"></a>)</span>
-<span id="cb12-302"><a href="#cb12-302"></a></span>
-<span id="cb12-303"><a href="#cb12-303"></a>lasso_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(lasso_model, X)</span>
-<span id="cb12-304"><a href="#cb12-304"></a>lasso_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, lasso_pred) <span class="sc">^</span> <span class="dv">2</span></span>
-<span id="cb12-305"><a href="#cb12-305"></a><span class="in">```</span></span>
-<span id="cb12-306"><a href="#cb12-306"></a></span>
-<span id="cb12-309"><a href="#cb12-309"></a><span class="in">```{r}</span></span>
-<span id="cb12-310"><a href="#cb12-310"></a><span class="co">#| echo: false</span></span>
-<span id="cb12-311"><a href="#cb12-311"></a><span class="co">#| fig-width: 4</span></span>
-<span id="cb12-312"><a href="#cb12-312"></a><span class="co">#| fig-height: 3</span></span>
-<span id="cb12-313"><a href="#cb12-313"></a><span class="co">#| label: fig-lasso-cv</span></span>
-<span id="cb12-314"><a href="#cb12-314"></a><span class="co">#| fig-cap: "Cross-validation statistics for lasso regression applied to the seaweed data."</span></span>
-<span id="cb12-315"><a href="#cb12-315"></a>lasso_cv_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb12-316"><a href="#cb12-316"></a>  <span class="at">lambda =</span> lasso_cv<span class="sc">$</span>lambda,</span>
-<span id="cb12-317"><a href="#cb12-317"></a>  <span class="at">cvm =</span> lasso_cv<span class="sc">$</span>cvm,</span>
-<span id="cb12-318"><a href="#cb12-318"></a>  <span class="at">cvsd =</span> lasso_cv<span class="sc">$</span>cvsd,</span>
-<span id="cb12-319"><a href="#cb12-319"></a>  <span class="at">nzero =</span> lasso_cv<span class="sc">$</span>nzero</span>
-<span id="cb12-320"><a href="#cb12-320"></a>)</span>
-<span id="cb12-321"><a href="#cb12-321"></a></span>
-<span id="cb12-322"><a href="#cb12-322"></a><span class="fu">ggplot</span>(lasso_cv_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">log</span>(lambda), <span class="at">y =</span> cvm)) <span class="sc">+</span></span>
-<span id="cb12-323"><a href="#cb12-323"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> cvm <span class="sc">-</span> cvsd, <span class="at">ymax =</span> cvm <span class="sc">+</span> cvsd),</span>
-<span id="cb12-324"><a href="#cb12-324"></a>                <span class="at">width =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
-<span id="cb12-325"><a href="#cb12-325"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">fill =</span> <span class="st">"white"</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb12-326"><a href="#cb12-326"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
-<span id="cb12-327"><a href="#cb12-327"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> nzero <span class="sc">/</span> <span class="fu">max</span>(nzero) <span class="sc">*</span> <span class="fu">max</span>(cvm)), <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
-<span id="cb12-328"><a href="#cb12-328"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb12-329"><a href="#cb12-329"></a>    <span class="at">name =</span> <span class="st">"Mean squared error"</span>,</span>
-<span id="cb12-330"><a href="#cb12-330"></a>    <span class="at">sec.axis =</span> <span class="fu">sec_axis</span>(<span class="sc">~</span> . <span class="sc">/</span> <span class="fu">max</span>(lasso_cv_df<span class="sc">$</span>cvm) <span class="sc">*</span> <span class="fu">max</span>(lasso_cv_df<span class="sc">$</span>nzero),</span>
-<span id="cb12-331"><a href="#cb12-331"></a>                        <span class="at">name =</span> <span class="st">"No. non-zero coefficients"</span>)</span>
-<span id="cb12-332"><a href="#cb12-332"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-333"><a href="#cb12-333"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"log(lambda)"</span>) <span class="sc">+</span></span>
-<span id="cb12-334"><a href="#cb12-334"></a>  <span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
-<span id="cb12-335"><a href="#cb12-335"></a>  <span class="fu">theme</span>(</span>
-<span id="cb12-336"><a href="#cb12-336"></a>    <span class="at">axis.title.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
-<span id="cb12-337"><a href="#cb12-337"></a>    <span class="at">axis.title.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>),</span>
-<span id="cb12-338"><a href="#cb12-338"></a>    <span class="at">axis.text.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
-<span id="cb12-339"><a href="#cb12-339"></a>    <span class="at">axis.text.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>)</span>
-<span id="cb12-340"><a href="#cb12-340"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-341"><a href="#cb12-341"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(lasso_cv<span class="sc">$</span>lambda.min), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb12-342"><a href="#cb12-342"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(lasso_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se), <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
-<span id="cb12-343"><a href="#cb12-343"></a><span class="in">```</span></span>
-<span id="cb12-344"><a href="#cb12-344"></a></span>
-<span id="cb12-347"><a href="#cb12-347"></a><span class="in">```{r}</span></span>
-<span id="cb12-348"><a href="#cb12-348"></a><span class="fu">coef</span>(lasso_model)</span>
-<span id="cb12-349"><a href="#cb12-349"></a><span class="in">```</span></span>
-<span id="cb12-350"><a href="#cb12-350"></a></span>
-<span id="cb12-351"><a href="#cb12-351"></a>The important feature of lasso is that some coefficients can be set exactly to zero. This makes lasso useful when you want the model itself to carry out a degree of variable selection.</span>
-<span id="cb12-352"><a href="#cb12-352"></a></span>
-<span id="cb12-353"><a href="#cb12-353"></a>In the seaweed example, the chosen penalty reduces the effective model complexity by shrinking weaker coefficients more strongly. The resulting model is easier to simplify than the ridge model because some predictors can be removed altogether.</span>
-<span id="cb12-354"><a href="#cb12-354"></a></span>
-<span id="cb12-355"><a href="#cb12-355"></a><span class="fu">## Reporting</span></span>
-<span id="cb12-356"><a href="#cb12-356"></a></span>
-<span id="cb12-357"><a href="#cb12-357"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb12-358"><a href="#cb12-358"></a><span class="fu">## Write-Up</span></span>
-<span id="cb12-359"><a href="#cb12-359"></a></span>
-<span id="cb12-360"><a href="#cb12-360"></a>**Methods**</span>
-<span id="cb12-361"><a href="#cb12-361"></a></span>
-<span id="cb12-362"><a href="#cb12-362"></a>Lasso regression was fitted to the seaweed climate data, with the amount of shrinkage selected by 10-fold cross-validation. The purpose was to assess whether coefficient shrinkage combined with variable removal could produce a more compact predictive model.</span>
-<span id="cb12-363"><a href="#cb12-363"></a></span>
-<span id="cb12-364"><a href="#cb12-364"></a>**Results**</span>
-<span id="cb12-365"><a href="#cb12-365"></a></span>
-<span id="cb12-366"><a href="#cb12-366"></a>The regularised fit reduced model complexity by shrinking weak coefficients strongly and, where appropriate, setting some coefficients to zero. The final model explained substantial variation in the response (<span class="in">`R^2`</span> approximately <span class="in">`r round(lasso_rsq, 2)`</span>) while providing a more compact predictor set than ridge regression.</span>
-<span id="cb12-367"><a href="#cb12-367"></a></span>
-<span id="cb12-368"><a href="#cb12-368"></a>**Discussion**</span>
-<span id="cb12-369"><a href="#cb12-369"></a></span>
-<span id="cb12-370"><a href="#cb12-370"></a>Lasso offers a bridge between prediction and variable selection. The simplified model is useful when the goal is not only stability, but also a more compact predictor set.</span>
-<span id="cb12-371"><a href="#cb12-371"></a>:::</span>
-<span id="cb12-372"><a href="#cb12-372"></a></span>
-<span id="cb12-373"><a href="#cb12-373"></a><span class="fu"># Example 3: Elastic Net Regression</span></span>
-<span id="cb12-374"><a href="#cb12-374"></a></span>
-<span id="cb12-375"><a href="#cb12-375"></a>Elastic net introduces a second tuning parameter, <span class="in">`alpha`</span>, which controls the balance between ridge and lasso behaviour.</span>
-<span id="cb12-376"><a href="#cb12-376"></a></span>
-<span id="cb12-379"><a href="#cb12-379"></a><span class="in">```{r}</span></span>
-<span id="cb12-380"><a href="#cb12-380"></a>cv_results <span class="ot">&lt;-</span> <span class="fu">lapply</span>(alphas_to_try, <span class="cf">function</span>(a) {</span>
-<span id="cb12-381"><a href="#cb12-381"></a>  <span class="fu">cv.glmnet</span>(</span>
-<span id="cb12-382"><a href="#cb12-382"></a>    X, y,</span>
-<span id="cb12-383"><a href="#cb12-383"></a>    <span class="at">alpha =</span> a,</span>
-<span id="cb12-384"><a href="#cb12-384"></a>    <span class="at">lambda =</span> lambdas_to_try,</span>
-<span id="cb12-385"><a href="#cb12-385"></a>    <span class="at">standardize =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb12-386"><a href="#cb12-386"></a>    <span class="at">nfolds =</span> <span class="dv">10</span></span>
-<span id="cb12-387"><a href="#cb12-387"></a>  )</span>
-<span id="cb12-388"><a href="#cb12-388"></a>})</span>
-<span id="cb12-389"><a href="#cb12-389"></a></span>
-<span id="cb12-390"><a href="#cb12-390"></a>best_result <span class="ot">&lt;-</span> <span class="fu">which.min</span>(<span class="fu">sapply</span>(cv_results, <span class="cf">function</span>(x) <span class="fu">min</span>(x<span class="sc">$</span>cvm)))</span>
-<span id="cb12-391"><a href="#cb12-391"></a>best_alpha <span class="ot">&lt;-</span> alphas_to_try[best_result]</span>
-<span id="cb12-392"><a href="#cb12-392"></a>best_lambda <span class="ot">&lt;-</span> cv_results[[best_result]]<span class="sc">$</span>lambda.min</span>
-<span id="cb12-393"><a href="#cb12-393"></a></span>
-<span id="cb12-394"><a href="#cb12-394"></a>elastic_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
-<span id="cb12-395"><a href="#cb12-395"></a>  X, y,</span>
-<span id="cb12-396"><a href="#cb12-396"></a>  <span class="at">alpha =</span> best_alpha,</span>
-<span id="cb12-397"><a href="#cb12-397"></a>  <span class="at">lambda =</span> best_lambda,</span>
-<span id="cb12-398"><a href="#cb12-398"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
-<span id="cb12-399"><a href="#cb12-399"></a>)</span>
-<span id="cb12-400"><a href="#cb12-400"></a></span>
-<span id="cb12-401"><a href="#cb12-401"></a>elastic_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(elastic_model, X)</span>
-<span id="cb12-402"><a href="#cb12-402"></a>elastic_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, elastic_pred) <span class="sc">^</span> <span class="dv">2</span></span>
-<span id="cb12-403"><a href="#cb12-403"></a><span class="in">```</span></span>
-<span id="cb12-404"><a href="#cb12-404"></a></span>
-<span id="cb12-407"><a href="#cb12-407"></a><span class="in">```{r}</span></span>
-<span id="cb12-408"><a href="#cb12-408"></a><span class="co">#| echo: false</span></span>
-<span id="cb12-409"><a href="#cb12-409"></a><span class="co">#| fig-width: 4</span></span>
-<span id="cb12-410"><a href="#cb12-410"></a><span class="co">#| fig-height: 3</span></span>
-<span id="cb12-411"><a href="#cb12-411"></a><span class="co">#| label: fig-elastic-cv</span></span>
-<span id="cb12-412"><a href="#cb12-412"></a><span class="co">#| fig-cap: "Cross-validation statistics for elastic net regression applied to the seaweed data."</span></span>
-<span id="cb12-413"><a href="#cb12-413"></a>cv_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb12-414"><a href="#cb12-414"></a>  <span class="at">lambda =</span> cv_results[[best_result]]<span class="sc">$</span>lambda,</span>
-<span id="cb12-415"><a href="#cb12-415"></a>  <span class="at">cvm =</span> cv_results[[best_result]]<span class="sc">$</span>cvm,</span>
-<span id="cb12-416"><a href="#cb12-416"></a>  <span class="at">cvsd =</span> cv_results[[best_result]]<span class="sc">$</span>cvsd,</span>
-<span id="cb12-417"><a href="#cb12-417"></a>  <span class="at">nzero =</span> cv_results[[best_result]]<span class="sc">$</span>nzero</span>
-<span id="cb12-418"><a href="#cb12-418"></a>)</span>
-<span id="cb12-419"><a href="#cb12-419"></a></span>
-<span id="cb12-420"><a href="#cb12-420"></a><span class="fu">ggplot</span>(cv_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">log</span>(lambda), <span class="at">y =</span> cvm)) <span class="sc">+</span></span>
-<span id="cb12-421"><a href="#cb12-421"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> cvm <span class="sc">-</span> cvsd, <span class="at">ymax =</span> cvm <span class="sc">+</span> cvsd),</span>
-<span id="cb12-422"><a href="#cb12-422"></a>                <span class="at">width =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
-<span id="cb12-423"><a href="#cb12-423"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">fill =</span> <span class="st">"white"</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb12-424"><a href="#cb12-424"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
-<span id="cb12-425"><a href="#cb12-425"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> nzero <span class="sc">/</span> <span class="fu">max</span>(nzero) <span class="sc">*</span> <span class="fu">max</span>(cvm)), <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
-<span id="cb12-426"><a href="#cb12-426"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb12-427"><a href="#cb12-427"></a>    <span class="at">name =</span> <span class="st">"Mean squared error"</span>,</span>
-<span id="cb12-428"><a href="#cb12-428"></a>    <span class="at">sec.axis =</span> <span class="fu">sec_axis</span>(<span class="sc">~</span> . <span class="sc">/</span> <span class="fu">max</span>(cv_df<span class="sc">$</span>cvm) <span class="sc">*</span> <span class="fu">max</span>(cv_df<span class="sc">$</span>nzero),</span>
-<span id="cb12-429"><a href="#cb12-429"></a>                        <span class="at">name =</span> <span class="st">"No. non-zero coefficients"</span>)</span>
-<span id="cb12-430"><a href="#cb12-430"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-431"><a href="#cb12-431"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"log(lambda)"</span>) <span class="sc">+</span></span>
-<span id="cb12-432"><a href="#cb12-432"></a>  <span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
-<span id="cb12-433"><a href="#cb12-433"></a>  <span class="fu">theme</span>(</span>
-<span id="cb12-434"><a href="#cb12-434"></a>    <span class="at">axis.title.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
-<span id="cb12-435"><a href="#cb12-435"></a>    <span class="at">axis.title.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>),</span>
-<span id="cb12-436"><a href="#cb12-436"></a>    <span class="at">axis.text.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
-<span id="cb12-437"><a href="#cb12-437"></a>    <span class="at">axis.text.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>)</span>
-<span id="cb12-438"><a href="#cb12-438"></a>  ) <span class="sc">+</span></span>
-<span id="cb12-439"><a href="#cb12-439"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(best_lambda), <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
-<span id="cb12-440"><a href="#cb12-440"></a><span class="in">```</span></span>
-<span id="cb12-441"><a href="#cb12-441"></a></span>
-<span id="cb12-444"><a href="#cb12-444"></a><span class="in">```{r}</span></span>
-<span id="cb12-445"><a href="#cb12-445"></a><span class="fu">coef</span>(elastic_model)</span>
-<span id="cb12-446"><a href="#cb12-446"></a><span class="in">```</span></span>
-<span id="cb12-447"><a href="#cb12-447"></a></span>
-<span id="cb12-448"><a href="#cb12-448"></a>Elastic net is often useful when predictors occur in correlated groups. Lasso may select one predictor and drop the others. Ridge keeps them all. Elastic net often provides a more balanced compromise.</span>
-<span id="cb12-449"><a href="#cb12-449"></a></span>
-<span id="cb12-450"><a href="#cb12-450"></a><span class="fu">## Reporting</span></span>
-<span id="cb12-451"><a href="#cb12-451"></a></span>
-<span id="cb12-452"><a href="#cb12-452"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb12-453"><a href="#cb12-453"></a><span class="fu">## Write-Up</span></span>
-<span id="cb12-454"><a href="#cb12-454"></a></span>
-<span id="cb12-455"><a href="#cb12-455"></a>**Methods**</span>
-<span id="cb12-456"><a href="#cb12-456"></a></span>
-<span id="cb12-457"><a href="#cb12-457"></a>Elastic net regression was used to model the seaweed response, with both the mixing parameter and the penalty term selected by cross-validation. This allowed the model to combine ridge-like shrinkage with lasso-like variable reduction.</span>
-<span id="cb12-458"><a href="#cb12-458"></a></span>
-<span id="cb12-459"><a href="#cb12-459"></a>**Results**</span>
-<span id="cb12-460"><a href="#cb12-460"></a></span>
-<span id="cb12-461"><a href="#cb12-461"></a>The optimal model combined coefficient shrinkage with variable reduction (<span class="in">`alpha =`</span> <span class="in">`r best_alpha`</span>), explained substantial variation in the response (<span class="in">`R^2`</span> approximately <span class="in">`r round(elastic_rsq, 2)`</span>), and provided a stable compromise between ridge and lasso behaviour.</span>
-<span id="cb12-462"><a href="#cb12-462"></a></span>
-<span id="cb12-463"><a href="#cb12-463"></a>**Discussion**</span>
-<span id="cb12-464"><a href="#cb12-464"></a></span>
-<span id="cb12-465"><a href="#cb12-465"></a>The value of elastic net is pragmatic balance: it handles correlated predictors more flexibly than lasso alone while still allowing the model to simplify where the data support that.</span>
-<span id="cb12-466"><a href="#cb12-466"></a>:::</span>
-<span id="cb12-467"><a href="#cb12-467"></a></span>
-<span id="cb12-468"><a href="#cb12-468"></a><span class="fu"># Theory-Driven and Data-Driven Variable Selection</span></span>
-<span id="cb12-469"><a href="#cb12-469"></a></span>
-<span id="cb12-470"><a href="#cb12-470"></a>The choice between theory-driven and data-driven variable selection should not be treated as a fight with a single winner. In practice, the strongest ecological modelling often combines both.</span>
-<span id="cb12-471"><a href="#cb12-471"></a></span>
-<span id="cb12-472"><a href="#cb12-472"></a>Theory-driven selection is central to the scientific method. It uses prior ecological reasoning to define a defensible set of candidate predictors. This keeps the model close to mechanism and strengthens interpretation.</span>
-<span id="cb12-473"><a href="#cb12-473"></a></span>
-<span id="cb12-474"><a href="#cb12-474"></a>Data-driven methods, including regularisation, can then help assess which predictors contribute most strongly to predictive performance, where redundancy lies, and how strongly coefficients need to be stabilised. They are especially useful in high-dimensional settings or when the predictors are strongly overlapping.</span>
-<span id="cb12-475"><a href="#cb12-475"></a></span>
-<span id="cb12-476"><a href="#cb12-476"></a>The danger is to let automated variable selection replace ecological thinking. Regularisation can help refine the model, but it cannot tell you what the scientific question ought to be.</span>
-<span id="cb12-477"><a href="#cb12-477"></a></span>
-<span id="cb12-478"><a href="#cb12-478"></a><span class="fu"># Summary</span></span>
-<span id="cb12-479"><a href="#cb12-479"></a></span>
-<span id="cb12-480"><a href="#cb12-480"></a><span class="ss">-   </span>Regularisation is useful when predictors are many, overlapping, or likely to produce unstable ordinary regression coefficients.</span>
-<span id="cb12-481"><a href="#cb12-481"></a><span class="ss">-   </span>Ridge shrinks all coefficients, lasso can remove some, and elastic net blends both behaviours.</span>
-<span id="cb12-482"><a href="#cb12-482"></a><span class="ss">-   </span>Cross-validation is central to selecting the amount of shrinkage.</span>
-<span id="cb12-483"><a href="#cb12-483"></a><span class="ss">-   </span>These methods are usually most useful when prediction, stability, and model simplification matter more than exact coefficient interpretation.</span>
-<span id="cb12-484"><a href="#cb12-484"></a><span class="ss">-   </span>Regularisation should complement, not replace, ecological reasoning and theory-driven model building.</span>
-<span id="cb12-485"><a href="#cb12-485"></a></span>
-<span id="cb12-486"><a href="#cb12-486"></a>The final chapter now turns from model choice to the workflow required to make the whole analysis transparent and reproducible.</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb17-1"><a href="#cb17-1"></a><span class="co">---</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="an">title:</span><span class="co"> "24. Regularisation"</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="an">subtitle:</span><span class="co"> "Ridge, Lasso, Elastic Net, and Cross-Validation"</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="an">author:</span><span class="co"> "A. J. Smit"</span></span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
+<span id="cb17-6"><a href="#cb17-6"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
+<span id="cb17-7"><a href="#cb17-7"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
+<span id="cb17-8"><a href="#cb17-8"></a><span class="co">---</span></span>
+<span id="cb17-9"><a href="#cb17-9"></a></span>
+<span id="cb17-10"><a href="#cb17-10"></a><span class="in">```{r code-brewing-opts}</span></span>
+<span id="cb17-11"><a href="#cb17-11"></a><span class="co">#| echo: false</span></span>
+<span id="cb17-12"><a href="#cb17-12"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb17-13"><a href="#cb17-13"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
+<span id="cb17-14"><a href="#cb17-14"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb17-15"><a href="#cb17-15"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb17-16"><a href="#cb17-16"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
+<span id="cb17-17"><a href="#cb17-17"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
+<span id="cb17-18"><a href="#cb17-18"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
+<span id="cb17-19"><a href="#cb17-19"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb17-20"><a href="#cb17-20"></a>)</span>
+<span id="cb17-21"><a href="#cb17-21"></a><span class="in">```</span></span>
+<span id="cb17-22"><a href="#cb17-22"></a></span>
+<span id="cb17-23"><a href="#cb17-23"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb17-24"><a href="#cb17-24"></a><span class="fu">## In This Chapter</span></span>
+<span id="cb17-25"><a href="#cb17-25"></a></span>
+<span id="cb17-26"><a href="#cb17-26"></a><span class="ss">-   </span>Why regularisation is useful in high-dimensional or collinear settings</span>
+<span id="cb17-27"><a href="#cb17-27"></a><span class="ss">-   </span>The logic of ridge, lasso, and elastic net</span>
+<span id="cb17-28"><a href="#cb17-28"></a><span class="ss">-   </span>How coefficient shrinkage changes model behaviour</span>
+<span id="cb17-29"><a href="#cb17-29"></a><span class="ss">-   </span>Why cross-validation is needed</span>
+<span id="cb17-30"><a href="#cb17-30"></a><span class="ss">-   </span>How regularisation relates to prediction and explanation</span>
+<span id="cb17-31"><a href="#cb17-31"></a>:::</span>
+<span id="cb17-32"><a href="#cb17-32"></a></span>
+<span id="cb17-33"><a href="#cb17-33"></a>::: {.callout-important appearance="simple"}</span>
+<span id="cb17-34"><a href="#cb17-34"></a><span class="fu">## Tasks to Complete in This Chapter</span></span>
+<span id="cb17-35"><a href="#cb17-35"></a></span>
+<span id="cb17-36"><a href="#cb17-36"></a><span class="ss">-   </span>None</span>
+<span id="cb17-37"><a href="#cb17-37"></a>:::</span>
+<span id="cb17-38"><a href="#cb17-38"></a></span>
+<span id="cb17-39"><a href="#cb17-39"></a><span class="in">```{r code-libraries}</span></span>
+<span id="cb17-40"><a href="#cb17-40"></a><span class="co">#| echo: false</span></span>
+<span id="cb17-41"><a href="#cb17-41"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb17-42"><a href="#cb17-42"></a><span class="fu">library</span>(glmnet)</span>
+<span id="cb17-43"><a href="#cb17-43"></a></span>
+<span id="cb17-44"><a href="#cb17-44"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb17-45"><a href="#cb17-45"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb17-46"><a href="#cb17-46"></a>)</span>
+<span id="cb17-47"><a href="#cb17-47"></a></span>
+<span id="cb17-48"><a href="#cb17-48"></a>sw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"../../data/BCB743/seaweed/spp_df2.csv"</span>)</span>
+<span id="cb17-49"><a href="#cb17-49"></a></span>
+<span id="cb17-50"><a href="#cb17-50"></a>y <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
+<span id="cb17-51"><a href="#cb17-51"></a>  <span class="fu">select</span>(Y) <span class="sc">|&gt;</span></span>
+<span id="cb17-52"><a href="#cb17-52"></a>  <span class="fu">scale</span>(<span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb17-53"><a href="#cb17-53"></a>  <span class="fu">as.matrix</span>()</span>
+<span id="cb17-54"><a href="#cb17-54"></a></span>
+<span id="cb17-55"><a href="#cb17-55"></a>X <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
+<span id="cb17-56"><a href="#cb17-56"></a>  <span class="fu">select</span>(<span class="sc">-</span>X, <span class="sc">-</span>dist, <span class="sc">-</span>bio, <span class="sc">-</span>Y, <span class="sc">-</span>Y1, <span class="sc">-</span>Y2) <span class="sc">|&gt;</span></span>
+<span id="cb17-57"><a href="#cb17-57"></a>  <span class="fu">as.matrix</span>()</span>
+<span id="cb17-58"><a href="#cb17-58"></a></span>
+<span id="cb17-59"><a href="#cb17-59"></a>lambdas_to_try <span class="ot">&lt;-</span> <span class="dv">10</span> <span class="sc">^</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">3</span>, <span class="at">length.out =</span> <span class="dv">100</span>)</span>
+<span id="cb17-60"><a href="#cb17-60"></a>alphas_to_try <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.1</span>)</span>
+<span id="cb17-61"><a href="#cb17-61"></a><span class="in">```</span></span>
+<span id="cb17-62"><a href="#cb17-62"></a></span>
+<span id="cb17-63"><a href="#cb17-63"></a><span class="fu"># Introduction</span></span>
+<span id="cb17-64"><a href="#cb17-64"></a></span>
+<span id="cb17-65"><a href="#cb17-65"></a>Regularisation techniques are useful when ordinary multiple regression starts to struggle under the weight of many predictors, overlapping predictors, or a modelling goal that leans more toward prediction than explanation. In that setting, ordinary least squares can produce unstable coefficients, poor generalisation, and models that appear stronger in the sample than they really are.</span>
+<span id="cb17-66"><a href="#cb17-66"></a></span>
+<span id="cb17-67"><a href="#cb17-67"></a>Regularisation addresses this by shrinking coefficients towards zero. In some cases, this simply stabilises them. In others, it also removes weak predictors from the model entirely. This makes regularisation relevant when we want to reduce overfitting, manage multicollinearity, or build models that predict more reliably on new data.</span>
+<span id="cb17-68"><a href="#cb17-68"></a></span>
+<span id="cb17-69"><a href="#cb17-69"></a>This chapter follows directly from the previous one. There we distinguished explanation from prediction. Here we develop one of the main statistical responses to that distinction.</span>
+<span id="cb17-70"><a href="#cb17-70"></a></span>
+<span id="cb17-71"><a href="#cb17-71"></a><span class="fu"># Key Concepts</span></span>
+<span id="cb17-72"><a href="#cb17-72"></a></span>
+<span id="cb17-73"><a href="#cb17-73"></a><span class="ss">-   </span>**Regularisation** shrinks coefficients to stabilise the model.</span>
+<span id="cb17-74"><a href="#cb17-74"></a><span class="ss">-   </span>**Ridge regression** shrinks all coefficients continuously towards zero.</span>
+<span id="cb17-75"><a href="#cb17-75"></a><span class="ss">-   </span>**Lasso regression** can shrink some coefficients exactly to zero.</span>
+<span id="cb17-76"><a href="#cb17-76"></a><span class="ss">-   </span>**Elastic net** combines ridge and lasso behaviour.</span>
+<span id="cb17-77"><a href="#cb17-77"></a><span class="ss">-   </span>**Cross-validation** is used to tune the amount of shrinkage.</span>
+<span id="cb17-78"><a href="#cb17-78"></a><span class="ss">-   </span>**The interpretation** of coefficients is changed by regularisation, which improves model stability, prediction, and objective variable reduction.</span>
+<span id="cb17-79"><a href="#cb17-79"></a></span>
+<span id="cb17-80"><a href="#cb17-80"></a><span class="fu"># When This Method Is Appropriate</span></span>
+<span id="cb17-81"><a href="#cb17-81"></a></span>
+<span id="cb17-82"><a href="#cb17-82"></a>You should consider regularisation when:</span>
+<span id="cb17-83"><a href="#cb17-83"></a></span>
+<span id="cb17-84"><a href="#cb17-84"></a><span class="ss">-   </span>the predictor set is large relative to the amount of data;</span>
+<span id="cb17-85"><a href="#cb17-85"></a><span class="ss">-   </span>several predictors are strongly correlated;</span>
+<span id="cb17-86"><a href="#cb17-86"></a><span class="ss">-   </span>ordinary multiple regression produces unstable coefficients;</span>
+<span id="cb17-87"><a href="#cb17-87"></a><span class="ss">-   </span>prediction on new data matters more than exact coefficient interpretation;</span>
+<span id="cb17-88"><a href="#cb17-88"></a><span class="ss">-   </span>you want a data-driven complement to the more theory-driven model selection discussed in <span class="co">[</span><span class="ot">Chapter 13</span><span class="co">](13-multiple-regression-and-model-specification.qmd)</span> and the collinearity material in <span class="co">[</span><span class="ot">Chapter 15</span><span class="co">](15-collinearity-confounding-measurement-error.qmd)</span>.</span>
+<span id="cb17-89"><a href="#cb17-89"></a></span>
+<span id="cb17-90"><a href="#cb17-90"></a>Regularisation is not a magic correction for weak scientific questions or poor study design. It is still your responsibility to define sensible predictors and to understand the biology of the system. These methods work best when they extend ecological reasoning rather than replace it.</span>
+<span id="cb17-91"><a href="#cb17-91"></a></span>
+<span id="cb17-92"><a href="#cb17-92"></a><span class="fu"># Why Regularisation Matters</span></span>
+<span id="cb17-93"><a href="#cb17-93"></a></span>
+<span id="cb17-94"><a href="#cb17-94"></a>Regularisation addresses several common modelling problems.</span>
+<span id="cb17-95"><a href="#cb17-95"></a></span>
+<span id="cb17-96"><a href="#cb17-96"></a>**Variable selection** becomes difficult when many candidate predictors are available and only some are genuinely useful. Traditional selection procedures often rely on stepwise inclusion or exclusion, or on statistics such as VIF. Regularisation offers an alternative data-driven route.</span>
+<span id="cb17-97"><a href="#cb17-97"></a></span>
+<span id="cb17-98"><a href="#cb17-98"></a>**Overfitting** occurs when the model begins to fit noise together with the underlying biological signal. Such a model often performs well on the observed data but poorly on new observations.</span>
+<span id="cb17-99"><a href="#cb17-99"></a></span>
+<span id="cb17-100"><a href="#cb17-100"></a>**Multicollinearity** inflates standard errors and destabilises coefficients when predictors overlap. Regularisation reduces this instability by shrinking coefficients, which usually improves model behaviour even if it introduces some bias.</span>
+<span id="cb17-101"><a href="#cb17-101"></a></span>
+<span id="cb17-102"><a href="#cb17-102"></a>Regularisation aims to produce a model that is more stable, more generalisable, and more useful for the modelling goal at hand, rather than to recover perfectly unbiased coefficients.</span>
+<span id="cb17-103"><a href="#cb17-103"></a></span>
+<span id="cb17-104"><a href="#cb17-104"></a><span class="fu"># The Core Equations</span></span>
+<span id="cb17-105"><a href="#cb17-105"></a></span>
+<span id="cb17-106"><a href="#cb17-106"></a>Regularisation methods all start from the ordinary least-squares objective and then add a penalty term. The key teaching point is therefore not to memorise three unrelated formulas, but to see how each method modifies the same underlying fitting problem.</span>
+<span id="cb17-107"><a href="#cb17-107"></a></span>
+<span id="cb17-108"><a href="#cb17-108"></a><span class="fu">## Ridge Regression</span></span>
+<span id="cb17-109"><a href="#cb17-109"></a></span>
+<span id="cb17-110"><a href="#cb17-110"></a>Ridge regression adds a penalty proportional to the squared size of the coefficients. Large coefficients are penalised more heavily, so the fitted model shrinks them towards zero without setting them exactly to zero:</span>
+<span id="cb17-111"><a href="#cb17-111"></a></span>
+<span id="cb17-112"><a href="#cb17-112"></a>$$\min_{\beta}\left<span class="sc">\{</span>\sum_{i=1}^{n}(Y_i-\hat{Y}_i)^2 + \lambda \sum_{j=1}^{p}\beta_j^2\right<span class="sc">\}</span>$$ {#eq-ridge}</span>
+<span id="cb17-113"><a href="#cb17-113"></a></span>
+<span id="cb17-114"><a href="#cb17-114"></a>The practical effect is that all predictors remain in the model, but the most unstable coefficients are tamed. Ridge is therefore especially useful when multicollinearity is the main problem and you do not necessarily want automatic variable removal.</span>
+<span id="cb17-115"><a href="#cb17-115"></a></span>
+<span id="cb17-116"><a href="#cb17-116"></a><span class="fu">## Lasso Regression</span></span>
+<span id="cb17-117"><a href="#cb17-117"></a></span>
+<span id="cb17-118"><a href="#cb17-118"></a>Lasso regression uses a penalty based on the absolute values of the coefficients:</span>
+<span id="cb17-119"><a href="#cb17-119"></a></span>
+<span id="cb17-120"><a href="#cb17-120"></a>$$\min_{\beta}\left<span class="sc">\{</span>\sum_{i=1}^{n}(Y_i-\hat{Y}_i)^2 + \lambda \sum_{j=1}^{p}|\beta_j|\right<span class="sc">\}</span>$$ {#eq-lasso}</span>
+<span id="cb17-121"><a href="#cb17-121"></a></span>
+<span id="cb17-122"><a href="#cb17-122"></a>This has an important consequence: some coefficients can be shrunk all the way to zero.</span>
+<span id="cb17-123"><a href="#cb17-123"></a></span>
+<span id="cb17-124"><a href="#cb17-124"></a>That means lasso does two jobs at once. It shrinks the model, and it can also perform automatic variable selection. When you have many candidate predictors and suspect that some contribute little to predictive performance, lasso can be attractive.</span>
+<span id="cb17-125"><a href="#cb17-125"></a></span>
+<span id="cb17-126"><a href="#cb17-126"></a><span class="fu">## Elastic Net</span></span>
+<span id="cb17-127"><a href="#cb17-127"></a></span>
+<span id="cb17-128"><a href="#cb17-128"></a>Elastic net combines the ridge and lasso penalties:</span>
+<span id="cb17-129"><a href="#cb17-129"></a></span>
+<span id="cb17-130"><a href="#cb17-130"></a>$$\min_{\beta}\left<span class="sc">\{</span>\sum_{i=1}^{n}(Y_i-\hat{Y}_i)^2 + \lambda \left[(1-\alpha)\sum_{j=1}^{p}\beta_j^2 + \alpha \sum_{j=1}^{p}|\beta_j|\right]\right<span class="sc">\}</span>$$ {#eq-elastic}</span>
+<span id="cb17-131"><a href="#cb17-131"></a></span>
+<span id="cb17-132"><a href="#cb17-132"></a>Equations @eq-ridge, @eq-lasso, and @eq-elastic all use $\lambda$ to control the strength of shrinkage, while the elastic-net parameter $\alpha$ controls the balance between ridge-like and lasso-like behaviour.</span>
+<span id="cb17-133"><a href="#cb17-133"></a></span>
+<span id="cb17-134"><a href="#cb17-134"></a>In practice, elastic net is often a strong default when you are unsure whether ridge or lasso is the more appropriate starting point.</span>
+<span id="cb17-135"><a href="#cb17-135"></a></span>
+<span id="cb17-136"><a href="#cb17-136"></a><span class="fu"># Cross-Validation</span></span>
+<span id="cb17-137"><a href="#cb17-137"></a></span>
+<span id="cb17-138"><a href="#cb17-138"></a>The amount of shrinkage is controlled by a tuning parameter, usually written as $\lambda$. When $\lambda = 0$, the fitted model behaves like ordinary least squares. As $\lambda$ increases, the penalty grows stronger and coefficients are shrunk more aggressively.</span>
+<span id="cb17-139"><a href="#cb17-139"></a></span>
+<span id="cb17-140"><a href="#cb17-140"></a>The problem is that we do not know the best value of $\lambda$ in advance. This is where cross-validation becomes central.</span>
+<span id="cb17-141"><a href="#cb17-141"></a></span>
+<span id="cb17-142"><a href="#cb17-142"></a>In *k*-fold cross-validation, the data are split into *k* subsets. The model is trained repeatedly on *k* - 1 folds and evaluated on the held-out fold. This gives an estimate of how well the model performs away from the data used to fit it. We then choose the tuning parameter that gives the best average predictive performance.</span>
+<span id="cb17-143"><a href="#cb17-143"></a></span>
+<span id="cb17-144"><a href="#cb17-144"></a>Cross-validation therefore helps us avoid selecting a model that is optimised only for the present sample.</span>
+<span id="cb17-145"><a href="#cb17-145"></a></span>
+<span id="cb17-146"><a href="#cb17-146"></a><span class="fu"># R Functions</span></span>
+<span id="cb17-147"><a href="#cb17-147"></a></span>
+<span id="cb17-148"><a href="#cb17-148"></a>In R, the usual introductory function for regularised regression is <span class="in">`glmnet::cv.glmnet()`</span>:</span>
+<span id="cb17-149"><a href="#cb17-149"></a></span>
+<span id="cb17-152"><a href="#cb17-152"></a><span class="in">```{r}</span></span>
+<span id="cb17-153"><a href="#cb17-153"></a><span class="co">#| eval: false</span></span>
+<span id="cb17-154"><a href="#cb17-154"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">0</span>)   <span class="co"># ridge</span></span>
+<span id="cb17-155"><a href="#cb17-155"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">1</span>)   <span class="co"># lasso</span></span>
+<span id="cb17-156"><a href="#cb17-156"></a>glmnet<span class="sc">::</span><span class="fu">cv.glmnet</span>(x, y, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="co"># elastic net</span></span>
+<span id="cb17-157"><a href="#cb17-157"></a><span class="in">```</span></span>
+<span id="cb17-158"><a href="#cb17-158"></a></span>
+<span id="cb17-159"><a href="#cb17-159"></a>The important practical detail is that <span class="in">`glmnet`</span> expects a predictor matrix rather than the formula interface used by <span class="in">`lm()`</span>.</span>
+<span id="cb17-160"><a href="#cb17-160"></a></span>
+<span id="cb17-161"><a href="#cb17-161"></a><span class="fu"># Example 1: Ridge Regression with the Seaweed Data</span></span>
+<span id="cb17-162"><a href="#cb17-162"></a></span>
+<span id="cb17-163"><a href="#cb17-163"></a>The seaweed dataset should now be familiar. We will use the climatic predictors <span class="in">`annMean`</span>, <span class="in">`augMean`</span>, <span class="in">`augSD`</span>, <span class="in">`febSD`</span>, and <span class="in">`febRange`</span> to predict <span class="in">`Y`</span>.</span>
+<span id="cb17-164"><a href="#cb17-164"></a></span>
+<span id="cb17-165"><a href="#cb17-165"></a><span class="fu">## Prepare the Data</span></span>
+<span id="cb17-166"><a href="#cb17-166"></a></span>
+<span id="cb17-167"><a href="#cb17-167"></a>The response is centred, and the predictors are supplied as a matrix:</span>
+<span id="cb17-168"><a href="#cb17-168"></a></span>
+<span id="cb17-171"><a href="#cb17-171"></a><span class="in">```{r}</span></span>
+<span id="cb17-172"><a href="#cb17-172"></a><span class="co">#| eval: false</span></span>
+<span id="cb17-173"><a href="#cb17-173"></a>y <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
+<span id="cb17-174"><a href="#cb17-174"></a>  <span class="fu">select</span>(Y) <span class="sc">|&gt;</span></span>
+<span id="cb17-175"><a href="#cb17-175"></a>  <span class="fu">scale</span>(<span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb17-176"><a href="#cb17-176"></a>  <span class="fu">as.matrix</span>()</span>
+<span id="cb17-177"><a href="#cb17-177"></a></span>
+<span id="cb17-178"><a href="#cb17-178"></a>X <span class="ot">&lt;-</span> sw <span class="sc">|&gt;</span></span>
+<span id="cb17-179"><a href="#cb17-179"></a>  <span class="fu">select</span>(<span class="sc">-</span>X, <span class="sc">-</span>dist, <span class="sc">-</span>bio, <span class="sc">-</span>Y, <span class="sc">-</span>Y1, <span class="sc">-</span>Y2) <span class="sc">|&gt;</span></span>
+<span id="cb17-180"><a href="#cb17-180"></a>  <span class="fu">as.matrix</span>()</span>
+<span id="cb17-181"><a href="#cb17-181"></a><span class="in">```</span></span>
+<span id="cb17-182"><a href="#cb17-182"></a></span>
+<span id="cb17-183"><a href="#cb17-183"></a><span class="fu">## Fit the Cross-Validated Ridge Model</span></span>
+<span id="cb17-184"><a href="#cb17-184"></a></span>
+<span id="cb17-187"><a href="#cb17-187"></a><span class="in">```{r}</span></span>
+<span id="cb17-188"><a href="#cb17-188"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb17-189"><a href="#cb17-189"></a>ridge_cv <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(</span>
+<span id="cb17-190"><a href="#cb17-190"></a>  X, y,</span>
+<span id="cb17-191"><a href="#cb17-191"></a>  <span class="at">alpha =</span> <span class="dv">0</span>,</span>
+<span id="cb17-192"><a href="#cb17-192"></a>  <span class="at">lambda =</span> lambdas_to_try,</span>
+<span id="cb17-193"><a href="#cb17-193"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb17-194"><a href="#cb17-194"></a>  <span class="at">nfolds =</span> <span class="dv">10</span></span>
+<span id="cb17-195"><a href="#cb17-195"></a>)</span>
+<span id="cb17-196"><a href="#cb17-196"></a><span class="in">```</span></span>
+<span id="cb17-197"><a href="#cb17-197"></a></span>
+<span id="cb17-198"><a href="#cb17-198"></a><span class="fu">## Inspect the Cross-Validation Curve</span></span>
+<span id="cb17-199"><a href="#cb17-199"></a></span>
+<span id="cb17-202"><a href="#cb17-202"></a><span class="in">```{r}</span></span>
+<span id="cb17-203"><a href="#cb17-203"></a><span class="co">#| echo: false</span></span>
+<span id="cb17-204"><a href="#cb17-204"></a><span class="co">#| fig-width: 4</span></span>
+<span id="cb17-205"><a href="#cb17-205"></a><span class="co">#| fig-height: 3</span></span>
+<span id="cb17-206"><a href="#cb17-206"></a><span class="co">#| label: fig-ridge-cv</span></span>
+<span id="cb17-207"><a href="#cb17-207"></a><span class="co">#| fig-cap: "Cross-validation statistics for ridge regression applied to the seaweed data."</span></span>
+<span id="cb17-208"><a href="#cb17-208"></a>ridge_cv_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb17-209"><a href="#cb17-209"></a>  <span class="at">lambda =</span> ridge_cv<span class="sc">$</span>lambda,</span>
+<span id="cb17-210"><a href="#cb17-210"></a>  <span class="at">cvm =</span> ridge_cv<span class="sc">$</span>cvm,</span>
+<span id="cb17-211"><a href="#cb17-211"></a>  <span class="at">cvsd =</span> ridge_cv<span class="sc">$</span>cvsd,</span>
+<span id="cb17-212"><a href="#cb17-212"></a>  <span class="at">nzero =</span> ridge_cv<span class="sc">$</span>nzero</span>
+<span id="cb17-213"><a href="#cb17-213"></a>)</span>
+<span id="cb17-214"><a href="#cb17-214"></a></span>
+<span id="cb17-215"><a href="#cb17-215"></a><span class="fu">ggplot</span>(ridge_cv_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">log</span>(lambda), <span class="at">y =</span> cvm)) <span class="sc">+</span></span>
+<span id="cb17-216"><a href="#cb17-216"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> cvm <span class="sc">-</span> cvsd, <span class="at">ymax =</span> cvm <span class="sc">+</span> cvsd),</span>
+<span id="cb17-217"><a href="#cb17-217"></a>                <span class="at">width =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb17-218"><a href="#cb17-218"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">fill =</span> <span class="st">"white"</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb17-219"><a href="#cb17-219"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb17-220"><a href="#cb17-220"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> nzero <span class="sc">/</span> <span class="fu">max</span>(nzero) <span class="sc">*</span> <span class="fu">max</span>(cvm)), <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb17-221"><a href="#cb17-221"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb17-222"><a href="#cb17-222"></a>    <span class="at">name =</span> <span class="st">"Mean squared error"</span>,</span>
+<span id="cb17-223"><a href="#cb17-223"></a>    <span class="at">sec.axis =</span> <span class="fu">sec_axis</span>(<span class="sc">~</span> . <span class="sc">/</span> <span class="fu">max</span>(ridge_cv_df<span class="sc">$</span>cvm) <span class="sc">*</span> <span class="fu">max</span>(ridge_cv_df<span class="sc">$</span>nzero),</span>
+<span id="cb17-224"><a href="#cb17-224"></a>                        <span class="at">name =</span> <span class="st">"No. non-zero coefficients"</span>)</span>
+<span id="cb17-225"><a href="#cb17-225"></a>  ) <span class="sc">+</span></span>
+<span id="cb17-226"><a href="#cb17-226"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"log(lambda)"</span>) <span class="sc">+</span></span>
+<span id="cb17-227"><a href="#cb17-227"></a>  <span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb17-228"><a href="#cb17-228"></a>  <span class="fu">theme</span>(</span>
+<span id="cb17-229"><a href="#cb17-229"></a>    <span class="at">axis.title.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
+<span id="cb17-230"><a href="#cb17-230"></a>    <span class="at">axis.title.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>),</span>
+<span id="cb17-231"><a href="#cb17-231"></a>    <span class="at">axis.text.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
+<span id="cb17-232"><a href="#cb17-232"></a>    <span class="at">axis.text.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>)</span>
+<span id="cb17-233"><a href="#cb17-233"></a>  ) <span class="sc">+</span></span>
+<span id="cb17-234"><a href="#cb17-234"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(ridge_cv<span class="sc">$</span>lambda.min), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb17-235"><a href="#cb17-235"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(ridge_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se), <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
+<span id="cb17-236"><a href="#cb17-236"></a><span class="in">```</span></span>
+<span id="cb17-237"><a href="#cb17-237"></a></span>
+<span id="cb17-238"><a href="#cb17-238"></a>The two vertical lines in @fig-ridge-cv identify the $\lambda$ that minimises cross-validated error (<span class="in">`lambda.min`</span>) and the larger, more conservative value within one standard error of that minimum (<span class="in">`lambda.1se`</span>). The latter is often chosen when a simpler, more stable model is preferred.</span>
+<span id="cb17-239"><a href="#cb17-239"></a></span>
+<span id="cb17-240"><a href="#cb17-240"></a><span class="fu">## Coefficient Paths and the Meaning of Shrinkage</span></span>
+<span id="cb17-241"><a href="#cb17-241"></a></span>
+<span id="cb17-242"><a href="#cb17-242"></a>Cross-validation tells us which value of $\lambda$ is attractive for prediction, but it does not by itself show what the penalty is *doing* to the model. A coefficient-path plot fills that gap. It tracks each fitted coefficient as $\lambda$ changes from very small values (weak penalty) to large values (strong penalty).</span>
+<span id="cb17-243"><a href="#cb17-243"></a></span>
+<span id="cb17-244"><a href="#cb17-244"></a>For ridge regression, the usual pattern is that all coefficients move smoothly towards zero, but none are dropped completely. For lasso, some coefficients are driven exactly to zero as the penalty strengthens. This is the visual expression of the conceptual difference between the two methods.</span>
+<span id="cb17-245"><a href="#cb17-245"></a></span>
+<span id="cb17-248"><a href="#cb17-248"></a><span class="in">```{r}</span></span>
+<span id="cb17-249"><a href="#cb17-249"></a><span class="co">#| echo: false</span></span>
+<span id="cb17-250"><a href="#cb17-250"></a><span class="co">#| fig-width: 4</span></span>
+<span id="cb17-251"><a href="#cb17-251"></a><span class="co">#| fig-height: 3</span></span>
+<span id="cb17-252"><a href="#cb17-252"></a><span class="co">#| label: fig-ridge-path</span></span>
+<span id="cb17-253"><a href="#cb17-253"></a><span class="co">#| fig-cap: "Coefficient paths for ridge regression. As the penalty increases, all coefficients are shrunk towards zero, but none are removed completely."</span></span>
+<span id="cb17-254"><a href="#cb17-254"></a>ridge_path <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb17-255"><a href="#cb17-255"></a>  X, y,</span>
+<span id="cb17-256"><a href="#cb17-256"></a>  <span class="at">alpha =</span> <span class="dv">0</span>,</span>
+<span id="cb17-257"><a href="#cb17-257"></a>  <span class="at">lambda =</span> lambdas_to_try,</span>
+<span id="cb17-258"><a href="#cb17-258"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-259"><a href="#cb17-259"></a>)</span>
+<span id="cb17-260"><a href="#cb17-260"></a></span>
+<span id="cb17-261"><a href="#cb17-261"></a><span class="fu">plot</span>(ridge_path, <span class="at">xvar =</span> <span class="st">"lambda"</span>, <span class="at">label =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-262"><a href="#cb17-262"></a><span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">log</span>(ridge_cv<span class="sc">$</span>lambda.min), <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb17-263"><a href="#cb17-263"></a><span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">log</span>(ridge_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se), <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb17-264"><a href="#cb17-264"></a><span class="in">```</span></span>
+<span id="cb17-265"><a href="#cb17-265"></a></span>
+<span id="cb17-266"><a href="#cb17-266"></a>In @fig-ridge-path, each coloured trace is one predictor coefficient. Moving from left to right corresponds to stronger shrinkage. The lines contract towards zero, but ridge keeps every predictor in the model.</span>
+<span id="cb17-267"><a href="#cb17-267"></a></span>
+<span id="cb17-268"><a href="#cb17-268"></a>The vertical reference lines show where the cross-validation procedure places <span class="in">`lambda.min`</span> and <span class="in">`lambda.1se`</span>. Reading the plot this way helps connect model selection to coefficient behaviour. At <span class="in">`lambda.min`</span>, shrinkage is weaker because the model is allowed to keep more of the original coefficient size. At <span class="in">`lambda.1se`</span>, shrinkage is stronger, so the fitted model is more conservative even though its estimated prediction error is still close to the minimum.</span>
+<span id="cb17-269"><a href="#cb17-269"></a></span>
+<span id="cb17-272"><a href="#cb17-272"></a><span class="in">```{r}</span></span>
+<span id="cb17-273"><a href="#cb17-273"></a><span class="co">#| echo: false</span></span>
+<span id="cb17-274"><a href="#cb17-274"></a><span class="co">#| fig-width: 4</span></span>
+<span id="cb17-275"><a href="#cb17-275"></a><span class="co">#| fig-height: 3</span></span>
+<span id="cb17-276"><a href="#cb17-276"></a><span class="co">#| label: fig-lasso-path</span></span>
+<span id="cb17-277"><a href="#cb17-277"></a><span class="co">#| fig-cap: "Coefficient paths for lasso regression. As the penalty increases, some coefficients are shrunk all the way to zero."</span></span>
+<span id="cb17-278"><a href="#cb17-278"></a>lasso_cv <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(</span>
+<span id="cb17-279"><a href="#cb17-279"></a>  X, y,</span>
+<span id="cb17-280"><a href="#cb17-280"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
+<span id="cb17-281"><a href="#cb17-281"></a>  <span class="at">lambda =</span> lambdas_to_try,</span>
+<span id="cb17-282"><a href="#cb17-282"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb17-283"><a href="#cb17-283"></a>  <span class="at">nfolds =</span> <span class="dv">10</span></span>
+<span id="cb17-284"><a href="#cb17-284"></a>)</span>
+<span id="cb17-285"><a href="#cb17-285"></a></span>
+<span id="cb17-286"><a href="#cb17-286"></a>lasso_path <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb17-287"><a href="#cb17-287"></a>  X, y,</span>
+<span id="cb17-288"><a href="#cb17-288"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
+<span id="cb17-289"><a href="#cb17-289"></a>  <span class="at">lambda =</span> lambdas_to_try,</span>
+<span id="cb17-290"><a href="#cb17-290"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-291"><a href="#cb17-291"></a>)</span>
+<span id="cb17-292"><a href="#cb17-292"></a></span>
+<span id="cb17-293"><a href="#cb17-293"></a><span class="fu">plot</span>(lasso_path, <span class="at">xvar =</span> <span class="st">"lambda"</span>, <span class="at">label =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-294"><a href="#cb17-294"></a><span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">log</span>(lasso_cv<span class="sc">$</span>lambda.min), <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb17-295"><a href="#cb17-295"></a><span class="fu">abline</span>(<span class="at">v =</span> <span class="fu">log</span>(lasso_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se), <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb17-296"><a href="#cb17-296"></a><span class="in">```</span></span>
+<span id="cb17-297"><a href="#cb17-297"></a></span>
+<span id="cb17-298"><a href="#cb17-298"></a>In @fig-lasso-path, some traces hit the horizontal axis and stay there. Those are the predictors that lasso has excluded. This is why coefficient-path plots are so useful pedagogically: they let you see which variables remain influential across a range of penalties and which ones disappear quickly once shrinkage becomes strong.</span>
+<span id="cb17-299"><a href="#cb17-299"></a></span>
+<span id="cb17-300"><a href="#cb17-300"></a><span class="fu">## Extract the Fitted Model</span></span>
+<span id="cb17-301"><a href="#cb17-301"></a></span>
+<span id="cb17-304"><a href="#cb17-304"></a><span class="in">```{r}</span></span>
+<span id="cb17-305"><a href="#cb17-305"></a>ridge_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb17-306"><a href="#cb17-306"></a>  X, y,</span>
+<span id="cb17-307"><a href="#cb17-307"></a>  <span class="at">alpha =</span> <span class="dv">0</span>,</span>
+<span id="cb17-308"><a href="#cb17-308"></a>  <span class="at">lambda =</span> ridge_cv<span class="sc">$</span>lambda.min,</span>
+<span id="cb17-309"><a href="#cb17-309"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-310"><a href="#cb17-310"></a>)</span>
+<span id="cb17-311"><a href="#cb17-311"></a></span>
+<span id="cb17-312"><a href="#cb17-312"></a>ridge_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(ridge_model, X)</span>
+<span id="cb17-313"><a href="#cb17-313"></a>ridge_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, ridge_pred) <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb17-314"><a href="#cb17-314"></a><span class="fu">coef</span>(ridge_model)</span>
+<span id="cb17-315"><a href="#cb17-315"></a><span class="in">```</span></span>
+<span id="cb17-316"><a href="#cb17-316"></a></span>
+<span id="cb17-319"><a href="#cb17-319"></a><span class="in">```{r}</span></span>
+<span id="cb17-320"><a href="#cb17-320"></a>ridge_model_1se <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb17-321"><a href="#cb17-321"></a>  X, y,</span>
+<span id="cb17-322"><a href="#cb17-322"></a>  <span class="at">alpha =</span> <span class="dv">0</span>,</span>
+<span id="cb17-323"><a href="#cb17-323"></a>  <span class="at">lambda =</span> ridge_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se,</span>
+<span id="cb17-324"><a href="#cb17-324"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-325"><a href="#cb17-325"></a>)</span>
+<span id="cb17-326"><a href="#cb17-326"></a></span>
+<span id="cb17-327"><a href="#cb17-327"></a>ridge_pred_1se <span class="ot">&lt;-</span> <span class="fu">predict</span>(ridge_model_1se, X)</span>
+<span id="cb17-328"><a href="#cb17-328"></a>ridge_rsq_1se <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, ridge_pred_1se) <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb17-329"><a href="#cb17-329"></a>ridge_coef_norm <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(ridge_model))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">^</span> <span class="dv">2</span>))</span>
+<span id="cb17-330"><a href="#cb17-330"></a>ridge_coef_norm_1se <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(ridge_model_1se))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">^</span> <span class="dv">2</span>))</span>
+<span id="cb17-331"><a href="#cb17-331"></a><span class="in">```</span></span>
+<span id="cb17-332"><a href="#cb17-332"></a></span>
+<span id="cb17-333"><a href="#cb17-333"></a><span class="fu">## Interpret the Ridge Results</span></span>
+<span id="cb17-334"><a href="#cb17-334"></a></span>
+<span id="cb17-335"><a href="#cb17-335"></a>Ridge keeps all predictors in the model, but shrinks them towards zero. This means the coefficients remain interpretable in the broad sense, but their absolute values are biased by design. Ridge is therefore most useful when the main aim is stable prediction or improved behaviour under collinearity, rather than precise coefficient interpretation.</span>
+<span id="cb17-336"><a href="#cb17-336"></a></span>
+<span id="cb17-337"><a href="#cb17-337"></a>In this seaweed example, the regularised model still retains all climatic predictors, but it reduces their instability and produces a model that is better suited to predictive use than an ordinary unpenalised fit under the same overlap among predictors.</span>
+<span id="cb17-338"><a href="#cb17-338"></a></span>
+<span id="cb17-339"><a href="#cb17-339"></a><span class="fu">## `lambda.min` Versus `lambda.1se`</span></span>
+<span id="cb17-340"><a href="#cb17-340"></a></span>
+<span id="cb17-341"><a href="#cb17-341"></a>The choice between <span class="in">`lambda.min`</span> and <span class="in">`lambda.1se`</span> is often more important in practice than the choice between two nearby values of $R^2$. These two tuning parameters answer slightly different modelling preferences:</span>
+<span id="cb17-342"><a href="#cb17-342"></a></span>
+<span id="cb17-343"><a href="#cb17-343"></a><span class="ss">-   </span><span class="in">`lambda.min`</span> gives the value of $\lambda$ with the lowest estimated cross-validated error.</span>
+<span id="cb17-344"><a href="#cb17-344"></a><span class="ss">-   </span><span class="in">`lambda.1se`</span> gives the largest value of $\lambda$ whose error is still within one standard error of the minimum.</span>
+<span id="cb17-345"><a href="#cb17-345"></a></span>
+<span id="cb17-346"><a href="#cb17-346"></a>That means <span class="in">`lambda.1se`</span> accepts a tiny loss in apparent predictive performance in exchange for stronger shrinkage and usually a more stable model. In ridge regression, that means smaller coefficients. In lasso or elastic net, it often means fewer non-zero predictors as well.</span>
+<span id="cb17-347"><a href="#cb17-347"></a></span>
+<span id="cb17-350"><a href="#cb17-350"></a><span class="in">```{r}</span></span>
+<span id="cb17-351"><a href="#cb17-351"></a>ridge_compare <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb17-352"><a href="#cb17-352"></a>  <span class="at">lambda_choice =</span> <span class="fu">c</span>(<span class="st">"lambda.min"</span>, <span class="st">"lambda.1se"</span>),</span>
+<span id="cb17-353"><a href="#cb17-353"></a>  <span class="at">lambda_value =</span> <span class="fu">c</span>(ridge_cv<span class="sc">$</span>lambda.min, ridge_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se),</span>
+<span id="cb17-354"><a href="#cb17-354"></a>  <span class="at">training_rsq =</span> <span class="fu">c</span>(ridge_rsq, ridge_rsq_1se),</span>
+<span id="cb17-355"><a href="#cb17-355"></a>  <span class="at">non_zero =</span> <span class="fu">c</span>(</span>
+<span id="cb17-356"><a href="#cb17-356"></a>    <span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(ridge_model))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>),</span>
+<span id="cb17-357"><a href="#cb17-357"></a>    <span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(ridge_model_1se))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>)</span>
+<span id="cb17-358"><a href="#cb17-358"></a>  ),</span>
+<span id="cb17-359"><a href="#cb17-359"></a>  <span class="at">coefficient_norm =</span> <span class="fu">c</span>(ridge_coef_norm, ridge_coef_norm_1se)</span>
+<span id="cb17-360"><a href="#cb17-360"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb17-361"><a href="#cb17-361"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb17-362"><a href="#cb17-362"></a>    <span class="at">lambda_value =</span> <span class="fu">signif</span>(lambda_value, <span class="dv">3</span>),</span>
+<span id="cb17-363"><a href="#cb17-363"></a>    <span class="at">training_rsq =</span> <span class="fu">round</span>(training_rsq, <span class="dv">3</span>),</span>
+<span id="cb17-364"><a href="#cb17-364"></a>    <span class="at">coefficient_norm =</span> <span class="fu">round</span>(coefficient_norm, <span class="dv">3</span>)</span>
+<span id="cb17-365"><a href="#cb17-365"></a>  )</span>
+<span id="cb17-366"><a href="#cb17-366"></a></span>
+<span id="cb17-367"><a href="#cb17-367"></a>ridge_compare</span>
+<span id="cb17-368"><a href="#cb17-368"></a><span class="in">```</span></span>
+<span id="cb17-369"><a href="#cb17-369"></a></span>
+<span id="cb17-370"><a href="#cb17-370"></a>In the seaweed example, ridge keeps all predictors at both tuning values, so the practical difference is not variable inclusion but coefficient size. The <span class="in">`lambda.1se`</span> fit has the smaller coefficient norm, which means the predictor effects have been pulled closer to zero overall. That is the usual ridge trade-off: a small increase in penalty often changes the model by stabilising coefficients rather than by changing which predictors appear in the equation.</span>
+<span id="cb17-371"><a href="#cb17-371"></a></span>
+<span id="cb17-372"><a href="#cb17-372"></a><span class="fu">## Reporting</span></span>
+<span id="cb17-373"><a href="#cb17-373"></a></span>
+<span id="cb17-374"><a href="#cb17-374"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb17-375"><a href="#cb17-375"></a><span class="fu">## Write-Up</span></span>
+<span id="cb17-376"><a href="#cb17-376"></a></span>
+<span id="cb17-377"><a href="#cb17-377"></a>**Methods**</span>
+<span id="cb17-378"><a href="#cb17-378"></a></span>
+<span id="cb17-379"><a href="#cb17-379"></a>Ridge regression was fitted to the seaweed climate data using 10-fold cross-validation to select the optimal penalty parameter. The predictors were entered as a matrix and the response was centred prior to fitting.</span>
+<span id="cb17-380"><a href="#cb17-380"></a></span>
+<span id="cb17-381"><a href="#cb17-381"></a>**Results**</span>
+<span id="cb17-382"><a href="#cb17-382"></a></span>
+<span id="cb17-383"><a href="#cb17-383"></a>The final ridge model retained all five climatic predictors and explained a substantial proportion of the variation in the response (<span class="in">`R^2`</span> approximately <span class="in">`r round(ridge_rsq, 2)`</span>). The regularised fit reduced coefficient instability while preserving the full predictor set.</span>
+<span id="cb17-384"><a href="#cb17-384"></a></span>
+<span id="cb17-385"><a href="#cb17-385"></a>**Discussion**</span>
+<span id="cb17-386"><a href="#cb17-386"></a></span>
+<span id="cb17-387"><a href="#cb17-387"></a>The point of ridge regression is not exact coefficient interpretation. In Discussion, the emphasis would be that shrinkage improved model stability and predictive behaviour under overlapping climatic predictors.</span>
+<span id="cb17-388"><a href="#cb17-388"></a>:::</span>
+<span id="cb17-389"><a href="#cb17-389"></a></span>
+<span id="cb17-390"><a href="#cb17-390"></a><span class="fu"># Example 2: Lasso Regression</span></span>
+<span id="cb17-391"><a href="#cb17-391"></a></span>
+<span id="cb17-392"><a href="#cb17-392"></a>Lasso uses the same data structure and the same cross-validation logic. The key difference is <span class="in">`alpha = 1`</span>.</span>
+<span id="cb17-393"><a href="#cb17-393"></a></span>
+<span id="cb17-396"><a href="#cb17-396"></a><span class="in">```{r}</span></span>
+<span id="cb17-397"><a href="#cb17-397"></a>lasso_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb17-398"><a href="#cb17-398"></a>  X, y,</span>
+<span id="cb17-399"><a href="#cb17-399"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
+<span id="cb17-400"><a href="#cb17-400"></a>  <span class="at">lambda =</span> lasso_cv<span class="sc">$</span>lambda.min,</span>
+<span id="cb17-401"><a href="#cb17-401"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-402"><a href="#cb17-402"></a>)</span>
+<span id="cb17-403"><a href="#cb17-403"></a></span>
+<span id="cb17-404"><a href="#cb17-404"></a>lasso_model_1se <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb17-405"><a href="#cb17-405"></a>  X, y,</span>
+<span id="cb17-406"><a href="#cb17-406"></a>  <span class="at">alpha =</span> <span class="dv">1</span>,</span>
+<span id="cb17-407"><a href="#cb17-407"></a>  <span class="at">lambda =</span> lasso_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se,</span>
+<span id="cb17-408"><a href="#cb17-408"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-409"><a href="#cb17-409"></a>)</span>
+<span id="cb17-410"><a href="#cb17-410"></a></span>
+<span id="cb17-411"><a href="#cb17-411"></a>lasso_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(lasso_model, X)</span>
+<span id="cb17-412"><a href="#cb17-412"></a>lasso_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, lasso_pred) <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb17-413"><a href="#cb17-413"></a>lasso_pred_1se <span class="ot">&lt;-</span> <span class="fu">predict</span>(lasso_model_1se, X)</span>
+<span id="cb17-414"><a href="#cb17-414"></a>lasso_rsq_1se <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, lasso_pred_1se) <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb17-415"><a href="#cb17-415"></a><span class="in">```</span></span>
+<span id="cb17-416"><a href="#cb17-416"></a></span>
+<span id="cb17-419"><a href="#cb17-419"></a><span class="in">```{r}</span></span>
+<span id="cb17-420"><a href="#cb17-420"></a><span class="co">#| echo: false</span></span>
+<span id="cb17-421"><a href="#cb17-421"></a><span class="co">#| fig-width: 4</span></span>
+<span id="cb17-422"><a href="#cb17-422"></a><span class="co">#| fig-height: 3</span></span>
+<span id="cb17-423"><a href="#cb17-423"></a><span class="co">#| label: fig-lasso-cv</span></span>
+<span id="cb17-424"><a href="#cb17-424"></a><span class="co">#| fig-cap: "Cross-validation statistics for lasso regression applied to the seaweed data."</span></span>
+<span id="cb17-425"><a href="#cb17-425"></a>lasso_cv_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb17-426"><a href="#cb17-426"></a>  <span class="at">lambda =</span> lasso_cv<span class="sc">$</span>lambda,</span>
+<span id="cb17-427"><a href="#cb17-427"></a>  <span class="at">cvm =</span> lasso_cv<span class="sc">$</span>cvm,</span>
+<span id="cb17-428"><a href="#cb17-428"></a>  <span class="at">cvsd =</span> lasso_cv<span class="sc">$</span>cvsd,</span>
+<span id="cb17-429"><a href="#cb17-429"></a>  <span class="at">nzero =</span> lasso_cv<span class="sc">$</span>nzero</span>
+<span id="cb17-430"><a href="#cb17-430"></a>)</span>
+<span id="cb17-431"><a href="#cb17-431"></a></span>
+<span id="cb17-432"><a href="#cb17-432"></a><span class="fu">ggplot</span>(lasso_cv_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">log</span>(lambda), <span class="at">y =</span> cvm)) <span class="sc">+</span></span>
+<span id="cb17-433"><a href="#cb17-433"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> cvm <span class="sc">-</span> cvsd, <span class="at">ymax =</span> cvm <span class="sc">+</span> cvsd),</span>
+<span id="cb17-434"><a href="#cb17-434"></a>                <span class="at">width =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb17-435"><a href="#cb17-435"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">fill =</span> <span class="st">"white"</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb17-436"><a href="#cb17-436"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb17-437"><a href="#cb17-437"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> nzero <span class="sc">/</span> <span class="fu">max</span>(nzero) <span class="sc">*</span> <span class="fu">max</span>(cvm)), <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb17-438"><a href="#cb17-438"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb17-439"><a href="#cb17-439"></a>    <span class="at">name =</span> <span class="st">"Mean squared error"</span>,</span>
+<span id="cb17-440"><a href="#cb17-440"></a>    <span class="at">sec.axis =</span> <span class="fu">sec_axis</span>(<span class="sc">~</span> . <span class="sc">/</span> <span class="fu">max</span>(lasso_cv_df<span class="sc">$</span>cvm) <span class="sc">*</span> <span class="fu">max</span>(lasso_cv_df<span class="sc">$</span>nzero),</span>
+<span id="cb17-441"><a href="#cb17-441"></a>                        <span class="at">name =</span> <span class="st">"No. non-zero coefficients"</span>)</span>
+<span id="cb17-442"><a href="#cb17-442"></a>  ) <span class="sc">+</span></span>
+<span id="cb17-443"><a href="#cb17-443"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"log(lambda)"</span>) <span class="sc">+</span></span>
+<span id="cb17-444"><a href="#cb17-444"></a>  <span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb17-445"><a href="#cb17-445"></a>  <span class="fu">theme</span>(</span>
+<span id="cb17-446"><a href="#cb17-446"></a>    <span class="at">axis.title.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
+<span id="cb17-447"><a href="#cb17-447"></a>    <span class="at">axis.title.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>),</span>
+<span id="cb17-448"><a href="#cb17-448"></a>    <span class="at">axis.text.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
+<span id="cb17-449"><a href="#cb17-449"></a>    <span class="at">axis.text.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>)</span>
+<span id="cb17-450"><a href="#cb17-450"></a>  ) <span class="sc">+</span></span>
+<span id="cb17-451"><a href="#cb17-451"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(lasso_cv<span class="sc">$</span>lambda.min), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb17-452"><a href="#cb17-452"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(lasso_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se), <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
+<span id="cb17-453"><a href="#cb17-453"></a><span class="in">```</span></span>
+<span id="cb17-454"><a href="#cb17-454"></a></span>
+<span id="cb17-457"><a href="#cb17-457"></a><span class="in">```{r}</span></span>
+<span id="cb17-458"><a href="#cb17-458"></a><span class="fu">coef</span>(lasso_model)</span>
+<span id="cb17-459"><a href="#cb17-459"></a><span class="in">```</span></span>
+<span id="cb17-460"><a href="#cb17-460"></a></span>
+<span id="cb17-461"><a href="#cb17-461"></a>The important feature of lasso is that some coefficients can be set exactly to zero. This makes lasso useful when you want the model itself to carry out a degree of variable selection.</span>
+<span id="cb17-462"><a href="#cb17-462"></a></span>
+<span id="cb17-463"><a href="#cb17-463"></a>In the seaweed example, the chosen penalty reduces the effective model complexity by shrinking weaker coefficients more strongly. The resulting model is easier to simplify than the ridge model because some predictors can be removed altogether.</span>
+<span id="cb17-464"><a href="#cb17-464"></a></span>
+<span id="cb17-467"><a href="#cb17-467"></a><span class="in">```{r}</span></span>
+<span id="cb17-468"><a href="#cb17-468"></a>lmin_terms <span class="ot">&lt;-</span> <span class="fu">rownames</span>(<span class="fu">coef</span>(lasso_model))[<span class="sc">-</span><span class="dv">1</span>][<span class="fu">as.matrix</span>(<span class="fu">coef</span>(lasso_model))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>]</span>
+<span id="cb17-469"><a href="#cb17-469"></a>l1se_terms <span class="ot">&lt;-</span> <span class="fu">rownames</span>(<span class="fu">coef</span>(lasso_model_1se))[<span class="sc">-</span><span class="dv">1</span>][<span class="fu">as.matrix</span>(<span class="fu">coef</span>(lasso_model_1se))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>]</span>
+<span id="cb17-470"><a href="#cb17-470"></a></span>
+<span id="cb17-471"><a href="#cb17-471"></a>lasso_compare <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb17-472"><a href="#cb17-472"></a>  <span class="at">lambda_choice =</span> <span class="fu">c</span>(<span class="st">"lambda.min"</span>, <span class="st">"lambda.1se"</span>),</span>
+<span id="cb17-473"><a href="#cb17-473"></a>  <span class="at">lambda_value =</span> <span class="fu">c</span>(lasso_cv<span class="sc">$</span>lambda.min, lasso_cv<span class="sc">$</span>lambda<span class="fl">.1</span>se),</span>
+<span id="cb17-474"><a href="#cb17-474"></a>  <span class="at">training_rsq =</span> <span class="fu">c</span>(lasso_rsq, lasso_rsq_1se),</span>
+<span id="cb17-475"><a href="#cb17-475"></a>  <span class="at">non_zero =</span> <span class="fu">c</span>(</span>
+<span id="cb17-476"><a href="#cb17-476"></a>    <span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(lasso_model))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>),</span>
+<span id="cb17-477"><a href="#cb17-477"></a>    <span class="fu">sum</span>(<span class="fu">as.matrix</span>(<span class="fu">coef</span>(lasso_model_1se))[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">!=</span> <span class="dv">0</span>)</span>
+<span id="cb17-478"><a href="#cb17-478"></a>  ),</span>
+<span id="cb17-479"><a href="#cb17-479"></a>  <span class="at">retained_predictors =</span> <span class="fu">c</span>(</span>
+<span id="cb17-480"><a href="#cb17-480"></a>    <span class="fu">paste</span>(lmin_terms, <span class="at">collapse =</span> <span class="st">", "</span>),</span>
+<span id="cb17-481"><a href="#cb17-481"></a>    <span class="fu">paste</span>(l1se_terms, <span class="at">collapse =</span> <span class="st">", "</span>)</span>
+<span id="cb17-482"><a href="#cb17-482"></a>  )</span>
+<span id="cb17-483"><a href="#cb17-483"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb17-484"><a href="#cb17-484"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb17-485"><a href="#cb17-485"></a>    <span class="at">lambda_value =</span> <span class="fu">signif</span>(lambda_value, <span class="dv">3</span>),</span>
+<span id="cb17-486"><a href="#cb17-486"></a>    <span class="at">training_rsq =</span> <span class="fu">round</span>(training_rsq, <span class="dv">3</span>)</span>
+<span id="cb17-487"><a href="#cb17-487"></a>  )</span>
+<span id="cb17-488"><a href="#cb17-488"></a></span>
+<span id="cb17-489"><a href="#cb17-489"></a>lasso_compare</span>
+<span id="cb17-490"><a href="#cb17-490"></a><span class="in">```</span></span>
+<span id="cb17-491"><a href="#cb17-491"></a></span>
+<span id="cb17-492"><a href="#cb17-492"></a>For lasso, the <span class="in">`lambda.min`</span> versus <span class="in">`lambda.1se`</span> distinction is easiest to explain in terms of retained predictors. <span class="in">`lambda.min`</span> usually gives the lowest estimated prediction error, while <span class="in">`lambda.1se`</span> often keeps fewer predictors and gives a leaner model. If the two fits perform similarly, <span class="in">`lambda.1se`</span> is often preferable when explanation, communication, or field interpretation matters. If prediction is the dominant aim and the larger active set clearly performs better under resampling, <span class="in">`lambda.min`</span> may be the better choice.</span>
+<span id="cb17-493"><a href="#cb17-493"></a></span>
+<span id="cb17-494"><a href="#cb17-494"></a><span class="fu">## Reporting</span></span>
+<span id="cb17-495"><a href="#cb17-495"></a></span>
+<span id="cb17-496"><a href="#cb17-496"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb17-497"><a href="#cb17-497"></a><span class="fu">## Write-Up</span></span>
+<span id="cb17-498"><a href="#cb17-498"></a></span>
+<span id="cb17-499"><a href="#cb17-499"></a>**Methods**</span>
+<span id="cb17-500"><a href="#cb17-500"></a></span>
+<span id="cb17-501"><a href="#cb17-501"></a>Lasso regression was fitted to the seaweed climate data, with the amount of shrinkage selected by 10-fold cross-validation. The purpose was to assess whether coefficient shrinkage combined with variable removal could produce a more compact predictive model.</span>
+<span id="cb17-502"><a href="#cb17-502"></a></span>
+<span id="cb17-503"><a href="#cb17-503"></a>**Results**</span>
+<span id="cb17-504"><a href="#cb17-504"></a></span>
+<span id="cb17-505"><a href="#cb17-505"></a>The regularised fit reduced model complexity by shrinking weak coefficients strongly and, where appropriate, setting some coefficients to zero. The final model explained substantial variation in the response (<span class="in">`R^2`</span> approximately <span class="in">`r round(lasso_rsq, 2)`</span>) while providing a more compact predictor set than ridge regression.</span>
+<span id="cb17-506"><a href="#cb17-506"></a></span>
+<span id="cb17-507"><a href="#cb17-507"></a>**Discussion**</span>
+<span id="cb17-508"><a href="#cb17-508"></a></span>
+<span id="cb17-509"><a href="#cb17-509"></a>Lasso offers a bridge between prediction and variable selection. The simplified model is useful when the goal is not only stability, but also a more compact predictor set.</span>
+<span id="cb17-510"><a href="#cb17-510"></a>:::</span>
+<span id="cb17-511"><a href="#cb17-511"></a></span>
+<span id="cb17-512"><a href="#cb17-512"></a><span class="fu"># Example 3: Elastic Net Regression</span></span>
+<span id="cb17-513"><a href="#cb17-513"></a></span>
+<span id="cb17-514"><a href="#cb17-514"></a>Elastic net introduces a second tuning parameter, <span class="in">`alpha`</span>, which controls the balance between ridge and lasso behaviour.</span>
+<span id="cb17-515"><a href="#cb17-515"></a></span>
+<span id="cb17-518"><a href="#cb17-518"></a><span class="in">```{r}</span></span>
+<span id="cb17-519"><a href="#cb17-519"></a>cv_results <span class="ot">&lt;-</span> <span class="fu">lapply</span>(alphas_to_try, <span class="cf">function</span>(a) {</span>
+<span id="cb17-520"><a href="#cb17-520"></a>  <span class="fu">cv.glmnet</span>(</span>
+<span id="cb17-521"><a href="#cb17-521"></a>    X, y,</span>
+<span id="cb17-522"><a href="#cb17-522"></a>    <span class="at">alpha =</span> a,</span>
+<span id="cb17-523"><a href="#cb17-523"></a>    <span class="at">lambda =</span> lambdas_to_try,</span>
+<span id="cb17-524"><a href="#cb17-524"></a>    <span class="at">standardize =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb17-525"><a href="#cb17-525"></a>    <span class="at">nfolds =</span> <span class="dv">10</span></span>
+<span id="cb17-526"><a href="#cb17-526"></a>  )</span>
+<span id="cb17-527"><a href="#cb17-527"></a>})</span>
+<span id="cb17-528"><a href="#cb17-528"></a></span>
+<span id="cb17-529"><a href="#cb17-529"></a>best_result <span class="ot">&lt;-</span> <span class="fu">which.min</span>(<span class="fu">sapply</span>(cv_results, <span class="cf">function</span>(x) <span class="fu">min</span>(x<span class="sc">$</span>cvm)))</span>
+<span id="cb17-530"><a href="#cb17-530"></a>best_alpha <span class="ot">&lt;-</span> alphas_to_try[best_result]</span>
+<span id="cb17-531"><a href="#cb17-531"></a>best_lambda <span class="ot">&lt;-</span> cv_results[[best_result]]<span class="sc">$</span>lambda.min</span>
+<span id="cb17-532"><a href="#cb17-532"></a></span>
+<span id="cb17-533"><a href="#cb17-533"></a>elastic_model <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(</span>
+<span id="cb17-534"><a href="#cb17-534"></a>  X, y,</span>
+<span id="cb17-535"><a href="#cb17-535"></a>  <span class="at">alpha =</span> best_alpha,</span>
+<span id="cb17-536"><a href="#cb17-536"></a>  <span class="at">lambda =</span> best_lambda,</span>
+<span id="cb17-537"><a href="#cb17-537"></a>  <span class="at">standardize =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-538"><a href="#cb17-538"></a>)</span>
+<span id="cb17-539"><a href="#cb17-539"></a></span>
+<span id="cb17-540"><a href="#cb17-540"></a>elastic_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(elastic_model, X)</span>
+<span id="cb17-541"><a href="#cb17-541"></a>elastic_rsq <span class="ot">&lt;-</span> <span class="fu">cor</span>(y, elastic_pred) <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb17-542"><a href="#cb17-542"></a><span class="in">```</span></span>
+<span id="cb17-543"><a href="#cb17-543"></a></span>
+<span id="cb17-546"><a href="#cb17-546"></a><span class="in">```{r}</span></span>
+<span id="cb17-547"><a href="#cb17-547"></a><span class="co">#| echo: false</span></span>
+<span id="cb17-548"><a href="#cb17-548"></a><span class="co">#| fig-width: 4</span></span>
+<span id="cb17-549"><a href="#cb17-549"></a><span class="co">#| fig-height: 3</span></span>
+<span id="cb17-550"><a href="#cb17-550"></a><span class="co">#| label: fig-elastic-cv</span></span>
+<span id="cb17-551"><a href="#cb17-551"></a><span class="co">#| fig-cap: "Cross-validation statistics for elastic net regression applied to the seaweed data."</span></span>
+<span id="cb17-552"><a href="#cb17-552"></a>cv_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb17-553"><a href="#cb17-553"></a>  <span class="at">lambda =</span> cv_results[[best_result]]<span class="sc">$</span>lambda,</span>
+<span id="cb17-554"><a href="#cb17-554"></a>  <span class="at">cvm =</span> cv_results[[best_result]]<span class="sc">$</span>cvm,</span>
+<span id="cb17-555"><a href="#cb17-555"></a>  <span class="at">cvsd =</span> cv_results[[best_result]]<span class="sc">$</span>cvsd,</span>
+<span id="cb17-556"><a href="#cb17-556"></a>  <span class="at">nzero =</span> cv_results[[best_result]]<span class="sc">$</span>nzero</span>
+<span id="cb17-557"><a href="#cb17-557"></a>)</span>
+<span id="cb17-558"><a href="#cb17-558"></a></span>
+<span id="cb17-559"><a href="#cb17-559"></a><span class="fu">ggplot</span>(cv_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">log</span>(lambda), <span class="at">y =</span> cvm)) <span class="sc">+</span></span>
+<span id="cb17-560"><a href="#cb17-560"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> cvm <span class="sc">-</span> cvsd, <span class="at">ymax =</span> cvm <span class="sc">+</span> cvsd),</span>
+<span id="cb17-561"><a href="#cb17-561"></a>                <span class="at">width =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb17-562"><a href="#cb17-562"></a>  <span class="fu">geom_point</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">fill =</span> <span class="st">"white"</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb17-563"><a href="#cb17-563"></a>  <span class="fu">geom_line</span>(<span class="at">colour =</span> <span class="st">"dodgerblue4"</span>, <span class="at">linewidth =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb17-564"><a href="#cb17-564"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> nzero <span class="sc">/</span> <span class="fu">max</span>(nzero) <span class="sc">*</span> <span class="fu">max</span>(cvm)), <span class="at">colour =</span> <span class="st">"magenta"</span>) <span class="sc">+</span></span>
+<span id="cb17-565"><a href="#cb17-565"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb17-566"><a href="#cb17-566"></a>    <span class="at">name =</span> <span class="st">"Mean squared error"</span>,</span>
+<span id="cb17-567"><a href="#cb17-567"></a>    <span class="at">sec.axis =</span> <span class="fu">sec_axis</span>(<span class="sc">~</span> . <span class="sc">/</span> <span class="fu">max</span>(cv_df<span class="sc">$</span>cvm) <span class="sc">*</span> <span class="fu">max</span>(cv_df<span class="sc">$</span>nzero),</span>
+<span id="cb17-568"><a href="#cb17-568"></a>                        <span class="at">name =</span> <span class="st">"No. non-zero coefficients"</span>)</span>
+<span id="cb17-569"><a href="#cb17-569"></a>  ) <span class="sc">+</span></span>
+<span id="cb17-570"><a href="#cb17-570"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"log(lambda)"</span>) <span class="sc">+</span></span>
+<span id="cb17-571"><a href="#cb17-571"></a>  <span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb17-572"><a href="#cb17-572"></a>  <span class="fu">theme</span>(</span>
+<span id="cb17-573"><a href="#cb17-573"></a>    <span class="at">axis.title.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
+<span id="cb17-574"><a href="#cb17-574"></a>    <span class="at">axis.title.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>),</span>
+<span id="cb17-575"><a href="#cb17-575"></a>    <span class="at">axis.text.y.right =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"magenta"</span>),</span>
+<span id="cb17-576"><a href="#cb17-576"></a>    <span class="at">axis.text.y.left =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"dodgerblue4"</span>)</span>
+<span id="cb17-577"><a href="#cb17-577"></a>  ) <span class="sc">+</span></span>
+<span id="cb17-578"><a href="#cb17-578"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">log</span>(best_lambda), <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
+<span id="cb17-579"><a href="#cb17-579"></a><span class="in">```</span></span>
+<span id="cb17-580"><a href="#cb17-580"></a></span>
+<span id="cb17-583"><a href="#cb17-583"></a><span class="in">```{r}</span></span>
+<span id="cb17-584"><a href="#cb17-584"></a><span class="fu">coef</span>(elastic_model)</span>
+<span id="cb17-585"><a href="#cb17-585"></a><span class="in">```</span></span>
+<span id="cb17-586"><a href="#cb17-586"></a></span>
+<span id="cb17-587"><a href="#cb17-587"></a>Elastic net is often useful when predictors occur in correlated groups. Lasso may select one predictor and drop the others. Ridge keeps them all. Elastic net often provides a more balanced compromise.</span>
+<span id="cb17-588"><a href="#cb17-588"></a></span>
+<span id="cb17-589"><a href="#cb17-589"></a><span class="fu">## Reporting</span></span>
+<span id="cb17-590"><a href="#cb17-590"></a></span>
+<span id="cb17-591"><a href="#cb17-591"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb17-592"><a href="#cb17-592"></a><span class="fu">## Write-Up</span></span>
+<span id="cb17-593"><a href="#cb17-593"></a></span>
+<span id="cb17-594"><a href="#cb17-594"></a>**Methods**</span>
+<span id="cb17-595"><a href="#cb17-595"></a></span>
+<span id="cb17-596"><a href="#cb17-596"></a>Elastic net regression was used to model the seaweed response, with both the mixing parameter and the penalty term selected by cross-validation. This allowed the model to combine ridge-like shrinkage with lasso-like variable reduction.</span>
+<span id="cb17-597"><a href="#cb17-597"></a></span>
+<span id="cb17-598"><a href="#cb17-598"></a>**Results**</span>
+<span id="cb17-599"><a href="#cb17-599"></a></span>
+<span id="cb17-600"><a href="#cb17-600"></a>The optimal model combined coefficient shrinkage with variable reduction (<span class="in">`alpha =`</span> <span class="in">`r best_alpha`</span>), explained substantial variation in the response (<span class="in">`R^2`</span> approximately <span class="in">`r round(elastic_rsq, 2)`</span>), and provided a stable compromise between ridge and lasso behaviour.</span>
+<span id="cb17-601"><a href="#cb17-601"></a></span>
+<span id="cb17-602"><a href="#cb17-602"></a>**Discussion**</span>
+<span id="cb17-603"><a href="#cb17-603"></a></span>
+<span id="cb17-604"><a href="#cb17-604"></a>The value of elastic net is pragmatic balance: it handles correlated predictors more flexibly than lasso alone while still allowing the model to simplify where the data support that.</span>
+<span id="cb17-605"><a href="#cb17-605"></a>:::</span>
+<span id="cb17-606"><a href="#cb17-606"></a></span>
+<span id="cb17-607"><a href="#cb17-607"></a><span class="fu"># Theory-Driven and Data-Driven Variable Selection</span></span>
+<span id="cb17-608"><a href="#cb17-608"></a></span>
+<span id="cb17-609"><a href="#cb17-609"></a>The choice between theory-driven and data-driven variable selection should not be treated as a fight with a single winner. In practice, the strongest ecological modelling often combines both.</span>
+<span id="cb17-610"><a href="#cb17-610"></a></span>
+<span id="cb17-611"><a href="#cb17-611"></a>Theory-driven selection is central to the scientific method. It uses prior ecological reasoning to define a defensible set of candidate predictors. This keeps the model close to mechanism and strengthens interpretation.</span>
+<span id="cb17-612"><a href="#cb17-612"></a></span>
+<span id="cb17-613"><a href="#cb17-613"></a>Data-driven methods, including regularisation, can then help assess which predictors contribute most strongly to predictive performance, where redundancy lies, and how strongly coefficients need to be stabilised. They are especially useful in high-dimensional settings or when the predictors are strongly overlapping.</span>
+<span id="cb17-614"><a href="#cb17-614"></a></span>
+<span id="cb17-615"><a href="#cb17-615"></a>The danger is to let automated variable selection replace ecological thinking. Regularisation can help refine the model, but it cannot tell you what the scientific question ought to be.</span>
+<span id="cb17-616"><a href="#cb17-616"></a></span>
+<span id="cb17-617"><a href="#cb17-617"></a><span class="fu"># Summary</span></span>
+<span id="cb17-618"><a href="#cb17-618"></a></span>
+<span id="cb17-619"><a href="#cb17-619"></a><span class="ss">-   </span>Regularisation is useful when predictors are many, overlapping, or likely to produce unstable ordinary regression coefficients.</span>
+<span id="cb17-620"><a href="#cb17-620"></a><span class="ss">-   </span>Ridge shrinks all coefficients, lasso can remove some, and elastic net blends both behaviours.</span>
+<span id="cb17-621"><a href="#cb17-621"></a><span class="ss">-   </span>Cross-validation is central to selecting the amount of shrinkage.</span>
+<span id="cb17-622"><a href="#cb17-622"></a><span class="ss">-   </span>These methods are usually most useful when prediction, stability, and model simplification matter more than exact coefficient interpretation.</span>
+<span id="cb17-623"><a href="#cb17-623"></a><span class="ss">-   </span>Regularisation should complement, not replace, ecological reasoning and theory-driven model building.</span>
+<span id="cb17-624"><a href="#cb17-624"></a></span>
+<span id="cb17-625"><a href="#cb17-625"></a>The final chapter now turns from model choice to the workflow required to make the whole analysis transparent and reproducible.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

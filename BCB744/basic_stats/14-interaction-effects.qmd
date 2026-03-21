@@ -112,6 +112,38 @@ This is why interaction models should almost never be interpreted from the coeff
 If a continuous predictor has no meaningful zero, the main effects in an interaction model can be awkward to interpret. In such cases, centring the predictor often helps because it shifts the zero point to a more meaningful reference value, often the sample mean.
 :::
 
+## Short Example: Two Continuous Predictors with and without Centring
+
+Suppose we want to model algal growth as a function of temperature and nutrient concentration, and we suspect that the effect of temperature depends on nutrient supply. With two continuous predictors, the interaction is straightforward to fit, but the uncentred coefficients can be awkward to interpret because they are defined when the *other* predictor equals zero.
+
+```{r code-centering-example}
+set.seed(14)
+
+int_demo <- tibble(
+  temp = runif(120, 8, 24),
+  nutrient = runif(120, 0.5, 5)
+) |>
+  mutate(
+    growth = 4 + 0.25 * temp + 1.1 * nutrient + 0.18 * temp * nutrient +
+      rnorm(n(), sd = 1.8),
+    temp_c = temp - mean(temp),
+    nutrient_c = nutrient - mean(nutrient)
+  )
+
+mod_raw <- lm(growth ~ temp * nutrient, data = int_demo)
+mod_cent <- lm(growth ~ temp_c * nutrient_c, data = int_demo)
+
+tibble(
+  term = names(coef(mod_raw)),
+  uncentred = round(coef(mod_raw), 3),
+  centred = round(coef(mod_cent), 3)
+)
+```
+
+The interaction term is the same model statement in both fits, but the main effects now answer more useful questions. In the uncentred model, the temperature coefficient is the slope when nutrient concentration is zero, and the nutrient coefficient is the slope when temperature is zero. Those values are not biologically meaningful here. In the centred model, the temperature effect is the slope at the **mean** nutrient concentration, and the nutrient effect is the slope at the **mean** temperature.
+
+This is why centring helps in continuous × continuous interactions. It does not remove the interaction or change the fitted surface. It changes the reference point so that the main effects describe a scientifically sensible part of the predictor space.
+
 # Example 1: Coastal distance and bioregional context
 
 ## Example Dataset

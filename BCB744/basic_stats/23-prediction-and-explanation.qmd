@@ -19,6 +19,13 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r code-libraries, echo=FALSE}
+library(tidyverse)
+
+set.seed(23)
+theme_set(ggplot2::theme_grey(base_size = 8))
+```
+
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
@@ -77,6 +84,60 @@ The basic idea is:
 4. repeat this across several splits.
 
 This kind of out-of-sample thinking becomes especially important when models are built for forecasting, classification, or any situation where performance on new data matters more than close interpretation of each coefficient.
+
+# A Short Paired Example
+
+The same dataset can motivate different models depending on the scientific goal. Suppose we measure algal biomass together with temperature, nutrient concentration, wave exposure, and turbidity. If the biological question is whether biomass depends on temperature differently under different nutrient conditions, an explanatory model should keep that interaction central. If the goal is simply to forecast biomass at new sites, we may tolerate a more flexible and less interpretable model if it predicts better.
+
+```{r code-explanation-vs-prediction}
+eco_dat <- tibble(
+  temp = runif(180, 8, 24),
+  nutrient = runif(180, 0.5, 4.5),
+  wave = runif(180, 0, 8),
+  turbidity = runif(180, 0, 5)
+) |>
+  mutate(
+    biomass = 6 + 0.8 * temp + 2.1 * nutrient - 0.45 * wave +
+      0.32 * temp * nutrient - 0.05 * temp^2 + 0.35 * turbidity +
+      rnorm(n(), sd = 3.2)
+  )
+
+train_id <- sample(seq_len(nrow(eco_dat)), size = round(0.75 * nrow(eco_dat)))
+train_dat <- eco_dat[train_id, ]
+test_dat <- eco_dat[-train_id, ]
+
+mod_expl <- lm(biomass ~ temp * nutrient + wave, data = train_dat)
+mod_pred <- lm(
+  biomass ~ temp * nutrient + wave + turbidity +
+    I(temp^2) + I(nutrient^2) + temp:wave + nutrient:wave,
+  data = train_dat
+)
+
+rmse <- function(obs, pred) sqrt(mean((obs - pred)^2))
+
+comparison_tbl <- tibble(
+  model_goal = c("Explanation", "Prediction"),
+  model = c(
+    "biomass ~ temp * nutrient + wave",
+    "biomass ~ temp * nutrient + wave + turbidity + I(temp^2) + I(nutrient^2) + temp:wave + nutrient:wave"
+  ),
+  adj_r2_training = c(
+    summary(mod_expl)$adj.r.squared,
+    summary(mod_pred)$adj.r.squared
+  ),
+  rmse_test = c(
+    rmse(test_dat$biomass, predict(mod_expl, newdata = test_dat)),
+    rmse(test_dat$biomass, predict(mod_pred, newdata = test_dat))
+  )
+) |>
+  mutate(across(c(adj_r2_training, rmse_test), \(x) round(x, 3)))
+
+comparison_tbl
+```
+
+The explanatory model is smaller because it stays close to the biological question: does the temperature effect depend on nutrient concentration, after accounting for wave exposure? Its coefficients can be discussed directly. The predictive model is judged differently. It adds curvature and extra interactions because the goal is lower error on new data, not a cleaner causal statement.
+
+The same response variable and the same predictors do not force the same model. The modelling goal determines what counts as a good model.
 
 # What This Means in Practice
 
