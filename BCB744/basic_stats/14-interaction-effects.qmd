@@ -45,9 +45,11 @@ library(tidyverse)
 
 # Introduction
 
-Many ecological and biological processes are interactive. The effect of one variable often depends on the level of another. Nutrient supply may matter more at high temperature than at low temperature. The influence of distance may differ among bioregions. A treatment may affect males and females differently.
+Many ecological and biological processes are interactive. The effect of one variable often depends on the level of another. Nutrient supply may be more impactful at high temperature than at low temperature. The influence of distance may differ among bioregions. A treatment may affect males and females differently.
 
 These situations are handled in regression by including an **interaction term**. Interaction models are often where linear modelling becomes much more interesting biologically, but they are also where interpretation becomes more demanding. Once an interaction is present, the main effects can no longer be read in the same simple way as before.
+
+This chapter therefore follows directly from the additive factor-plus-covariate logic introduced in [Chapter 13](13-multiple-regression-and-model-specification.qmd). In older terminology, the additive model `y ~ group + x` is often called ANCOVA. The present chapter begins where that simple ANCOVA framing stops, which is when the slope of `x` may differ among groups and the model must therefore include `group * x`.
 
 # Key Concepts
 
@@ -112,9 +114,15 @@ This is why interaction models should almost never be interpreted from the coeff
 If a continuous predictor has no meaningful zero, the main effects in an interaction model can be awkward to interpret. In such cases, centring the predictor often helps because it shifts the zero point to a more meaningful reference value, often the sample mean.
 :::
 
-## Short Example: Two Continuous Predictors with and without Centring
+# Example 1: Two Continuous Predictors with and without Centring
 
-Suppose we want to model algal growth as a function of temperature and nutrient concentration, and we suspect that the effect of temperature depends on nutrient supply. With two continuous predictors, the interaction is straightforward to fit, but the uncentred coefficients can be awkward to interpret because they are defined when the *other* predictor equals zero.
+Interactions do not only occur between a factor and a continuous predictor. They also arise when two continuous predictors work together, and this case gives one of the clearest demonstrations of why interaction models can become awkward to interpret if the predictors are left on their raw scales.
+
+Suppose we want to model algal growth as a function of temperature and nutrient concentration, and we suspect that the effect of temperature depends on nutrient supply. That is a biologically plausible interaction: warming may matter more when nutrients are abundant than when they are scarce.
+
+## Example Dataset
+
+To keep the logic transparent, we first create a small synthetic dataset in which both predictors are continuous and their interaction is genuinely present.
 
 ```{r code-centering-example}
 set.seed(14)
@@ -129,7 +137,67 @@ int_demo <- tibble(
     temp_c = temp - mean(temp),
     nutrient_c = nutrient - mean(nutrient)
   )
+```
 
+## Do an Exploratory Data Analysis (EDA)
+
+Before fitting the interaction model, inspect the scale of the predictors and the overall response pattern.
+
+```{r code-centering-summary}
+int_demo |>
+  summarise(
+    mean_temp = mean(temp),
+    sd_temp = sd(temp),
+    mean_nutrient = mean(nutrient),
+    sd_nutrient = sd(nutrient),
+    mean_growth = mean(growth),
+    sd_growth = sd(growth)
+  )
+```
+
+```{r fig-centering-eda}
+#| fig-cap: "Algal growth as a function of temperature at low, medium, and high nutrient levels. The fitted lines suggest that the temperature-growth slope steepens as nutrient concentration increases."
+#| fig-width: 5
+#| fig-height: 3.5
+
+int_demo |>
+  mutate(
+    nutrient_band = cut(
+      nutrient,
+      breaks = quantile(nutrient, probs = c(0, 1/3, 2/3, 1)),
+      include.lowest = TRUE,
+      labels = c("Low nutrient", "Medium nutrient", "High nutrient")
+    )
+  ) |>
+  ggplot(aes(x = temp, y = growth, colour = nutrient_band)) +
+  geom_point(alpha = 0.65, size = 1.5) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.8) +
+  labs(
+    x = "Temperature",
+    y = "Growth",
+    colour = "Nutrient level"
+  ) +
+  theme_grey()
+```
+
+The fitted lines are not parallel. As nutrient concentration increases, the fitted temperature-growth slope becomes steeper. That is exactly the visual signature of an interaction.
+
+## State the Model Question
+
+The biological question is not merely whether temperature matters or whether nutrient concentration matters. It is whether the effect of temperature changes across the nutrient gradient.
+
+For the interaction term, the hypothesis pair is:
+
+$$H_{0}: \beta_{\text{temp:nutrient}} = 0$$
+$$H_{a}: \beta_{\text{temp:nutrient}} \ne 0$$
+
+If the interaction coefficient is zero, the slope of temperature does not depend on nutrient concentration. If it differs from zero, the temperature effect is conditional on nutrient supply.
+
+## Fit the Uncentred and Centred Models
+
+We fit the same interaction twice: once on the raw predictor scales, and once after centring both predictors on their means.
+
+```{r code-centering-models}
 mod_raw <- lm(growth ~ temp * nutrient, data = int_demo)
 mod_cent <- lm(growth ~ temp_c * nutrient_c, data = int_demo)
 
@@ -140,15 +208,35 @@ tibble(
 )
 ```
 
-The interaction term is the same model statement in both fits, but the main effects now answer more useful questions. In the uncentred model, the temperature coefficient is the slope when nutrient concentration is zero, and the nutrient coefficient is the slope when temperature is zero. Those values are not biologically meaningful here. In the centred model, the temperature effect is the slope at the **mean** nutrient concentration, and the nutrient effect is the slope at the **mean** temperature.
+## Interpret the Results
 
-This is why centring helps in continuous × continuous interactions. It does not remove the interaction or change the fitted surface. It changes the reference point so that the main effects describe a scientifically sensible part of the predictor space.
+The important result is that the interaction term is the same model statement in both fits, and its estimate is unchanged by centring apart from trivial rounding differences. What changes are the **main effects**.
 
-# Example 1: Coastal distance and bioregional context
+In the uncentred model:
+
+-   the temperature coefficient is the slope when nutrient concentration is zero;
+-   the nutrient coefficient is the slope when temperature is zero.
+
+Those values are awkward here because neither zero nutrient nor zero temperature is a meaningful reference point for these data.
+
+In the centred model:
+
+-   the temperature coefficient is the slope at the **mean** nutrient concentration;
+-   the nutrient coefficient is the slope at the **mean** temperature.
+
+That makes the coefficients much easier to interpret biologically. The interaction is still there, and the fitted surface is still the same, but the reference point has moved to a scientifically sensible part of the predictor space.
+
+## Why is This Example Important?
+
+This is why centring helps in continuous × continuous interactions. It does not remove the interaction or change the fitted values. It changes the reference point so that the main effects describe something scientifically interpretable rather than a mathematically arbitrary zero point.
+
+The lesson extends beyond this synthetic example. The same logic carries into factor × continuous interactions, ANCOVA-style models, and more complex multiple-regression settings. Whenever an interaction is present, you should ask whether the zero point of each continuous predictor gives the main effects a useful meaning. If it does not, centring is often the cleanest fix.
+
+# Example 2: Coastal Distance and Bioregional Context
 
 ## Example Dataset
 
-We continue with the seaweed dataset, now using the full data. The question is whether the relationship between Sørensen dissimilarity (`Y`) and distance along the coast (`dist`) differs among bioregions (`bio`).
+We now return to the same seaweed dataset used in Chapter 13, where distance and bioregion were first combined in an additive model. There the question was whether distance and bioregion both helped explain Sørensen dissimilarity. Here the question becomes more specific: does the relationship between Sørensen dissimilarity (`Y`) and distance along the coast (`dist`) differ among bioregions (`bio`)?
 
 ```{r code-seaweed-int}
 sw <- read.csv("../../data/BCB743/seaweed/spp_df2.csv")
@@ -171,11 +259,11 @@ ggplot(sw, aes(x = dist, y = Y, colour = bio)) +
   theme_grey()
 ```
 
-The fitted lines are not parallel. That already suggests an interaction: the relationship between distance and dissimilarity appears to differ among bioregions.
+The fitted lines are not parallel. That already suggests an interaction: the relationship between distance and dissimilarity appears to differ among bioregions. In other words, the additive assumption from Chapter 13 may be too simple.
 
 ## State the Hypotheses
 
-There are three increasingly rich questions here:
+There are three increasingly specific questions here:
 
 1. Is distance related to dissimilarity?
 2. Do the average levels of dissimilarity differ among bioregions?
@@ -205,7 +293,7 @@ anova(mod_dist, mod_main, mod_int)
 summary(mod_int)
 ```
 
-The model comparison is the most useful result at this stage. Adding bioregion to the distance-only model improves fit strongly, and adding the interaction improves fit strongly again. This means the interaction is not a cosmetic extra term. It changes the model materially.
+The model comparison is the most useful result at this stage. Adding bioregion to the distance-only model improves fit strongly, and adding the interaction improves fit strongly again. This means the interaction changes the model materially.
 
 ## Interpret the Interaction
 

@@ -74,6 +74,7 @@ The chapter turns on the following ideas.
 -   **Omitted variables, poor functional form, and unjustified interactions** can distort inference.
 -   **Predictor choice** should be theory-driven rather than data-convenience driven.
 -   **Categorical predictors** are part of the same linear-model family and can be handled naturally in multiple regression.
+-   **ANCOVA is not a separate mathematical species**; it is a linear model containing a factor and a continuous covariate.
 
 # Nature of the Data and Assumptions
 
@@ -136,7 +137,73 @@ lm(response ~ continuous_predictor1 + continuous_predictor2 +
 
 R automatically handles the dummy-variable coding of factors. This is one reason multiple regression and ANOVA are so closely connected.
 
-# Why Model Specification Matters
+# Where ANCOVA Fits
+
+Students are often taught **ANCOVA** as if it were a separate named procedure standing halfway between ANOVA and regression. In practice, ANCOVA is just a linear model that contains:
+
+-   a **categorical predictor** representing groups or treatments; and
+-   a **continuous covariate** that we want to adjust for.
+
+In R, the regression framing is written as:
+
+```{r}
+#| eval: false
+lm(response ~ factor_group + covariate, data = dataset)
+```
+
+If one wants to keep the older ANOVA-style framing, the same additive structure can also be written as:
+
+```{r}
+#| eval: false
+aov(response ~ factor_group + covariate, data = dataset)
+```
+
+The reason ANCOVA belongs in this chapter is that the model is algebraically the same as multiple regression with mixed predictor types. The factor is represented through dummy variables, the covariate enters as an ordinary slope term, and the fitted group coefficients are interpreted **after adjusting for the covariate**.
+
+This is also why the distinction between ANOVA and ANCOVA is mostly one of emphasis:
+
+-   **ANOVA framing** emphasises comparing group means;
+-   **ANCOVA framing** emphasises comparing groups while controlling for a continuous covariate;
+-   **regression framing** makes the common model structure explicit.
+
+Mathematically, there is no difference. The fitted model is the same. What changes is the teaching emphasis and, in R, the style of output that is foregrounded.
+
+If the model is:
+
+```{r}
+#| eval: false
+lm(y ~ group + x, data = df)
+```
+
+or equivalently:
+
+```{r}
+#| eval: false
+aov(y ~ group + x, data = df)
+```
+
+then:
+
+-   the coefficient of `x` is the adjusted slope of the covariate;
+-   the coefficients of `group` are adjusted differences among the factor levels relative to the reference level;
+-   the whole model can be described either as a regression with a factor and a covariate or as an ANCOVA.
+
+The practical difference is therefore one of emphasis:
+
+-   `lm()` encourages you to read coefficients, fitted slopes, confidence intervals, and the common linear-model structure directly.
+-   `aov()` encourages you to read the analysis in ANOVA-style terms, with sums of squares and omnibus tests emphasised.
+-   For ANCOVA, `lm()` is usually the clearer teaching choice because it makes it obvious that the covariate and the factor are part of the same linear model.
+
+The important assumption in the usual introductory ANCOVA framing is that the slope of the covariate is the **same across groups**. In regression language, that means we are fitting an additive model without a `group:x` interaction.
+
+If the biological question is whether the covariate-response slope differs among groups, then the model is no longer a simple ANCOVA in the introductory sense. It becomes an **interaction model**, and that is the topic of [Chapter 14](14-interaction-effects.qmd).
+
+So the clean teaching rule is:
+
+-   `y ~ group + x` → ANCOVA-style additive model;
+-   `y ~ group * x` → interaction model with group-specific slopes.
+
+# Why Model Specification is Important
 
 In simple regression, the modelling decision is often obvious: one response, one predictor. In multiple regression, the structure of the model becomes part of the argument. The important questions are:
 
@@ -181,7 +248,7 @@ summary(sw_sub1)
 Before fitting a multiple regression, it is also useful to look at each predictor individually against the response because it provides intuition about the data structure before we begin combining effects.
 
 ```{r fig-seaweed-slr}
-#| fig-width: 10
+#| fig-width: 8
 #| fig-height: 7.5
 #| fig-cap: "Individual simple linear regressions fitted to the variables `augMean`, `febRange`, `febSD`, `augSD`, and `annMean` as predictors of the seaweed species composition as measured by the Sørensen dissimilarity, `Y`."
 
@@ -366,9 +433,9 @@ In the East Coast Transition Zone, mean Sørensen dissimilarity was well explain
 The main discussion point is that the model identifies a small set of comparatively stable climatic predictors, rather than treating every candidate variable as independently meaningful. This is why model specification and collinearity screening matter in multiple regression.
 :::
 
-# Example 2: Categorical Predictors and Interaction of Distance and Bioregion
+# Example 2: Categorical Predictors with Distance and Bioregion
 
-Multiple regression can include both continuous and categorical predictors. In R, this is done by entering the categorical variable as a factor. This matters because many ecological questions involve a mixture of environmental gradients and group structure.
+Multiple regression can include both continuous and categorical predictors. In R, this is done by entering the categorical variable as a factor. This is important because many ecological questions involve a mixture of environmental gradients and group structure.
 
 For example:
 
@@ -379,7 +446,7 @@ lm(response ~ dist + factor(bio), data = df)
 
 Once categorical predictors are included, multiple regression and ANOVA become part of the same linear-model family. This is why the earlier ANOVA chapter and the present modelling chapters connect so naturally.
 
-## Dummy variable coding
+## Dummy Variable Coding
 
 When a categorical variable is included in a regression model, R does not fit a separate coefficient for every level plus an intercept. That would be redundant. Instead, it uses **dummy variables** (also called **indicator variables**) to represent the levels of the factor.
 
@@ -403,9 +470,9 @@ Here:
 
 This is the coding that `lm()` uses by default for factors. The first level of the factor is taken as the reference level unless you change it explicitly with `relevel()`. The practical implication is that when you see coefficients such as `bioBMP` or `bioECTZ`, they do not represent absolute means for those groups. They represent differences from the reference bioregion, holding the continuous predictors constant.
 
-If an interaction between a continuous predictor and a factor is added, the same reasoning extends to the slopes. The main slope belongs to the reference level, and the interaction terms show how the slope changes in the other levels relative to that reference. You need to understand this to interpret the `dist * bio` example below.
+If an interaction between a continuous predictor and a factor is added, the same reasoning extends to the slopes. The main slope belongs to the reference level, and the interaction terms show how the slope changes in the other levels relative to that reference. That is the natural next step, but it belongs in [Chapter 14](14-interaction-effects.qmd), where the whole focus is on how those slope differences are interpreted.
 
-## What the coding looks like in practice
+## What the Coding Looks Like in Practice
 
 The abstract notation above is necessary, but it becomes much easier once we look at the actual coding used for the seaweed bioregions. We first create one row for each bioregion and then inspect the model matrix that `lm()` would construct internally.
 
@@ -447,7 +514,7 @@ bio_model_matrix |>
 
 This picture makes the bookkeeping explicit. `AMP` is the reference level, so all the dummy columns are zero there. `B-ATZ`, `BMP`, and `ECTZ` each receive a `1` in their own indicator column, which is why their fitted coefficients must be read as differences from `AMP`, not as stand-alone group means.
 
-The same logic carries directly into the interaction model. Once `dist * bio` is fitted, the coefficient for `dist` is the slope for `AMP`, and each `dist:bio...` term tells you how much the slope changes in the corresponding bioregion relative to `AMP`.
+The same logic will later carry directly into interaction models. But before we go there, it is useful to stay with the simpler additive case in which distance has one common slope and the bioregions differ only in their intercepts.
 
 ## State the Biological Question
 
@@ -462,27 +529,24 @@ These variables lend themselves to a few interesting questions:
 2. Does the average Sørensen dissimilarity vary among bioregions?
 3. Is the effect of geographic distance on Sørensen dissimilarity different for each bioregion?
 
-The third question requires that we consider possible interaction between the drivers, geographic distance and bioregion. So Example 2 extends the Chapter 13 workflow by combining continuous and categorical predictors in the same multiple-regression model.
+The first two questions are additive-model questions and therefore belong in this chapter. The third question asks whether the slope of distance differs among bioregions, which is an interaction question and is therefore deferred to [Chapter 14](14-interaction-effects.qmd).
 
-## State the model and hypotheses
+## State the Model and Hypotheses
 
-The full model can be written as:
+For the additive model in this chapter, the response can be written as:
 
 $$
-Y = \alpha + \beta_1 \text{dist} + \beta_2 \text{bio} + \beta_3 (\text{dist} \times \text{bio}) + \epsilon
+Y = \alpha + \beta_1 \text{dist} + \beta_2 \text{bio} + \epsilon
 $$
 
-Because `bio` has four levels, the fitted model is actually expanded internally into several dummy variables and their interactions. With `AMP` as the reference bioregion, the model is equivalent to:
+Because `bio` has four levels, the fitted model is actually expanded internally into several dummy variables. With `AMP` as the reference bioregion, the model is equivalent to:
 
 $$
 \begin{aligned}
 Y = \alpha &+ \beta_1 \text{dist}
 + \beta_2 \text{bio}_{\text{B-ATZ}}
 + \beta_3 \text{bio}_{\text{BMP}}
-+ \beta_4 \text{bio}_{\text{ECTZ}} \\
-&+ \beta_5 (\text{dist} \times \text{bio}_{\text{B-ATZ}})
-+ \beta_6 (\text{dist} \times \text{bio}_{\text{BMP}})
-+ \beta_7 (\text{dist} \times \text{bio}_{\text{ECTZ}})
++ \beta_4 \text{bio}_{\text{ECTZ}}
 + \epsilon
 \end{aligned}
 $$
@@ -491,11 +555,11 @@ In words:
 
 -   the intercept and `dist` slope describe the reference bioregion;
 -   the `bio` coefficients describe how the intercept differs in the other bioregions relative to the reference;
--   the interaction terms describe how the slope of `dist` differs in the other bioregions relative to the reference.
+-   the slope of `dist` is assumed to be the same in all bioregions.
 
-The overall null is that neither the main effects nor the interaction contributes to explaining the response. The interaction-specific null is that the effect of distance does not differ among bioregions.
+The overall null is that neither the distance effect nor the bioregion effect contributes to explaining the response. At the coefficient level, we therefore ask whether the slope of `dist` differs from zero and whether the bioregion coefficients differ from the reference level.
 
-## Visualise the main effects
+## Visualise the Main Effects
 
 ```{r fig-mod2-main-effects}
 #| fig-width: 8
@@ -522,42 +586,42 @@ p2 <- ggplot(sw, aes(x = bio, y = Y)) +
 ggarrange(p1, p2, ncol = 2, labels = "AUTO")
 ```
 
-The plot of `Y` against distance already suggests that one slope for all bioregions may be too simple. Colouring by bioregion reveals hidden structure. The boxplots also suggest that the average values of `Y` differ among bioregions.
+The plot of `Y` against distance already suggests that distance matters. Colouring by bioregion and inspecting the boxplots also suggest that the average level of `Y` differs among bioregions. The additive model is the first sensible way to combine those two patterns in one regression.
 
-## Fit and assess nested models
+## Fit and Assess Nested Models
 
 ```{r code-mod2-fit}
 mod2a <- lm(Y ~ dist, data = sw)
-mod2 <- lm(Y ~ dist * bio, data = sw)
+mod2 <- lm(Y ~ dist + bio, data = sw)
 
 anova(mod2a, mod2, test = "F")
 summary(mod2)
 anova(mod2)
 ```
 
-The nested comparison shows that adding the bioregion effect and its interaction with distance improves the model strongly. The residual sum of squares decreases sharply, and the test indicates that the richer model provides a substantially better fit ($p < 0.001$).
+The nested comparison shows that adding the bioregion effect to the distance-only model improves the fit strongly. The residual sum of squares decreases sharply, and the test indicates that the richer additive model provides a substantially better fit ($p < 0.001$).
 
-This chapter does not explain the full interaction table, because that is the focus of [Chapter 14](14-interaction-effects.qmd). But the present example is important because it shows that interactions are not an exotic extra. They arise naturally once multiple regression allows both continuous and categorical predictors.
+At this stage we are still fitting the simpler model in which distance has one common slope. That keeps the interpretation aligned with the main goal of Chapter 13: understanding how continuous and categorical predictors coexist in one additive linear model. In [Chapter 14](14-interaction-effects.qmd), we return to the same biological setting and ask whether allowing the slope of distance to differ among bioregions improves the model further.
 
-## Interpret the interaction model
+## Interpret the Additive Model
 
-The coefficient table must be read with care because `bio` is represented through dummy-variable coding. The reference bioregion is absorbed into the intercept, and the remaining bioregion coefficients are interpreted relative to that reference. The interaction terms then tell us how the slope of `dist` differs among the other bioregions relative to the reference.
+The coefficient table must be read with care because `bio` is represented through dummy-variable coding. The reference bioregion is absorbed into the intercept, and the remaining bioregion coefficients are interpreted relative to that reference.
 
 So, if `AMP` is the reference level, then:
 
 -   the coefficient for `dist` is the slope for `AMP`;
 -   the coefficient for `bioBMP` is the difference in intercept between `BMP` and `AMP` when `dist = 0`;
--   the coefficient for `dist:bioBMP` is the amount by which the `BMP` slope differs from the `AMP` slope.
+-   the same fitted slope of `dist` applies across the bioregions in this additive model.
 
-The same logic applies to the other bioregions. This is why the main effect of a factor and the interaction terms should never be interpreted in isolation. They are part of one combined coding system.
+The same reasoning applies to the other bioregions. In this chapter, the important point is that adding a factor to a regression model changes the intercept structure while preserving one shared slope for the continuous predictor.
 
 The broad interpretation is straightforward even if the bookkeeping is not:
 
 -   the effect of distance on `Y` is strong;
 -   the mean level of `Y` differs among bioregions;
--   and, importantly, the slope of distance is not the same in all bioregions.
+-   and those two sources of structure can be handled within the same additive linear model.
 
-That last point is the biologically important one. Different bioregions show different rates at which Sørensen dissimilarity increases with distance.
+If we now decide that different bioregions may also have different **rates** at which dissimilarity increases with distance, then we must move to an interaction model. That is the starting point of the next chapter.
 
 ## Reporting
 
@@ -566,28 +630,28 @@ That last point is the biologically important one. Different bioregions show dif
 
 **Methods**
 
-Nested linear models were used to test whether the relationship between Sørensen dissimilarity and geographic distance differed among bioregions. The interaction between distance and bioregion was assessed by comparing a single-slope model with a richer model containing both the bioregional main effect and the `dist × bio` interaction.
+Nested linear models were used to test whether Sørensen dissimilarity was related to geographic distance and whether mean dissimilarity differed among bioregions. A distance-only model was compared with an additive model containing both distance and bioregion.
 
 **Results**
 
-Sørensen dissimilarity increased strongly with geographic distance, but the rate of increase differed among bioregions in the fitted interaction model. Adding bioregional main effects and the `dist × bio` interaction improved model fit substantially relative to a single-slope distance model ($F = 390.95$, $p < 0.001$), and the interaction model explained a large proportion of the variation in dissimilarity ($R^2 = 0.86$; adjusted $R^2 = 0.86$). The baseline distance effect was strongly positive ($\beta = 3.53 \times 10^{-4}$, $p < 0.001$), but this slope was steeper in some bioregions and shallower in others, confirming that the relationship between geographic separation and compositional turnover is not spatially uniform along the South African coast.
+Sørensen dissimilarity increased strongly with geographic distance, and the additive model showed that mean dissimilarity also differed among bioregions. Adding bioregion to the distance-only model improved fit substantially ($p < 0.001$), indicating that both continuous geographic separation and categorical bioregional context contributed to explaining variation in the response. The fitted distance effect was strongly positive, while the bioregion coefficients indicated differences in baseline dissimilarity relative to the reference bioregion.
 
 **Discussion**
 
-The biologically important point is that compositional turnover is structured jointly by distance and bioregional context. The interaction is therefore biologically meaningful rather than a technical complication in the model formula.
+The biologically important point is that compositional turnover is structured jointly by distance and bioregional context. At this stage, however, the model still assumes one common distance effect across the coastline. The next chapter asks whether that simplifying assumption is biologically defensible.
 :::
 
-# Example 3: The Final Model
+# Example 3: The Final Additive Model
 
-We can now expand the selected climate model to include `bio` as a predictor alongside `augMean`, `febSD`, and `augSD`. This creates a richer model in which the continuous climate effects may differ among bioregions.
+We can now expand the selected climate model to include `bio` as an additive predictor alongside `augMean`, `febSD`, and `augSD`. This creates a more complete model in which the climatic effects are estimated jointly with bioregional differences, but still under the additive assumption.
 
-## Fit the richer model
+## Fit the Comprehensive Additive Model
 
 ```{r code-mod3-fit}
 sw_sub2 <- sw |>
   dplyr::select(Y, augMean, febSD, augSD, bio)
 
-full_mod3 <- lm(Y ~ (augMean + febSD + augSD) * bio, data = sw_sub2)
+full_mod3 <- lm(Y ~ augMean + febSD + augSD + bio, data = sw_sub2)
 full_mod3a <- lm(Y ~ augMean + febSD + augSD, data = sw_sub2)
 null_mod3 <- lm(Y ~ 1, data = sw_sub2)
 
@@ -597,19 +661,19 @@ summary(full_mod3)
 anova(full_mod3)
 ```
 
-The final interaction model is clearly better than the reduced additive model. The AIC is lower, and the nested comparison indicates that allowing the slopes to differ among bioregions improves fit strongly.
+The richer additive model is clearly better than the climate-only model. The AIC is lower, and the nested comparison indicates that adding bioregional structure improves fit strongly even before we allow any climate slopes to vary among bioregions.
 
-The model is now much more interesting and insightful than the one we began with. That does not necessarily make it better in every sense, but it may be better if the biological question really concerns whether the climate relationships differ among bioregions.
+The model is now richer than the one we began with because it combines several continuous climate predictors with a categorical regional structure. That does not yet imply that the climate relationships differ among bioregions. It only means that bioregional shifts in baseline response matter and should be accounted for.
 
-## Interpret the more interesting model
+## Interpret the Full Additive Model
 
 The summary of `full_mod3` shows that:
 
 -   `augMean` remains a strong predictor of `Y`;
--   several interaction terms are important, which means the climate-response relationships differ among bioregions;
+-   `bio` contributes additional explanatory structure beyond the climate predictors alone;
 -   the overall model explains a substantial proportion of the variation in the response.
 
-So, the outcome is that the relationship between the seaweed dissimilarity index and the selected climate variables is not spatially uniform, but that the influence of those variables changes among the bioregions. That is a much more insightful ecological statement than anything we could obtain from a single-predictor regression.
+So, the outcome is that the relationship between the seaweed dissimilarity index and the selected climate variables can be modelled more convincingly once broad bioregional differences are included. That is a more defensible additive ecological statement than anything we could obtain from a single-predictor regression.
 
 ## Reporting
 
@@ -618,15 +682,15 @@ So, the outcome is that the relationship between the seaweed dissimilarity index
 
 **Methods**
 
-A more insightful interaction model was fitted to evaluate whether the relationships between Sørensen dissimilarity and the selected climate predictors differed among bioregions. The interaction-rich model was compared with the corresponding additive model using information criteria and nested model comparison.
+A comprehensive additive multiple regression was fitted to evaluate whether mean Sørensen dissimilarity was explained jointly by the selected climate predictors and by bioregional classification. The additive climate-plus-bioregion model was compared with the corresponding climate-only model using information criteria and nested model comparison.
 
 **Results**
 
-The full interaction multiple regression explained a large proportion of the variation in mean Sørensen dissimilarity ($R^2 = 0.78$; adjusted $R^2 = 0.78$) and fit the data substantially better than the corresponding additive model (lower AIC; nested model comparison $F = 47.54$, $p < 0.001$). August mean temperature remained the dominant positive predictor in the reference bioregion ($\beta = 0.344$, $p < 0.001$), but several significant interaction terms showed that the effects of August mean temperature, February temperature variability, and August temperature variability differed among bioregions. In particular, the slopes associated with `augMean` were weaker in `BMP` and `ECTZ` than in the reference bioregion, while positive interactions involving `febSD` and `augSD` indicated that the effect of short-term temperature variability was stronger in some bioregions than in others.
+The additive multiple regression explained a large proportion of the variation in mean Sørensen dissimilarity and fit the data substantially better than the corresponding climate-only model (lower AIC; nested model comparison $p < 0.001$). August mean temperature remained the dominant positive predictor, and the inclusion of bioregion showed that broad regional differences in baseline dissimilarity persisted even after the selected climate variables had been taken into account.
 
 **Discussion**
 
-This final model with interactions supports the broader ecological interpretation that the climatic drivers of compositional turnover are not spatially uniform along the South African coast. In a manuscript, that would be the main discussion point rather than a long catalogue of coefficient values.
+This final additive model supports the ecological interpretation that compositional turnover is shaped both by climate and by broad regional context. If the next biological question is whether the climate slopes themselves differ among bioregions, then the analysis must move beyond additive structure and into the interaction framework developed in Chapter 14.
 :::
 
 # Alternative Categorical Variable Coding Schemes (Contrasts)

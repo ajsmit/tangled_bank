@@ -124,7 +124,7 @@ lmer(response ~ predictors + (1 | group), data = df)
 
 The term `(1 | group)` means that each group has its own intercept.
 
-# Example 1: Shorebird landing distance with site-level dependence
+# Example 1: Shorebird Landing Distance with Site-Level Dependence
 
 ## Example Dataset
 
@@ -274,6 +274,74 @@ The mixed model fit the data better than the ordinary linear model (AIC `r round
 **Discussion**
 
 Species differed in landing distance, but those differences were estimated while accounting for the non-independence of observations within sites. This makes the inference more defensible and avoids treating site-level similarity as if it were independent replication.
+:::
+
+# Example 2: Repeated Snake Habituation Within Individuals
+
+The snake habituation dataset used earlier in the module is a better fit for this chapter than for the core ANOVA chapter. Each snake was measured repeatedly across days, so the observations are not independent. Treating `snake` as just another fixed factor in an additive ANOVA misses the main design point: repeated measurements on the same individuals create within-snake dependence.
+
+```{r code-snakes-data}
+snakes <- read_csv(file.path("..", "..", "data", "BCB744", "snakes.csv"),
+                   show_col_types = FALSE) |>
+  mutate(
+    snake = factor(snake),
+    day = factor(day)
+  )
+
+snakes |>
+  group_by(day) |>
+  summarise(
+    mean_openings = mean(openings),
+    sd_openings = sd(openings),
+    .groups = "drop"
+  )
+```
+
+## Why This Is a Dependence Problem
+
+The biological question is whether the number of box openings required for habituation changes across repeated days. But each snake contributes several observations, one on each day. That means the data have a grouped structure: measurements from the same snake are likely to be more similar to one another than measurements from different snakes.
+
+That grouped structure suggests a random-intercept model with snake identity as the grouping factor.
+
+## Fit a Naive Model and a Mixed Model
+
+```{r code-snakes-models}
+snakes_lm <- lm(openings ~ day, data = snakes)
+snakes_lmer <- lmer(openings ~ day + (1 | snake), data = snakes)
+
+summary(snakes_lm)
+summary(snakes_lmer)
+
+tibble(
+  model = c("ordinary linear model", "mixed model"),
+  AIC = c(AIC(snakes_lm), AIC(snakes_lmer))
+)
+```
+
+The ordinary model behaves as though all snake-day observations are independent. The mixed model recognises that each snake has its own baseline tendency to habituate faster or more slowly.
+
+## Interpret the Results
+
+The day effect remains the main biological signal: the number of openings required for habituation decreases across repeated days. But the mixed model estimates that change while accounting for repeated observations within snakes.
+
+That is the crucial design lesson. This is not mainly a “two-way ANOVA without replication” problem. It is a repeated-measures problem in which snake identity induces dependence.
+
+## Reporting
+
+::: {.callout-note appearance="simple"}
+## Write-Up
+
+**Methods**
+
+The number of box openings required for rattlesnakes to habituate was analysed as a repeated-measures problem. Day was included as a fixed effect, and snake identity was included as a random intercept to account for repeated observations on the same individuals.
+
+**Results**
+
+The number of box openings required for habituation declined across repeated days, indicating that snakes habituated more rapidly with repeated exposure to the apparatus. Modelling snake identity as a random effect accounted for the non-independence created by repeated measurements on the same individuals, making the day effect interpretable at the correct design level.
+
+**Discussion**
+
+The important point is not only that habituation changed through time, but that the analysis respected the repeated-measures structure of the experiment. This is why the example belongs with dependence and mixed models rather than as a core factorial ANOVA illustration.
 :::
 
 # What to Do When Assumptions Fail / Alternatives

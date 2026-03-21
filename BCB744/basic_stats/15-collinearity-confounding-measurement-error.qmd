@@ -48,7 +48,7 @@ library(ggpubr)
 
 # Introduction
 
-Regression models are often taught as though the difficult part is fitting the correct formula and reading the summary table. In practice, some of the hardest come afterwards. Predictors may overlap strongly, causal roles may be confused, and the variables we fit may be noisy measurements or only rough proxies for the processes we care about.
+Regression models are often taught as though the difficult part is fitting the correct formula and reading the summary table. In practice, some of the hardest challenges come afterwards. Predictors may overlap strongly, causal roles may be confused, and the variables we fit may be noisy measurements or only rough proxies for the processes we care about.
 
 This chapter brings together three closely related but distinct problems:
 
@@ -56,11 +56,11 @@ This chapter brings together three closely related but distinct problems:
 2. **confounding**, where a third variable distorts interpretation; and
 3. **measurement error**, where the variables in the model are noisy versions of the quantities we would really like to observe.
 
-All three problems matter because they erode interpretation. A model may still run and produce seemingly believable coefficients, but those coefficients may no longer mean what we would like them to mean.
+All three problems must be thought about because they impair interpretation. A model may still run and produce seemingly believable coefficients, but those coefficients may no longer mean what we would like them to mean.
 
 In multiple regression and other multivariate models, we generally hope that the predictor variables provide distinct information. When they do not, our models can become unstable and difficult to interpret. This issue, known as **collinearity** or **multicollinearity**, is a common challenge in biological research, where environmental variables are often highly correlated. It is especially common in ecology because many environmental variables are linked through shared physical and biological processes. Temperature, oxygen, and productivity, for example, often co-vary.
 
-This chapter explains what collinearity is, why it is problematic, and how to diagnose and address it. It also explains why collinearity is not the same as confounding, and why measurement error and proxy variables create further limitations even when the fitted model looks statistically sound. While no single paper is as singularly famous here as Hurlbert's work on pseudoreplication, a foundational and highly recommended review of multicollinearity is that of Graham -@Graham2003.
+This chapter explains what collinearity is, why it is problematic, and how to diagnose and address it. It also explains why collinearity is not the same as confounding, and why measurement error and proxy variables create further limitations even when the fitted model looks statistically sound. While no single paper is as singularly famous here as Hurlbert's work on pseudoreplication, discussed in [Chapter 17](17-pseudoreplication.qmd), a foundational and highly recommended review of multicollinearity is that of Graham -@Graham2003.
 
 # Key Concepts
 
@@ -74,7 +74,7 @@ Keep the following distinctions clear.
 -   **Proxy variables** can be very useful, but they come with interpretive limits.
 -   **Good design and good variable choice** solve more of these problems than software does.
 
-# Why These Problems Matter
+# Why These Problems are Serious
 
 It is useful to state the broader issue clearly. In the regression chapters so far, we have assumed that the predictors in a model can be interpreted as though each one contributes something identifiable to the response. But, that assumption is often too optimistic since several things can go wrong:
 
@@ -96,7 +96,7 @@ The most useful functions in this chapter are:
 
 # Collinearity
 
-## What is collinearity?
+## What Is Collinearity?
 
 **Collinearity** occurs when two predictor variables in a multiple regression model are highly correlated. **Multicollinearity** is the more general term, referring to a situation where one predictor variable can be linearly predicted from one or more of the other predictor variables with a substantial degree of accuracy.
 
@@ -109,7 +109,7 @@ In ecology and environmental biology, this is common because many variables co-v
 -   temperature and dissolved oxygen;
 -   rainfall and river flow.
 
-## Why is it a problem?
+## Why Is It a Problem?
 
 Unlike pseudoreplication, collinearity does not necessarily invalidate the entire model in terms of its predictive power. A model with collinear predictors may still produce good predictions. However, it severely compromises the **interpretation** of the model's coefficients. The primary problems are:
 
@@ -121,7 +121,7 @@ These effects arise because the model must estimate multiple coefficients from o
 
 So, the central message is that collinearity is usually a **problem of interpretation rather than raw prediction**.
 
-## Example 1: Predicting plant growth
+# Example 1: Predicting Plant Growth
 
 Suppose you model plant growth using:
 
@@ -142,7 +142,7 @@ Better modelling choices would include:
 -   using altitude if the question concerns broad spatial gradients;
 -   avoiding both in the same model unless their distinct roles are explicitly justified.
 
-## Example 2: Nutrient limitation in coastal systems
+# Example 2: Nutrient Limitation in Coastal Systems
 
 Suppose you model phytoplankton biomass using:
 
@@ -164,7 +164,7 @@ Possible resolutions include:
 
 This example shows that collinearity can arise even when all the variables are mechanistically meaningful. The decision is therefore about how to handle collinearity *and* whether the goal is explanation or prediction.
 
-## Diagnosing collinearity
+# Diagnosing Collinearity
 
 The most common way to diagnose multicollinearity is by calculating the **Variance Inflation Factor (VIF)** for each predictor variable:
 
@@ -178,9 +178,11 @@ In @eq-vif, $R_j^2$ is the coefficient of determination obtained by regressing p
 
 VIF does not diagnose a problem on its own. It indicates that a coefficient reflects shared variation with other predictors. The decision to act depends on whether the model needs interpretable coefficients.
 
-## A worked collinearity example
+# Example 3: Worked Collinearity Example
 
 Using the seaweed example from the previous chapter, we can inspect the candidate climate predictors for overlap.
+
+## Inspect the Predictor Set
 
 ```{r code-collinearity-data}
 sw <- read.csv("../../data/BCB743/seaweed/spp_df2.csv")
@@ -193,6 +195,8 @@ cor(sw_ectz[, -1])
 
 The correlation matrix already shows that several of the candidate predictors overlap strongly.
 
+## Diagnose the Overlap with VIF
+
 ```{r code-collinearity-vif}
 col_mod <- lm(Y ~ augMean + febRange + febSD + augSD + annMean,
               data = sw_ectz)
@@ -203,6 +207,8 @@ vif(col_mod)
 The VIF values show that some predictors overlap strongly. The model is not necessarily mathematically invalid; it simply means that the separate interpretation of those coefficients becomes hard to defend.
 
 We can make the consequences more concrete by comparing the simple slopes for each predictor to the coefficients in the multiple regression.
+
+## Compare Simple and Multiple-Regression Slopes
 
 ```{r code-collinearity-compare}
 preds <- c("augMean", "febRange", "febSD", "augSD", "annMean")
@@ -228,6 +234,10 @@ bind_rows(simple_slopes, multiple_slopes) |>
 
 This comparison is useful because it shows the practical effect of collinearity. Predictors that look obvious and seem strongly positive in isolation may become weaker, unstable, or even change sign once the overlapping predictors are entered together. The does multiple regression might not be wrong, but the coefficients are being estimated under much greater uncertainty because the model is trying to assign separate effects to partially redundant variables.
 
+## Interpret the Collinearity Problem
+
+The key message is that the difficulty lies in attribution, not in the mere existence of a fitted model. Once several predictors describe much the same underlying climatic gradient, the model can struggle to assign a stable partial effect to any one of them. This is why collinearity is so often an interpretive problem rather than a purely computational one.
+
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
@@ -246,7 +256,7 @@ Several climate predictors in the seaweed model were strongly correlated, and th
 The model is not necessarily invalid, but coefficient-level interpretation becomes difficult when predictors represent overlapping components of the same underlying gradient. That is the key discussion point for a collinearity analysis.
 :::
 
-## Addressing collinearity
+# Addressing Collinearity
 
 Common responses include:
 
@@ -269,8 +279,6 @@ A confounder is a variable that influences both:
 
 This can create a spurious association or distort a real one. For example, if you relate abundance to temperature but nutrient supply is associated with both temperature and abundance, the temperature coefficient may partly absorb nutrient effects.
 
-## Confounding is not the same as collinearity
-
 These ideas are related but not identical.
 
 -   **Collinearity** is about overlap among predictors in the data.
@@ -278,7 +286,7 @@ These ideas are related but not identical.
 
 Two variables can be highly collinear without one being a confounder. Equally, a confounder can matter even when the correlation structure does not look especially dramatic.
 
-## A worked confounding example
+# Example 4: Worked Confounding Example
 
 We can see the logic of confounding clearly with a small biological-look-alike example. Suppose we want to know whether seawater temperature affects algal abundance along a coastal gradient, but nutrient concentration also varies with temperature and itself influences abundance. In that case, a temperature-only model risks attributing nutrient-related variation to temperature.
 
@@ -387,7 +395,7 @@ The larger model shows that the apparent temperature effect in the simpler model
 
 This is why confounding is fundamentally a problem of attribution: we are trying to decide whether the apparent effect of one variable is actually partly due to another.
 
-## Practical implications of confounding
+## Practical Implications of Confounding
 
 Confounding often arises because:
 
@@ -426,9 +434,11 @@ When a predictor is noisy, its estimated effect is often biased towards zero. Th
 -   biological measurements can be imprecise;
 -   some important variables are difficult or expensive to measure directly.
 
-## A worked measurement-error example
+# Example 5: Worked Measurement-Error Example
 
 Suppose a response truly depends on temperature, but our observed temperature values are noisy because of instrument error or sampling mismatch.
+
+## Simulate the True and Noisy Predictors
 
 ```{r code-measurement-error-sim}
 set.seed(414)
@@ -455,6 +465,8 @@ bind_rows(
   select(model, term, estimate, std.error, statistic, p.value)
 ```
 
+## Compare the Fitted Relationships
+
 ```{r fig-measurement-error}
 #| fig-cap: "Measurement error weakens the apparent relationship between the predictor and the response."
 
@@ -476,6 +488,10 @@ ggarrange(p3, p4, ncol = 2)
 The model using the noisy predictor typically produces a weaker slope than the model using the true predictor. This is the practical effect of attenuation bias: measurement error can make a real effect appear smaller than it is.
 
 Measurement error therefore matters because it adds noise and because it can systematically weaken the estimated effect.
+
+## Interpret the Measurement-Error Problem
+
+The important point is that the weaker fitted relationship is not necessarily evidence of weaker biology. It may instead reflect poorer measurement. If the predictor is noisy, the model is forced to relate the response to an imperfect version of the underlying process, and the slope is therefore pulled towards zero.
 
 ## Reporting
 
@@ -529,9 +545,7 @@ When building and interpreting a regression model:
 6. remove or combine redundant predictors when interpretation is the goal;
 7. be honest about causal limits when important variables are missing or poorly measured.
 
-## Explanation versus prediction
-
-This chapter also forces an important distinction that connects directly to the regularisation chapter that follows later in the sequence.
+This workflow also forces an important distinction that connects directly to the regularisation chapter that follows later in the sequence.
 
 -   If the main goal is **explanation**, then unstable coefficients, proxies, confounding, and overlap are serious problems because they weaken the biological interpretation.
 -   If the main goal is **prediction**, some overlap may be tolerable if predictive performance is strong, although the coefficients may still not support strong mechanistic claims.
