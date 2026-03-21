@@ -34,7 +34,7 @@ Flag these words and phrases, especially when they substitute for precise claims
 
 - *Verbs*: delve, explore, unpack, leverage, harness, underscore, foster, navigate (used metaphorically)
 - *Adjectives*: nuanced, multifaceted, comprehensive, robust, crucial, pivotal, transformative, invaluable, fascinating, complex (when used as a terminal descriptor rather than a claim)
-- *Nouns*: tapestry, landscape (metaphorical), realm, cornerstone, testament, facet
+- *Nouns*: tapestry, landscape (metaphorical), realm, cornerstone, testament, facet, logic
 - *Vague superlatives*: "one of the most important", "among the most fascinating"
 - *Stacked hedges*: "may potentially suggest", "could possibly indicate", "seems to appear to be"
 
