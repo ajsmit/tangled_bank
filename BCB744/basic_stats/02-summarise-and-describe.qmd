@@ -55,19 +55,18 @@ library(tidyverse)
 
 # Introduction
 
-Exploratory data analysis (EDA) is where we learn what kind of data we actually have before we start testing hypotheses. We inspect the scale of measurement, the spread of the observations, the presence of outliers, the amount of missingness, and any obvious grouping structure. That work is not optional. A poor summary at the start usually becomes a poor analysis later.
+Exploratory data analysis (EDA) establishes what kind of data we actually have before we test hypotheses or fit models. It tells us how many observations we have, what variables were measured, how much variation is present, whether missing values or outliers need attention, and whether the data contain obvious grouping structure. Poor summaries at this stage usually lead to poor inference later.
 
-This chapter concentrates on the basic numerical summaries used during EDA: measures of central tendency such as the **mean**, **median**, and **mode**, and measures of spread such as the **standard deviation**, **variance**, and **quantiles**. These summaries sit alongside the figures in [Chapter 3](03-visualise.qmd) and the treatment of distributions and uncertainty in [Chapter 4](04-distributions-sampling-uncertainty.qmd). Together they provide the descriptive foundation for the inferential chapters that follow.
+This chapter introduces the numerical summaries used at the start of that process. It focuses on measures of centre, measures of spread, and a small set of tools for inspecting the structure of a dataset. These summaries work alongside the figures in [Chapter 3](03-visualise.qmd) and the treatment of distributions and uncertainty in [Chapter 4](04-distributions-sampling-uncertainty.qmd).
 
 # Key Concepts
 
-This section isolates the main ideas before the chapter moves into definitions, examples, and worked summaries.
+This section defines the ideas that organise the rest of the chapter.
 
-- **Exploratory Data Analysis (EDA):** The initial and essential process of understanding data structure, patterns, and characteristics through visual and quantitative examination.
-- **Measures of Central Tendency:** Key metrics like the mean, median, and mode used to find the "center" of a dataset.
-- **Measures of Dispersion:** Statistics such as standard deviation, variance, and interquartile range (IQR) that describe the spread or variability of the data.
-- **Grouped Analysis:** Summarising data by different categories or groups to reveal underlying patterns and relationships between variables.
-- **Data Distribution:** The shape of the data (e.g., normal, skewed) which dictates the appropriate choice of summary statistics and subsequent statistical tests.
+- **EDA:** The first analytical pass through a dataset. Its job is to reveal structure, variation, missingness, and potential problems before formal inference begins.
+- **Centre and spread:** Most numerical summaries describe either where the data cluster or how widely they vary.
+- **Distribution:** The shape of a distribution determines which summaries describe it well. Symmetric data and skewed data are not best summarised in the same way.
+- **Grouped summaries:** Biological datasets often contain treatments, species, sites, or times. Summaries by group often reveal structure hidden in pooled data.
 
 # Foundational Definitions
 
@@ -126,166 +125,33 @@ normal_takes_shape |>
 
 ## When Is Something Random?
 
-This is a bit of a rant. I often get annoyed by the imprecise use of language and disrespect for scientific terms. 'Random' is such a word (as are 'literally' and 'energy'). The scientific concept of randomness and the colloquial usage of the word differ in their precision and context. Understanding these distinctions can help clarify the role of randomness in various settings.
+In statistics, **random** means that outcomes cannot be predicted exactly in advance, even when the process generating them is understood. Random sampling and random assignment use this idea to reduce bias and to justify probability-based inference.
 
--   **Scientific concept of randomness** In the scientific context, randomness refers to a specific pattern or sequence of events that completely lacks predictability, order, or regularity. The biostatistician often associates the term 'random' with *probability theory, statistical models*. In experiments, we use random sampling techniques to ensure that samples are representative of the population, and we employ random assignment to minimise biases in experimental groups. In computer science, algorithms generate pseudo-random numbers, which approximate true randomness but are ultimately determined by deterministic processes.
+The term **stochastic** is closely related but usually refers to a process rather than to a single outcome. Population growth under fluctuating weather, disease transmission, and dispersal all have deterministic components, but they also include variation that is modelled probabilistically. In practice, both terms point us to the same issue: biological systems often contain uncertainty that must be described rather than ignored.
 
--   **Colloquial usage of randomness** In everyday language, the term 'random' is often used more loosely to describe events, situations that appear unexpected or surprising, or unrelated to a specific context. Colloquially, randomness may imply a lack of explanation or discernible pattern, even though in most cases the event might not be genuinely random in a strict scientific sense. For example, when someone says, "I had a random encounter with an old friend," they mean the meeting was unexpected or unplanned, rather than being the result of a stochastic process. In these instances, there most certainly is an explanation for why the two friends haphazardly met.
+# Descriptive Statistics
 
-An example of a truly random physical process is *radioactive decay*. Radioactive decay is a spontaneous process in which an unstable atomic nucleus loses energy by emitting radiation, such as alpha particles, beta particles, or gamma rays. The exact timing of when a specific atom will decay is unpredictable and follows a random pattern. The decay events are independent of each other and are governed by the principles of quantum mechanics, making radioactive decay a truly random physical process.
-
-Sometimes we will see the term **stochastic** in the scientific literature. This term is similar to random *stricto sensu*, but it is used in a different context. The term 'random' refers to a lack of predictability, discernible pattern in a sequence of events, often associated with outcomes that are equally likely or follow a specific probability distribution. 'Stochastic', on the other hand, describes *processes* that incorporate an element of randomness and uncertainty, with outcomes that depend on both deterministic factors and random variables. Both terms are used in the context of probability theory and statistical models to describe events or processes that exhibit some level of unpredictability. Stochastic processes are widespread in nature and may explain a large fraction of ecological variation.
-
-An example of a stochastic ecological process is the population dynamics of a species subject to unpredictable environmental fluctuations. In this scenario, the growth and decline of a species' population is influenced by both deterministic factors such as birth and death rates, and random factors, like unpredictable weather events, disease outbreaks, or variations in food availability. These random factors introduce *uncertainty and variability* in the population dynamics, making it a stochastic ecological process.
-
-Okay, you may ask, "Weather models can predict tomorrow's weather to some degree, albeit not with complete accuracy, so is there truly such a thing as unpredictable weather events"? Weather events might not be truly random in the strictest sense, as weather patterns are influenced by various physical factors, such as temperature, air pressure, humidity, and interactions between different atmospheric layers. However, due to the immense complexity and chaotic nature of these factors, weather events can be challenging to predict with absolute certainty, especially over longer time scales.
-
-In this context, "unpredictable weather events" are considered random from a practical standpoint because they introduce uncertainty and variability in the system. While they may not be truly random like quantum-level events, their unpredictability and the difficulty in forecasting their occurrence make them effectively random for many ecological and statistical analyses.
-
-# The Palmer Penguin Dataset
-
-The [Palmer penguin dataset](https://apreshill.github.io/palmerpenguins-useR-2022/#/title-slide) in the **palmerpenguins** package is a modern alternative to the classic Iris dataset, often used for teaching data exploration, visualisation, and statistical modelling. The dataset was introduced by Dr. Kristen Gorman, the Palmer Station Long Term Ecological Research (LTER) program. It contains information collected from penguins living in the Palmer Archipelago and located in the Western Antarctic Peninsula, and focuses on three different penguin `species`: Adélie, Chinstrap, and Gentoo.
-
-The dataset includes measurements such as bill length (`bill_length_mm`), bill depth (`bill_depth_mm`), flipper length (`flipper_length_mm`), body mass (`body_mass_g`), and sex (`sex`), along with the species of the penguins. It provides an opportunity to explore various aspects of data analysis, such as EDA, data visualisation, data preprocessing, hypothesis testing, and machine learning techniques like classification, clustering.
-
-Let us start with loading the data:
-
-```{r code-library-palmerpenguins}
-library(palmerpenguins)
-```
-
-# Exploring the Data Structure
-
-Several functions help us get a *broad view of the data structure* (the dataset) itself: its size (number of rows and columns), the data classes contained, the presence of missing values, and so forth. This table lists some of the most important ways to get such an overview:
-
-| Purpose                   | Function      |
-|:--------------------------|:--------------|
-| The class of the dataset  | `class()`     |
-| The head of the dataframe | `head()`      |
-| The tail of the dataframe | `tail()`      |
-| Printing the data         | `print()`     |
-| Glimpse the data          | `glimpse()`   |
-| Show number of rows       | `nrow()`      |
-| Show number of columns    | `ncol()`      |
-| The column names          | `colnames()`  |
-| The row names             | `row.names()` |
-| The dimensions            | `dim()`       |
-| The dimension names       | `dimnames()`  |
-| The data structure        | `str()`       |
-
-First, it is a good idea to understand the class of the data structure. We can do this with the `class()` function. Applying it to the `penguins` dataset, we see that the dataset is a tibble, which is a modern take on the old-fashioned dataframe:
-
-```{r code-class-penguins}
-class(penguins)
-```
-
-We can convert between tibbles and dataframes using the commands `as.data.frame()` and `as_tibble()`:
-
-```{r code-penguins-df-as-data-frame}
-penguins_df <- as.data.frame(penguins)
-class(penguins_df)
-```
-
-And *vice versa*:
-
-```{r code-penguins-tbl-as-tibble-penguins-df}
-penguins_tbl <- as_tibble(penguins_df)
-class(penguins_tbl)
-```
-
-Note that the `print()` methods for tibbles and dataframes differ somewhat. You will see that the `print()` function applied to a dataframe does not result in a particularly nice-looking table. Applied to a tibble, on the other hand, `print()` results in a neat, concise display of the dataset's content:
-
-```{r code-print-penguins-df-i-limit}
-# print the dataframe
-print(penguins_df[1:5,]) # I limit to 5 rows
-
-# print the tibble
-print(penguins_tbl)
-```
-
-The `glimpse()` function is not dissimilar to `print()` as it gives more-or-less the same kind of output, but with a horizontal orientation:
-
-```{r code-glimpse-penguins}
-glimpse(penguins)
-```
-
-I suggest converting all your dataframes to tibbles to benefit from the Tidyverse philosophy around which tibbles were designed.
-
-The tops and bottoms of tibbles (or dataframes) can be viewed with the `head()` and `tail()` functions. Both take the `n = ...` argument so that you can specify how many rows to display:
-
-```{r code-head-penguins}
-head(penguins)
-tail(penguins, n = 3)
-```
-
-You can wrap `head()` and `tail()` in `print()` for a nicer display:
-
-```{r code-print-head-penguins}
-print(head(penguins))
-print(tail(penguins, n = 3))
-```
-
-Three functions tell us about the size of the tibble. We can return the number of rows with `nrow()`, the number of columns with `ncol()`, or both the number of rows and columns with `dim()`:
-
-```{r code-nrow-penguins}
-nrow(penguins)
-ncol(penguins)
-dim(penguins)
-```
-
-If we wanted to return the names of the columns we could use `colnames()` as such:
-
-```{r code-colnames-penguins}
-colnames(penguins)
-```
-
-Tibbles do not have row names, but dataframes can have (although they are not frequently used). If we *did* have row names and wanted to know their names, we could use `row.names()` (note the `.` in the function name). We can also use `colnames()` (`names()` returns an identical output)`row.names()` to assign new names to the dataframes or tibbles --- see the respective help files for more information about this use. There is also the `dimnames()` function.
-
-::: callout-important
-## Do It Now!
-Explain the output of `dimnames()` when applied to the `penguins` dataset.
-:::
-
-The last function to introduce in this section is `str()`. It can be applied to any R object (*i.e.* any data structure or model output).
-
-```{r code-str-penguins}
-str(penguins)
-```
-
-::: callout-important
-## Do It Now!
-Explain the output of `str()` when applied to the `penguins` dataset.
-:::
-
-# Exploring the Properties of the Data
-
-Thus far we have looked at the properties of the data structure. Now we turn to the *properties of the data contained within a data structure*. This might simply be to see the data class of the different variables, or to provide some basic descriptive statistics. Before we go to deeply into the data summaries, we need to first review basic descriptive statistics.
-
-**Descriptive statistics** refer to the process of *summarising* and organising data collected from our various kinds of studies in a meaningful way. The process of **summary** implies that we take something detailed (like a large number of individual measurements) and reduce its complexity to a view --- a 'statistic' --- that tells us something informative about the nature of the population. Descriptive statistics allow us to gain an initial understanding of the data's main features, including the **sample size**, **central tendency**, **variability**, and **distribution**. We will look at data distributions and sampling uncertainty in [Chapter 4](04-distributions-sampling-uncertainty.qmd).
-
-The sample size is simply the number of data points ($n$) per sample. The measures of central tendency include the **mean**, **median**, and **mode**, while variability is most often described using the **range**, **interquartile range**, **variance**, and **standard deviation**. Additionally, descriptive statistics can involve visual representations, such as histograms, box plots, and scatter plots, to further illustrate the data's characteristics, and we will cover these in [Chapter 3](03-visualise.qmd). Descriptive statistics serve as a foundation for more advanced statistical analyses because they help us make sense of our data, identify patterns and trends, and notice potential anomalies.
+This section introduces the summaries used most often in EDA. They answer three basic questions: where is the centre of the data, how much do the values vary, and which summaries remain sensible when the data are skewed or contain outliers.
 
 ## The Core Equations
-
-This chapter is mostly descriptive and conceptual, but a few equations do real teaching work because they show how the most common summaries are constructed.
 
 The sample mean is:
 
 $$\bar{x} = \frac{1}{n}\sum_{i=1}^{n}x_{i} = \frac{x_{1} + x_{2} + \cdots + x_{n}}{n}$$ {#eq-mean}
 
-In @eq-mean, $x_{1}, x_{2}, \ldots, x_{n}$ are the observations and $n$ is the number of observations in the sample. The mean is therefore the total of the observations divided by the sample size.
+In @eq-mean, $x_{1}, x_{2}, \ldots, x_{n}$ are the observations and $n$ is the sample size. The mean is therefore the total of the observations divided by the number of observations.
 
 The sample variance is:
 
 $$S^{2} = \frac{1}{n-1}\sum_{i=1}^{n}(x_{i}-\bar{x})^{2}$$ {#eq-var}
 
-Equation @eq-var says that variance is calculated from the squared deviations around the sample mean. The division by $n - 1$ rather than by $n$ is the usual small-sample correction used for sample variance.
+Equation @eq-var measures the average squared deviation from the sample mean. The divisor is $n - 1$ rather than $n$ because we are estimating population variance from a sample.
 
 The sample standard deviation is the square root of the variance:
 
 $$S = \sqrt{S^{2}}$$ {#eq-sd}
 
-This is why the standard deviation is easier to interpret than the variance: it returns the spread to the original measurement scale of the data.
+The standard deviation is usually easier to interpret than the variance because it is expressed on the original measurement scale of the data.
 
 For robust summaries, the interquartile range is:
 
@@ -303,27 +169,9 @@ In @eq-iqr, $Q_{1}$ is the first quartile and $Q_{3}$ is the third quartile, so 
 | Skewness  | `skewness()` | **e1071** |
 | Kurtosis  | `kurtosis()` | **e1071** |
 
-Central tendency is a fundamental concept in statistics, referring to the *central*, *typical* value of a dataset that best represents its overall distribution. The measures of central tendency are also sometimes called 'location' statistics. As a key component of descriptive statistics or central tendency is essential for summarising and simplifying complex data. It provides a single representative value that captures the data's general behaviour and which might tell us something about the bigger population from which the random samples were drawn. 
+Measures of central tendency describe where the data cluster. The mean and standard deviation work well when the data are roughly symmetric and not dominated by extreme values. The median and IQR are usually better when the data are skewed or contain outliers.
 
-A thorough assessment of the central tendency in EDA serves several purposes:
-
--   **Summary of data** Measures of central tendency, such as the mean, median, and mode, provide a single value that represents the centre, typical value of a dataset. They help summarise the data and allow us to gain an early insight into the dataset's general properties and behaviour.
-
--   **Comparing groups or distributions** Central tendency measures allow us to compare different datasets or groups within a dataset. They can help identify differences or similarities in the data. This may be useful for hypothesis testing and inferential statistics.
-
--   **Data transformation decisions** Understanding the central tendency of our data can inform decisions on whether to apply transformations to the data to better meet the assumptions of certain statistical tests or improve the interpretability of the results.
-
--   **Identifying potential issues** Examining the central tendency can help reveal issues with the data, such as outliers, data entry errors or that could influence the results of inferential statistics. Outliers, for example, can greatly impact the mean, making the median a more robust measure of central tendency in such cases.
-
-Understanding the central tendency informs the choice of inferential statistics in the following ways:
-
--   **Assumptions of statistical tests** Many inferential statistical tests have assumptions about the distribution of the data, such as normality, linearity, or homoscedasticity. Analysing the central tendency helps assess whether these assumptions are met, informs the choice of an appropriate test.
-
--   **Choice of statistical models** The central tendency can influence the choice of statistical models or the selection of dependent and independent variables in regression analyses --- certain models or relationships may be more appropriate depending on the data's distribution and central tendencies.
-
--   **Choice of estimators** Central tendency measures can influence our choice of estimators for further inferential statistics, depending on the data's distribution, presence of outliers (*e.g.* and mean vs. median).
-
-Before I discuss each central tendency statistic, I will generate some random data to represent normal, skewed distributions. I will use these data in my discussions and below.
+Before discussing each statistic, I will generate several simple datasets with different shapes. These give us a controlled way to compare the summaries.
 
 ```{r code-set-seed}
 # Generate random data from a normal distribution
@@ -361,42 +209,36 @@ bimodal_data <- c(data1, data2)
 ```
 
 ```{r fig-histos}
-#| fig-cap: "A series of plots with histograms for the previously generated normal, right-skewed, and left-skewed distributions."
-#| fig-width: 8
-#| fig-height: 8
+#| fig-cap: "Histograms for generated normal, right-skewed, left-skewed, and bimodal distributions."
+#| fig-width: 5.5
+#| fig-height: 4
 
-# Set up a three-panel plot layout
 old_par <- par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
 
-# Plot the histogram of the normal distribution
 hist(normal_data, main = "Normal Distribution",
      xlab = "Value", ylab = "Frequency",
      col = "lightblue", border = "black")
 
-# Plot the histogram of the right-skewed distribution
 hist(right_skewed_data, main = "Right-Skewed Distribution",
      xlab = "Value", ylab = "Frequency",
      col = "lightgreen", border = "black")
 
-# Plot the histogram of the left-skewed distribution
 hist(left_skewed_data, main = "Left-Skewed Distribution",
      xlab = "Value", ylab = "Frequency",
      col = "lightcoral", border = "black")
 
-# Plot the histogram of the left-skewed distribution
 hist(bimodal_data, main = "Bimodal Distribution",
      xlab = "Value", ylab = "Frequency",
      col = "khaki2", border = "black")
 
-# Reset the plot layout to default
 par(old_par)
 ```
 
 ### The Sample Mean
 
-The mean is the arithmetic average of the data. As shown in @eq-mean, it is calculated by summing all the observations and dividing by the sample size, $n$.
+The mean is the arithmetic average of the data. As shown in @eq-mean, it is calculated by summing the observations and dividing by the sample size.
 
-We can calculate the mean of a sample using the ... wait for it ... `mean()` function:
+We calculate it with `mean()`:
 
 ```{r code-round-mean-normal-data}
 round(mean(normal_data), 3)
@@ -413,21 +255,21 @@ How would you manually calculate the mean value for the `normal_data`?
 round(sum(normal_data) / length(normal_data), 3)
 ```
 
-The mean is quite sensitive to the presence of outliers or extreme values in the data, and it is advised that its use be reserved for normally distributed data from which the extremes/outliers have been removed. When extreme values are indeed part of our data, not simply 'noise', then we have to resort to a different measure of central tendency: the median.
+The mean uses all observed values, which makes it informative but also sensitive to skew and outliers. That sensitivity does not make it invalid for non-normal data, but it does make it a poor summary when a few extreme values dominate the result.
 
 ### The Median
 
-The median indicates the centre value in our dataset. The simplest way to explain what it is is to describe how it is determined. It can be calculated by 'hand' (if you have a small enough amount of data) by arranging all the numbers in sequence from low to high, and then finding the middle value. If there are five numbers, say `5, 2, 6, 13, 1`, then you would arrange them from low to high, *i.e.* `1, 2, 5, 6, 13`. The middle number is `5`. This is the median. But there is no middle if we have an even number of values. What now? Take this example sequence of six integers (they may also be floating point numbers), which has already been ordered for your pleasure: `1, 2, 5, 6, 9, 13`. Find the middle two numbers (*i.e.* `5, 6`) and take the mean. It is `5.5`. That is the median.
+The median is the middle value after the data have been ordered. With an odd number of observations, it is the single central value. With an even number, it is the mean of the two central values.
 
-The median is therefore the value that separates the lower half of the sample data from the upper half. In normally distributed continuous data the median is equal to the mean. Comparable concepts to the median are the **1st** and **3rd quartiles**, which, respectively, separate the first quarter of the data from the last quarter --- see later in the section on measures of variance and dispersal in this chapter. The advantage of the median over the mean is that it is unaffected by extreme values or outliers. The median is also used to provide a robust description of non-parametric data (see [Chapter 4](04-distributions-sampling-uncertainty.qmd) for a discussion on normal data and other distributions).
+The median divides the ordered data into two equal halves. In a symmetric distribution it will often be close to the mean. In skewed data it usually gives a more stable description of the centre because extreme values have little influence on it.
 
-What is the median of the `normal_data` dataset? We use the `median()` function for this:
+We calculate the median with `median()`:
 
 ```{r code-round-median-normal-data}
 round(median(normal_data), 3)
 ```
 
-It is easier to see what the median is by looking at a much smaller dataset. Let us take 11 random data points:
+It is easier to see the calculation on a small dataset:
 
 ```{r code-small-normal-data-round-rnorm}
 set.seed(123) # for reproducibility
@@ -436,28 +278,22 @@ sort(small_normal_data)
 median(small_normal_data)
 ```
 
-The mean and median together provide a comprehensive understanding of the data's central tendency and underlying distribution.
-
 :::{.callout-note appearance="simple"}
 ## What Is the Relationship Between the Median and Quantiles?
-The relation between the median and quantiles lies in their roles as measures that describe the relative position of data points within a dataset. Quantiles are values that partition a dataset into equal intervals, with each interval containing the same proportion of the data. The most common types of quantiles are quartiles, quintiles, deciles, and percentiles.
-
-The median is a special case of a quantile, specifically the 50th percentile, the second quartile (Q2). It divides the dataset into two equal halves or with 50% of the data points falling below the median and 50% of the data points falling above the median. In this sense, the median is a central quantile that represents the middle value of the dataset.
-
-Both the median and quantiles help describe the distribution and spread of a dataset, with the median providing information about the centre, other quantiles (such as quartiles) offering insights into the overall shape and skewness, and dispersion of the data.
+The median is the 50th percentile, or second quartile ($Q_{2}$). More generally, quantiles divide the ordered data into specified proportions. Quartiles split them into four parts, deciles into ten, and percentiles into one hundred.
 :::
 
 ### The Mode
 
-The mode is a measure that represents the value or values that occur most frequently in a dataset. Unlike the mean and median, the mode can be used with both numerical, categorical data and making it quite versatile. For a dataset with a single value that appears most often, the distribution is considered **unimodal**. However, datasets can also be **bimodal** (having two modes), **multimodal** (having multiple modes) when there are multiple values that occur with the same highest frequency.
+The mode is the most frequent value or values in a dataset. It is useful for categorical data and for identifying whether a distribution is unimodal, bimodal, or multimodal. For continuous numerical data, exact repeated values are often less informative, so the mode is usually assessed visually from a histogram or density plot rather than calculated directly.
 
-While the mode may not always be a good representative of the dataset's centre, especially in the presence of extreme values, skewed distributions or it can still offer valuable information about the data's characteristics when used alongside the other measures of central tendency.
-
-There is no built-in function to calculate the mode of a numeric vector, but you can make one if you need it. There are some examples on the internet that you will be able to adapt to your needs, but my cursory evaluation of them does not suggest they are particularly useful. The easiest way to see the data's mode(s) is to examine a histogram of your data. All the data we have explored above are examples of unimodal distributions, but a bimodal distribution can also be seen in @fig-histos.
+Base R does not provide a standard `mode()` function for this purpose. In practice, visual inspection is often the more useful route.
 
 ### Skewness
 
-Skewness is a measure of symmetry (or asymmetry) of the data distribution, and it is best understood by understanding the location of the median relative to the mean. A distribution with a skewness of zero is considered symmetric, with both tails extending equally on either side of the mean. Here, the mean will be the same as the median. A negative skewness indicates that the mean of the data is less than their median --- the data distribution is left-skewed; that is, there is a longer, heavier tail to the left of the mean. A positive skewness results from data that have a mean that is larger than their median; these data have a right-skewed distribution; so there will be a longer or heavier tail to the right of the mean. Base R does not have a built-in skewness function but we can use the one included with the **e1071** package:
+Skewness describes asymmetry in a distribution. A symmetric distribution has skewness close to zero. Positive skewness means the right tail is longer; negative skewness means the left tail is longer.
+
+Skewness is often easiest to understand by comparing the mean and median. In a right-skewed distribution the mean is usually greater than the median. In a left-skewed distribution the mean is usually smaller.
 
 ```{r code-library-e1071}
 library(e1071)
@@ -476,9 +312,7 @@ mean(left_skewed_data) < median(left_skewed_data)
 
 ### Kurtosis
 
-Kurtosis describes the tail shape of the data's distribution. Kurtosis is effectively a measure of the 'tailedness' or the concentration of data in the tails of a distribution, relative to a normal distribution. A normal distribution has zero kurtosis (or close to), thus the standard tail shape (**mesokurtic**). Negative kurtosis indicates data with a thin-tailed (**platykurtic**) distribution. Positive kurtosis indicates a fat-tailed distribution (**leptokurtic**).
-
-Similarly as to skewness, we use the **e1071** package for a kurtosis function. All the output shown below suggests a tendency towards thin-tailedness, but it is subtle.
+Kurtosis describes tail heaviness relative to a normal distribution. A normal distribution has close to zero kurtosis (called mesokurtic). Negative kurtosis indicates data with a thin-tailed (platykurtic) distribution and positive kurtosis indicates a fat-tailed distribution (leptokurtic).
 
 ```{r code-kurtosis-normal-data}
 kurtosis(normal_data)
@@ -486,7 +320,7 @@ kurtosis(right_skewed_data)
 kurtosis(left_skewed_data)
 ```
 
-I have seldom used the concepts of skewness or kurtosis in routine EDA, but it is worth being aware of them. One purpose of examining data using measures of central tendency is to get an idea of whether our data are **normally distributed**. See [Chapter 4](04-distributions-sampling-uncertainty.qmd) for a discussion of data distributions. These descriptive statistics serve well as a first glance, but they do not replace assumption checks. We will return to formal testing and model assumptions later in the module.
+Skewness and kurtosis can be informative, but they do not replace visual inspection or later assumption checks. They give a first numerical impression of distribution shape.
 
 ## Measures of Variance or Dispersion Around the Centre
 
@@ -499,18 +333,12 @@ I have seldom used the concepts of skewness or kurtosis in routine EDA, but it i
 | Range                | `range()`    |
 | Quantile             | `quantile()` |
 | Inter Quartile Range | `IQR()`      |
-<!-- | Covariance           | `cov()`      | -->
-<!-- | Correlation          | `cor()`      | -->
 
-Understanding variability matters because the same mean can arise from very different datasets. A sample with tight spread around the mean tells a different biological story from one with the same mean and far greater scatter. Variation also affects precision, group comparison, and the plausibility of later inferential assumptions such as equal variances. High variability can hide real structure; low variability can make patterns much easier to detect. It also affects design. If the data are noisy, larger sample sizes are usually required to detect a biologically meaningful effect.
-
-Variation therefore helps determine which summaries and models are sensible. The mean and standard deviation are useful when the data are roughly symmetric and not dominated by outliers. The median and interquartile range are often better when the data are skewed or contain extremes. In later chapters the same logic will matter again when we decide between parametric and non-parametric procedures, or between simple models and models that explicitly accommodate unequal variance or complex structure.
-
-Let us now look at the main measures of spread.
+Measures of dispersion describe how widely the values are spread. Two samples can have the same mean but very different biological interpretations if one is tightly clustered and the other highly variable.
 
 ### Variance and Standard Deviation
 
-Variance and standard deviation (SD) are examples of interval estimates. The sample variance is given in @eq-var, and the standard deviation in @eq-sd. If we cannot be bothered to calculate them by hand, we may use the built-in functions `var()` and `sd()`:
+Variance and standard deviation are measures of dispersion. The sample variance is given in @eq-var, and the standard deviation in @eq-sd. We can calculate them with `var()` and `sd()`:
 
 ```{r code-var-normal-data}
 var(normal_data)
@@ -522,17 +350,19 @@ sd(normal_data)
 Manually calculate the variance and SD for the `normal_data`. Make sure your answer is the same as those reported above.
 :::
 
-The interpretation of the concepts of mean and median are fairly straight forward and intuitive. Not so for the measures of variance. What does $S$ represent? Firstly, the unit of measurement of $S$ is the same as that of $\bar{x}$ (but the variance does not share this characteristic). If temperature is measured in °C, then $S$ also takes a unit of °C. Since $S$ measures the dispersion *around* the mean, we write it as $\bar{x} \pm S$ (note that often the mean and standard deviation are written with the letters *mu* and *sigma*, respectively; *i.e.* $\mu \pm \sigma$). The smaller $S$ the closer the sample data are to $\bar{x}$, and the larger the value is the further away they will spread out from $\bar{x}$. So, it tells us about the proportion of observations above and below $\bar{x}$. But what proportion? We invoke the 68-95-99.7 rule: \~68% of the population (as represented by a random sample of $n$ observations taken from the population) falls within 1$S$ of $\bar{x}$ (*i.e.* \~34% below $\bar{x}$ and \~34% above $\bar{x}$); \~95% of the population falls within 2$S$; and \~99.7% falls within 3$S$ (@fig-expectednormal).
+The standard deviation is easier to interpret than the variance because it is measured on the same scale as the data. If temperature is measured in degrees Celsius, the standard deviation is also measured in degrees Celsius.
+
+For roughly normal data, the 68-95-99.7 rule gives a useful approximation: about 68% of observations lie within 1 SD of the mean, about 95% within 2 SD, and about 99.7% within 3 SD (@fig-expectednormal).
 
 ::: {.column-margin}
 ![The idealised Normal distribution showing the proportion of data within 1, 2, and 3SD from the mean.](../../images/Standard_deviation_diagram.svg){#fig-expectednormal}
 :::
 
-Like the mean, $S$ is affected by extreme values and outliers, so before we attach $S$ as a summary statistic to describe some data, we need to ensure that the data are in fact normally distributed. We will talk about how to do this in [Chapter 7](07-t_tests.qmd), where we will go over the numerous ways to check the assumption of normality. When the data are found to be non-normal, we need to find appropriate ways to express the spread of the data. Enter the [quartiles](#quartiles-and-the-interquartile-range).
+Like the mean, the standard deviation is sensitive to extreme values. For skewed data or data with strong outliers, the IQR is often more informative.
 
 ### The Minimum, Maximum, and Range
 
-A description of the extremes (edges of the distribution) of the data can also be provided by the functions `min()`, `max()` and `range()`. These concepts are straight forward and do not require elaboration. They apply to data of any distribution, and not only to normal data. These statistics are often the first places you want to start when looking at the data for the first time. Note that `range()` does something different from `min()` and `max()`:
+`min()`, `max()`, and `range()` give the extremes of the data:
 
 ```{r code-min-normal-data}
 min(normal_data)
@@ -540,21 +370,21 @@ max(normal_data)
 range(normal_data)
 ```
 
-`range()` actually gives us the minimum and maximum values, and not the difference between them. To find the range value properly we must be a bit more clever:
+`range()` returns the minimum and maximum as a pair. If we want the numerical width of the range, we subtract the minimum from the maximum:
 
 ```{r code-range-normal-data-range-normal-data}
 range(normal_data)[2] - range(normal_data)[1]
 ```
 
+These are simple summaries, but they are often the first place to look for impossible values, obvious outliers, or coding errors.
+
 ### Quartiles and the Interquartile Range
 
-A more forgiving approach (forgiving of the extremes, often called 'robust') is to divide the distribution of ordered data into quarters, finding the points below which 25% (0.25 and the first quartile; Q1), 50% (0.50, the median; Q2), 75% (0.75 and the third quartile; Q3) of the data are distributed. These are called quartiles (for 'quarter;' not to be confused with *quantile*, which is a more general concept that divides the distribution into any arbitrary proportion from 0 to 1). 
+Quartiles divide the ordered data into quarters. The first quartile ($Q_{1}$) marks the point below which 25% of the data fall, the second quartile ($Q_{2}$) is the median, and the third quartile ($Q_{3}$) marks the point below which 75% fall.
 
-The interquartile range (IQR) is a measure of statistical dispersion that provides information about the spread of the middle 50% of a dataset. As shown in @eq-iqr, it is calculated by subtracting the first quartile (25th percentile) from the third quartile (75th percentile).
+The IQR measures the spread of the middle 50% of the data. Because it ignores the tails, it is much less sensitive to outliers than the standard deviation. It is often the better description of spread for skewed data.
 
-The quartiles and IQR are useful because they focus on the middle half of the data rather than on the extremes. The median (the second quartile) gives a centre that is much less sensitive to outliers than the mean. The IQR then measures the spread of the central 50% of the observations. That makes it especially useful for skewed data, for datasets with a few extreme values, and for comparisons where the standard deviation would be overly influenced by outliers. The same quantities also underpin box plots, where they provide a compact visual summary of centre, spread, and potential outliers.
-
-In R we use the `quantile()` function to provide the quartiles. Here is a demonstration:
+We obtain quartiles with `quantile()`:
 
 ```{r code-quantile-normal-data-p}
 # Look at the normal data
@@ -566,30 +396,152 @@ quantile(left_skewed_data, p = 0.25)
 quantile(left_skewed_data, p = 0.75)
 ```
 
-We calculate the interquartile range using the `IQR()` function:
+We calculate the IQR with `IQR()`:
 
 ```{r code-iqr-normal-data}
 IQR(normal_data)
 ```
 
+The choice between mean and SD on the one hand, and median and IQR on the other, depends on the data. Symmetric distributions are often well described by the first pair. Skewed distributions or data with strong extremes are usually better described by the second.
+
+# The Palmer Penguin Dataset
+
+The [Palmer penguin dataset](https://apreshill.github.io/palmerpenguins-useR-2022/#/title-slide) in the **palmerpenguins** package is a widely used teaching dataset for data exploration, visualisation, and modelling. It contains measurements from three penguin species in the Palmer Archipelago: Adélie, Chinstrap, and Gentoo.
+
+The variables include bill length (`bill_length_mm`), bill depth (`bill_depth_mm`), flipper length (`flipper_length_mm`), body mass (`body_mass_g`), species, island, and sex. The dataset is rich enough to illustrate grouping structure, missingness, and both numerical and categorical variables without being unnecessarily large.
+
+Let us start by loading the data:
+
+```{r code-library-palmerpenguins}
+library(palmerpenguins)
+```
+
+# Exploring the Data Structure
+
+Now we go from statistical definitions to implementation. These functions answer three practical questions: what variables exist, how large the dataset is, and whether the data contain missing values or unexpected structure.
+
+## Inspecting Type and Layout
+
+Several functions give a quick overview of the dataset itself rather than of the values inside it:
+
+| Purpose                   | Function      |
+|:--------------------------|:--------------|
+| The class of the dataset  | `class()`     |
+| The head of the dataframe | `head()`      |
+| The tail of the dataframe | `tail()`      |
+| Printing the data         | `print()`     |
+| Glimpse the data          | `glimpse()`   |
+| Show number of rows       | `nrow()`      |
+| Show number of columns    | `ncol()`      |
+| The column names          | `colnames()`  |
+| The row names             | `row.names()` |
+| The dimensions            | `dim()`       |
+| The dimension names       | `dimnames()`  |
+| The data structure        | `str()`       |
+
+First, check the class of the object. The `penguins` dataset is a tibble, which is the tidyverse version of a data frame:
+
+```{r code-class-penguins}
+class(penguins)
+```
+
+We can convert between tibbles and data frames with `as.data.frame()` and `as_tibble()`:
+
+```{r code-penguins-df-as-data-frame}
+penguins_df <- as.data.frame(penguins)
+class(penguins_df)
+```
+
+```{r code-penguins-tbl-as-tibble-penguins-df}
+penguins_tbl <- as_tibble(penguins_df)
+class(penguins_tbl)
+```
+
+The print methods differ. Data frames print more bluntly; tibbles are more compact and readable:
+
+```{r code-print-penguins-df-i-limit}
+print(penguins_df[1:5,])
+print(penguins_tbl)
+```
+
+`glimpse()` gives similar information in a horizontal layout:
+
+```{r code-glimpse-penguins}
+glimpse(penguins)
+```
+
+## Inspecting Size and Names
+
+Use `nrow()`, `ncol()`, and `dim()` to check dataset size:
+
+```{r code-nrow-penguins}
+nrow(penguins)
+ncol(penguins)
+dim(penguins)
+```
+
+Use `colnames()` to inspect variable names:
+
+```{r code-colnames-penguins}
+colnames(penguins)
+```
+
+Tibbles do not use row names in the same way as traditional data frames, but `row.names()` and `dimnames()` are still worth recognising:
+
+::: callout-important
+## Do It Now!
+Explain the output of `dimnames()` when applied to the `penguins` dataset.
+:::
+
+## Previewing the Data
+
+`head()` and `tail()` let us inspect the first and last rows:
+
+```{r code-head-penguins}
+head(penguins)
+tail(penguins, n = 3)
+```
+
+You can wrap them in `print()` if you want more control over display:
+
+```{r code-print-head-penguins}
+print(head(penguins))
+print(tail(penguins, n = 3))
+```
+
+`str()` is often the most compact first inspection because it shows object type, variable classes, and a preview of values:
+
+```{r code-str-penguins}
+str(penguins)
+```
+
+::: callout-important
+## Do It Now!
+Explain the output of `str()` when applied to the `penguins` dataset.
+:::
+
 # Data Summaries
+
+Once we understand the structure of the dataset, we summarise the values it contains. The tools in this section automate the numerical descriptions introduced above.
+
+Use them for slightly different purposes:
+
+- `summary()` for a quick overview of variable types and basic summaries.
+- `skim()` for a broader inspection that includes missingness and type-specific summaries.
+- `describe()` for more detailed descriptive statistics on numerical variables.
+- `descriptives()` and `dfSummary()` when you want more elaborate tabular output.
 
 | Purpose                        | Function          | Package          |
 |:-------------------------------|:------------------|:-----------------|
-| Summary of the data properties | `summary()`       | **base**            |
-|                                | `describe()`      | **psych**           |
-|                                | `skim()`          | **skimr**           |
-|                                | `descriptives()`  | **jmv**             |
-|                                | `dfSummary()`     | **summarytools**    |
-
-
-R has a built-in function that provides a broad overview, not only of the classes within a dataframe, but also of some coarsely calculated descriptive statistics that might serve well as a starting place for EDA. There also also several packages that offer similar views of our data. I will introduce these below, but leave it to you to study, to choose one you like best.
-
-Above, I said, "coarsely calculated". Why? Because it ignores the grouping structure of the data.
+| Summary of the data properties | `summary()`       | **base**         |
+|                                | `describe()`      | **psych**        |
+|                                | `skim()`          | **skimr**        |
+|                                | `descriptives()`  | **jmv**          |
+|                                | `dfSummary()`     | **summarytools** |
 
 ## `summary()`
 
-The first method is a generic function that can be applied to a range of R data structures, and whose output depends on the class of the structure. It is called `summary()`. This function can be applied to the dataset itself (here a tibble) and also to the output of some models fitted to the data (later we will see, for instance, how it is applied to *t*-tests, ANOVAs, correlations, and regressions). When applied to a dataframe, tibble or we will be presented with something quite useful. Let us return to the Palmer penguin dataset, and you will see many familiar descriptive statistics:
+`summary()` is the standard quick overview in base R. For data frames and tibbles, it reports variable classes and a small set of numerical summaries:
 
 ```{r code-summary-penguins}
 summary(penguins)
@@ -597,7 +549,7 @@ summary(penguins)
 
 ## `psych::describe()`
 
-The **psych** package has the `describe()` function, which provides a somewhat more verbose output containing many of the descriptive statistics I introduced earlier in this Chapter:
+`psych::describe()` provides a more detailed numerical summary:
 
 ```{r code-psych-describe-penguins}
 psych::describe(penguins)
@@ -605,7 +557,7 @@ psych::describe(penguins)
 
 ## `skimr::skim()`
 
-The **skimr** package offers something similar, but different. The `skim()` function returns:
+`skim()` adds type-specific summaries and a clearer account of missingness:
 
 ```{r code-library-skimr}
 library(skimr)
@@ -614,7 +566,7 @@ skim(penguins)
 
 ## `jmv::descriptives()`
 
-Here is yet another view into our data, this time courtesy of the **jmv** package:
+`descriptives()` from **jmv** gives another formatted summary view:
 
 ```{r code-library-jmv}
 library(jmv)
@@ -623,7 +575,7 @@ descriptives(penguins, freq = TRUE)
 
 ## `summarytools::dfSummary()`
 
-And lastly, there is the **summarytools** package, the`dfSummary()` function within:
+`dfSummary()` from **summarytools** produces a richer tabular report:
 
 ```{r code-library-summarytools}
 library(summarytools)
@@ -631,12 +583,11 @@ print(dfSummary(penguins,
                 varnumbers   = FALSE, 
                 valid.col    = FALSE, 
                 graph.magnif = 0.76),
-      method = 'render')
+      method = "render")
 ```
 
-As you can see, there are many options; you may use the one you least dislike. I will not be prescriptive or openly opinionated about it.
+No single tool is best in every situation. The important point is to know what each one is for and to use it deliberately rather than mechanically.
 
-<!-- ### Covariance -->
 
 <!-- include the equation -->
 
@@ -701,6 +652,8 @@ Further, we want to supplement this EDA with some figures that visually show the
 ```{r fig-chicks}
 #| echo: false
 #| fig-cap: "The figures represent A) a scatterplot of the mean and raw chicken mass values; B) a bar graph of the chicken mass values, showing whiskers indicating 1 ±SD; C) a box and whisker plot of the chicken mass data; and D) chicken mass as a function of both `Diet` and `Time` (10 and 21 days)."
+#| fig-width: 5.5
+#| fig-height: 4
 
 library(ggpubr) # needed for arranging multi-panel plots
 plt1 <- ChickWeight %>%
@@ -709,16 +662,14 @@ plt1 <- ChickWeight %>%
   geom_jitter(width = 0.05) + # geom_point() if jitter not required
   geom_point(data = filter(grp_stat, Time == 21), aes(x = Diet, y = mean_wt),
              col = "black", fill = "red", shape = 23, size = 3) +
-  labs(y = "Mass (g)") + 
-  theme_pubr()
+  labs(y = "Mass (g)")
 
 plt2 <- ggplot(data = filter(grp_stat, Time == 21), aes(x = Diet, y = mean_wt)) +
   geom_bar(position = position_dodge(), stat = "identity", 
            col = NA, fill = "salmon") +
   geom_errorbar(aes(ymin = mean_wt - sd_wt, ymax = mean_wt + sd_wt),
                 width = .2) +
-  labs(y = "Mass (g)") + 
-  theme_pubr()
+  labs(y = "Mass (g)")
 # position_dodge() places bars side-by-side
 # stat = "identity" prevents the default count from being plotted
 
@@ -729,21 +680,21 @@ plt3 <- ChickWeight %>%
   ggplot(aes(x = Diet, y = weight)) +
   geom_boxplot(fill = "salmon") +
   geom_jitter(width = 0.05, fill = "white", col = "blue", shape = 21) +
-  labs(y = "Mass (g)") + 
-  theme_pubr()
+  labs(y = "Mass (g)")
 
 plt4 <- ChickWeight %>%
   filter(Time %in% c(10, 21)) %>% 
   ggplot(aes(x = Diet, y = weight, fill = as.factor(Time))) +
   geom_boxplot() +
   geom_jitter(shape = 21, width = 0.1) +
-  labs(y = "Mass (g)", fill = "Time") +
-  theme_pubr()
+  labs(y = "Mass (g)", fill = "Time")
 
 ggarrange(plt1, plt2, plt3, plt4, ncol = 2, nrow = 2, labels = "AUTO")
 ```
 
-## Reporting
+# Reporting
+
+We want to communicate our EDA in a report or publication. Here is how we would typically do it:
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
