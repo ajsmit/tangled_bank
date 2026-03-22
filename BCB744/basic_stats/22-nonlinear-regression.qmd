@@ -1,0 +1,681 @@
+---
+title: "22. Nonlinear Regression"
+subtitle: "When Straight Lines Are Not Enough"
+date: last-modified
+date-format: "YYYY/MM/DD"
+reference-location: margin
+---
+
+```{r code-brewing-opts}
+#| echo: false
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  fig.asp = NULL,
+  fig.align = "center",
+  fig.retina = 2,
+  dpi = 300
+)
+```
+
+```{r setup-nonlinear}
+#| echo: false
+library(tidyverse)
+library(ggpubr)
+library(nlme)
+# `mgcv` is used only for the GAM panel in `fig-main-families`;
+# the dedicated GAM workflow is developed in Chapter 21.
+library(mgcv)
+
+set.seed(13)
+theme_set(theme_grey(base_size = 8))
+
+mm_fun <- function(S, Vmax, Km) {
+  Vmax * S / (Km + S)
+}
+
+generate_data <- function(n_trt, n_rep, conc_vec, Km_vec,
+                          Vmax_vec, Km_vec_sd, Vmax_vec_sd) {
+  data <- expand.grid(
+    trt = paste("Treatment", 1:n_trt),
+    S = conc_vec,
+    rep = 1:n_rep
+  ) |>
+    as_tibble() |>
+    arrange(trt, S, rep) |>
+    group_by(trt) |>
+    mutate(
+      trt_id = readr::parse_number(as.character(trt)),
+      Km = rnorm(n(), mean = Km_vec[trt_id], sd = Km_vec_sd[trt_id]),
+      Vmax = rnorm(n(), mean = Vmax_vec[trt_id], sd = Vmax_vec_sd[trt_id])
+    ) |>
+    ungroup() |>
+    mutate(
+      V = mm_fun(S, Vmax, Km),
+      rep = factor(rep),
+      trt = factor(trt)
+    ) |>
+    select(-trt_id, -Km, -Vmax)
+
+  data
+}
+```
+
+::: {.callout-note appearance="simple"}
+## In This Chapter
+
+-   Why some biological relationships are mechanistically nonlinear
+-   How nonlinear regression differs from polynomial and additive models
+-   The logic of named nonlinear functions
+-   A worked Michaelis-Menten example
+-   How nonlinear mixed-effects models extend mechanistic curves to repeated-measures data
+-   What to check when fitting nonlinear models
+:::
+
+# Introduction
+
+Some relationships are curved because the biology is curved. Growth saturates, enzyme kinetics asymptote, seasonal cycles oscillate, and responses may level off, bend, or change slope across the range of the predictor. In such cases, a straight-line model is often too rigid.
+
+In this chapter, I focus specifically on mechanistic nonlinear regression: models where the response is described by a named nonlinear function whose parameters have scientific meaning. Examples include saturating uptake curves, logistic growth, seasonal sine curves, and other biologically motivated responses.
+
+Polynomial regression and GAMs are covered in their own chapters because they answer a different modelling need. Here the emphasis is narrower and stronger: what to do when the biology suggests the form of the curve itself.
+
+# Key Concepts
+
+-   **Nonlinearity** often reflects real biological structure rather than unwanted curvature.
+-   **Flexible regression** can model patterns that a straight line misses.
+-   **Mechanistic nonlinear models are appropriate when the curve has a biologically motivated form.**
+-   **Greater flexibility increases the risk of overfitting** if used carelessly.
+-   **Model choice should follow biological form**, not only convenience or visual preference.
+
+# When This Method Is Appropriate
+
+You should move beyond a simple linear model when:
+
+-   the fitted residuals show clear curvature;
+-   the biology suggests an asymptote, threshold, saturation, or oscillation;
+-   the response changes differently across the predictor range;
+-   the question concerns parts of the response distribution other than the mean.
+
+The diagnostic chapters earlier in the sequence already suggested this possibility. This chapter is about what to do next.
+
+# Nature of the Data and Assumptions
+
+Mechanistic nonlinear regression is still regression, so the familiar concerns about independence, residual spread, and overall model adequacy do not disappear. In many introductory applications, the response variable is continuous and the residuals are assumed to be approximately normally distributed with constant variance.
+
+The key distinction is that the mean structure is explicitly nonlinear and tied to a named function. These models are usually fitted by nonlinear least squares with `nls()`, or by mixed-effects extensions when grouped or repeated-measures data are present.
+
+The practical point is that you choose a non-linear model because the straight-line model is inadequate and because the curved alternative matches the biological process or the inferential question more closely. And it looks pretty and complicated.
+
+# The Core Equation
+
+The general form of a nonlinear regression is:
+
+$$Y_i = f(X_i, \theta) + \epsilon_i$$ {#eq-nonlinear}
+
+In @eq-nonlinear, $f(\cdot)$ is a biologically chosen nonlinear function and $\theta$ represents the parameter set that defines its shape. This chapter then uses a Michaelis-Menten curve as the main worked example of that general idea.
+
+# R Functions
+
+Some of the most useful R functions are:
+
+-   `nls()` for nonlinear least-squares models;
+-   `nlme::nlme()` when nonlinear relationships occur in grouped or repeated-measures data.
+
+Examples:
+
+```{r}
+#| eval: false
+lm(response ~ poly(x, degree = 2), data = df)
+nls(y ~ Vmax * x / (Km + x), data = df,
+    start = list(Vmax = 1, Km = 1))
+nlme::nlme(y ~ Vmax * x / (Km + x), data = df, ...)
+```
+
+One practical difference from ordinary regression is that `nls()` usually needs sensible starting values. Unlike `lm()`, it uses an iterative search for the best-fitting parameter values, and poor starting values can prevent convergence.
+
+# Example 1: Why Use a Mechanistic Nonlinear Model?
+
+The first decision is whether the biology gives you a reason to prefer a specific nonlinear function rather than a descriptive curve.
+
+```{r fig-main-families}
+#| echo: false
+#| fig-cap: "Examples of curved models fitted to simulated data. A polynomial can capture modest curvature, a GAM can adapt flexibly to the data, and a mechanistic nonlinear model can represent a known saturating biological response."
+#| fig-width: 7
+#| fig-height: 4.5
+set.seed(13)
+
+x_poly <- seq(-10, 10, length.out = 30)
+y_poly <- 1 - 2 * x_poly + 3 * x_poly^2 - 0.5 * x_poly^3 + rnorm(30, sd = 40)
+dat_poly <- tibble(x = x_poly, y = y_poly)
+mod_poly <- lm(y ~ poly(x, 3, raw = FALSE), data = dat_poly)
+pred_poly <- tibble(x = seq(min(x_poly), max(x_poly), length.out = 300)) |>
+  mutate(y = predict(mod_poly, newdata = cur_data()))
+
+x_gam <- seq(-3, 3, length.out = 30)
+y_gam <- x_gam^2 * sin(x_gam) + rnorm(30, sd = 0.5)
+dat_gam <- tibble(x = x_gam, y = y_gam)
+mod_gam <- gam(y ~ s(x, bs = "tp"), data = dat_gam)
+pred_gam <- tibble(x = seq(min(x_gam), max(x_gam), length.out = 300)) |>
+  mutate(y = predict(mod_gam, newdata = cur_data()))
+
+S <- seq(0, 100, length.out = 30)
+V <- (100 * S) / (25 + S) + rnorm(30, mean = 0, sd = 5)
+dat_mm <- tibble(S = S, V = V)
+mod_mm <- nls(V ~ (Vmax * S) / (Km + S),
+              data = dat_mm,
+              start = list(Vmax = 90, Km = 40))
+pred_mm <- tibble(S = seq(min(S), max(S), length.out = 300)) |>
+  mutate(V = predict(mod_mm, newdata = cur_data()))
+
+plt_poly <- ggplot(dat_poly, aes(x, y)) +
+  geom_point(size = 2, shape = 1, colour = "royalblue2") +
+  geom_line(data = pred_poly, aes(x, y), colour = "black") +
+  labs(x = "Predictor, X (arbitrary units)",
+       y = "Response, Y (arbitrary units)",
+       title = "A. Polynomial regression")
+
+plt_gam <- ggplot(dat_gam, aes(x, y)) +
+  geom_point(size = 2, shape = 1, colour = "royalblue2") +
+  geom_line(data = pred_gam, aes(x, y), colour = "black") +
+  labs(x = "Predictor, X (arbitrary units)",
+       y = "Response, Y (arbitrary units)",
+       title = "B. GAM")
+
+plt_mm <- ggplot(dat_mm, aes(S, V)) +
+  geom_point(size = 2, shape = 1, colour = "royalblue2") +
+  geom_line(data = pred_mm, aes(S, V), colour = "black") +
+  labs(x = expression("Substrate concentration (" * mu * "mol L"^{-1} * ")"),
+       y = expression("Uptake rate (" * mu * "mol N g"^{-1} * " h"^{-1} * ")"),
+       title = "C. Nonlinear least squares")
+
+ggarrange(plt_poly, plt_gam, plt_mm, ncol = 2, nrow = 2)
+```
+
+@fig-main-families shows three broad situations:
+
+-   A polynomial model can describe modest curvature, but it is mainly descriptive.
+-   A GAM is very useful when the relationship is clearly curved but its exact form is unknown or not informative.
+-   A mechanistic nonlinear model is most attractive when the biology suggests a specific function, because its parameters can often be interpreted directly.
+
+That last point is important. If we know the process should saturate, as in nutrient uptake kinetics, a mechanistic model tells us more than a flexible smoother. It gives us interpretable parameters such as an asymptote or a half-saturation constant.
+
+# Example 2: Algal Nutrient Uptake Kinetics
+
+We can measure algal nutrient uptake rates using a multiple flask experiment. We prepare a series of flasks, each containing a different initial concentration of the substrate nutrient, and then estimate nutrient uptake rate over a fixed time interval. The result is a set of uptake rates, $V$ ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$), paired with substrate concentrations, $[S]$ ($\mu\mathrm{mol}\ \mathrm{L}^{-1}$).
+
+If you need a reminder of the biological and experimental context behind these data, refer back to the BDC223 nutrient-uptake material in [Lecture 8a: Nutrient Uptake](../../BDC223/L08a-nutrient_uptake.qmd), [Lecture 8b: Uptake Kinetics -- Michaelis-Menten](../../BDC223/L08b-nutrients_michaelis_menten.qmd), and [Lab 4: Uptake Kinetics -- Michaelis-Menten](../../BDC223/Lab4_nitrogen_uptake.qmd). Those pages explain the experimental principles of the multiple-flask design in much more detail than is needed here.
+
+Applied to algae, the Michaelis-Menten model assumes an irreversible uptake process that saturates at high substrate concentrations. It effectively quantifies key characteristics of the nutrient uptake system, including the maximum uptake rate and the alga's affinity for the nutrient:
+
+$$V_i = \frac{V_{max} \cdot [S_i]}{K_m + [S_i]} + \epsilon_i$$ {#eq-mm}
+
+In @eq-mm:
+
+-   $V_i$ is the uptake rate at the $i$-th observation ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$);
+-   $V_{max}$ is the maximum nutrient uptake rate achieved ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$);
+-   $[S_i]$ is the substrate concentration at the $i$-th observation ($\mu\mathrm{mol}\ \mathrm{L}^{-1}$);
+-   $K_m$ is the substrate concentration at which uptake reaches half of $V_{max}$ ($\mu\mathrm{mol}\ \mathrm{L}^{-1}$); and
+-   $\epsilon_i$ is the residual error.
+
+The two parameters are biologically meaningful. $V_{max}$ represents the maximum capacity of the alga to utilise the nutrient and is measured in $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$. $K_m$ describes the affinity of the uptake system for that nutrient and is measured in $\mu\mathrm{mol}\ \mathrm{L}^{-1}$. Lower values of $K_m$ indicate higher affinity.
+
+## Do an Exploratory Data Analysis (EDA)
+
+To demonstrate fitting a nonlinear model to $V$ versus $[S]$ data from a multiple flask experiment, I simulate data across a range of substrate concentrations. The dataset consists of five replicate flasks for each of 13 substrate concentrations.
+
+```{r simulate-mf-data}
+#| tbl-cap: "Preview of the simulated multiple-flask dataset (first and last four rows)."
+conc_vec <- c(0, 0.1, 0.5, 2, 5, 7.5, 10, 12.5, 15, 17.5, 20, 25, 30)
+n_rep <- 5
+Km_vec <- c(10)
+Vmax_vec <- c(50)
+Km_vec_sd <- c(1.2)
+Vmax_vec_sd <- c(0.7)
+
+mf_data <- generate_data(
+  n_trt = 1,
+  n_rep = n_rep,
+  conc_vec = conc_vec,
+  Km_vec = Km_vec,
+  Vmax_vec = Vmax_vec,
+  Km_vec_sd = Km_vec_sd,
+  Vmax_vec_sd = Vmax_vec_sd
+) |>
+  select(rep, S, V)
+
+mf_data |>
+  slice(c(1:4, (n() - 3):n())) |>
+  gt::gt() |>
+  gt::fmt_number(columns = c(S, V), decimals = 2)
+```
+
+```{r fig-mf-eda}
+#| echo: false
+#| fig-cap: "Plot of uptake rate, V, as a function of substrate concentration, [S], for a multiple flask experiment. The relationship is clearly curved and tends towards saturation."
+ggplot(mf_data, aes(x = S, y = V, group = rep)) +
+  geom_jitter(size = 2, shape = 1, colour = "royalblue2", width = 0.08) +
+  labs(
+    x = expression("Substrate concentration (" * mu * "mol L"^{-1} * ")"),
+    y = expression("Uptake rate (" * mu * "mol N g"^{-1} * " h"^{-1} * ")")
+  )
+```
+
+The plot in @fig-mf-eda already suggests that a straight line is not the right model. Uptake increases quickly away from low substrate concentrations and then begins to level off when the concentrations become higher. That is exactly the sort of pattern for which a Michaelis-Menten model was designed.
+
+You will also often see greater spread in uptake rate at higher substrate concentrations. That happens because the high-concentration part of the curve approaches the enzyme-limited region. Once transport and assimilation systems are near saturation, small biological differences among flasks in tissue condition, enzyme capacity, light history, or temperature response can translate into visibly different realised uptake rates. At low concentrations, by contrast, uptake is constrained more strongly by substrate availability itself, so the responses are often pulled into a narrower range.
+
+## State the Model Question
+
+At this point, two related questions arise.
+
+The first is descriptive and mechanistic: can we estimate the uptake parameters $V_{max}$ ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$) and $K_m$ ($\mu\mathrm{mol}\ \mathrm{L}^{-1}$) from these data?
+
+The second is comparative: does a Michaelis-Menten model fit these data better than a simple linear model?
+
+Those are not the same question. The first is about parameter estimation within a nonlinear biological model. The second is about choosing between two competing mean structures.
+
+## Fit the Model
+
+The Michaelis-Menten model is fit with `nls()`:
+
+```{r fit-nls}
+nls_mod <- nls(
+  V ~ mm_fun(S, Vmax, Km),
+  data = mf_data,
+  start = c(Vmax = 30, Km = 5)
+)
+
+summary(nls_mod)
+```
+
+The starting values do not have to be exact, but they should be sensible. Here we know from the plot that the asymptote is probably somewhere around $40$ to $50\ \mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$, and that the half-saturation constant is likely to be in the single digits of $\mu\mathrm{mol}\ \mathrm{L}^{-1}$.
+
+```{r fig-mf-fit}
+#| echo: false
+#| fig-cap: "Michaelis-Menten model fitted to the uptake data. The dashed lines indicate the estimated Km and Vmax values."
+coef_nls <- coef(nls_mod)
+Vmax_est <- coef_nls["Vmax"]
+Km_est <- coef_nls["Km"]
+
+pred_mm_fit <- tibble(S = seq(min(mf_data$S), max(mf_data$S), length.out = 200)) |>
+  mutate(V = predict(nls_mod, newdata = cur_data()))
+
+ggplot(mf_data, aes(x = S, y = V)) +
+  geom_jitter(shape = 1, size = 2, colour = "royalblue2", width = 0.08) +
+  geom_line(data = pred_mm_fit, aes(S, V), linewidth = 0.7, colour = "black") +
+  geom_vline(xintercept = Km_est, linetype = "dashed", colour = "hotpink3") +
+  geom_hline(yintercept = Vmax_est, linetype = "dashed", colour = "hotpink3") +
+  labs(
+    x = expression("Substrate concentration (" * mu * "mol L"^{-1} * ")"),
+    y = expression("Uptake rate (" * mu * "mol N g"^{-1} * " h"^{-1} * ")")
+  )
+```
+
+## Check Diagnostics
+
+Because this is a least-squares nonlinear model, residual diagnostics are interpreted much as they are for ordinary regression.
+
+```{r diagnostics-nls}
+mf_data <- mf_data |>
+  mutate(
+    fitted = fitted(nls_mod),
+    resid = resid(nls_mod)
+  )
+
+shapiro.test(mf_data$resid)
+```
+
+```{r fig-mf-diagnostics}
+#| echo: false
+#| fig-cap: "Basic diagnostics for the Michaelis-Menten fit. The residuals show no serious trend with the fitted values, and the distribution is approximately symmetric."
+plt_hist <- ggplot(mf_data, aes(resid)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 bins = 10,
+                 fill = "lightblue",
+                 colour = "white") +
+  geom_density(colour = "black", linewidth = 0.6) +
+  labs(x = expression("Residuals (" * mu * "mol N g"^{-1} * " h"^{-1} * ")"),
+       y = "Density")
+
+plt_resid <- ggplot(mf_data, aes(fitted, resid)) +
+  geom_point(shape = 1, colour = "royalblue2") +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+  labs(x = expression("Fitted values (" * mu * "mol N g"^{-1} * " h"^{-1} * ")"),
+       y = expression("Residuals (" * mu * "mol N g"^{-1} * " h"^{-1} * ")"))
+
+ggarrange(plt_hist, plt_resid, ncol = 2)
+```
+
+These diagnostics do not suggest any serious problem. The residual spread is fairly even, and the histogram is approximately symmetric. As always, you should not rely on a single formal test, but the residual behaviour is consistent with a usable fit.
+
+## Interpret the Results
+
+```{r compare-linear-and-nonlinear}
+lm_mod <- lm(V ~ S, data = mf_data)
+model_comp <- anova(lm_mod, nls_mod)
+f_stat <- model_comp$F[2]
+
+AIC(lm_mod, nls_mod)
+BIC(lm_mod, nls_mod)
+model_comp
+```
+
+The fitted nonlinear model gives estimated values for $V_{max}$ and $K_m$, and these are the biologically meaningful outputs of the analysis. The estimated $V_{max}$ is the asymptotic uptake rate in $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$, while $K_m$ indicates the substrate concentration in $\mu\mathrm{mol}\ \mathrm{L}^{-1}$ at which the uptake rate reaches half of that asymptote.
+
+The model comparison also matters. If the linear and Michaelis-Menten models are both fitted to the same data, the nonlinear model has markedly lower information criteria and a much smaller residual error. That supports the biological interpretation already suggested by the plot; that is, uptake increases with substrate concentration, but it does so in a saturating rather than indefinitely linear way.
+
+## Reporting
+
+::: {.callout-note appearance="simple"}
+## Write-Up
+
+**Methods**
+
+Nutrient uptake rate was modelled as a function of substrate concentration with a Michaelis-Menten nonlinear regression fitted by nonlinear least squares. The nonlinear model was compared with a simple linear regression using information criteria and nested model comparison to assess whether the saturating form provided a better description of the data.
+
+**Results**
+
+Nutrient uptake increased rapidly with substrate concentration at low concentrations and then approached an asymptote, consistent with Michaelis-Menten kinetics (@fig-mf-fit). The fitted nonlinear model estimated a maximum uptake rate of `r round(Vmax_est, 2)` $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$ and a half-saturation constant of `r round(Km_est, 2)` $\mu\mathrm{mol}\ \mathrm{L}^{-1}$. Relative to a simple linear regression, the Michaelis-Menten model provided the better description of the data, with lower AIC and BIC values and a significant improvement in fit (`r paste0("F = ", round(f_stat, 2))`, `p < 0.05`).
+
+**Discussion**
+
+The main biological point is that uptake is saturating rather than indefinitely linear over the observed concentration range. That matters because the fitted parameters now speak directly to uptake capacity and nutrient affinity.
+:::
+
+## What If We Add Treatments?
+
+Experiments are seldom as simple as the one above. Consider an experiment designed to assess whether an experimental treatment, such as light intensity or seawater temperature, affects nutrient uptake kinetics. It is biologically plausible to expect that each treatment will result in unique $V_{max}$ values ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$) and $K_m$ values ($\mu\mathrm{mol}\ \mathrm{L}^{-1}$).
+
+```{r simulate-treatment-data}
+mf_data2 <- generate_data(
+  n_trt = 3,
+  n_rep = 5,
+  conc_vec = conc_vec,
+  Km_vec = c(10, 8, 6),
+  Vmax_vec = c(50, 40, 22),
+  Km_vec_sd = c(1.2, 1.1, 1.0),
+  Vmax_vec_sd = c(0.7, 1.0, 0.8)
+)
+```
+
+```{r fig-mf-treatment}
+#| echo: false
+#| fig-cap: "Simulated nutrient uptake curves for three treatments. The pattern suggests treatment-specific nonlinear responses rather than a single shared curve."
+ggplot(mf_data2, aes(S, V, colour = trt)) +
+  geom_jitter(shape = 1, width = 0.08) +
+  labs(
+    x = expression("Substrate concentration (" * mu * "mol L"^{-1} * ")"),
+    y = expression("Uptake rate (" * mu * "mol N g"^{-1} * " h"^{-1} * ")"),
+    colour = "Treatment"
+  )
+```
+
+At that point, the modelling problem becomes a bit more challenging and exciting. A separate `nls()` fit can be used for each treatment, or a nonlinear mixed-effects model can be used when dependence or grouping must be handled explicitly. That is the nonlinear counterpart of the fixed-effects and mixed-effects logic introduced in [Chapter 19](19-dependence-and-mixed-models.qmd). If the response is also non-normal, you are moving towards the broader territory covered in [Chapter 20](20-generalised-linear-models.qmd).
+
+The important point is that nonlinear modelling “draws a curve” *and* it chooses a mean structure that matches the process and then extending that structure carefully when treatments, dependence, or more complicated designs are present.
+
+## Repeated-Measures Extension
+
+The next extension appears when the same experimental unit is measured repeatedly across the concentration gradient. For example, you might measure uptake repeatedly on the same thallus, plant, or mesocosm under several substrate concentrations. At that point, the observations within each unit are no longer independent, so a separate `nls()` fit per unit or a pooled `nls()` fit is no longer enough.
+
+The nonlinear mixed-effects version of the model keeps the Michaelis-Menten mean structure but lets one or more parameters vary among experimental units. A common starting point is to allow each unit to have its own `Vmax` ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$) around a population-level mean:
+
+```{r}
+#| eval: false
+nlme::nlme(
+  V ~ mm_fun(S, Vmax, Km),
+  data = uptake_long,
+  fixed = Vmax + Km ~ treatment,
+  random = Vmax ~ 1 | individual,
+  start = c(...)
+)
+```
+
+In that formulation, the fixed effects describe how treatment shifts the average kinetic parameters, while the random effect acknowledges that repeated observations from the same individual share the same underlying uptake curve. A full worked example needs a dataset with true repeated measurements on the same biological units and enough observations per unit to estimate the random-effects structure sensibly.
+
+# Example 3: Repeated-Measures Michaelis-Menten Kinetics
+
+The previous examples treated each flask as an independent unit observed once at each starting concentration. A perturbation experiment is different. The same flask is sampled repeatedly through time as nutrient concentration declines, so the observations from that flask are correlated. This is exactly the kind of dependence problem introduced in [Chapter 19](19-dependence-and-mixed-models.qmd), except that the mean structure is now nonlinear rather than linear.
+
+For the BDC223 treatment of this experimental design, including depletion curves and the distinction between perturbation and multiple-flask methods, see [Lecture 8a: Nutrient Uptake](../../BDC223/L08a-nutrient_uptake.qmd), [Lecture 8b: Uptake Kinetics -- Michaelis-Menten](../../BDC223/L08b-nutrients_michaelis_menten.qmd), and [Lab 4: Uptake Kinetics -- Michaelis-Menten](../../BDC223/Lab4_nitrogen_uptake.qmd). Here we pick up at the point where those experiments become a modelling problem.
+
+## Example Dataset
+
+These data come from a perturbation experiment on the red seaweed *Gracilaria* sp. Flasks were enriched to approximately 55--60 $\mu M$ nitrate and sampled repeatedly over roughly 2.5 hours. Uptake rates were measured under three levels of water movement (`low`, `med`, `high`), with three replicate flasks per treatment.
+
+```{r code-mm-data}
+#| tbl-cap: "Preview of the perturbation dataset (first eight rows)."
+mm_data <- read.csv(file.path("..", "..", "data", "BCB744", "flow_rates.txt"), sep = "") |>
+  mutate(
+    flask = factor(flask),
+    trt = factor(trt, levels = c("low", "med", "high"))
+  )
+
+head(mm_data, 8) |>
+  gt::gt() |>
+  gt::fmt_number(columns = c(V, S), decimals = 2)
+```
+
+## Do an Exploratory Data Analysis (EDA)
+
+```{r fig-mm-eda}
+#| echo: false
+#| fig-cap: "Repeated-measures uptake data from the perturbation experiment. Each dashed line traces one flask through time as substrate concentration declines."
+#| fig-width: 4
+#| fig-height: 3
+
+ggplot(mm_data, aes(x = S, y = V, colour = trt, group = interaction(trt, flask))) +
+  geom_point(shape = 1, size = 1.8, alpha = 0.8) +
+  geom_line(linewidth = 0.4, linetype = "dashed", alpha = 0.6) +
+  labs(
+    x = expression("Substrate concentration (" * mu * "mol L"^{-1} * ")"),
+    y = expression("Uptake rate (" * mu * "mol N g"^{-1} * " h"^{-1} * ")"),
+    colour = "Treatment"
+  )
+```
+
+The relationship is again saturating, so a Michaelis-Menten mean structure is still sensible. The important difference is that each dashed trajectory comes from the same flask measured repeatedly. That means the residuals are likely to be correlated within flask, and the flasks are nested within treatment.
+
+## State the Model Question
+
+The biological question is whether the Michaelis-Menten parameters differ among water-movement treatments once the repeated-measures structure of the perturbation experiment is taken into account. Here that means asking whether treatment shifts $V_{max}$ ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$) and/or $K_m$ ($\mu\mathrm{mol}\ \mathrm{L}^{-1}$).
+
+$$H_{0}: V_{max} \text{ and } K_m \text{ are the same across treatments after accounting for flask-level dependence}$$
+$$H_{a}: \text{At least one of } V_{max} \text{ or } K_m \text{ differs among treatments after accounting for flask-level dependence}$$
+
+## Fit the Model
+
+We compare two nonlinear mixed-effects models. The first is a **global** model in which all treatments share the same Michaelis-Menten parameters. The second allows `Vmax` and `Km` to vary by treatment while retaining the same repeated-measures structure.
+
+```{r code-fit-mm-nlme}
+num_levels <- nlevels(mm_data$trt)
+
+start_global <- c(
+  Vmax = max(mm_data$V),
+  Km = median(mm_data$S)
+)
+
+start_trt <- list(
+  fixed = c(
+    Vmax = rep(max(mm_data$V), num_levels),
+    Km = rep(median(mm_data$S), num_levels)
+  )
+)
+
+mm_global <- nlme(
+  V ~ mm_fun(S, Vmax, Km),
+  data = mm_data,
+  fixed = Vmax + Km ~ 1,
+  random = Vmax ~ 1 | trt/flask,
+  groups = ~ trt/flask,
+  correlation = corAR1(form = ~ 1 | trt/flask),
+  start = start_global,
+  method = "ML"
+)
+
+mm_trt <- nlme(
+  V ~ mm_fun(S, Vmax, Km),
+  data = mm_data,
+  fixed = list(Vmax ~ trt, Km ~ trt),
+  random = Vmax ~ 1 | trt/flask,
+  groups = ~ trt/flask,
+  correlation = corAR1(form = ~ 1 | trt/flask),
+  start = start_trt,
+  method = "ML"
+)
+
+mm_comp <- anova(mm_global, mm_trt)
+
+mm_comp
+summary(mm_trt)
+```
+
+Three parts of the specification are important:
+
+-   `fixed = ... ~ trt` allows the Michaelis-Menten parameters to differ among treatments.
+-   `random = Vmax ~ 1 | trt/flask` allows replicate flasks within treatments to vary in baseline uptake capacity.
+-   `correlation = corAR1(...)` acknowledges that repeated measurements within the same flask are serially correlated.
+
+This is the nonlinear counterpart of the grouped-dependence ideas from Chapter 19. The model still estimates a mechanistic curve, but it now does so in a way that respects repeated measurement on the same experimental unit while keeping the kinetic parameters in their usual units of $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$ ($V_{max}$) and $\mu\mathrm{mol}\ \mathrm{L}^{-1}$ ($K_m$).
+
+## Check Diagnostics
+
+```{r code-mm-diagnostics}
+mm_data <- mm_data |>
+  mutate(
+    fitted_nlme = fitted(mm_trt),
+    resid_nlme = resid(mm_trt, type = "pearson")
+  )
+
+shapiro.test(mm_data$resid_nlme)
+```
+
+```{r fig-mm-diagnostics}
+#| echo: false
+#| fig-cap: "Basic diagnostics for the nonlinear mixed-effects model. The residual pattern is acceptable for a teaching example, with no strong trend against the fitted values."
+#| fig-width: 4
+#| fig-height: 3
+
+plt_hist_mm <- ggplot(mm_data, aes(resid_nlme)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 bins = 10,
+                 fill = "lightblue",
+                 colour = "white") +
+  geom_density(colour = "black", linewidth = 0.6) +
+  labs(x = "Pearson residuals (unitless)", y = "Density")
+
+plt_resid_mm <- ggplot(mm_data, aes(fitted_nlme, resid_nlme)) +
+  geom_point(shape = 1, colour = "royalblue2") +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+  labs(x = expression("Fitted values (" * mu * "mol N g"^{-1} * " h"^{-1} * ")"),
+       y = "Pearson residuals (unitless)")
+
+ggarrange(plt_hist_mm, plt_resid_mm, ncol = 2)
+```
+
+These diagnostics show whether the fitted nonlinear mean structure and the residual assumptions are at least broadly compatible with the data.
+
+## Interpret the Results
+
+```{r code-mm-params}
+coef_mm <- fixed.effects(mm_trt)
+
+Vmax_by_trt <- c(
+  low = coef_mm["Vmax.(Intercept)"],
+  med = coef_mm["Vmax.(Intercept)"] + coef_mm["Vmax.trtmed"],
+  high = coef_mm["Vmax.(Intercept)"] + coef_mm["Vmax.trthigh"]
+)
+
+Km_by_trt <- c(
+  low = coef_mm["Km.(Intercept)"],
+  med = coef_mm["Km.(Intercept)"] + coef_mm["Km.trtmed"],
+  high = coef_mm["Km.(Intercept)"] + coef_mm["Km.trthigh"]
+)
+
+param_tbl <- tibble(
+  trt = factor(c("low", "med", "high"), levels = c("low", "med", "high")),
+  Vmax = round(unname(Vmax_by_trt), 2),
+  Km = round(unname(Km_by_trt), 2)
+)
+
+param_tbl
+```
+
+```{r fig-mm-fit}
+#| echo: false
+#| fig-cap: "Treatment-specific nonlinear mixed-effects fits for the perturbation experiment."
+#| fig-width: 4
+#| fig-height: 3
+
+pred_mm_nlme <- crossing(
+  trt = factor(c("low", "med", "high"), levels = c("low", "med", "high")),
+  S = seq(min(mm_data$S), max(mm_data$S), length.out = 200)
+) |>
+  mutate(
+    flask = factor("a1", levels = levels(mm_data$flask)),
+    V = predict(mm_trt, newdata = cur_data(), level = 0)
+  )
+
+ggplot(mm_data, aes(x = S, y = V, colour = trt)) +
+  geom_point(shape = 1, size = 1.8, alpha = 0.75) +
+  geom_line(
+    data = pred_mm_nlme,
+    aes(x = S, y = V, colour = trt, group = trt),
+    linewidth = 1.1,
+    inherit.aes = FALSE
+  ) +
+  labs(
+    x = expression("Substrate concentration (" * mu * "mol L"^{-1} * ")"),
+    y = expression("Uptake rate (" * mu * "mol N g"^{-1} * " h"^{-1} * ")"),
+    colour = "Treatment"
+  )
+```
+
+The likelihood-ratio test comparing the shared-parameter model with the treatment-specific model shows that allowing `Vmax` and `Km` to vary by treatment improves fit strongly (`p = 0.0031`). That is the main inferential result. The treatment-specific parameter estimates suggest that the low-flow treatment has the highest fitted `Km` in $\mu\mathrm{mol}\ \mathrm{L}^{-1}$, while the medium and high treatments reach similar uptake behaviour at lower substrate concentrations. The fitted `Vmax` values, measured in $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$, differ less strongly than the `Km` estimates in this example.
+
+In nonlinear mixed-effects work, the global model comparison is often more informative than reading each coefficient one-by-one as though they were ordinary linear-model terms. The treatment effect here is a shift in the shape of the kinetic curve under a repeated-measures design.
+
+## Reporting
+
+::: {.callout-note appearance="simple"}
+## Write-Up
+
+**Methods**
+
+Nitrate-uptake kinetics were analysed with a Michaelis-Menten nonlinear mixed-effects model fitted to repeated observations from perturbation flasks. Treatment was included as a fixed effect on the Michaelis-Menten parameters (`Vmax` and `Km`), replicate flasks were treated as random effects nested within treatment, and a first-order autoregressive correlation structure was used to account for serial dependence among repeated measurements within each flask. A global model with shared kinetic parameters across treatments was compared with a treatment-specific model using a likelihood-ratio test.
+
+**Results**
+
+Allowing Michaelis-Menten parameters to vary among treatments improved model fit relative to the shared-parameter model (likelihood-ratio test: `r paste0("L.Ratio = ", round(mm_comp$L.Ratio[2], 2))`, `p = 0.0031`). The fitted treatment-specific curves differed mainly in the half-saturation constant, with the low-flow treatment showing the highest fitted $K_m$ and the medium- and high-flow treatments reaching high uptake rates at lower substrate concentrations (@fig-mm-fit). Estimated parameter values were low flow: $V_{max} =$ `r param_tbl$Vmax[param_tbl$trt == "low"]` $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$ and $K_m =$ `r param_tbl$Km[param_tbl$trt == "low"]` $\mu\mathrm{mol}\ \mathrm{L}^{-1}$; medium flow: $V_{max} =$ `r param_tbl$Vmax[param_tbl$trt == "med"]` $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$ and $K_m =$ `r param_tbl$Km[param_tbl$trt == "med"]` $\mu\mathrm{mol}\ \mathrm{L}^{-1}$; high flow: $V_{max} =$ `r param_tbl$Vmax[param_tbl$trt == "high"]` $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$ and $K_m =$ `r param_tbl$Km[param_tbl$trt == "high"]` $\mu\mathrm{mol}\ \mathrm{L}^{-1}$.
+
+**Discussion**
+
+The biological point is that repeated-measures uptake data can support treatment differences in kinetic behaviour, but only if the dependence structure is modelled explicitly. Ignoring the repeated sampling of the same flasks would treat correlated measurements as independent and would make the inferential result less trustworthy.
+:::
+
+# Choosing Among Flexible Models
+
+There are a few practical considerations to keep in mind when choosing a mechanistic nonlinear model. Sometimes different curved models can provide similar fits to the same data, but they have very different implications for interpretation. The reason to prefer a mechanistic nonlinear model is precisely that its parameters mean something biologically. If that interpretability is weak or artificial, a descriptive alternative such as a polynomial regression or GAM may be more honest.
+
+# Practical Caution
+
+Flexibility is valuable, but it comes with a cost.
+
+-   More flexible models are often harder to interpret.
+-   They can overfit small datasets.
+-   They may fit noise rather than structure if the biological logic is weak.
+-   Nonlinear least-squares models can fail to converge if the functional form or starting values are poor.
+
+This is why flexible regression should be a response to a clear diagnostic or biological need, not just a default preference for curved lines.
+
+# Summary
+
+-   Not all biological relationships are well described by straight lines.
+-   Mechanistic nonlinear models serve a distinct purpose within the broader family of curved-response models.
+-   Model choice should follow the biology and the inferential goal.
+-   Mechanistic nonlinear models are especially valuable when their parameters have clear biological meaning.
+-   Greater flexibility can improve fit, but it also increases interpretive demands and the risk of overfitting.
+
+In the next chapter, I extend the regression sequence in a different direction by asking what happens when the scientific target is another part of the response distribution rather than the mean alone.

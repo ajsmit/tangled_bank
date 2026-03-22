@@ -1,0 +1,269 @@
+---
+title: "11. Residuals and Model-Based Diagnostics"
+subtitle: "Checking Fitted Models Before Interpreting Them"
+date: last-modified
+date-format: "YYYY/MM/DD"
+reference-location: margin
+---
+
+```{r code-brewing-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  fig.asp = NULL,
+  fig.align = "center",
+  fig.retina = 2,
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_grey(base_size = 8)
+)
+```
+
+```{r code-libraries, echo=FALSE}
+library(tidyverse)
+library(broom)
+```
+
+::: {.callout-note appearance="simple"}
+## In This Chapter
+
+-   the shift from raw-data checks to model-based checks;
+-   what a fitted model, a predicted value, and a residual are;
+-   why regression assumptions apply to residuals;
+-   how to read residual-versus-fitted and residual Q-Q plots;
+-   how diagnostic patterns guide later modelling decisions.
+:::
+
+::: {.callout-important appearance="simple"}
+## Tasks to Complete in This Chapter
+
+-   None
+:::
+
+# Introduction: From Raw Data to Models
+
+In earlier chapters, I checked assumptions on raw data. In [Chapter 6](06-assumptions-and-transformations.qmd), I asked whether values within groups, paired differences, or observed associations were well behaved enough for the planned test.
+
+Regression changes the object that is checked. A regression model is a formal description of how a **response variable** changes with one or more **predictor variables**. A **fitted model** is that description after the data have been used to estimate it. The assumption checks then apply to the **residuals**, which are the differences between observed values and the values predicted by the fitted model.
+
+The questions remain familiar. I still check shape, spread, and dependence. I now check them on residuals rather than on raw observations. In this chapter, I introduce that shift before the regression chapters begin. [Simple Linear Regression](12-simple-linear-regression.qmd), [Multiple Regression and Model Specification](14-multiple-regression-and-model-specification.qmd), and [Model Checking and Evaluation](17-model-checking-and-evaluation.qmd) all build on it.
+
+# What Is a Model?
+
+A **model** is a mathematical description of how a response changes with one or more predictors.
+
+A **response variable** is the outcome being explained or predicted. Sometimes it is called the outcome or dependent variable.
+
+A **predictor variable** is a measured quantity used to explain or predict the response. Also known as the independent variable.
+
+A **fitted model** is the version of the model after its unknown quantities have been estimated from the data.
+
+A **predicted value** is the value the fitted model expects for the response at a given predictor value.
+
+Consider a simple biological question: how does plant height change with light availability? Plant height is the response. Light availability is the predictor. A fitted model would describe the expected plant height at each light level. The predicted value is the height that the fitted model gives for a plant growing under a specific amount of light.
+
+In this chapter, I stay at a theoretical level as far as model fitting is concerned. In the next chapter, I fit the first straight-line model. Here my aim is to explain what is being checked once a model has been fitted.
+
+# What Are Residuals?
+
+A **residual** is the difference between an observed value and its predicted value:
+
+$$
+\text{residual} = \text{observed value} - \text{predicted value}
+$$
+
+Residuals represent the part of the response that the fitted model has not explained. They are the observed differences between the data and the fitted values, so they approximate the unexplained variation that remains after modelling. That remaining variation may arise from omitted predictors, measurement error, natural biological variation, or a model form that is too simple for the pattern in the data.
+
+We will use the built-in `trees` dataset throughout this chapter. The dataset records tree girth, height, and volume. We will treat `Volume` as the response and `Girth` as the predictor.
+
+```{r code-trees-setup}
+trees_tbl <- as_tibble(trees) |>
+  mutate(tree_id = row_number())
+
+model <- lm(Volume ~ Girth, data = trees_tbl)
+
+tree_resids <- trees_tbl |>
+  mutate(
+    predicted_volume = fitted(model),
+    residual = residuals(model)
+  )
+
+tree_resids |>
+  select(tree_id, Girth, Volume, predicted_volume, residual) |>
+  slice_head(n = 8) |>
+  knitr::kable(
+    digits = 2,
+    col.names = c("Tree", "Girth", "Observed volume", "Predicted volume", "Residual")
+  )
+```
+
+Each row in the table shows the same calculation. The fitted model predicts a tree volume from girth. The residual records the remaining difference between the observed and predicted volumes.
+
+The basic R workflow is:
+
+```{r code-residual-basics}
+#| eval: false
+model <- lm(Volume ~ Girth, data = trees_tbl)
+
+fitted(model)
+residuals(model)
+```
+
+# Why Assumptions Apply to Residuals
+
+A fitted model aims to describe the systematic part of the relationship between a response and its predictors. The residuals contain what remains after that systematic part has been removed.
+
+Assumptions therefore apply to the residuals because the residuals represent the unexplained variation. If the residuals still show a pattern, the model has left structure behind. If the residuals have unstable spread, the model's uncertainty estimates become less reliable. If the residuals are dependent, the sample size is effectively smaller than it appears.
+
+Contrast with earlier chapters:
+
+| Context | What is checked |
+|---|---|
+| *t*-test or ANOVA | data within groups |
+| paired design | paired differences |
+| correlation | observed relationship between variables |
+| regression | residuals from the fitted model |
+
+# Key Regression Assumptions
+
+## Linearity
+
+**Linearity** means that the fitted model has captured the mean relationship between the predictor and the response with an appropriate sloped straight-line form. In a simple linear regression, this means the residuals should not retain a sloped or curved pattern after the line has been fitted.
+
+## Constant Variance
+
+**Variance**, in this context, means the spread of the residuals around zero. **Constant variance** means that this spread stays broadly similar across the fitted values. If the spread expands or contracts systematically, uncertainty is estimated unevenly across the response range.
+
+## Independence
+
+**Independence** means that one residual does not carry information about another. This requirement depends on the sampling or experimental design. Repeated measures on the same individual, temporal correlation, spatial clustering, and nested sampling can all violate independence.
+
+## Normality of Residuals
+
+**Approximate normality of residuals** means that the distribution of residuals is reasonably close to a normal distribution. This affects the reliability of standard errors, confidence intervals, and tests in small samples. Linearity, constant variance, and independence usually deserve attention first.
+
+# Diagnostic Plots
+
+A **diagnostic plot** is a graph used to check whether the fitted model has left behind problematic structure in the residuals.
+
+## Residual versus Fitted Plot
+
+The **residual-versus-fitted plot** places fitted values on the x-axis and residuals on the y-axis.
+
+This plot is read by asking two questions:
+
+1. Do the residuals scatter around zero without a systematic pattern?
+2. Does their spread stay broadly similar across the fitted range?
+
+Random scatter around zero supports the fitted mean structure. Curvature suggests that the straight-line form is missing part of the relationship. A funnel shape suggests changing variance.
+
+## Q-Q Plot of Residuals
+
+The **Q-Q plot of residuals** compares the ordered residuals with the values expected from a normal distribution.
+
+Points that follow the reference line support approximate normality. Systematic bends in the tails show departures from normality. Small departures are common. Large departures deserve inspection, especially when the sample is small or when extreme points drive the pattern.
+
+The standard base-R diagnostic commands are:
+
+```{r code-base-diagnostics}
+#| eval: false
+plot(model, which = 1)  # residual vs fitted
+plot(model, which = 2)  # Q-Q plot
+```
+
+# Worked Example
+
+We continue with the same `trees` model:
+
+```{r code-worked-model}
+model <- lm(Volume ~ Girth, data = trees_tbl)
+
+augment(model) |>
+  select(Girth, Volume, .fitted, .resid) |>
+  slice_head(n = 6)
+```
+
+The fitted values are the model's expected tree volumes. The residuals show how far the observed volumes depart from those fitted values.
+
+```{r fig-trees-resid-fitted}
+#| echo: false
+#| fig-cap: "Residuals versus fitted values for the tree-volume model."
+#| fig-width: 5
+#| fig-height: 3.5
+
+tree_aug <- augment(model)
+
+ggplot(tree_aug, aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = 0, linewidth = 0.5, colour = "grey40") +
+  geom_point(size = 2.2, colour = "steelblue4") +
+  geom_smooth(method = "loess", se = FALSE, colour = "firebrick", linewidth = 0.8) +
+  labs(
+    x = "Fitted volume",
+    y = "Residual"
+  )
+```
+
+In @fig-trees-resid-fitted, the residuals are centred near zero across most of the fitted range. The smooth line bends slightly at the ends, and the spread increases for larger fitted values. The straight-line model captures much of the relationship, but it leaves some structure in the residuals. That is the kind of signal that later chapters use when they move to transformed, polynomial, or nonlinear fits.
+
+```{r fig-trees-resid-qq}
+#| echo: false
+#| fig-cap: "Q-Q plot of residuals for the tree-volume model."
+#| fig-width: 5
+#| fig-height: 3.5
+
+qq_dat <- tibble(sample = sort(tree_aug$.resid)) |>
+  mutate(theoretical = qqnorm(tree_aug$.resid, plot.it = FALSE)$x)
+
+ggplot(qq_dat, aes(x = theoretical, y = sample)) +
+  geom_point(size = 2.1, colour = "steelblue4") +
+  geom_abline(intercept = 0, slope = 1, colour = "firebrick", linewidth = 0.8) +
+  labs(
+    x = "Theoretical quantiles",
+    y = "Residual quantiles"
+  )
+```
+
+In @fig-trees-resid-qq, most points follow the line closely through the centre of the distribution. The tails depart modestly. That pattern supports approximate normality well enough for an introductory straight-line model. The stronger warning in this example comes from the residual-versus-fitted plot rather than from the Q-Q plot.
+
+# Linking Diagnostics to Decisions
+
+Use the diagnostic patterns to guide the next modelling step:
+
+-   Curvature in the residual-versus-fitted plot, as in @fig-trees-resid-fitted, suggests a change in functional form. In later chapters that may mean a polynomial term, a smoother, or a mechanistic nonlinear model.
+-   Changing spread across fitted values, also visible in @fig-trees-resid-fitted, suggests a transformation or a model with a different mean-variance structure.
+-   Strong non-normality in the residuals, which would appear in a Q-Q plot such as @fig-trees-resid-qq, suggests checking outliers, influential observations, or a more suitable response distribution.
+-   Dependence in the residuals points back to the design and forward to repeated-measures or mixed-model methods.
+
+A diagnostic plot does not declare success or failure by itself. It shows where the model still disagrees with the data, and suggests that revising the model design may be in order.
+
+# Connection to Earlier Chapters
+
+In this chapter, I extend the same checking habits you used earlier in [Chapter 6](06-assumptions-and-transformations.qmd):
+
+-   Grouped comparisons checked variation within groups. Regression checks variation across fitted values.
+-   Normality was checked within groups or within paired differences. Regression checks normality in the residuals.
+-   Unequal spread across groups warned against simple mean comparisons. Regression checks whether residual spread changes across the fitted range.
+
+So, ask, is the structure plausible, is the spread stable, and are the observations independent? In regression, we should ask those questions after a model has already been fitted. In *t*-tests, ANOVAs, and correlations, we must apply assumption tests before applying the test.
+
+# Forward Links
+
+In the next chapters, we use these diagnostics directly:
+
+-   [Chapter 12: Simple Linear Regression](12-simple-linear-regression.qmd) fits and interprets the first full regression models.
+-   [Chapter 14: Multiple Regression and Model Specification](14-multiple-regression-and-model-specification.qmd) applies the same diagnostic ideas when several predictors appear in one model.
+-   [Chapter 17: Model Checking and Evaluation](17-model-checking-and-evaluation.qmd) develops residual analysis, leverage, influence, and model comparison in more detail.
+-   [Chapter 19: Dependence and Mixed Models](19-dependence-and-mixed-models.qmd) takes up the cases where independence fails because observations are clustered or repeated.
+
+# Summary
+
+Residuals are the differences between observed and predicted values.
+
+Regression assumptions are checked on residuals because residuals contain the unexplained variation left by the fitted model.
+
+Residual-versus-fitted plots assess mean structure and spread. Q-Q plots assess approximate normality of residuals.
+
+Diagnostic patterns tell you whether the current model is adequate or whether the model needs revision.

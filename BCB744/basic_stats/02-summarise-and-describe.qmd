@@ -36,6 +36,7 @@ set.seed(74402)
 
 ```{r code-knitr-opts-chunk-set, echo=FALSE}
 library(tidyverse)
+library(ggpubr)
 ```
 
 ::: {.callout-note appearance="simple"}
@@ -57,20 +58,20 @@ library(tidyverse)
 
 Exploratory data analysis (EDA) establishes what kind of data we actually have before we test hypotheses or fit models. It tells us how many observations we have, what variables were measured, how much variation is present, whether missing values or outliers need attention, and whether the data contain obvious grouping structure. Poor summaries at this stage usually lead to poor inference later.
 
-This chapter introduces the numerical summaries used at the start of that process. It focuses on measures of centre, measures of spread, and a small set of tools for inspecting the structure of a dataset. These summaries work alongside the figures in [Chapter 3](03-visualise.qmd) and the treatment of distributions and uncertainty in [Chapter 4](04-distributions-sampling-uncertainty.qmd).
+In this chapter, I introduce the numerical summaries used at the start of that process. I focus on measures of centre, measures of spread, and a small set of tools for inspecting the structure of a dataset. These summaries work alongside the figures in [Chapter 3](03-visualise.qmd) and the treatment of distributions and uncertainty in [Chapter 4](04-distributions-sampling-uncertainty.qmd).
 
 # Key Concepts
 
-This section defines the ideas that organise the rest of the chapter.
+The ideas that organise the rest of the chapter are:
 
 - **EDA:** The first analytical pass through a dataset. Its job is to reveal structure, variation, missingness, and potential problems before formal inference begins.
-- **Centre and spread:** Most numerical summaries describe either where the data cluster or how widely they vary.
-- **Distribution:** The shape of a distribution determines which summaries describe it well. Symmetric data and skewed data are not best summarised in the same way.
-- **Grouped summaries:** Biological datasets often contain treatments, species, sites, or times. Summaries by group often reveal structure hidden in pooled data.
+- **Centre and spread:** Most numerical summaries describe either where the data cluster or how widely they vary. They form part of summary (descriptive) statistics.
+- **Distribution:** The shape of a distribution determines which summaries describe it well. Symmetric data and skewed data are not best summarised in the same way, and they will be analysed using different tests or models.
+- **Grouped summaries:** Biological datasets often contain treatments, species, sites, or times. Summaries by group may reveal structure hidden in pooled data.
 
 # Foundational Definitions
 
-Before moving into numerical summaries, we need a few definitions that recur throughout the module.
+A few definitions that recur throughout the module are presented next.
 
 ## Variables and Parameters
 
@@ -78,7 +79,7 @@ A **parameter** is a fixed but usually unknown quantity that describes a populat
 
 ## Samples and Populations
 
-The **population** is the full set of units about which we want to make a claim: all trees in a forest, all quadrats in a marsh, all fish in a lagoon, or all patients in a trial. A **sample** is the subset we actually measure. Because we rarely have access to the whole population, we rely on the sample to estimate population-level quantities. The question is therefore whether the sample is informative about the population we care about. As sample size increases, and as the sample better represents the population, the sample mean becomes a more stable estimate of the population mean (@fig-simul).
+The **population** is the full set of units about which we want to make a claim: all trees in a forest, all quadrats in a marsh, all fish in an estuary, or all patients in a trial. A **sample** is the subset we actually measure. Because we rarely have access to the whole population, we rely on a **random** sample to estimate population-level quantities. The question is therefore whether the sample is informative about the population we care about. As sample size increases, and as the sample better represents the population, the sample mean becomes a more stable estimate of the population mean (@fig-simul).
 
 ```{r fig-simul}
 #| echo: false
@@ -133,7 +134,7 @@ The term **stochastic** is closely related but usually refers to a process rathe
 
 # Descriptive Statistics
 
-This section introduces the summaries used most often in EDA. They answer three basic questions: where is the centre of the data, how much do the values vary, and which summaries remain sensible when the data are skewed or contain outliers.
+Now to the summaries used most often in EDA. These summaries answer three basic questions: where is the centre of the data, how much do the values vary, and which summaries remain sensible when the data are skewed or contain outliers.
 
 ## The Core Equations
 
@@ -211,29 +212,50 @@ bimodal_data <- c(data1, data2)
 ```
 
 ```{r fig-histos}
-#| fig-cap: "Histograms for generated normal, right-skewed, left-skewed, and bimodal distributions."
+#| fig-cap: "Generated normal, right-skewed, left-skewed, and bimodal distributions, shown in panels A-D, with the mean and median indicated in each panel."
 #| fig-width: 5.5
 #| fig-height: 4
 
-old_par <- par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+make_hist_plot <- function(x, title, fill_col) {
+  stat_lines <- tibble(
+    statistic = c("Mean", "Median"),
+    xint = c(mean(x), median(x))
+  )
 
-hist(normal_data, main = "Normal Distribution",
-     xlab = "Value", ylab = "Frequency",
-     col = "lightblue", border = "black")
+  ggplot(tibble(value = x), aes(x = value)) +
+    geom_histogram(bins = 30, fill = fill_col, colour = "black", linewidth = 0.3) +
+    geom_vline(
+      data = stat_lines,
+      aes(xintercept = xint, colour = statistic, linetype = statistic),
+      linewidth = 0.5,
+      show.legend = TRUE
+    ) +
+    scale_colour_manual(values = c("Mean" = "red", "Median" = "blue")) +
+    scale_linetype_manual(values = c("Mean" = "solid", "Median" = "dashed")) +
+    labs(
+      title = title,
+      x = "Value",
+      y = "Frequency"
+    ) +
+    theme_grey() +
+    theme(
+      legend.position = "bottom",
+      plot.title = element_text(size = 9)
+    )
+}
 
-hist(right_skewed_data, main = "Right-Skewed Distribution",
-     xlab = "Value", ylab = "Frequency",
-     col = "lightgreen", border = "black")
+plt_normal <- make_hist_plot(normal_data, "Normal Distribution", "grey80")
+plt_right <- make_hist_plot(right_skewed_data, "Right-Skewed Distribution", "grey80")
+plt_left  <- make_hist_plot(left_skewed_data, "Left-Skewed Distribution", "grey80")
+plt_bimodal <- make_hist_plot(bimodal_data, "Bimodal Distribution", "grey80")
 
-hist(left_skewed_data, main = "Left-Skewed Distribution",
-     xlab = "Value", ylab = "Frequency",
-     col = "lightcoral", border = "black")
-
-hist(bimodal_data, main = "Bimodal Distribution",
-     xlab = "Value", ylab = "Frequency",
-     col = "khaki2", border = "black")
-
-par(old_par)
+ggpubr::ggarrange(
+  plt_normal, plt_right, plt_left, plt_bimodal,
+  ncol = 2, nrow = 2,
+  labels = c("A", "B", "C", "D"),
+  common.legend = TRUE,
+  legend = "bottom"
+)
 ```
 
 ### The Sample Mean
@@ -259,11 +281,15 @@ round(sum(normal_data) / length(normal_data), 3)
 
 The mean uses all observed values, which makes it informative but also sensitive to skew and outliers. That sensitivity does not make it invalid for non-normal data, but it does make it a poor summary when a few extreme values dominate the result.
 
+In panel A of @fig-histos, the normal distribution is centred cleanly around its mean. In panels B and C, tail asymmetry pulls the mean away from the bulk of the data.
+
 ### The Median
 
 The median is the middle value after the data have been ordered. With an odd number of observations, it is the single central value. With an even number, it is the mean of the two central values.
 
 The median divides the ordered data into two equal halves. In a symmetric distribution it will often be close to the mean. In skewed data it usually gives a more stable description of the centre because extreme values have little influence on it.
+
+That contrast is visible in panels B and C of @fig-histos where the median sits closer to the main cluster of values than the mean does.
 
 We calculate the median with `median()`:
 
@@ -289,6 +315,8 @@ The median is the 50th percentile, or second quartile ($Q_{2}$). More generally,
 
 The mode is the most frequent value or values in a dataset. It is useful for categorical data and for identifying whether a distribution is unimodal, bimodal, or multimodal. For continuous numerical data, exact repeated values are often less informative, so the mode is usually assessed visually from a histogram or density plot rather than calculated directly.
 
+Panel D of @fig-histos shows why visual inspection is useful here: one mean can be calculated, but the figure shows two clear peaks.
+
 Base R does not provide a standard `mode()` function for this purpose. In practice, visual inspection is often the more useful route.
 
 ### Skewness
@@ -296,6 +324,8 @@ Base R does not provide a standard `mode()` function for this purpose. In practi
 Skewness describes asymmetry in a distribution. A symmetric distribution has skewness close to zero. Positive skewness means the right tail is longer; negative skewness means the left tail is longer.
 
 Skewness is often easiest to understand by comparing the mean and median. In a right-skewed distribution the mean is usually greater than the median. In a left-skewed distribution the mean is usually smaller.
+
+You can see both patterns in @fig-histos, where panel B has a longer right tail, and panel C has a longer left tail.
 
 ```{r code-library-e1071}
 library(e1071)
@@ -405,6 +435,8 @@ IQR(normal_data)
 ```
 
 The choice between mean and SD on the one hand, and median and IQR on the other, depends on the data. Symmetric distributions are often well described by the first pair. Skewed distributions or data with strong extremes are usually better described by the second.
+
+The contrast among panels A-D in @fig-histos shows why that choice depends on the distribution rather than on habit.
 
 # The Palmer Penguin Dataset
 
