@@ -1,17 +1,17 @@
 ---
-date: "2021-01-01"
+date: last-modified
+date-format: "YYYY/MM/DD"
 title: "8. ANOVA"
 subtitle: "Comparing the Means of More than Two Groups"
-author: "A. J. Smit"
 reference-location: margin
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
-  comment = "R>", 
-  warning = FALSE, 
+  comment = "R>",
+  warning = FALSE,
   message = FALSE,
-  fig.asp = NULL, # control via width/height
+  fig.asp = NULL,
   fig.align = "center",
   fig.retina = 2,
   dpi = 300
@@ -31,18 +31,17 @@ ggplot2::theme_set(
 ```{r code-knitr-opts-chunk-set, echo=FALSE}
 library(tidyverse)
 library(ggpubr)
-library(ggthemes)
 library(gt)
 ```
 
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   Single factor ANOVA
--   Multiple factor ANOVA
--   Tukey HSD test
+-   one-way ANOVA
+-   Tukey HSD
+-   factorial ANOVA
 -   Welch's one-way ANOVA
--   Kruskal-Wallis rank sum test
+-   Kruskal-Wallis rank-sum test
 :::
 
 ::: {.callout-note appearance="simple"}
@@ -56,147 +55,22 @@ Find here a [Cheatsheet](../../docs/Methods_cheatsheet_v1.pdf) on statistical me
 -   Task G
 :::
 
-# Introduction
-
-In [Chapter 7](07-t_tests.qmd) we compared the means of one sample, two independent groups, and paired measurements. The natural next question is this: what do we do when we want to compare the means of **more than two groups**? The answer is **analysis of variance**, or **ANOVA**. You'd be wrong of you thought running many separate *t*-tests, one for each pair, is the way forward.
-
-ANOVA extends the same inferential approach you have already learned. We still ask whether observed differences among group means are large relative to the variation within groups. But instead of asking whether two means differ, we ask whether at least one mean among several groups differs from the others.
-
-This chapter therefore follows directly from the *t*-test chapter. It begins with the reason we should not perform many pairwise *t*-tests, introduces the assumptions and functions used for ANOVA, works through a one-way example, and then extends the discussion to factorial ANOVA, Welch's one-way ANOVA, and the Kruskal-Wallis alternative.
-
-Two important boundary points should be made early. First, **ANCOVA** belongs to the same linear-model family, but it is taught more clearly in the regression sequence because it combines a categorical predictor with a continuous covariate. Second, repeated-measures or blocked versions of ANOVA are really dependence problems and are therefore handled later in [Chapter 18](18-dependence-and-mixed-models.qmd).
-
-# Key Concepts
-
-These points separate the core ANOVA ideas from the practical sections that follow.
-
--   **ANOVA (Analysis of Variance):** A statistical test used to compare the means of three or more groups to determine if at least one group mean differs from the others.
--   **One-way versus factorial ANOVA:** One-way ANOVA analyses one categorical independent variable (factor), while factorial ANOVA analyses two or more factors and their interactions.
--   **Problem of multiple comparisons:** Repeatedly using *t*-tests on many pairs of groups inflates the probability of a Type I error. ANOVA avoids this by testing all groups simultaneously.
--   **Post-hoc tests (Tukey HSD):** After a significant ANOVA result, a post-hoc test is needed to identify exactly which group means differ.
--   **Welch's one-way ANOVA:** When group variances differ but the response is still reasonably well behaved, Welch's ANOVA is often preferable to a classical equal-variance ANOVA.
--   **Non-parametric alternative (Kruskal-Wallis):** If the assumptions for ANOVA are not met, the Kruskal-Wallis test is a common rank-based alternative.
-
-# Nature of the Data and Assumptions
-
-As with the *t*-test, ANOVAs have expectations on the nature of the response variables and assumptions stemming from the study design. 
-
--   **Continuous dependent variable** The dependent variable should be measured on a *continuous scale* (*e.g.*, height, weight, test scores).
-
--   **Categorical independent variable** The independent variable should be *categorical with at least three levels* or groups (*e.g.*, different treatments, age groups).
-
-    - **Independent groups** The groups being compared should be independent of each other, meaning that the observations within each group should not affect the other group's observations. If the same individuals or sampling units are measured repeatedly, the problem belongs with dependence and mixed models rather than with the core ANOVA treatments in this chapter.
-
-Other assumptions to be aware of with regards to the dependent variable:
-
--   Independence of data
--   Normally distributed data
--   Homogeneity of variances
--   We also encourage that the data are balanced
-
-# R Functions
-
-The main functions used in this chapter are:
-
--   `aov()` for classical ANOVA;
--   `summary()` to inspect the ANOVA table;
--   `TukeyHSD()` for post-hoc pairwise comparisons;
--   `oneway.test()` for Welch's ANOVA when variances differ;
--   `kruskal.test()` for the Kruskal-Wallis rank-sum test.
-
-# The Core Equation
-
-ANOVA is built on a simple decomposition of variation. Suppose there are $k$ groups, $Y_{ij}$ is the $j$-th observation in group $i$, $\bar{Y}_i$ is the mean of group $i$, and $\bar{Y}$ is the overall grand mean.
-
-$$SS_{\text{total}} = SS_{\text{among}} + SS_{\text{within}}$$ {#eq-anova-ss}
-
-Equation @eq-anova-ss states that the total variation in the response can be split into variation among the group means and variation among observations within groups.
-
-The total sum of squares is:
-
-$$SS_{\text{total}} = \sum_{i=1}^{k}\sum_{j=1}^{n_i}(Y_{ij} - \bar{Y})^2$$ {#eq-anova-sstotal}
-
-This measures how far all observations lie from the grand mean. The among-groups sum of squares is:
-
-$$SS_{\text{among}} = \sum_{i=1}^{k} n_i(\bar{Y}_i - \bar{Y})^2$$ {#eq-anova-ssamong}
-
-This measures how far the group means lie from the grand mean, weighted by group size. The within-groups sum of squares is:
-
-$$SS_{\text{within}} = \sum_{i=1}^{k}\sum_{j=1}^{n_i}(Y_{ij} - \bar{Y}_i)^2$$ {#eq-anova-sswithin}
-
-This measures how much variation remains among observations after the group means have been taken into account.
-
-ANOVA then converts sums of squares to mean squares by dividing by their degrees of freedom:
-
-$$MS_{\text{among}} = \frac{SS_{\text{among}}}{k - 1}, \qquad MS_{\text{within}} = \frac{SS_{\text{within}}}{N - k}$$ {#eq-anova-ms}
-
-Here $N$ is the total sample size across all groups. The mean squares are therefore variance estimates: one based on differences among the group means, and one based on residual variation within groups.
-
-ANOVA finally compares these two sources of variation through the *F*-ratio:
-
-$$F = \frac{MS_{\text{among}}}{MS_{\text{within}}}$$ {#eq-anova-f}
-
-When the null hypothesis is true and the assumptions are reasonably met, the ratio in @eq-anova-f follows an *F* distribution. Large values therefore indicate that the group means differ more than we would expect from within-group variation alone.
-
-# Why ANOVA Follows from the *t*-Test
-
-Whole big books have been written about analysis of variance (ANOVA). Although there are many experimental designs that may be analysed with ANOVAs, biologists are taught to pay special attention to the design of experiments, and generally make sure that the experiments are fully *factorial* (in the case of two-way, higher ANOVAs) and balanced. For this reason we will focus in this introductory statistics module on one-way and factorial ANOVAs only.
-
-::: {.callout-note appearance="simple"}
-## Factorial Designs
-A factorial experimental design involves studying the effects of two or more factors (also known as independent variables) on a response variable (dependent variable) simultaneously. The term 'factorial' comes from the fact that each level of one factor is combined with each level of the other factor(s), resulting in all possible combinations of factor levels.
-
-In a factorial design, the *main effects* of each factor, the *interaction effects* between factors can be analysed. When we have two factors and this is typically done by applying a 2-way ANOVA, but higher-order ANOVAs are also available. The main effect of a factor is its individual effect on the response variable (ignoring the effect due to the other(s)), while the interaction effect occurs when the effect of one factor depends on the level of another factor. 
-
-The simplest factorial design is the 2 $\times$ 2 design, which involves two factors, each with two levels. For example, if you are studying the effect of temperature (high vs. low), fertiliser concentration (high vs. low) on the yield of a crop and a 2 $\times$ 2 factorial design would involve four experimental conditions:
-
-* high temperature and high fertiliser concentration
-* high temperature and low fertiliser concentration
-* low temperature and high fertiliser concentration
-* low temperature and low fertiliser concentration
-
-In the above example there are four possible combinations. Factorial designs can involve more than two factors and/or more than two levels per factor, leading to more complex experimental setups. For example, in a 3 $\times$ 4 there will be 12 combinations of the two factor levels, and in a 2 $\times$ 3 $\times$ 5 factorial experiment the three factors with their respective levels will result in 30 combinations.     
-:::
-
-As we have seen in [Chapter 7](07-t_tests.qmd) about *t*-tests, ANOVAs also require that some assumptions are met:
-
--   **Normal distribution** The data in each group should follow a normal distribution or be approximately normally distributed. If the assumption of normality is not met, as, for example, determined with the `shapiro.test()`, you may consider using a non-parametric alternative such as Kruskal-Wallis rank sum test, `kruskal.test()`. This assumption can be relaxed for large sample sizes due to the central limit theorem discussed in [Chapter 4](04-distributions-sampling-uncertainty.qmd).
-
--   **Homoscedasticity** The variances of the groups should be approximately equal. This assumption can be tested using Levene's test, `car::leveneTest()`, or Bartlett's test, `bartlett.test()`. When the variances are different but the data are normally distributed, consider the 'Welch ANOVA,' `oneway.test()`, instead of `aov()`.
-
--   **Random sampling** The data should be obtained through random sampling or random assignment, ensuring that each observation has an equal chance of being included in the sample.
-
--   **Independent observations** The observations within each group should be independent of each other.
-
-If some of the above assumptions are violated, then your module of action is to either use a [non-parametric test](#sec-alt) (and [here](../../docs/Methods_cheatsheet_v1.pdf)), transform the data (as in [Chapter 6](06-assumptions-and-transformations.qmd)), use a generalised linear model if non-normal or use a linear mixed model when non-independence of data cannot be guaranteed. As I have already indicated, ANOVAs are also sensitive to the presence of outliers, so we need to ensure that outliers are not present. Outliers can be removed but if they are an important feature of the data, then a non-parametric test can be used.
-
-Rather than talking about *t*-tests and ANOVAs as if they do different things, let us acknowledge that they ask a similar question. That question being, "are the means of these two, more things we want to compare different or are they the same?" At this stage it is important to note that, as with *t*-tests, the independent variable is expected to be categorical (*i.e.*, a factor denoting two, more different treatments or sampling conditions) and that the dependent variable must be continuous. You may perhaps be more familiar with this question when it is presented as a set of hypotheses as we saw in a *t*-test:
-
-$$H_{0}: \mu_A = \mu_B$$
-$$H_{a}: \mu_A \ne \mu_B$$
-
-In an ANOVA, hypotheses will be more similar to these:
-
-$$H_{0}: \mu_A = \mu_B = \mu_C$$
-$$H_{a}: \text{not all group means are equal}$$
-
-This is a scientific question in the simplest sense. Often, for basic inquiries such as that posed above, we need to see if one group differs significantly from another. The way in which we accomplish this is by looking at the mean variation among groups relative to the variation within groups. Formally, ANOVA does this through the decomposition in @eq-anova-ss and the *F*-ratio in @eq-anova-f.
-
-```{r code-chicks-as-tibble-chickweight}
-# First Grab the Data
+```{r code-chicks-setup}
 chicks <- as_tibble(ChickWeight)
+chicks_day21 <- filter(chicks, Time == 21)
 ```
 
-At this point the important question is no longer how to run one more *t*-test. It is why repeated pairwise *t*-tests are the wrong tool once more than two groups are involved.
+# Introduction
 
-:::: {.callout-important}
-## Task G.1: Do It Now!
-- Why should we not just apply *t*-tests once per each of the pairs of comparisons we want to make?
-::::
+ANOVA extends the comparison-of-means idea from [Chapter 7](07-t_tests.qmd) to more than two groups. The question changes from "do these two means differ?" to "do these group means all come from the same population mean?" The response variable is still continuous. The predictor is still categorical. But now we have more than two groups.
+
+Although ANOVA is also a linear model with categorical predictors, this chapter keeps the discussion at the grouped-data level. The later regression chapters, especially [Chapter 11](11-simple-linear-regression.qmd) and [Chapter 13](13-multiple-regression-and-model-specification.qmd), make the linear-model connection explicit and introduce residual-based diagnostics in that context.
 
 # Why Not Do Multiple *t*-Tests?
 
-In the `chicks` data we have four diets, not only two as in the *t*-test example just performed. Why not then simply do a *t*-test multiple times, once for each pair of diets given to the chickens? That would amount to six separate null hypotheses:
+The first impulse with several groups is often to compare every pair with a separate *t*-test. That is the wrong decision. Each additional test creates another opportunity for a false positive, so the overall Type I error rate rises as the number of pairwise comparisons increases.
+
+In the `chicks` data we have four diets. Pairwise testing would require six null hypotheses:
 
 $$H_{0}: \mu_1 = \mu_2$$
 $$H_{0}: \mu_1 = \mu_3$$
@@ -205,45 +79,28 @@ $$H_{0}: \mu_2 = \mu_3$$
 $$H_{0}: \mu_2 = \mu_4$$
 $$H_{0}: \mu_3 = \mu_4$$
 
-This would be invalid. The problem is that the chance of committing a Type I error increases as more multiple comparisons are done. So, the overall chance of rejecting the *H*~0~ increases. Why? If one sets $\alpha=0.05$ (the significance level below which the *H*~0~ is no longer accepted), one will still reject the *H*~0~ 5% of the time when it is in fact true (*i.e.* when there is no difference between the groups). When many pairwise comparisons are made, the probability of rejecting the *H*~0~ at least once is higher because we take this 5% risk each time we repeat a *t*-test. In the case of the chicken diets, we would have to perform six *t*-tests, and the error rate would increase to slightly less than $6\times5\%$. See @tbl-kbl-results-long-digits. 
+With each repeated test, the probability of rejecting at least one true null hypothesis increases.
 
 ```{r fn-type-one-error-probability-function-k-alpha}
 #| echo: false
-# Function to Calculate the Probability of Type I Error
 type_one_error_probability <- function(k, alpha) {
   pairwise_comparisons <- k * (k - 1) / 2
-  return(1 - (1 - alpha)^pairwise_comparisons)
+  1 - (1 - alpha)^pairwise_comparisons
 }
 
-# Set the Values of k and Significance Levels
 k_values <- c(2, 3, 4, 5, 10, 20, 100)
 alpha_values <- c(0.20, 0.10, 0.05, 0.02, 0.01, 0.001)
 
-# Create an Empty Data Frame to Store the Results
-results <- data.frame(K = integer(),
-                      Alpha = numeric(),
-                      Type1ErrorProbability = numeric())
-
-# Calculate the Probabilities and Store Them in the Data Frame
-for (k in k_values) {
-  for (alpha in alpha_values) {
-    type1_error_prob <- type_one_error_probability(k, alpha)
-    results <- rbind(
-      results, data.frame(K = k,
-                          Alpha = alpha,
-                          Type1ErrorProbability = type1_error_prob))
-  }
-}
-
-results_long <- results |> 
+results <- expand_grid(K = k_values, Alpha = alpha_values) |>
+  mutate(Type1ErrorProbability = type_one_error_probability(K, Alpha)) |>
   pivot_wider(names_from = Alpha, values_from = Type1ErrorProbability)
 ```
 
 ```{r tbl-kbl-results-long-digits}
-#| tbl-cap: "Probability of committing a Type I error due to applying multiple *t*-tests to test for differences between *K* means. *α* from `0.2` to `0.0001` are shown."
+#| tbl-cap: "Probability of at least one Type I error when all pairwise *t*-tests are run among *K* groups."
 #| echo: false
 
-results_long |>
+results |>
   gt() |>
   fmt_number(columns = -K, decimals = 2) |>
   cols_label(K = "K") |>
@@ -253,77 +110,140 @@ results_long |>
   )
 ```
 
-If you insist in creating more work for yourself and do *t*-tests many times, one way to overcome the problem of committing Type I errors that stem from multiple comparisons is to apply a Bonferroni correction.
+ANOVA solves that problem by asking one global question first:
+
+$$H_{0}: \mu_1 = \mu_2 = \mu_3 = \dots = \mu_k$$
+$$H_{a}: \text{not all group means are equal}$$
+
+If the global null hypothesis is rejected, we then ask which groups differ. That second step belongs to a post hoc procedure such as Tukey's HSD.
+
+:::: {.callout-important}
+## Task G.1: Do It Now!
+Why is one global ANOVA preferable to six separate *t*-tests in the four-diet chick example?
+::::
 
 ::: {.callout-note appearance="simple"}
 ## Bonferroni Correction
-The Bonferroni correction is used to adjust the significance level of multiple hypothesis tests, such as multiple paired *t*-tests among many groups, in order to reduce the risk of false positives, Type I errors. It is named after the Italian mathematician Carlo Emilio Bonferroni.
 
-The Bonferroni correction is based on the principle that when multiple hypothesis tests are performed, the probability of observing at least one significant result due to random chance increases. To correct for this, the significance level (usually 0.05) is divided by the number of tests being performed. This results in a more stringent significance level for each individual test, it so reduces the risk of committing a Type I error.
-
-For example, if we conduct ten hypothesis tests, the significance level for each test after Bonferonni correction would become 0.05/10 = 0.005. The implication is that each individual test would need to have a *p*-value less than 0.005 to be considered significant at the overall significance level of 0.05.
-
-On the downside, this method can be overly conservative, we may then increase the risk of Type II errors and which are false negatives. If you really cannot avoid multiple tests, then also assess one of the alternatives to Bonferonni's method, viz: the false discovery rate (FDR) correction, the Holm-Bonferroni correction, Benjamini-Hochberg's procedure, the Sidak correction, or some of the Bayesian approaches.
+Should you insist on doing multiple *t*-tests, Bonferroni correction divides the significance threshold by the number of tests. It reduces the false-positive rate, but it can become very conservative. The better solution, when the scientific question concerns several group means at once, is to fit the appropriate multi-group model, such as an ANOVA, rather than correct a stack of pairwise *t*-tests after the fact.
 :::
 
-Or better still, we do an ANOVA that controls for these Type I errors so that it remains at 5%.
+# How ANOVA Partitions Variation
+
+ANOVA answers the global question by partitioning the total variation in the response into two components:
+
+-   variation among the group means;
+-   variation within the groups.
+
+If the group means differ more than we would expect from within-group variation alone, the ANOVA result becomes large enough to reject $H_0$.
+
+```{r fig-anova-decomposition}
+#| fig-cap: "Visual intuition for ANOVA. The dashed blue line is the grand mean. The red points are the diet means. Distance from the red points to the blue line contributes to between-group variation. Distance from observations to their group mean contributes to within-group variation."
+#| fig-width: 5
+#| fig-height: 3.5
+
+grand_mean <- mean(chicks_day21$weight)
+
+ggplot(chicks_day21, aes(Diet, weight)) +
+  geom_jitter(width = 0.08, alpha = 0.5, size = 1.5, colour = "grey40") +
+  stat_summary(fun = mean, geom = "point", size = 2.8, colour = "red4") +
+  geom_hline(yintercept = grand_mean, colour = "dodgerblue3", linetype = 2, linewidth = 0.7) +
+  labs(x = "Diet", y = "Chick mass (g)")
+```
+
+::: {.callout-note collapse="true" appearance="simple"}
+## Mathematical Detail
+
+Suppose there are $k$ groups, $Y_{ij}$ is the $j$-th observation in group $i$, $\bar{Y}_i$ is the mean of group $i$, and $\bar{Y}$ is the grand mean.
+
+$$SS_{\text{total}} = SS_{\text{among}} + SS_{\text{within}}$$ {#eq-anova-ss}
+
+The total sum of squares is:
+
+$$SS_{\text{total}} = \sum_{i=1}^{k}\sum_{j=1}^{n_i}(Y_{ij} - \bar{Y})^2$$ {#eq-anova-sstotal}
+
+The among-groups sum of squares is:
+
+$$SS_{\text{among}} = \sum_{i=1}^{k} n_i(\bar{Y}_i - \bar{Y})^2$$ {#eq-anova-ssamong}
+
+The within-groups sum of squares is:
+
+$$SS_{\text{within}} = \sum_{i=1}^{k}\sum_{j=1}^{n_i}(Y_{ij} - \bar{Y}_i)^2$$ {#eq-anova-sswithin}
+
+ANOVA converts these to mean squares:
+
+$$MS_{\text{among}} = \frac{SS_{\text{among}}}{k - 1}, \qquad MS_{\text{within}} = \frac{SS_{\text{within}}}{N - k}$$ {#eq-anova-ms}
+
+and compares them with the *F*-ratio:
+
+$$F = \frac{MS_{\text{among}}}{MS_{\text{within}}}$$ {#eq-anova-f}
+
+Large *F* values indicate that the group means differ more than we would expect from within-group variation alone.
+:::
+
+# Data Structure and Decision Rule
+
+Use a one-way ANOVA when:
+
+-   the response variable is continuous;
+-   the predictor is categorical with three or more independent levels;
+-   the observations are independent;
+-   the within-group distributions are reasonably well behaved.
+
+Use this decision rule:
+
+-   if the group spreads are similar, use classical one-way ANOVA with `aov()`;
+-   if the group spreads differ clearly, use Welch's one-way ANOVA with `oneway.test()`;
+-   if the data are strongly non-normal and a rank-based comparison is more defensible, use Kruskal-Wallis with `kruskal.test()`.
+
+Boxplots with jitter are the first EDA tool to use here. Look for:
+
+-   separation in group centres;
+-   large differences in spread;
+-   outliers that dominate one group;
+-   shapes that suggest strong skewness.
+
+Later regression chapters revisit these same issues through residuals. In this chapter the checks remain at the grouped raw-data level.
+
+::: {.callout-note appearance="simple"}
+## About Homogeneity Tests
+
+You've heard this before: Levene's test and Bartlett's test are supporting tools, not the main decision pathway. Visual comparison of spread comes first. If the group spreads differ substantially, switch to Welch's ANOVA rather than treating a non-significant homogeneity test as permission to ignore the problem.
+:::
+
+# R Functions
+
+The main functions used in this chapter are:
+
+-   `aov()` for classical ANOVA;
+-   `summary()` for the ANOVA table;
+-   `TukeyHSD()` for post hoc pairwise comparisons;
+-   `oneway.test()` for Welch's one-way ANOVA;
+-   `kruskal.test()` for the Kruskal-Wallis rank-sum test.
 
 # Example 1: Chick Masses Under Four Diets
 
-If we have four groups whose means we want to compare, the hypotheses should be stated in the same explicit way used elsewhere in the course:
+At Day 21, do chicks fed four diets differ in mean body mass?
+
+The hypotheses are:
 
 $$H_{0}: \mu_1 = \mu_2 = \mu_3 = \mu_4$$
 $$H_{a}: \text{not all group means are equal}$$
 
-Here, $\mu_1$, $\mu_2$, $\mu_3$,$\mu_4$ are four population means. For the *H*~0~ to be rejected, all that is required is for one of the pairs of means to be different, not all of them.
-
 ## The One-Way Design
 
-We continue with the chicken data. The *t*-test showed that Diets 1 and 2 resulted in similar chicken mass at Day 21. What about the other two diets? Our *H*~0~ is that, at Day 21, $\mu_{1}=\mu_{2}=\mu_{3}=\mu_{4}$. Is there a statistical difference between chickens fed these four diets, or do we retain the *H*~0~?
+This is a one-way design because there is one grouping variable, `Diet`, with four levels. The response variable is chick mass.
 
 ## Do an Exploratory Data Analysis (EDA)
 
-Before fitting the ANOVA, inspect the distributions graphically and keep the group means in mind. We already began this process in the *t*-test revision, but here we must consider all four diets together.
-
-## Apply the Test
-
-The R function for a classical one-way ANOVA is `aov()`. To look for significant differences between all four diets on the last day of sampling we use this one line of code:
-
-```{r code-chicks-aov1-aov-weight}
-chicks.aov1 <- aov(weight ~ Diet, data = filter(chicks, Time == 21))
-summary(chicks.aov1)
-```
-
-The ANOVA table tells us whether there is overall evidence that the group means differ. In this example the result is significant, which means that at least one diet differs from at least one other diet in terms of mean chick mass at Day 21.
-
-:::: {.callout-important}
-## Task G.2: Do It Now!
-a. What does the outcome say about the chicken masses? Which ones are different from each other?
-b. Devise a graphical display of this outcome.
-::::
-
-## Identify Which Groups Differ
-
-If this seems too easy to be true, it is because we are not quite done yet. ANOVA tells us that at least one mean differs, but not which ones. You could use your graphical display to eyeball where the significant differences are, or we can turn to a more precise approach. The next step is to run a Tukey HSD test on the results of the ANOVA:
-
-```{r code-tukeyhsd-chicks-aov1}
-TukeyHSD(chicks.aov1)
-```
-
-The output of `tukeyHSD()` shows us that pairwise comparisons of all of the groups we are comparing. We can also display this as a very rough figure (@fig-tukeydiff):
-
-```{r fig-tukeydiff}
-#| fig-cap: "A plot of the Tukey-HSD test showing the differences in means between chicks reared to 21 days old and fed four diets."
-
-plot(TukeyHSD(chicks.aov1))
-```
-
-We may also produce a plain box-and-whisker summary in **ggplot2** and overlay the group means with one standard deviation (@fig-boxwhisker2):
+Begin with a boxplot and jittered points so that the distribution within each diet is visible.
 
 ```{r fig-boxwhisker2}
-#| fig-cap: "Box-and-whisker plot of chick masses at Day 21 for the four diets. Black points show the group means and the vertical bars show one standard deviation above and below each mean."
+#| fig-cap: "Boxplot and jittered observations for chick mass at Day 21 under four diets. Black points show the diet means and the vertical bars show one standard deviation above and below each mean."
+#| fig-width: 5
+#| fig-height: 3.5
 
-ggplot(filter(chicks, Time == 21), aes(x = Diet, y = weight)) +
+ggplot(chicks_day21, aes(x = Diet, y = weight)) +
   geom_boxplot(
     width = 0.6,
     fill = "grey85",
@@ -348,9 +268,66 @@ ggplot(filter(chicks, Time == 21), aes(x = Diet, y = weight)) +
   labs(x = "Diet", y = "Chick mass (g)")
 ```
 
+The plot suggests that Diet 3 has the largest mean mass and Diet 1 the smallest. The spreads are not identical, but they are similar enough that a classical one-way ANOVA is plausible.
+
+We can support that visual judgement with grouped summaries and a homogeneity test.
+
+```{r code-chicks-day21-checks}
+chicks_day21 |>
+  group_by(Diet) |>
+  dplyr::summarise(
+    n = dplyr::n(),
+    mean = mean(weight),
+    sd = sd(weight),
+    shapiro_p = shapiro.test(weight)$p.value,
+    .groups = "drop"
+  )
+
+car::leveneTest(weight ~ Diet, data = chicks_day21)
+```
+
+The Shapiro-Wilk tests show no strong evidence against normality within any diet at Day 21, and Levene's test shows no strong evidence that the spreads differ. So, there is no strong reason to not apply an ANOVA.
+
+## Apply the Test
+
+```{r code-chicks-aov1-aov-weight}
+chicks_aov1 <- aov(weight ~ Diet, data = chicks_day21)
+summary(chicks_aov1)
+```
+
+The ANOVA table answers the global question only. A significant result means that at least one diet mean differs from at least one other diet mean.
+
+:::: {.callout-important}
+## Task G.2: Do It Now!
+a. What does the ANOVA result say about chick masses at Day 21?
+b. Which part of the result is global, and which part still needs a follow-up test?
+::::
+
+## Identify Which Groups Differ
+
+Once there is enough evidence to no longer accept the global null hypothesis, use Tukey's HSD to identify the pairwise differences while controlling the family-wise error rate.
+
+```{r code-tukeyhsd-chicks-aov1}
+TukeyHSD(chicks_aov1)
+```
+
+Each row in the Tukey output is one pairwise comparison. The `diff` column is the estimated mean difference between the two diets. The `lwr` and `upr` columns give the confidence interval for that difference. If the confidence interval does not cross zero, the two diets differ at the chosen family-wise confidence level. If the interval includes zero, the data do not support a clear difference for that pair. The `p adj` column gives the multiplicity-adjusted *p*-value for the same comparison.
+
+```{r fig-tukeydiff}
+#| fig-cap: "Tukey HSD comparisons among the four chick diets at Day 21."
+#| fig-width: 5
+#| fig-height: 3.5
+
+plot(TukeyHSD(chicks_aov1))
+```
+
 ## Interpret the Results
 
-Taken together, the ANOVA and Tukey outputs show that the global effect of diet is statistically significant, but not every pair of diets differs. In these data the clearest pairwise difference is between Diet 1 and Diet 3. This is a useful reminder that a significant ANOVA is a global result: it establishes that there is structure among the means, not that every pairwise contrast is significant.
+The global ANOVA is significant, so we reject $H_0$ and conclude that diet explains some of the variation in chick mass at Day 21. The clearest pairwise difference is between Diet 1 and Diet 3. Diet 3 chicks are about 92.6 g heavier on average than Diet 1 chicks.
+
+The observed diet means are 177.8 g, 214.7 g, 270.3 g, and 238.6 g. Those differences are not all the same size, and the Tukey step shows that only some of them are large enough relative to within-diet variation to be declared significant.
+
+The overall effect size is also worth reporting. For this ANOVA, about 25% of the variation in Day 21 chick mass is associated with diet ($\eta^2 \approx 0.25$).
 
 ## Reporting
 
@@ -359,171 +336,141 @@ Taken together, the ANOVA and Tukey outputs show that the global effect of diet 
 
 **Methods**
 
-Chick mass at Day 21 was compared among four diet treatments with a one-way ANOVA. Because the global ANOVA does not identify which groups differ, Tukey's HSD procedure was then used for post hoc pairwise comparisons.
+Chick mass at Day 21 was compared among four diet treatments with a one-way ANOVA. The grouped distributions were inspected with boxplots and summary statistics, and group spread was checked before fitting the model. Tukey's HSD procedure was then used for post hoc pairwise comparisons.
 
 **Results**
 
-At Day 21, mean chick mass differed among diets (one-way ANOVA: $F_{3,41} = 4.66$, $p < 0.01$). Chicks fed Diet 1 had a mean mass of $177.8 \pm 58.7$ g (SD), compared with $214.7 \pm 78.1$ g for Diet 2, $270.3 \pm 71.6$ g for Diet 3, and $238.6 \pm 43.3$ g for Diet 4. Tukey's HSD test showed that the clearest pairwise difference was between Diet 1 and Diet 3 ($p < 0.01$), indicating that chicks on Diet 3 were heavier than those on Diet 1 by Day 21.
+At Day 21, mean chick mass differed among diets (one-way ANOVA: $F_{3,41} = 4.66$, $p < 0.01$). Chicks fed Diet 1 had a mean mass of 177.8 g (SD = 58.7), compared with 214.7 g (SD = 78.1) for Diet 2, 270.3 g (SD = 71.6) for Diet 3, and 238.6 g (SD = 43.3) for Diet 4. Tukey's HSD showed that the clearest pairwise difference was between Diet 1 and Diet 3 ($p < 0.01$), with Diet 3 chicks heavier by 92.6 g on average. Diet accounted for about 25% of the variation in chick mass at Day 21 ($\eta^2 \approx 0.25$).
 
 **Discussion**
 
-The post hoc structure shows that diet-related differences in mass were selective rather than universal across all diet pairs. A significant ANOVA alone does not show that every diet pair differs.
+The post hoc structure shows selective diet differences rather than universal separation among all four diet means. The global ANOVA detects structure among the means; Tukey's HSD identifies where that structure lies.
 :::
 
 :::: {.callout-important}
 ## Task G.3: Do It Now!
-Look at the help file for the `TukeyHSD()` function to better understand what the output means.
-
-a. How does one interpret the results? What does this tell us about the effect that that different diets has on the chicken weights at Day 21?
-b. Figure out a way to plot the Tukey HSD outcomes in **ggplot**.
-c. Why does the ANOVA return a significant result, but the Tukey test shows that not all of the groups are significantly different from one another?
+a. Why can the ANOVA be significant even though not every Tukey comparison is significant?
+b. Produce a `ggplot2` version of the Tukey result.
 ::::
 
-<!-- ```{r} -->
+# Factorial ANOVA
 
-<!-- # plot(TukeyHSD(chicks.aov)) -->
+So far, there has been one grouping variable only. We now extend the same idea to more than one factor.
 
-<!-- ``` -->
+In the `ChickWeight` data, diet is not the only categorical structure. Time also changes chick mass. That gives two distinct questions:
 
-## Factorial ANOVA
+-   what is the effect of diet?
+-   does the effect of diet change through time?
 
-What if we have multiple grouping variables, and not just one? We would encounter this kind of situation in factorial designs. In the case of the chicken data, there is also time that seems to be having an effect.
+## A Detour We Should Avoid
+
+One tempting approach is to run a separate one-way ANOVA at each time point. That repeats the same multiple-testing problem that motivated ANOVA in the first place.
+
+```{r code-summary-aov-weight-diet}
+times <- c(0, 2, 10, 21)
+p_values <- numeric(length(times))
+
+for (i in seq_along(times)) {
+  time_data <- filter(chicks, Time == times[i])
+  fit <- aov(weight ~ Diet, data = time_data)
+  p_values[i] <- summary(fit)[[1]][["Pr(>F)"]][1]
+}
+
+time_scan <- data.frame(
+  Time = times,
+  p_value = p_values
+)
+
+time_scan
+```
+
+The results are interpretable, but our method was less than ideal (and not to mention, also repetitive). Each time point gets its own ANOVA, and the family-wise error rate rises again. Separate ANOVAs across time repeat the same multiple-testing problem as separate *t*-tests across diets.
 
 :::: {.callout-important}
 ## Task G.4: Do It Now!
-a. How is time having an effect? **(/3)**
-b. What hypotheses can we construct around time? **(/2)**
+What does the `time_scan` table suggest about when diet differences become visible, and why is that table still not the clean final analysis?
 ::::
 
-Let us look at some variations around questions concerning time. We might ask, at a particular time step, are there differences amongst the effect due to diet on chicken mass? Let us see when diets are starting to have an effect by examining the outcomes at times 0, 2, 10, and 21:
+## Two Factors in One Model
 
-```{r code-summary-aov-weight-diet}
-# effect at time = 0
-summary(aov(weight ~ Diet, data = filter(chicks, Time == 0)))
+A two-way ANOVA brings diet and time into the same model. Below, `Time` is converted to a factor because the question is about distinct sampling times.
 
-# effect at time = 2
-summary(aov(weight ~ Diet, data = filter(chicks, Time == 2)))
+```{r code-summary-aov-weight-diet-2}
+chicks_two_way <- filter(chicks, Time %in% c(0, 21)) |>
+  mutate(Time = factor(Time))
 
-# effect at time = 10
-summary(aov(weight ~ Diet, data = filter(chicks, Time == 10)))
-
-# effect at time = 21
-summary(aov(weight ~ Diet, data = filter(chicks, Time == 21)))
+summary(aov(weight ~ Diet + Time, data = chicks_two_way))
 ```
+
+This additive model asks whether diet and time each have an effect on chick mass, assuming that the diet effect is the same at both time points.
+
+## Interaction in Factorial ANOVA
+
+If the effect of diet changes with time, the additive model is too simple. We then include an interaction term:
+
+```{r code-summary-aov-weight-diet-3}
+summary(aov(weight ~ Diet * Time, data = chicks_two_way))
+```
+
+The interaction asks whether diet-related differences are the same at Time 0 and Time 21. Stated differently, does the effect of diet change depending on when we sample the chicks? In this subset, yes, it depends. The interaction term is significant, so the effect of diet depends on time.
+
+This chapter introduces interaction in ANOVA form only. [Chapter 14](14-interaction-effects.qmd) develops the interpretation of interactions in much more detail.
 
 :::: {.callout-important}
 ## Task G.5: Do It Now!
-a. What do you conclude from the above series of ANOVAs? **(/3)**
-b. What problem is associated with running multiple tests in the way that we have done here? **(/2)**
+a. What does the interaction term mean biologically in this chick example?
+b. Why do we lose information if we fit only separate one-way ANOVAs across time?
 ::::
-
-Or we may ask, regardless of diet (*i.e.* disregarding the effect of diet by clumping all chickens together), is time having an effect?
-
-```{r code-chicks-aov2-aov-weight}
-chicks.aov2 <- aov(weight ~ as.factor(Time),
-                   data = filter(chicks, Time %in% c(0, 2, 10, 21)))
-summary(chicks.aov2)
-```
-
-:::: {.callout-important}
-## Task G.6: Do It Now!
-a. Write out the hypotheses for this ANOVA. **(/2)**
-b. What do you conclude from the above ANOVA. **(/3)**
-::::
-
-Or, to save ourselves a lot of time, reduce the coding effort and we may simply run a two-way ANOVA and look at the effects of `Diet` and `Time` simultaneously. To specify the different factors we put them in our formula and separate them with a `+`:
-
-```{r code-summary-aov-weight-diet-2}
-summary(aov(weight ~ Diet + as.factor(Time),
-            data = filter(chicks, Time %in% c(0, 21))))
-```
-
-:::: {.callout-important}
-## Task G.7: Do It Now!
-a. What question are we asking with the above line of code? **(/3)**
-b. What is the answer? **(/2)**
-c. Why did we wrap `Time` in `as.factor()`? **(/2)**
-::::
-
-It is also possible to look at what the interaction effect between grouping variables (*i.e.* in this case the effect of time on diet --- does the effect of time depend on which diet we are looking at?), and not just within the individual grouping variables. To do this we replace the `+` in our formula with `*`:
-
-```{r code-summary-aov-weight-diet-3}
-summary(aov(weight ~ Diet * as.factor(Time),
-            data = filter(chicks, Time %in% c(4, 21))))
-```
-
-:::: {.callout-important}
-## Task G.8: Do It Now!
-How do these results differ from the previous set? **(/3)**
-::::
-
-One may also run a post-hoc Tukey test on these results the same as for a single factor ANOVA:
-
-```{r code-tukeyhsd-aov-weight-diet}
-TukeyHSD(aov(weight ~ Diet * as.factor(Time),
-             data = filter(chicks, Time %in% c(20, 21))))
-```
-
-:::: {.callout-important}
-## Task G.9: Do It Now!
-Yikes! That is a massive amount of results. What does all of this mean, and why is it so verbose? **(/5)**
-::::
-
-<!-- #### About interaction terms -->
-
-<!-- AJS to insert stuff here -->
-
-::: {.callout-note appearance="simple"}
-
-## Summary
-
-A *t*-test compares the means of two groups defined by one categorical predictor with two levels. A one-way ANOVA addresses the same basic question when there are more than two groups. A two-way ANOVA goes further by considering two categorical predictors at once, allowing us to test both their main effects and their interaction. That interaction term matters whenever the effect of one factor depends on the level of the other.
-
-This chapter therefore covers the **comparison-of-means family** for three or more groups under independent-sample designs. Welch's ANOVA and Kruskal-Wallis remain in scope because they are one-way alternatives within that same family. Wilcoxon tests belong with the *t*-test family in [Chapter 7](07-t_tests.qmd), ANCOVA belongs with linear models in [Chapter 13](13-multiple-regression-and-model-specification.qmd), and repeated-measures or blocked extensions belong with dependence and mixed models in [Chapter 18](18-dependence-and-mixed-models.qmd).
-:::
 
 # If Assumptions Fail {#sec-alt}
 
-In the first main section of this chapter we learned how to compare group means when the ANOVA assumptions are reasonably defensible. Those parametric methods are usually preferred because they use the original scale of the response and are often more powerful. But when the assumptions fail, the response depends on **which assumption fails** and **what design you actually have**.
+The one-way alternatives are:
 
-The main one-way alternatives are:
-
--   use **Welch's ANOVA** with `oneway.test()` when the data are still roughly normal but the group variances differ;
--   use a **Kruskal-Wallis rank-sum test** when a one-way rank-based alternative is more appropriate;
--   move to a more appropriate model altogether when the problem is really one of dependence, non-Gaussian response structure, or repeated measurement.
+-   use classical ANOVA when the group spreads are similar and the grouped distributions are reasonably well behaved;
+-   use Welch's ANOVA when the main problem is unequal spread across groups;
+-   use Kruskal-Wallis when a rank-based one-way comparison is more defensible;
+-   switch to a different model when the real issue is dependence, repeated measurement, or a non-Gaussian response structure.
 
 ## Welch's One-Way ANOVA
 
-Welch's ANOVA keeps the one-way comparison-of-means structure but relaxes the equal-variance assumption. This makes it the natural first alternative when the groups are still reasonably well behaved but clearly heteroscedastic.
+Welch's ANOVA keeps the same one-way comparison-of-means question but does not assume equal variances.
 
 ```{r code-welch-aov}
-oneway.test(weight ~ Diet, data = filter(chicks, Time == 21))
+oneway.test(weight ~ Diet, data = chicks_day21)
 ```
 
-The interpretation is much the same as for a classical one-way ANOVA: the global question is whether at least one group mean differs. The important difference is that Welch's test does not pool the within-group variances into one common estimate.
+The interpretation is the same as for classical one-way ANOVA: does at least one group mean differ? The difference is that Welch's test does not pool the within-group variances into one common estimate.
 
 ## Kruskal-Wallis Rank-Sum Test
 
-If the response is too badly behaved for a mean-based one-way ANOVA, a Kruskal-Wallis test may be more defensible. This is the natural **one-way** rank-based counterpart of ANOVA.
+If the response is too badly behaved for a mean-based one-way ANOVA, Kruskal-Wallis is the standard one-way rank-based alternative.
 
 ```{r code-kruskal-wallis}
-kruskal.test(weight ~ Diet, data = filter(chicks, Time == 21))
+kruskal.test(weight ~ Diet, data = chicks_day21)
 ```
 
-As with one-way ANOVA, a significant Kruskal-Wallis result is a global finding. It tells us that the groups do not all occupy the same part of the rank distribution, but it does not by itself identify which groups differ. For post hoc follow-up, one may use a pairwise rank-based procedure such as `pairwise.wilcox.test()` with an appropriate multiplicity correction.
+As with one-way ANOVA, a significant Kruskal-Wallis result is global. It tells us that the groups do not all occupy the same part of the rank distribution, but it does not identify which groups differ.
 
 ```{r code-pairwise-wilcox}
 pairwise.wilcox.test(
-  x = filter(chicks, Time == 21)$weight,
-  g = filter(chicks, Time == 21)$Diet,
+  x = chicks_day21$weight,
+  g = chicks_day21$Diet,
   p.adjust.method = "holm"
 )
 ```
 
+Kruskal-Wallis is a one-way method. There is no direct two-way Kruskal-Wallis counterpart that plays the same introductory role for factorial designs. Once the design includes multiple factors, the analysis needs a different modelling strategy rather than a simple rank-based extension of the one-way test.
+
+
+
 # What This Chapter Does Not Cover
 
-This boundary matters for the coherence of the whole sequence.
+-   **ANCOVA** is a linear model with a factor and a continuous covariate. It belongs in [Chapter 13](13-multiple-regression-and-model-specification.qmd), where factors and covariates are treated within the same model.
+-   **Repeated-measures, blocked, or within-individual designs** are dependence problems. Those belong in [Chapter 18](18-dependence-and-mixed-models.qmd).
+-   **Multifactor rank-based procedures** are not a clean introductory counterpart to factorial ANOVA. Once the design reaches that level, it is usually better to rethink the modelling approach directly.
 
--   **ANCOVA** is a linear model with a factor and a continuous covariate. It is therefore handled in [Chapter 13](13-multiple-regression-and-model-specification.qmd), where factors and covariates are already part of the same model formula.
--   **Repeated-measures, blocked, or within-individual designs** are dependence problems. Those are handled in [Chapter 18](18-dependence-and-mixed-models.qmd), where the snake habituation example is treated in the correct grouped-data framework.
--   Multifactor rank-based procedures are not a clean introductory counterpart to factorial ANOVA. If the design becomes that complicated, it is usually better to rethink the modelling framework rather than search for a barely comparable named test.
+# Conclusion
+
+ANOVA is the multi-group extension of the mean-comparison questions introduced with *t*-tests. The sequence is straightforward: recognise when repeated pairwise testing is inappropriate, ask one global question, inspect the grouped data, fit the model, and then use a post hoc procedure only if the global null hypothesis has been rejected.
+
+The one-way case gives the foundation. Factorial ANOVA adds more than one categorical predictor. Later chapters connect this grouped-data view of ANOVA to the broader linear-model family.

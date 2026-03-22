@@ -1,7 +1,6 @@
 ---
-title: "10. Choosing the Right Test"
+title: "10. Routes on the Map of the Statistical Landscape"
 subtitle: "A Practical Decision Guide for Core Inferential Questions"
-author: "A. J. Smit"
 date: last-modified
 date-format: "YYYY/MM/DD"
 reference-location: margin
@@ -26,11 +25,11 @@ ggplot2::theme_set(
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   How to connect the biological question to the statistical method
--   Choosing among the core methods already introduced
--   A visual decision aid for moving from question to method
--   When to consider non-parametric alternatives
--   How this chapter links the inferential material to the modelling chapters and later extensions
+-   how to connect the biological question to the method family
+-   choosing among the core methods already introduced
+-   a visual decision aid for moving from question to method
+-   when to consider non-parametric alternatives
+-   when the problem has moved beyond staple tests and into modelling
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -45,47 +44,31 @@ library(tidyverse)
 
 # Introduction
 
-Many students first encounter statistics as a menu of named tests. That is not the best way to choose a method. In practice, test selection begins with the biological question, the structure of the data, and the design of the study.
+Many students first encounter statistics as a list of named tests. In practice, method selection starts with the biological question, the structure of the data, and the design of the study.
 
-By the time you reach this chapter, you have already met the main inferential tools used in the first part of the course:
+By this point you have already met the core tests. In your working life, you will have to choose among them and recognise when the problem has gone into a broader model class. But, test choice is only the first step. Good interpretation still depends on effect size, uncertainty, and biological context.
 
--   one-sample, two-sample, and paired *t*-tests;
--   ANOVA and its common extensions;
--   correlation and association;
--   proportion tests;
--   their most common non-parametric alternatives.
+# The Decision Workflow
 
-This chapter helps you choose among the tests you already know. It is therefore a **routing chapter**, not the main teaching location for the methods themselves.
+Use these steps first. The later sections provide two complementary ways to navigate it.
 
-# Key Concepts
+1. State the biological question.
+2. Identify the response variable and its type.
+3. Identify the explanatory structure: one sample, groups, paired data, or continuous predictor.
+4. Decide whether the observations are independent, paired, repeated, or nested.
+5. Choose the method family that matches the structure.
+6. Check whether the assumptions of that family are plausible.
+7. Interpret the result in terms of effect size, uncertainty, and the scientific question.
 
-A rule of thumb to follow is to choose a method by question, data structure, and design together.
+Test selection depends on the question, the data structure, the design, and the assumptions together, and no single R function can replace that decision flow order.
 
--   **Test selection starts with the question**, not the software function.
--   **Variable type is important** because some methods are only appropriate for continuous data, others for counts, categories, or binary outcomes.
--   **Design is also important** because independence, pairing, and repeated measurement change the appropriate analysis.
--   **Assumptions matter** because they determine whether a parametric method is reasonable or whether an alternative is needed.
--   **Methods connect** because the logic of one-sample tests, group comparisons, association, and modelling forms a sequence rather than a collection of unrelated techniques.
+# Visual Decision Assistance
 
-# The Decision Steps
-
-To find the right test, work through the following questions in order:
-
-1. What is the biological question?
-2. What is the response variable, and what kind of data is it?
-3. How many groups, variables, or predictors are involved?
-4. Are the observations independent, paired, or repeated?
-5. Are the assumptions of the preferred method plausible?
-
-If you can answer those five questions clearly, the correct family of methods is usually obvious.
-
-# A Visual Decision Aid
-
-The chapter approach is summarised in @fig-method-selection-grid. Although you cannot avoid understanding the methods, the figure provides a quick glance to take you from the biological question to the method family.
+The workflow is summarised in @fig-method-selection-grid. Each row in the figure goes directly onto the categories developed in the next two sections.
 
 ```{r fig-method-selection-grid}
 #| echo: false
-#| fig-cap: "A compact decision grid linking common biological question types to the core method and the next extension when the problem becomes more complex."
+#| fig-cap: "Links from common biological question types to the main method and the next extension when the problem becomes more complex."
 #| fig-width: 9
 #| fig-height: 5.5
 
@@ -129,209 +112,238 @@ bind_rows(
   )
 ```
 
-# Choosing by Question Type
-
-## Is the Question About One Mean or One Proportion?
-
-If you have a single sample and want to compare it against a known or hypothesised value:
-
--   use a **one-sample *t*-test** for a continuous response when the assumptions are plausible;
--   use a **one-sample Wilcoxon signed-rank test** when the one-sample *t*-test assumptions fail badly;
--   use a **one-sample proportion test** when the response is binary and the question concerns a probability of success.
-
-Typical example questions include:
-
--   Is the mean height of a sample of *Protea* plants different from a known population mean?
--   Is the proportion of African penguins foraging in one colony different from an established reference proportion?
-
-This is the approach developed in [Chapter 7: *t*-Tests](07-t_tests.qmd).
-
-## Is the Question About Two Groups?
-
-If you want to compare two groups:
-
--   use an **independent two-sample *t*-test** when the groups are independent and the response is continuous;
--   use a **paired *t*-test** when the same individuals are measured twice or when observations are deliberately matched;
--   use a **Wilcoxon rank-sum test** as a non-parametric alternative for two independent groups;
--   use a **Wilcoxon signed-rank test** for non-parametric paired data;
--   use a **two-sample proportion test** when the response is binary and the question concerns two proportions.
-
-Typical example questions include:
-
--   Is the average number of leopard cubs per female different between the Overberg and Cederberg regions?
--   Did piglet body mass change between the start and end of a feeding period?
--   Do two beaches differ in the proportion of hatchling sea turtles that reach the ocean?
-
-Again, this thinking is developed [Chapter 7: *t*-Tests](07-t_tests.qmd).
-
-## Is the Question About Three or More Groups?
-
-If the response is continuous and the predictor is a categorical factor with three or more levels:
-
--   use a **one-way ANOVA** when the assumptions are plausible;
--   use a **factorial ANOVA** when more than one categorical factor is involved;
--   use **Welch's one-way ANOVA** when the variances differ but the normal-theory framing is still reasonable;
--   use a **Kruskal-Wallis test** when a one-way ANOVA is not appropriate and a rank-based alternative is acceptable.
-
-Typical example questions include:
-
--   Does grasshopper chirp rate differ among the four seasons?
--   Do mean responses differ among several treatments, habitats, or vegetation types?
-
-See [Chapter 8: ANOVA](08-anova.qmd) for further information about ANOVAs.
-
-## Is the Question About Association Between Two Variables?
-
-If the question is whether two variables vary together:
-
--   use **Pearson correlation** for approximately linear association among continuous variables;
--   use **Spearman** or **Kendall** correlation when rank-based association is more appropriate;
--   use **regression** instead if the real question is one of response and predictor rather than simple association.
-
-Typical example questions include:
-
--   Do kelp stipe length and frond length co-vary across individuals?
--   Do two ranked biological traits increase together even when a linear model is not the right first description?
-
-These methods are explored in [Chapter 9: Correlation and Association](09-correlation-and-association.qmd).
-
 # Choosing by Data Structure
 
-Another way to choose a method is to start with the data structure.
+Usually, your data structure, often set at the experimental or sampling design stage, will show whether the simple core tests are enough or whether you need regression, GLMs, or mixed models.
 
 ## Continuous Response with a Categorical Predictor
 
-This is the basic comparison-of-means method:
+This is the comparison-of-means family.
 
--   one group against a reference value → one-sample *t*-test;
--   two groups → two-sample *t*-test;
+-   one sample against a reference value → one-sample *t*-test;
+-   two independent groups → two-sample *t*-test;
 -   paired measurements → paired *t*-test;
 -   three or more groups → ANOVA.
 
-If the model contains both a categorical predictor and a continuous covariate, you have moved beyond a pure comparison-of-means design and into an **ANCOVA-style linear model**. That belongs with [Chapter 13: Multiple Regression and Model Specification](13-multiple-regression-and-model-specification.qmd), not as an isolated add-on to ANOVA.
+Those routes are developed in [Chapter 7: *t*-Tests](07-t_tests.qmd) and [Chapter 8: ANOVA](08-anova.qmd).
 
-## Continuous Response with a Continuous Explanatory Variable
+Minimal decision rules:
 
-Here the distinction between *association* and *modelling* becomes important:
+-   use a *t*-test unless the distribution is strongly skewed or dominated by outliers;
+-   use Welch rather than Student when group spreads differ clearly;
+-   use Welch's ANOVA rather than classical ANOVA when group spreads differ clearly;
+-   use rank-based alternatives when the mean-based summary is no longer defensible.
 
--   use **correlation** when the goal is to quantify association;
--   use **regression** when the goal is to model a response.
+If the model includes both a categorical predictor and a continuous covariate, you have moved beyond a pure comparison-of-means design and into an ANCOVA-type linear model. That belongs with [Chapter 13: Multiple Regression and Model Specification](13-multiple-regression-and-model-specification.qmd).
 
-Typical example questions include:
+## Two or More Continuous Variables
 
--   How does bill length change with body mass in Adelie penguins?
--   Does algal abundance change with nutrient concentration once other predictors are considered?
+Several closely related questions are possible here:
 
-## Binary Response
+-   do two variables co-vary? → pairwise correlation;
+-   how does a response change with one predictor? → simple linear regression;
+-   how does a response depend on several predictors together? → multiple regression.
 
-When the response is, for example, a success/failure outcome summarised as a proportion:
+Use pairwise correlation when the aim is association between two variables and neither is being treated as the response. Use regression when one variable is the response and the other variable, or variables, are predictors.
 
--   use **proportion tests** for one-sample or two-sample proportion questions;
--   go later to **generalised linear models** when the structure becomes more complicated.
+That gives a practical progression:
 
-Typical example questions include:
+-   two variables, association only → [Chapter 9: Correlation and Association](09-correlation-and-association.qmd);
+-   one response and one predictor → [Chapter 11: Simple Linear Regression](11-simple-linear-regression.qmd);
+-   one response and several predictors → [Chapter 13: Multiple Regression and Model Specification](13-multiple-regression-and-model-specification.qmd).
 
--   Does settlement success change with habitat or salinity?
--   Is survival probability better modelled as a function of treatment, size, or site?
+## Binary or Proportional Response
+
+For a single proportion compared with a reference value, or for two proportions compared between independent groups, the basic proportion-test family is usually enough. Once the probability of success depends on several predictors, repeated observations, sites, or any other grouped structure, move to generalised linear models, usually logistic regression.
+
+The broader model-based designs begin in [Chapter 19: Generalised Linear Models](19-generalised-linear-models.qmd).
 
 ## Count Response
 
-Counts such as numbers of offspring, parasites, seeds, or individuals per quadrat usually do not belong in the same family as mean-comparison tests.
+Counts usually do not belong in the same family as mean-comparison tests. Use a model that respects count structure, such as a Poisson or negative-binomial GLM, rather than forcing counts into a Gaussian method.
 
--   use **generalised linear models** with Poisson or negative-binomial logic when the response is a count;
--   consider overdispersion explicitly rather than forcing count data into a normal model.
-
-Typical example questions include:
-
--   How does parasite load change with host size?
--   Does quadrat-level abundance depend on reef, depth, or season?
+This is taken further in [Chapter 19: Generalised Linear Models](19-generalised-linear-models.qmd).
 
 ## Repeated, Clustered, or Hierarchical Data
 
-If observations are repeated on the same individual, nested within sites, repeated within a time stratum, then the basic independent-sample tests are no longer enough.
+If observations are repeated on the same individual, nested within sites, or clustered within some sampling structure, the basic independent-sample tests are no longer enough. This is a sampling or experimental design issue. The appropriate family is usually mixed-effects or hierarchical models.
 
--   move to **mixed-effects or hierarchical models** when repeated or nested structure matters;
--   treat this as a design issue (*i.e.*, it is implicit in experimental design) first, not as a software fix added at the end.
+Those designs are introduced in [Chapter 17: Pseudoreplication](17-pseudoreplication.qmd) and developed formally in [Chapter 18: Dependence and Mixed Models](18-dependence-and-mixed-models.qmd).
 
-Typical example questions include:
+# Choosing by Question Type
 
--   Do repeated chlorophyll-*a* measurements differ through time once bay or year is accounted for?
--   Does a treatment effect persist after recognising sites as random sampling units?
+This alternative route to deciding on a test to use matches how students may first describe a problem in words.
 
-# Extending Beyond the Staple Tests
+## Is the Question About One Mean or One Proportion?
 
-The first half of this module focuses on the staple or core inferential statistical tools because they teach the reasoning behind matching a question to the data. But the full statistical toolbox is broader than the introductory named tests.
+Use:
 
-The important extensions are:
+-   one-sample *t*-test for a continuous response and a reference mean;
+-   Wilcoxon signed-rank when the one-sample *t*-test assumptions fail badly;
+-   proportion tests for binary outcomes summarised as one proportion.
 
--   **Simple linear regression** when the response is continuous and the question is about one predictor and one response.
--   **Multiple linear regression** when the response is continuous and several predictors are needed together.
--   **Generalised linear models (GLMs)** when the response is binary, proportional, or count-based.
--   **Generalised additive models (GAMs)** when the response is clearly curved and a smooth data-driven mean structure is needed.
--   **Nonlinear regression** when the biology suggests a specific mechanistic curve.
--   **Generalised nonlinear models (GNLM-style extensions)** when the response is both non-normal and nonlinear; these are advanced extensions rather than basic introductory methods, but they belong in the broader conceptual landscape.
--   **Mixed and hierarchical models** when observations are repeated, clustered, or nested.
+For continuous responses, see [Chapter 7: *t*-Tests](07-t_tests.qmd). For model-based binary-response work, continue to [Chapter 19: Generalised Linear Models](19-generalised-linear-models.qmd).
 
-Those methods are not random extras. They are what the introductory tests grow into once the question becomes richer, the data structure becomes more realistic, or the response no longer fits the simple Gaussian setting.
+Example questions:
+
+-   Is the mean tree height in this stand different from `23 m`? → one-sample *t*-test
+-   Is the proportion of infected plants different from `0.50`? → one-sample proportion test
+-   Is the typical chlorophyll concentration in this estuary different from a regulatory threshold when the data are too skewed for a mean-based test? → Wilcoxon signed-rank test
+
+## Is the Question About Two Groups?
+
+Use:
+
+-   two-sample *t*-test for two independent groups;
+-   paired *t*-test for matched or before-after measurements;
+-   rank-based Wilcoxon alternatives when the mean-based route is not defensible;
+-   two-sample proportion tests for binary outcomes compared between two groups.
+
+These two-group pathways are developed in [Chapter 7: *t*-Tests](07-t_tests.qmd). Binary-response extensions belong with [Chapter 19: Generalised Linear Models](19-generalised-linear-models.qmd).
+
+Example questions:
+
+-   Do Adelie and Chinstrap penguins differ in mean flipper length? → two-sample *t*-test
+-   Did piglet mass change after treatment in the same individuals? → paired *t*-test
+-   Do two treatment groups differ in germination success? → two-sample proportion test
+-   Do two seed treatments differ in typical germination time when a few trays contain extreme delays? → Wilcoxon rank-sum test
+
+## Is the Question About Three or More Groups?
+
+Use:
+
+-   one-way ANOVA for one factor with three or more levels;
+-   factorial ANOVA for two or more categorical factors;
+-   Welch's ANOVA when group spreads differ clearly;
+-   Kruskal-Wallis when a rank-based one-way comparison is more defensible.
+
+These multi-group routes are developed in [Chapter 8: ANOVA](08-anova.qmd).
+
+Example questions:
+
+-   Does mean body mass differ among the four penguin species? → one-way ANOVA
+-   Do the four diet treatments differ in chick growth? → one-way ANOVA
+-   Do temperature and salinity both affect response, and do they interact? → factorial ANOVA
+-   Are group spreads clearly unequal across the five levels? → Welch's ANOVA
+-   Do parasite loads differ among three wetlands when the counts are strongly skewed? → Kruskal-Wallis test
+
+## Is the Question About Association Between Two Variables?
+
+Use:
+
+-   Pearson for linear association;
+-   Spearman or Kendall for rank-based association;
+
+Association without a response model is developed in [Chapter 9: Correlation and Association](09-correlation-and-association.qmd).
+
+Example questions:
+
+-   Do canopy cover and soil moisture increase together? → Pearson correlation if the pattern is roughly linear
+-   Do deeper kelp plants also tend to have longer stipes, even if the pattern is curved but ordered? → Spearman correlation
+-   Do two observers give similar ordered condition scores to the same set of quadrats? → Kendall's tau
+
+## Is the Question About Predicting or Explaining a Response?
+
+Use:
+
+-   simple linear regression when one response depends on one continuous predictor;
+-   polynomial regression when the response-predictor pattern is curved;
+-   multiple regression when one response depends on several predictors;
+-   interaction models when the effect of one predictor depends on another;
+-   GAMs when the response changes smoothly but not in a simple parametric form;
+-   nonlinear regression when the response follows a mechanistic nonlinear curve.
+
+These response-model routes are developed in [Chapter 11: Simple Linear Regression](11-simple-linear-regression.qmd), [Chapter 12: Polynomial Regression](12-polynomial-regression.qmd), [Chapter 13: Multiple Regression and Model Specification](13-multiple-regression-and-model-specification.qmd), [Chapter 14: Interaction Effects](14-interaction-effects.qmd), [Chapter 20: Generalised Additive Models](20-generalised-additive-models.qmd), and [Chapter 21: Nonlinear Regression](21-nonlinear-regression.qmd).
+
+Example questions:
+
+-   How does bill length change with body mass? → simple linear regression
+-   Does growth rise and then level off with age? → polynomial regression or a GAM
+-   How does abundance depend jointly on temperature, depth, and nitrate? → multiple regression
+-   Does the effect of temperature differ between exposed and sheltered sites? → interaction model
+-   Does enzyme activity follow a saturating mechanistic curve? → nonlinear regression
 
 # Assumptions and Alternatives
 
-Parametric methods are preferred because they use more information from the data and are usually more powerful when their assumptions are reasonable. However, this does not mean that you must force a parametric method onto unsuitable data.
+Assumptions are not all the same kind of thing. The most important split is:
 
-A practical guide is:
+-   **independence** → design issue;
+-   **distribution shape and outliers** → data issue;
+-   **variance differences across groups** → group-comparison issue.
 
-1. choose the method that matches the question and design;
-2. check whether its assumptions are plausible;
-3. if necessary, consider a transformation, a rank-based alternative, or a more suitable model.
+Decide by:
 
-For the material covered so far, the most important alternatives are:
+1. choosing the method family that matches the question and design;
+2. checking whether the assumptions of that family are plausible;
+3. if necessary, switching to a transformation, a rank-based alternative, or a more suitable model class.
+
+For the core material covered so far, the main alternatives are:
 
 -   one-sample or paired *t*-test → `wilcox.test()`;
 -   two-sample *t*-test → `wilcox.test()`;
 -   one-way ANOVA → `oneway.test()` or `kruskal.test()`;
 -   Pearson correlation → Spearman or Kendall correlation.
 
-Assumption checking itself is discussed in [Chapter 6](06-assumptions-and-transformations.qmd).
+Assumption checking itself is handled in [Chapter 6](06-assumptions-and-transformations.qmd).
 
-# Common Mistakes in Test Selection
+The test-specific applications appear in [Chapter 7: *t*-Tests](07-t_tests.qmd), [Chapter 8: ANOVA](08-anova.qmd), and [Chapter 9: Correlation and Association](09-correlation-and-association.qmd).
 
-These are the most common reasons students choose the wrong method:
+# Extending Beyond the Staple Tests
 
--   choosing a test because the function name is familiar rather than because the question fits;
--   ignoring whether the observations are paired or independent;
--   using correlation when the real aim is regression;
--   using many pairwise *t*-tests instead of ANOVA;
--   switching to a non-parametric test without first understanding which assumption has failed;
--   treating a binary response as if it were continuous.
+The staple tests are useful because they teach the reasoning behind method selection. They sit within a broader statistical toolbox.
 
-# Now Where?
+Use model-based analysis when:
 
-This chapter closes the first inferential block ("basic statistics") of the course. The next chapters turn to modelling:
+-   the response depends on multiple predictors;
+-   the response is not Gaussian;
+-   the design is hierarchical, repeated, or clustered;
+-   the mean structure is curved or mechanistic rather than straight-line.
+
+The major extensions are:
 
 -   [Chapter 11: Simple Linear Regression](11-simple-linear-regression.qmd)
 -   [Chapter 12: Polynomial Regression](12-polynomial-regression.qmd)
--   [Chapter 13: Multipleregression and Model Specification](13-multiple-regression-and-model-specification.qmd)
-
-In later chapters, those modelling chapters extend into specialised models, then into:
-
+-   [Chapter 13: Multiple Regression and Model Specification](13-multiple-regression-and-model-specification.qmd)
 -   [Chapter 19: Generalised Linear Models](19-generalised-linear-models.qmd)
 -   [Chapter 20: Generalised Additive Models](20-generalised-additive-models.qmd)
 -   [Chapter 21: Nonlinear Regression](21-nonlinear-regression.qmd)
--   [Chapter 23: Prediction and Explanation](23-prediction-and-explanation.qmd)
--   [Chapter 24: Regularisation](24-regularisation.qmd)
--   [Chapter 25: Reproducible Workflow](25-reproducible-workflow.qmd)
 
-Once your question becomes one of explicit response modelling rather than group comparison or simple association, you are leaving the world of named introductory tests and entering the world of model building.
+The connection between test families is:
+
+-   *t*-tests are the two-group members of the comparison-of-means family;
+-   ANOVA extends that family to three or more groups;
+-   regression extends the same linear-model approach to continuous predictors and multiple predictors.
+
+# Common Mistakes in Test Selection
+
+These mistakes account for most bad method choices:
+
+-   choosing a test because the function name is familiar rather than because the design fits;
+-   ignoring whether the observations are paired or independent;
+-   using correlation when the real aim is regression;
+-   using many pairwise *t*-tests instead of ANOVA;
+-   switching to a non-parametric test without understanding which assumption failed;
+-   treating a binary response as if it were continuous;
+-   acting as if there is a single correct test name rather than a correct model class.
+
+# Now Where?
+
+Now that we have attended to the core (basic) statistical tests, we will look at modelling in the next chapters:
+
+-   [Chapter 11: Simple Linear Regression](11-simple-linear-regression.qmd)
+-   [Chapter 12: Polynomial Regression](12-polynomial-regression.qmd)
+-   [Chapter 13: Multiple Regression and Model Specification](13-multiple-regression-and-model-specification.qmd)
 
 # Summary
 
 Choose a method in this order:
 
-1. Start with the biological question.
-2. Identify the response type and explanatory structure.
-3. Decide whether observations are independent, paired, or repeated.
-4. Match the problem to the correct method family.
-5. Check assumptions and use alternatives only for a clear reason.
-6. Move to the richer model family when the response structure or design requires it.
+1. start with the biological question;
+2. identify the response type and explanatory structure;
+3. decide whether observations are independent, paired, repeated, or nested;
+4. match the problem to the correct method family;
+5. check assumptions and use alternatives only for a clear reason;
+6. move to a broader model class when the response structure or design requires it;
+7. interpret the result through effect size and uncertainty, not through test name alone.
 
-If you follow this sequence, you will usually arrive at the right method family without having to memorise statistics as a disconnected list.
+If you follow these steps, the correct method family usually becomes clear without memorising statistics as a disconnected list. Simply use this guide to point you to where you want to be.

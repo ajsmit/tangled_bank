@@ -1,7 +1,6 @@
 ---
 title: "9. Correlation and Association"
 subtitle: "Quantifying Relationships Without Imposing a Response Model"
-author: "A. J. Smit"
 date: last-modified
 date-format: "YYYY/MM/DD"
 reference-location: margin
@@ -33,13 +32,11 @@ library(gt)
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   Correlation as a measure of association
--   Pearson's product-moment correlation
--   Spearman's rank correlation
--   Kendall's rank correlation
--   Pairwise correlation matrices and heatmaps
--   Why non-independent data can mislead a correlation analysis
--   Correlation versus regression
+-   correlation as a measure of association
+-   choosing Pearson, Spearman, or Kendall
+-   correlation matrices and heatmaps
+-   correlation and non-independence
+-   correlation versus regression
 :::
 
 ::: {.callout-note appearance="simple"}
@@ -63,79 +60,98 @@ Find here a [Cheatsheet](../../docs/Methods_cheatsheet_v1.pdf) on statistical me
 
 # Introduction
 
-In the previous chapters we focused mainly on comparing means across groups. Sometimes, however, our question is not whether groups differ, but whether two continuous variables tend to vary together. For example, do longer kelp stipes also tend to have longer fronds? Do warmer waters also contain less dissolved oxygen? Do larger animals tend to have larger home ranges?
+The previous chapters asked whether means differ among groups. Correlation answers a different question: do two variables vary together?
 
-These are questions about **association**. The most familiar tool for this purpose is **correlation**, which quantifies the strength and direction of the relationship between two variables. Unlike regression, correlation does not formally assign one variable the role of response and the other the role of predictor. That distinction matters, because correlation is descriptive while regression is explicitly model-based.
+Here we concern ourselves with association rather than group comparison. It is the last of the staple inferential tools and prepares the transition into regression. Correlation does not impose a response model. It measures the strength and direction of association between two variables. Regression goes further by assigning one variable the role of response and estimating how it changes with a predictor.
 
-Correlation analysis is therefore used to quantify the *strength and direction of the linear relationship between two continuous variables*. In some cases rank-based versions of correlation can also be used with ordinal data or with data that violate the assumptions of Pearson's correlation.
+Correlation coefficients are effect sizes. Their sign shows direction and their magnitude shows how tightly the variables vary together. Coefficients vary from `-1.0` (perfect inverse correlation), to `0` (no association), to `1.0` (perfect positive correlation). A coefficient of `0.4` may be unremarkable in one system and biologically substantial in another, so it is highly context specific. Sample size also affects stability because correlation estimates are less stable in small datasets.
 
-This chapter therefore acts as a bridge. It closes the sequence of core inferential tools by showing how association can be quantified, but it also prepares the way for the regression chapters that follow.
+# Choosing the Appropriate Correlation
 
-# Key Concepts
+The main decision we will face is the form of the relationship.
 
-These ideas define the logic of the chapter before we move into the worked examples.
+-   Use **Pearson's correlation** when the relationship is approximately linear and the main question concerns linear co-variation.
+-   Use **Spearman's rank correlation** when the relationship is monotonic but not especially linear, or when ranked order is more informative than raw spacing.
+-   Use **Kendall's rank correlation** when the emphasis is on concordance in rank order, especially with ordinal data, many tied ranks, or a direct question about agreement between rankings.
 
--   **Correlation** quantifies the strength and direction of association between variables.
--   **Association is not causation** because correlation alone does not show that one variable causes changes in the other.
--   **Correlation is not regression** because correlation does not specify a formal response and predictor.
--   **Pearson, Spearman, and Kendall** answer related but not identical questions.
--   **Strength, sign, and uncertainty** all matter when interpreting a correlation coefficient.
--   **Pairwise correlation matrices** are useful for exploring patterns in multivariate datasets.
+The scatterplot comes first. Decide whether the pattern is:
 
-# Nature of the Data and Assumptions
+-   roughly linear;
+-   monotonic but curved or unevenly spaced;
+-   clustered, outlier-driven, or structured by site, time, or some other grouping.
 
-Correlation analysis has its own set of expectations about the data.
+Association does not imply causation. Correlation can reveal co-variation, but it cannot identify the mechanism behind it.
 
--   **Continuous variables** Pearson correlation is most appropriate when both variables are measured on a continuous scale.
--   **Pairwise data** Each value of one variable must correspond to the same observation in the other variable.
--   **Bivariate relationship** Correlation is used to assess the relationship between two variables at a time, even though we can inspect many pairwise correlations in a matrix.
--   **Linearity or monotonicity** Pearson correlation assumes an approximately linear relationship. Spearman's $\rho$ and Kendall's $\tau$ are more appropriate when the relationship is monotonic or when rank-based inference is preferred.
--   **No influential outliers** Outliers can have a strong influence on a correlation coefficient and can easily produce misleading results.
--   **Normality** Pearson correlation is most comfortable when the variables are reasonably well behaved and the bivariate relationship is approximately normal.
--   **Independence of sampling units** The sampling units themselves should be independent. Clustered, temporal, or repeated-measures data can violate this assumption.
--   **Random sampling** As with the other inferential methods, the strongest inference comes from an appropriate sampling design.
+## How to Read Magnitude
 
-Before calculating a correlation coefficient, it is therefore necessary to make a scatterplot and inspect the overall pattern in the data.
+Rough verbal labels can help, but they are only a starting point:
 
-# The Core Equations
+-   around `0.1` to `0.3`: weak association;
+-   around `0.3` to `0.7`: moderate association;
+-   above `0.7`: strong association.
 
-Different correlation coefficients answer slightly different questions, but they all attempt to summarise how two variables vary together.
+Those labels are only heuristics. A moderate correlation may be biologically useful if the variables are noisy or hard to measure. A strong correlation may still be uninformative if it is driven by site structure, repeated measurements, or a lurking third variable.
 
-For Pearson correlation, the coefficient is:
+# Data Structure and Diagnostics
 
-$$r_{xy} = \frac{\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^{n}(x_i - \bar{x})^2}\sqrt{\sum_{i=1}^{n}(y_i - \bar{y})^2}}$$ {#eq-pearson-r}
+Three questions should be settled before calculating a coefficient.
 
-In @eq-pearson-r, $r_{xy}$ is the Pearson correlation coefficient, $x_i$ and $y_i$ are the observed values of the two variables for observation $i$, $\bar{x}$ and $\bar{y}$ are the sample means, and $n$ is the sample size. The equation expresses the covariance between the variables scaled by their standard deviations, which is why $r$ is unitless and ranges from `-1` to `1`.
+## Data Structure
 
-For Spearman rank correlation, the textbook version is:
+-   Each observation in one variable must correspond to the same observation in the other variable.
+-   The sampling units should be independent.
+-   Correlation is calculated for one variable pair at a time, even if many pairs are later assembled into a matrix.
 
-$$\rho = 1 - \frac{6 \sum_{i=1}^n d_i^2}{n(n^2-1)}$$ {#eq-spearman-rho}
+## Relationship Form
 
-Here $\rho$ is Spearman's rank correlation, $d_i$ is the difference between the ranks of the two variables for the $i^{th}$ observation, and $n$ is the sample size.
+-   Pearson focuses on linear association.
+-   Spearman and Kendall focus on ordered association.
+-   A scatterplot is the main diagnostic because it shows whether the pattern is linear, monotonic, clustered, or broken by outliers.
 
-For Kendall rank correlation, the coefficient is:
+## Data Quality
 
-$$\tau = \frac{n_c - n_d}{\binom{n}{2}}$$ {#eq-kendall-tau}
+-   Outliers can distort any coefficient, but Pearson is especially sensitive to them.
+-   Site, time, transect, quadrat, or repeated-measures structure can create correlations that do not reflect the biological question of interest.
 
-In @eq-kendall-tau, $n_c$ is the number of concordant pairs, $n_d$ is the number of discordant pairs, and $\binom{n}{2}$ is the total number of possible pairs. Kendall's formulation therefore focuses directly on agreement in rank order.
+## Secondary Considerations
+
+Distributional shape is less important than relationship form, outliers, and independence. Pearson is most sensitive to non-linearity and influential points. Normality is not the first issue to inspect.
 
 # R Functions
 
-The main function used in this chapter is `cor.test()`. It can be applied with different methods:
+The main function in this chapter is `cor.test()`. Use:
 
 -   `method = "pearson"` for Pearson's product-moment correlation;
 -   `method = "spearman"` for Spearman's rank correlation;
 -   `method = "kendall"` for Kendall's rank correlation.
 
-The base function `cor()` calculates the coefficient itself, but `cor.test()` is more useful for inference because it also returns a test statistic, a confidence interval where appropriate, and a *p*-value. When we want to inspect many pairwise correlations at once, `cor()` is useful for generating a correlation matrix.
+The function `cor()` calculates the coefficient itself and is useful for pairwise matrices. The inferential version, `cor.test()`, is usually more useful in worked examples because it returns the coefficient, test statistic, and *p*-value.
+
+::: {.callout-note collapse="true" appearance="simple"}
+## Mathematical Detail
+
+For Pearson correlation:
+
+$$r_{xy} = \frac{\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^{n}(x_i - \bar{x})^2}\sqrt{\sum_{i=1}^{n}(y_i - \bar{y})^2}}$$ {#eq-pearson-r}
+
+For Spearman rank correlation:
+
+$$\rho = 1 - \frac{6 \sum_{i=1}^n d_i^2}{n(n^2-1)}$$ {#eq-spearman-rho}
+
+For Kendall rank correlation:
+
+$$\tau = \frac{n_c - n_d}{\binom{n}{2}}$$ {#eq-kendall-tau}
+
+These formulas show the structure of the coefficients. In practice, first decide which coefficient matches the pattern in the data.
+:::
 
 # Pearson Correlation
 
-Pearson's $r$ is a measure of the linear relationship between two variables, as defined in @eq-pearson-r. The value of $r$ varies from `-1` to `1`, with `0` indicating no linear association, `1` showing a perfect positive association, and `-1` a perfect negative association.
+Pearson's $r$ measures the strength and direction of linear association. It is appropriate when the relationship is reasonably well described by a straight line and no small set of outliers dominates the pattern.
 
 # Example 1: Pearson Correlation in *Ecklonia maxima*
 
-In order to investigate correlations in biological data let us load the `ecklonia` dataset.
+We begin by asking whether the length of *Ecklonia maxima* stipes tends to increase together with frond length.
 
 ```{r code-read-ecklonia}
 ecklonia <- read_csv(file.path("..", "..", "data", "BCB744", "ecklonia.csv"))
@@ -143,10 +159,8 @@ ecklonia <- read_csv(file.path("..", "..", "data", "BCB744", "ecklonia.csv"))
 
 ## Do an Exploratory Data Analysis (EDA)
 
-We will begin by asking whether the length of *Ecklonia maxima* stipes tends to increase together with frond length.
-
 ```{r code-ecklonia-summary}
-ecklonia %>%
+ecklonia |>
   summarise(
     n = n(),
     mean_stipe_length = mean(stipe_length),
@@ -157,7 +171,7 @@ ecklonia %>%
 ```
 
 ```{r fig-corr1}
-#| fig-cap: "Scatterplot showing the relationship between _Ecklonia maxima_ stipe length and frond length. The line is from a linear model and helps show the overall linear tendency."
+#| fig-cap: "Scatterplot showing the relationship between _Ecklonia maxima_ stipe length and frond length. The fitted line is included only to show the overall linear tendency."
 #| fig-width: 4
 #| fig-height: 3
 
@@ -173,16 +187,14 @@ ggplot(data = ecklonia, aes(x = stipe_length, y = frond_length)) +
   labs(x = "Stipe length (cm)", y = "Frond length (cm)")
 ```
 
-The scatterplot suggests that these data increase together at a roughly similar rate. The relationship is not perfect, but it is clearly positive. This makes a Pearson correlation sensible.
+The scatterplot shows a clear positive linear trend. The points are not tightly packed around the fitted line, but the relationship is straight enough that Pearson's coefficient is appropriate. The main diagnostic here is linear form. Univariate normality is secondary.
 
 ## State the Hypotheses
-
-For a Pearson correlation, the hypotheses are:
 
 $$H_{0}: \rho = 0$$
 $$H_{a}: \rho \ne 0$$
 
-where $\rho$ is the population correlation coefficient.
+Here $\rho$ is the population Pearson correlation coefficient.
 
 ## Apply the Test
 
@@ -197,9 +209,9 @@ cor.test(
 
 ## Interpret the Results
 
-The correlation is positive and reasonably strong. This indicates that longer stipes also tend to be associated with longer fronds. The *p*-value is small (`p < 0.001`), so the data provide strong evidence against the null hypothesis of no linear association.
+The correlation is positive and moderately strong. Longer stipes tend to be associated with longer fronds. The coefficient is large enough to be biologically informative, and the *p*-value is well below 0.001, so we reject $H_0$.
 
-The result does not imply that stipe length causes frond length or vice versa. It simply indicates that the two variables co-vary positively in these data.
+The effect size is the coefficient itself. Here $r = 0.65$ indicates a fairly strong linear association for a biological dataset of this kind. That does not imply causation. It shows co-variation.
 
 ## Reporting
 
@@ -208,7 +220,7 @@ The result does not imply that stipe length causes frond length or vice versa. I
 
 **Methods**
 
-The linear association between stipe length and frond length in *Ecklonia maxima* was assessed with a Pearson product-moment correlation. The analysis focused on whether the two continuous variables co-varied positively across individuals.
+The linear association between stipe length and frond length in *Ecklonia maxima* was assessed with a Pearson product-moment correlation.
 
 **Results**
 
@@ -216,15 +228,164 @@ Stipe length and frond length in *Ecklonia maxima* were positively correlated (P
 
 **Discussion**
 
-The main discussion point is that the two morphological variables co-vary strongly. At the same time, the interpretation should remain disciplined: correlation alone does not establish a causal relationship between them.
+The two morphological variables co-vary strongly in these data. The result shows association only. It does not identify a causal mechanism.
 :::
 
-# Pairwise Correlation Matrices
+# Spearman Rank Correlation
 
-If our dataset contains multiple continuous variables, as `ecklonia` does, we may investigate many pairwise correlations simultaneously. In order to do so we want a subset that contains only the continuous variables appropriate for Pearson correlation.
+When the relationship is ordered but not especially linear, Spearman's $\rho$ is often the better choice. It replaces the raw values with ranks and asks whether the two variables tend to increase together in rank order.
+
+# Example 2: Spearman's $\rho$ When the Rank Pattern Is Clearer Than the Linear One
+
+In the `ecklonia` data, the relationship between stipe diameter and primary blade length is not especially well described by a straight line, but there is still a biological suggestion that thicker stipes tend to occur with longer primary blades.
+
+## Do an Exploratory Data Analysis (EDA)
+
+```{r code-ecklonia-spearman-summary}
+ecklonia |>
+  summarise(
+    n = n(),
+    mean_stipe_diameter = mean(stipe_diameter),
+    sd_stipe_diameter = sd(stipe_diameter),
+    mean_primary_blade_length = mean(primary_blade_length),
+    sd_primary_blade_length = sd(primary_blade_length)
+  )
+```
+
+```{r fig-ecklonia-spearman}
+#| fig-cap: "Relationship between stipe diameter and primary blade length in _Ecklonia maxima_. The fitted line is shown only as a visual guide to the overall trend."
+#| fig-width: 4
+#| fig-height: 3
+
+ggplot(ecklonia, aes(x = stipe_diameter, y = primary_blade_length)) +
+  geom_point(shape = 1, colour = "dodgerblue4") +
+  geom_smooth(method = "lm", se = FALSE, colour = "firebrick") +
+  labs(x = "Stipe diameter (mm)", y = "Primary blade length (cm)")
+```
+
+The scatterplot suggests an increasing pattern, but the spacing around a straight line is uneven and a few observations influence the fitted line strongly. The biological question is about ordered increase rather than precise linear scaling. That points to Spearman rather than Pearson.
+
+## State the Hypotheses
+
+$$H_{0}: \rho_{s} = 0$$
+$$H_{a}: \rho_{s} \ne 0$$
+
+Here $\rho_s$ is the population Spearman rank-correlation coefficient.
+
+## Apply the Test
+
+```{r code-cor-test-ecklonia-spearman}
+cor.test(
+  ecklonia$stipe_diameter,
+  ecklonia$primary_blade_length,
+  method = "spearman",
+  exact = FALSE
+)
+```
+
+It is useful to compare this with Pearson's correlation on the same variable pair:
+
+```{r code-cor-test-ecklonia-spearman-compare}
+cor.test(
+  ecklonia$stipe_diameter,
+  ecklonia$primary_blade_length,
+  method = "pearson"
+)
+```
+
+## Interpret the Results
+
+Spearman's $\rho$ shows a moderate positive rank association. In these data, the rank-based signal is clearer than the strictly linear one. Pearson understates the pattern because it is asking a different question.
+
+This is the main reason to use Spearman: the biological pattern is ordered, but the raw spacing around a line is not especially stable.
+
+## Reporting
+
+::: {.callout-note appearance="simple"}
+## Write-Up
+
+**Methods**
+
+A Spearman rank correlation was used to assess the monotonic association between stipe diameter and primary blade length in *Ecklonia maxima*. A rank-based method was preferred because the visual pattern suggested ordered increase without a clean linear form.
+
+**Results**
+
+Stipe diameter and primary blade length showed a moderate positive rank association (Spearman correlation: $\rho = 0.51$, $n = 26$, $p < 0.01$), indicating that kelps with thicker stipes also tended to have longer primary blades. On the same variable pair, the Pearson correlation was weaker and not statistically convincing at the 5% level ($r = 0.32$, $p > 0.05$).
+
+**Discussion**
+
+Spearman's $\rho$ is more informative here because the biological conclusion concerns ordered increase rather than exact linear scaling.
+:::
+
+# Kendall Rank Correlation
+
+Kendall's $\tau$ measures concordance in rank ordering. It asks whether pairs of observations tend to agree in how they are ordered on the two variables.
+
+# Example 3: Kendall's $\tau$ for Concordance in Rank Order
+
+Suppose the question is whether longer primary blades also tend to be wider in the same rank order. This is a direct concordance question, which is the natural setting for Kendall's $\tau$.
+
+## Do an Exploratory Data Analysis (EDA)
+
+```{r fig-ecklonia-kendall}
+#| fig-cap: "Relationship between primary blade length and primary blade width in _Ecklonia maxima_. The question here is whether longer blades also tend to rank as wider blades."
+#| fig-width: 4
+#| fig-height: 3
+
+ggplot(ecklonia, aes(x = primary_blade_length, y = primary_blade_width)) +
+  geom_point(shape = 1, colour = "seagreen4") +
+  labs(x = "Primary blade length (cm)", y = "Primary blade width (cm)")
+```
+
+The scatterplot shows a positive tendency, but the main point is not exact linear spacing. The question is whether larger values in one variable tend to be matched by larger values in the other. That is a concordance question, so Kendall's $\tau$ is appropriate.
+
+## State the Hypotheses
+
+$$H_{0}: \tau = 0$$
+$$H_{a}: \tau \ne 0$$
+
+Here $\tau$ is the population Kendall rank-correlation coefficient.
+
+## Apply the Test
+
+```{r code-cor-test-ecklonia-primary-blade-length}
+cor.test(
+  ecklonia$primary_blade_length,
+  ecklonia$primary_blade_width,
+  method = "kendall"
+)
+```
+
+## Interpret the Results
+
+Kendall's $\tau$ is positive, so the rank ordering is broadly consistent: longer blades also tend to be wider. The effect is moderate rather than strong, and the *p*-value is below 0.05, so we reject $H_0$.
+
+Kendall is often less familiar than Spearman, but its interpretation is very direct when the scientific question is about agreement in rank order.
+
+## Reporting
+
+::: {.callout-note appearance="simple"}
+## Write-Up
+
+**Methods**
+
+Kendall's $\tau$ was used to assess concordance between primary blade length and primary blade width in *Ecklonia maxima*.
+
+**Results**
+
+Primary blade length and primary blade width showed a positive association in rank order (Kendall correlation: $\tau = 0.34$, $n = 26$, $p < 0.05$), indicating that longer blades also tended to be wider.
+
+**Discussion**
+
+Kendall's $\tau$ is useful when the scientific message concerns agreement in rank order rather than precise linear scaling.
+:::
+
+# Correlation Matrices and Heatmaps
+
+Once a single pairwise relationship is understood, the same idea can be scaled to many continuous variables at once.
 
 ```{r code-ecklonia-sub}
-ecklonia_sub <- ecklonia %>%
+ecklonia_sub <- ecklonia |>
   select(-species, -site, -ID)
 
 ecklonia_sub <- ecklonia_sub[, order(colnames(ecklonia_sub))]
@@ -234,7 +395,7 @@ ecklonia_sub <- ecklonia_sub[, order(colnames(ecklonia_sub))]
 
 ```{r tbl-ecklonia-pearson}
 #| column: page
-#| tbl-cap: "A pairwise correlation matrix of the _Ecklonia_ dataset."
+#| tbl-cap: "A pairwise Pearson correlation matrix of the _Ecklonia_ dataset."
 ecklonia_pearson <- round(cor(ecklonia_sub), 2)
 
 ecklonia_pearson |>
@@ -248,22 +409,18 @@ ecklonia_pearson |>
   )
 ```
 
-Pairwise matrices are useful for identifying patterns and relationships between variables that may be hidden in the overall structure of a dataset. This is particularly useful when several variables have been measured on the same individuals. The numerical values in @tbl-ecklonia-pearson make it easier to identify especially strong positive or negative relationships before moving on to a visual summary.
+These matrices are exploratory. They help identify strong positive and negative relationships, but they also create many pairwise comparisons at once. With many variables, some correlations will appear by chance. A matrix should therefore guide further inspection and not be used as a finished inferential result.
 
 ## Visualise the Matrix
 
-One way to visualise a pairwise matrix is with `corrplot()`:
-
 ```{r fig-corr2}
-#| fig-cap: "Pairwise correlations showing the strength of all correlations between all variables as a scale from red (negative) to blue (positive)."
+#| fig-cap: "Pairwise correlations showing the strength of all Pearson correlations between variables as a scale from red (negative) to blue (positive)."
 #| fig-width: 6
 #| fig-height: 4
 
 ecklonia_pearson[upper.tri(ecklonia_pearson)] <- NA
 corrplot(ecklonia_pearson, method = "circle", na.label.col = "white")
 ```
-
-We may also do this in **ggplot2** as a heatmap:
 
 ```{r fig-corr3}
 #| fig-cap: "Pairwise correlations of the _Ecklonia_ dataset visualised as a heatmap in **ggplot2**."
@@ -295,166 +452,13 @@ ecklonia_pearson |>
   coord_fixed()
 ```
 
-These graphs are useful for quickly identifying subsets of variables that are strongly related to one another, which can then point the path to further analysis and modelling.
-
-# Spearman Rank Correlation
-
-Spearman correlation is used to measure the strength and direction of the relationship between two variables based on their rank order. Unlike Pearson correlation, which assumes that the relationship between the variables is linear, Spearman correlation can be used when the relationship is monotonic but not necessarily linear. It is also useful when the data are not normally distributed, or when outliers make Pearson's correlation less reliable. The usual textbook formula is given in @eq-spearman-rho.
-
-# Example 2: Spearman's $\rho$ When the Rank Pattern Is Clearer Than the Linear One
-
-## Do an Exploratory Data Analysis (EDA)
-
-In the `ecklonia` data, the relationship between stipe diameter and primary blade length is not especially well described by a straight line, but there is still a biological suggestion that thicker stipes may tend to occur with longer primary blades. This is a good setting in which to compare Pearson's and Spearman's outcomes.
-
-```{r code-ecklonia-spearman-summary}
-ecklonia |>
-  summarise(
-    n = n(),
-    mean_stipe_diameter = mean(stipe_diameter),
-    sd_stipe_diameter = sd(stipe_diameter),
-    mean_primary_blade_length = mean(primary_blade_length),
-    sd_primary_blade_length = sd(primary_blade_length)
-  )
-```
-
-```{r fig-ecklonia-spearman}
-#| fig-cap: "Relationship between stipe diameter and primary blade length in _Ecklonia maxima_. The fitted line is shown only as a visual guide to the overall trend."
-#| fig-width: 4
-#| fig-height: 3
-
-ggplot(ecklonia, aes(x = stipe_diameter, y = primary_blade_length)) +
-  geom_point(shape = 1, colour = "dodgerblue4") +
-  geom_smooth(method = "lm", se = FALSE, colour = "firebrick") +
-  labs(x = "Stipe diameter (mm)", y = "Primary blade length (cm)")
-```
-
-The scatterplot suggests a generally increasing trend, but not a particularly tidy linear one. A few observations have disproportionate influence on the straight-line fit, and the biological question is more about ordered increase than about exact linear scaling, which is the kind of situation in which a rank-based correlation can be more informative.
-
-## State the Hypotheses
-
-The biological question is whether larger stipe diameters also tend to be associated with longer primary blades in rank order.
-
-$$H_{0}: \rho_{s} = 0$$
-$$H_{a}: \rho_{s} \ne 0$$
-
-Here $\rho_{s}$ is the population Spearman rank-correlation coefficient. A value of zero means there is no monotonic association in rank between the two variables.
-
-## Apply the Test
-
-```{r code-cor-test-ecklonia-spearman}
-cor.test(ecklonia$stipe_diameter,
-         ecklonia$primary_blade_length,
-         method = "spearman",
-         exact = FALSE)
-```
-
-It is useful to compare this directly with Pearson's correlation on the same pair of variables:
-
-```{r code-cor-test-ecklonia-spearman-compare}
-cor.test(ecklonia$stipe_diameter,
-         ecklonia$primary_blade_length,
-         method = "pearson")
-```
-
-This contrast is exactly why Spearman's $\rho$ exists. Pearson's $r$ asks about linear covariation and is weak here, whereas Spearman's $\rho$ asks whether the variables tend to increase together in rank order. In these data, that rank-based question is better aligned with the pattern visible in @fig-ecklonia-spearman.
-
-## Reporting
-
-::: {.callout-note appearance="simple"}
-## Write-Up
-
-**Methods**
-
-A Spearman rank correlation was used to assess the monotonic association between stipe diameter and primary blade length in *Ecklonia maxima*. A rank-based method was preferred because the visual pattern suggested an ordered increase that was not especially well captured by a single straight-line relationship.
-
-**Results**
-
-Stipe diameter and primary blade length showed a moderate positive rank association (Spearman correlation: $\rho = 0.51$, $n = 26$, $p < 0.01$), indicating that kelps with thicker stipes also tended to have longer primary blades. On the same variable pair, the Pearson correlation was weaker and not statistically convincing at the 5% level ($r = 0.32$, $p > 0.05$), which shows that the main signal in these data is monotonic rather than cleanly linear.
-
-**Discussion**
-
-Spearman's $\rho$ is useful when the biological interpretation concerns ordered increase rather than a precise linear scaling. In this example, that distinction changes the practical conclusion of the analysis.
-:::
-
-# Kendall Rank Correlation
-
-Kendall's $\tau$ is another non-parametric correlation method for assessing the strength and direction of the relationship between two variables. It is similar to Spearman's correlation, but it is calculated from the number of concordant and discordant pairs of observations, as shown in @eq-kendall-tau.
-
-Kendall's $\tau$ is useful for ordinal or non-parametric data and is robust to outliers and non-normal distributions.
-
-# Example 3: Kendall's $\tau$ for Concordance in Rank Order
-
-Let us inspect the normality of the `ecklonia_sub` variables so that we can identify a case where a rank-based correlation may be sensible:
-
-```{r code-ecklonia-norm-ecklonia-sub}
-ecklonia_norm <- ecklonia_sub %>%
-  pivot_longer(cols = everything(), names_to = "variable", values_to = "value") %>%
-  group_by(variable) %>%
-  summarise(variable_norm = as.numeric(shapiro.test(value)[["p.value"]]))
-
-ecklonia_norm
-```
-
-From this analysis we can see that some variables are not especially well behaved. Let us therefore examine the association between `primary_blade_length` and `primary_blade_width` using Kendall's $\tau$:
-
-## State the Hypotheses
-
-The biological question is whether longer primary blades also tend to be wider in rank order.
-
-$$H_{0}: \tau = 0$$
-$$H_{a}: \tau \ne 0$$
-
-Here $\tau$ is the population Kendall rank-correlation coefficient. A value of zero means there is no concordance in the rank ordering of blade length and blade width.
-
-## Apply the Test
-
-```{r code-cor-test-ecklonia-primary-blade-length}
-cor.test(
-  ecklonia$primary_blade_length,
-  ecklonia$primary_blade_width,
-  method = "kendall"
-)
-```
-
-Here the coefficient is called Kendall's $\tau$, but the interpretation is similar to the other correlation coefficients: positive values indicate a positive association, negative values indicate a negative association, and values near zero indicate little or no association.
-
-## Reporting
-
-::: {.callout-note appearance="simple"}
-## Write-Up
-
-**Methods**
-
-Kendall's $\tau$ was used to assess the association between primary blade length and primary blade width because the variables were not especially well behaved under normal-theory assumptions and a rank-based measure of concordance was therefore more appropriate.
-
-**Results**
-
-Primary blade length and primary blade width showed a positive association in rank order (Kendall correlation: $\tau = 0.34$, $n = 26$, $p = 0.018$), indicating that longer blades also tended to be wider. The concordance was moderate rather than strong, but it was sufficiently consistent to support a positive rank-based relationship in these data.
-
-**Discussion**
-
-Kendall's $\tau$ is especially helpful when the scientific message concerns ordered agreement rather than precise linear scaling. That distinction should be made explicit so the result is not over-interpreted as if it were a regression slope.
-:::
-
-# Correlation Versus Regression
-
-It is important not to confuse correlation with regression.
-
--   **Correlation** asks whether two variables vary together.
--   **Regression** asks whether a response variable changes systematically as a function of one or more predictors.
-
-This distinction changes the question you are asking. If your question is "do these variables co-vary?", correlation is appropriate. If your question is "how does the response change with the predictor?", then you are already in the territory of regression. That is why this chapter naturally leads into the next one.
+The matrix and heatmap are useful for scanning the dataset quickly, but they should be treated with caution. They do not control the false-positive rate across all displayed comparisons, and they do not explain why a correlation exists.
 
 # Correlation and Non-Independent Data
 
-Even when the right coefficient has been chosen, correlation can still mislead if the observations are not independent. This matters a great deal in ecology because measurements are often grouped within sites, transects, quadrats, times, or individuals.
-
-In the `ecklonia` data, the observations come from two sites. If individuals within a site resemble one another, then a naive overall correlation may partly reflect site structure rather than an individual-level biological relationship.
+Even the correct coefficient can mislead when the observations are not independent. This is common in ecology because measurements are often grouped within sites, transects, quadrats, times, or individuals.
 
 # Example 4: A Correlation Can Be Inflated by Site Structure
-
-## Do an Exploratory Data Analysis (EDA)
 
 ```{r code-ecklonia-site-correlation}
 ecklonia |>
@@ -482,39 +486,45 @@ ggplot(ecklonia, aes(x = stipe_length, y = epiphyte_length, colour = site)) +
   labs(x = "Stipe length (cm)", y = "Epiphyte length (cm)", colour = "Site")
 ```
 
-The pooled correlation across all 26 observations is clearly positive, but @fig-ecklonia-site-structure shows that the data are also clustered by site. The within-site relationships are not identical, and part of the overall association comes from the sites differing in their average sizes.
+The pooled correlation across all observations is clearly positive, but the plot also shows clustering by site. Part of the overall association reflects site differences rather than individual-level co-variation.
 
-## Interpret the Results
+This is why independence is a primary condition, not a secondary detail. A naive pooled coefficient mixes at least two sources of structure:
 
-This does not mean the pooled correlation is "wrong". It means its meaning is limited. The naive overall coefficient mixes at least two sources of structure:
+-   variation among individuals within sites;
+-   variation between sites.
 
--   how individuals vary within a site; and
--   how sites differ from one another.
+If the biological question is about site-level differences, then site should be modelled explicitly. If the question is about individual-level association, a grouped or mixed-effects model is more defensible than a pooled correlation.
 
-If the biological question is about site-level differences, then averaging or modelling site explicitly may be appropriate. If the question is about individual-level association, then a grouped or mixed-effects framework is more defensible than a simple pooled correlation.
+# Correlation Versus Regression
 
-This is one reason a correlation coefficient should never be interpreted without first understanding the sampling design.
+Correlation and regression are related, but they do different jobs.
+
+-   **Correlation** quantifies how strongly two variables vary together.
+-   **Regression** estimates how the expected value of a response changes with a predictor.
+
+Both are rooted in covariance, but Pearson's correlation standardises covariance into a unitless coefficient while simple linear regression uses the same covariance structure to estimate a slope. See the next chapter.
+
+If the question is "do these variables co-vary?", correlation is appropriate. If the question is "how much does the response change when the predictor changes?", the analysis has already moved into regression.
 
 # If Assumptions Fail
 
 If the relationship is not linear, the variables are ordinal, or the data contain influential outliers, Pearson correlation may not be appropriate. In such cases:
 
--   use Spearman or Kendall correlation for rank-based association;
--   ask whether the apparent pattern is partly driven by site, time, or repeated-measures clustering;
--   inspect the scatterplot carefully before interpreting any coefficient;
--   use pairwise matrices as exploratory tools rather than as substitutes for biological reasoning;
--   move to a regression model if the real question is one of response and predictor rather than simple association.
+-   use Spearman or Kendall for rank-based association;
+-   inspect the scatterplot before trusting any coefficient;
+-   ask whether site, time, or repeated-measures structure is inflating the coefficient;
+-   treat matrices as exploratory summaries;
+-   move to regression if the real question is one of response and predictor, or if confounding and grouped structure need to be handled directly.
 
-Assumption checking itself is discussed in [06-assumptions-and-transformations.qmd](06-assumptions-and-transformations.qmd).
+Assumption checking itself is discussed in [Chapter 6](06-assumptions-and-transformations.qmd).
 
 # Summary
 
-Correlation is a measure of association, not a model of response. The important workflow is therefore:
+Correlation quantifies association without fitting a response model. The working sequence is:
 
-1. Plot the data.
-2. Decide whether the question is really about association.
-3. Choose Pearson, Spearman, or Kendall according to the data and relationship.
-4. Check whether the observations are genuinely independent before trusting the coefficient.
-5. Interpret the coefficient, uncertainty, and *p*-value together.
-6. Use pairwise correlation matrices as exploratory summaries when several continuous variables are available.
-7. Do not confuse association with causation, or correlation with regression.
+1. plot the data;
+2. decide whether the question is really about association;
+3. choose Pearson, Spearman, or Kendall according to the pattern in the data;
+4. check independence before trusting the coefficient;
+5. interpret sign, magnitude, and uncertainty together;
+6. treat pairwise matrices as exploratory, not definitive.

@@ -1,7 +1,6 @@
 ---
-title: "6. Assumptions and Transformations"
-subtitle: "Checking Model Requirements and What to Do When They Fail"
-author: "A. J. Smit"
+title: "6. Raw-Data Assumptions and Transformations"
+subtitle: "Diagnostics for Groups, Pairs, and Associations"
 date: last-modified
 date-format: "YYYY/MM/DD"
 reference-location: margin
@@ -33,17 +32,18 @@ ggplot2::theme_set(
 library(tidyverse)
 library(car)
 library(ggpubr)
+library(palmerpenguins)
 ```
 
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   Why assumptions matter
--   Normality, homoscedasticity, and independence
--   Graphical and formal assumption checks
--   Non-parametric options when assumptions fail
--   Common data transformations
--   Why transformed data must also be checked
+-   how assumption checks depend on data structure
+-   normality within groups
+-   variance across groups
+-   paired differences
+-   joint structure in associations
+-   transformations and what to do when assumptions fail
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -54,373 +54,420 @@ library(ggpubr)
 
 # Introduction
 
-Parametric tests such as *t*-tests, ANOVA, correlation, and linear regression work well when the data and design satisfy certain conditions. Those conditions are not technical footnotes. They determine whether the inferential output is trustworthy.
+Assumption checks determine whether a planned inferential method is defensible. In this chapter, those checks are applied to **raw data** rather than to model residuals. Residual-based diagnostics belong to the later regression chapters, beginning with [Simple Linear Regression](11-simple-linear-regression.qmd). The aim here is to prepare directly for the tests students meet next: [*t*-tests](07-t_tests.qmd), [ANOVA](08-anova.qmd), and [Correlation and Association](09-correlation-and-association.qmd).
 
-This chapter deals with two practical questions. First, how do we check whether the assumptions are adequate for the method we want to use? Second, what do we do when they are not? Sometimes the answer is to use a non-parametric alternative. Sometimes it is to transform the response, sometimes to change the model, and sometimes to admit that the design itself does not support the intended inference.
+The chapter is organised around data structure. Group comparisons require checks within groups and across group variances. Paired designs require checks on the differences. Associations require checks on the joint pattern of the variables.
 
-Because assumptions and transformations are inseparable in practice, this chapter treats them together.
+# Assumption-Checking Workflow
 
-# Key Concepts
+Assumption checking follows a sequence:
 
--   **Parametric assumptions** are the conditions under which familiar methods such as *t*-tests, ANOVA, correlation, and linear regression are intended to work well.
--   **Normality** concerns whether the residuals or sample values are plausibly drawn from a normal distribution.
--   **Homoscedasticity** means that the variance is similar across groups or along the range of fitted values.
--   **Independence** is usually a design issue and cannot be rescued statistically after the fact.
--   **Graphical diagnostics** are usually more informative than a single assumption test.
--   **Formal tests** support, but do not replace, visual inspection and biological judgement.
--   **Transformations** can improve symmetry, stabilise variance, or linearise relationships, but they are not a universal fix.
+1. identify the structure of the analysis;
+2. inspect the raw data visually;
+3. assess the assumptions graphically;
+4. use formal tests to support judgement;
+5. decide whether to proceed, transform, or change method;
+6. re-check if the analysis changes.
 
-# Nature of the Data and Assumptions
+Different assumptions often fail together. That is why the chapter stays anchored to the analysis rather than to a list of tests.
 
-Across the methods covered in the surrounding chapters, we usually need to ask whether the data satisfy a small set of recurring conditions:
+# Identifying the Data Structure
 
--   the data are approximately **normally distributed**, meaning that the sample or residuals follow a Gaussian distribution;
--   the data are **homoscedastic**, *i.e.* the variance is similar across all levels of the independent variable;
--   the dependent variable is **continuous**, where the method requires it;
--   the observations are **independent** of each other;
--   and, in regression settings, the functional form is appropriate for the relationship being modelled.
+Before checking assumptions, identify the structure of the data:
 
-The last two points are closer to design requirements than to assumptions in the narrow sense. No transformation can rescue non-independent observations or turn the wrong kind of response variable into the one required by the method. Those problems have to be addressed at the level of design or model choice.
+-   **Are there groups?** Then check each group separately.
+-   **Are the measurements paired?** Then check the differences.
+-   **Are both variables continuous?** Then check the joint pattern of the relationship.
+
+Assumptions apply to the structure implied by the analysis, not to the dataset as a whole. The grouped-data case was introduced earlier in [Comparing Groups](03-visualise.qmd#sec-comparing-groups), where the emphasis was on how plots change once categories are recognised explicitly.
 
 ::: {.callout-note appearance="simple"}
-## *i.i.d.*
+## Looking Ahead: Residuals
 
-Sometimes we see the term *i.i.d.*, which stands for "independent and identically distributed". It is a general way of stating the assumptions, particularly those involving independence and a common underlying probability structure.
-
-**Independent** means that the occurrence of one event does not affect the occurrence of any other event in the sample.
-
-**Identically distributed** means that each observation is drawn from the same underlying probability distribution, so the statistical properties of the observations are the same.
+Regression chapters apply these same ideas to **residuals**, which are the differences between observed values and model predictions. This chapter develops the assumptions at the level of raw data. The extension to residuals belongs with the regression series of chapters.
 :::
 
-# How to Check Assumptions
+# Group Comparisons: Normality Within Groups
 
-Assumptions should be checked using both:
+We begin with a grouped comparison that prepares directly for [*t*-tests](07-t_tests.qmd) and [ANOVA](08-anova.qmd).
 
--   **graphs**, such as histograms, Q-Q plots, and residual plots, and
--   **formal tests**, such as Shapiro-Wilk, Levene's test, or other variance tests.
-
-Graphical assessment is often more informative than a single *p*-value, especially in large datasets where trivial deviations can appear statistically significant. The correct sequence is therefore:
-
-1. look at the data;
-2. fit the model or identify the samples being compared;
-3. inspect assumptions graphically;
-4. use formal tests to support, not replace, your judgement.
-
-# Worked Example Setup
-
-To illustrate the assumption checks, let us generate two samples of normally distributed data:
-
-```{r fig-assump-histo}
-#| fig-cap: "Histograms showing two randomly generated normal distributions."
-
-set.seed(666)
-r_dat <- data.frame(
-  dat = c(
-    rnorm(n = 1000, mean = 5.53, sd = 0.3),
-    rnorm(n = 1000, mean = 0.325, sd = 0.1)
-  ),
-  sample = c(rep("Giraffes", 1000), rep("Chickens", 1000))
-)
-
-ggplot(data = r_dat, aes(x = dat, fill = sample)) +
-  geom_histogram(
-    position = "dodge",
-    binwidth = 0.05,
-    alpha = 0.8,
-    aes(colour = sample, fill = sample)
-  ) +
-  labs(x = "Height (m)") +
-  theme_grey()
+```{r code-penguins-setup}
+peng <- penguins |>
+  drop_na(bill_length_mm, body_mass_g, species)
 ```
 
-Remember from [Chapter 4](04-distributions-sampling-uncertainty.qmd) what a normal distribution looks like. Histograms give a first visual impression, but they are not enough on their own. We should always visualise our data before performing any statistics on them, and then support that visual judgement with formal tests.
+We compare bill length across penguin species. The grouping structure is explicit: each observation belongs to one species. This is the same grouped-data idea introduced in [Comparing Groups](03-visualise.qmd#sec-comparing-groups), but here the aim is diagnostic rather than descriptive. The assumption applies within each species, not to the pooled data.
 
-# Tests for Normality
+## Graphical Checks
 
-The null hypothesis for a normality test is that the data are not detectably different from a normal distribution:
+Start with plots. Histograms show the shape within each species. A **Q-Q plot** compares the observed quantiles of the data with the quantiles expected from a normal distribution. If the distribution is close to normal, the points fall roughly along a straight reference line.
 
-$$H_{0}: \text{the distribution of the data is normal}$$
+```{r fig-group-normality}
+#| fig-cap: "Normality checks for grouped data. A) Histograms of bill length within each penguin species. B) A pooled Q-Q plot that ignores species. C) Q-Q plots drawn separately within species."
+#| fig-width: 8
+#| fig-height: 8
 
-The **Shapiro-Wilk** test is frequently used to assess the normality of a dataset. It is known to have good power and accuracy for detecting departures from normality, even for small sample sizes, and it is robust to many common departures from ideal data.
+plt1 <- ggplot(peng, aes(body_mass_g)) +
+  geom_histogram(bins = 20, fill = "grey70", colour = "white") +
+  facet_wrap(~species, scales = "free_x") +
+  labs(x = "Body mass (g)", y = "Count")
 
-It tests the *H*~0~ that the population from which the sample, $x_{1},..., x_{n}$, was drawn is not significantly different from normal. The test does so by sorting the data from lowest to highest, and a test statistic, $W$, is calculated based on the deviations of the observed values from the expected values under a normal distribution, as shown in @eq-shapiro:
+plt2 <- ggplot(peng, aes(sample = body_mass_g)) +
+  stat_qq(shape = 21, fill = "salmon", colour = "black") +
+  stat_qq_line(colour = "red4") +
+  labs(x = "Theoretical quantiles", y = "Sample quantiles")
+
+plt3 <- ggplot(peng, aes(sample = body_mass_g)) +
+  stat_qq(shape = 21, fill = "salmon", colour = "black") +
+  stat_qq_line(colour = "red4") +
+  facet_wrap(~species, scales = "free") +
+  labs(x = "Theoretical quantiles", y = "Sample quantiles")
+
+ggarrange(plt1, plt2, plt3, ncol = 1, labels = "AUTO")
+```
+
+The pooled Q-Q plot bends because it combines Adelie, Chinstrap, and Gentoo penguins into one mixture distribution. The grouped Q-Q plots are the relevant ones because the comparison is made across species. That is the pattern we carry forward into [Chapter 7](07-t_tests.qmd) and [Chapter 8](08-anova.qmd).
+
+## Formal Test
+
+The most commonly used formal test is the **Shapiro-Wilk test**, `shapiro.test()`. Its null hypothesis is that the data are compatible with normality:
+
+$$H_{0}: \text{the distribution is compatible with normality}$$
+$$H_{a}: \text{the distribution departs from normality}$$
+
+The test statistic is:
 
 $$W = \frac{(\sum_{i=1}^n a_i x_{(i)})^2}{\sum_{i=1}^n (x_i - \overline{x})^2}$$ {#eq-shapiro}
 
-Here, $W$ represents the Shapiro-Wilk test statistic, $a_i$ are coefficients that depend on the sample size and distribution of the data, $x_{(i)}$ is the $i$-th order statistic, and $\overline{x}$ is the sample mean.
+Here, $W$ is the Shapiro-Wilk test statistic, $a_i$ are coefficients that depend on the sample size and expected order statistics under normality, $x_{(i)}$ is the $i$-th ordered observation, and $\overline{x}$ is the sample mean.
 
-The Shapiro-Wilk test is available within base R as `shapiro.test()`. If the *p*-value is above 0.05, we may assume the data to be approximately normally distributed.
+Run the test within species, not on the pooled sample:
 
-## Apply the Test
-
-If we run the Shapiro-Wilk test on all observations simultaneously, we get a misleading result because we have combined two different samples:
-
-```{r code-shapiro-bad}
-shapiro.test(r_dat$dat)
+```{r code-peng-shapiro}
+peng |>
+  group_by(species) |>
+  summarise(
+    shapiro_w = as.numeric(shapiro.test(bill_length_mm)$statistic),
+    shapiro_p = as.numeric(shapiro.test(bill_length_mm)$p.value)
+  )
 ```
 
-To perform the test correctly, we need to respect the grouping structure and apply the test within each sample:
+When *p* is greater than 0.05, the test shows no strong evidence against normality. That result does not prove exact normality. It shows that the observed departure is not strong enough for this test to detect at the sample size available. Above, there is sufficient evidence against the null, suggesting that Gentoo penguins have non-normal data.
 
-```{r code-shapiro-good}
-r_dat |>
-  group_by(sample) |>
-  summarise(norm_dat = as.numeric(shapiro.test(dat)[2]))
-```
-
-Now we see that our two sample sets are indeed normally distributed.
+That result does not automatically end the analysis, but it does change the next step. First, inspect the plots and ask whether the departure is mild or severe. Second, continue to the variance check below, because non-normality and unequal variance often appear together. If one or more groups are clearly non-normal, and especially if variance also differs among groups, the later comparison should use a method that tolerates those features better. In the chapters that follow, that may mean Welch's version of the test, a rank-based alternative, a transformation followed by a fresh round of checks, or a different model altogether. The decision depends on the size of the departure, the sample sizes, and the biological scale on which you need to interpret the result.
 
 ## Other Tests for Normality
 
-Several other tests are available to test whether our data are consistent with a normal distribution:
+Several other tests can be used to assess whether data are compatible with normality:
 
--   **Kolmogorov-Smirnov test** compares the empirical distribution of a sample with a hypothesised distribution. In R use `ks.test()`.
--   **Anderson-Darling test** is another goodness-of-fit approach, available as `ad.test()` in packages such as **nortest** and **kSamples**.
--   **Lilliefors test** is a modification of the Kolmogorov-Smirnov test for small samples. See `lillie.test()` or `LillieTest()`.
--   **Jarque-Bera test** is based on skewness and kurtosis. See `jarque.bera.test()` in **DescTools** or **tseries**.
--   **Cramer-Von Mises test** assesses the goodness of fit of a distribution to a sample of data. See `cvm.test()` in **goftest**.
+-   **Kolmogorov-Smirnov test** compares the empirical distribution of a sample with a specified theoretical distribution. In R use `ks.test()`.
+-   **Anderson-Darling test** is another goodness-of-fit test, available as `ad.test()` in packages such as **nortest**.
+-   **Lilliefors test** is a modification of the Kolmogorov-Smirnov test for estimated mean and variance. See `lillie.test()`.
+-   **Jarque-Bera test** is based on skewness and kurtosis. See `jarque.bera.test()` in **tseries**.
+-   **Cramer-Von Mises test** is another goodness-of-fit approach. See `cvm.test()` in **goftest**.
 
-Take your pick, but do your homework. These tests are not all equally robust to the various surprises data can throw at them.
+These tests support the plots. They do not replace them.
 
-# Tests for Homogeneity of Variance
+::: {.callout-note appearance="simple"}
+## Looking Ahead: Normality of Residuals
 
-Besides requiring that our data are normally distributed, many familiar tests also assume that they are **homoscedastic**. This means that the variance of the samples we are comparing should not be dramatically different. In practical terms, a useful first rule of thumb is that the variance of one group should not be more than about two to four times larger than that of another.
+Regression chapters check normality with Q-Q plots of residuals rather than with grouped raw-data plots. That extension belongs with fitted models and is introduced in [Chapter 11](11-simple-linear-regression.qmd).
+:::
 
-In R, we can compare sample variances directly:
+# Group Comparisons: Variance Across Groups
 
-```{r code-r-dat-var}
-r_dat |>
-  group_by(sample) |>
-  summarise(sample_var = var(dat))
+Grouped comparisons also require attention to spread. For methods such as one-way ANOVA, large differences in variance across groups can affect the inferential result.
+
+We use penguin body mass because the spread differs more clearly across species:
+
+```{r fig-group-variance}
+#| fig-cap: "Variance checks for grouped data. A) Box plots of body mass by penguin species. B) Sample variances by species."
+#| fig-width: 8
+#| fig-height: 4
+
+peng_var <- peng |>
+  group_by(species) |>
+  summarise(sample_var = var(body_mass_g), .groups = "drop")
+
+plt1 <- ggplot(peng, aes(species, body_mass_g, fill = species)) +
+  geom_boxplot(show.legend = FALSE, alpha = 0.7) +
+  labs(x = "", y = "Body mass (g)")
+
+plt2 <- ggplot(peng_var, aes(species, sample_var, fill = species)) +
+  geom_col(show.legend = FALSE, alpha = 0.7) +
+  labs(x = "", y = "Sample variance")
+
+ggpubr::ggarrange(plt1, plt2, ncol = 2, widths = c(1.4, 1))
 ```
 
-Above we see that the variance of our two samples is heteroscedastic because one variance is more than two to four times greater than the other. There are, however, formal tests for equality of variances.
+The box plots show the spread directly. Large differences in spread suggest heteroscedasticity.
 
-The hypotheses for equality of variances can be written in either a two-sided or a one-sided form. The two-sided version is usually the most relevant in introductory work:
+The most commonly used formal test is **Levene's test**, `car::leveneTest()`. Its null hypothesis is that the group variances are equal:
 
 $$H_{0}: \sigma^{2}_{A} = \sigma^{2}_{B}$$
 $$H_{a}: \sigma^{2}_{A} \ne \sigma^{2}_{B}$$
 
-$$H_{0}: \sigma^{2}_{A} \le \sigma^{2}_{B}$$
-$$H_{a}: \sigma^{2}_{A} > \sigma^{2}_{B}$$
-
-$$H_{0}: \sigma^{2}_{A} \ge \sigma^{2}_{B}$$
-$$H_{a}: \sigma^{2}_{A} < \sigma^{2}_{B}$$
-
-Here $\sigma^{2}_{A}$ and $\sigma^{2}_{B}$ are the variances for samples $A$ and $B$, respectively.
-
-The most commonly used test for equality of variances is **Levene's test**, `car::leveneTest()`. Levene's test assesses the equality of variances between two or more groups in a dataset. The *H*~0~ is that the variances of the groups are equal.
-
-In Levene's test, the absolute deviations of the observations from their group centres are calculated, and the test statistic is computed as in @eq-levene:
+The Levene test statistic is:
 
 $$W = \frac{(N-k)}{(k-1)} \cdot \frac{\sum_{i=1}^k n_i (\bar{z}_i - \bar{z})^2}{\sum_{i=1}^k \sum_{j=1}^{n_i} (z_{ij} - \bar{z}_i)^2}$$ {#eq-levene}
 
-where $W$ represents the Levene test statistic, $N$ is the total sample size, $k$ is the number of groups being compared, $n_i$ is the sample size of the $i$-th group, $z_{ij}$ is the $j$-th observation in the $i$-th group, $\bar{z}_i$ is the mean or median-based group centre, and $\bar{z}$ is the overall mean of the transformed deviations.
+Here, $N$ is the total sample size, $k$ is the number of groups, $n_i$ is the sample size in group $i$, $z_{ij}$ is the absolute deviation of observation $j$ in group $i$ from its group centre, $\bar{z}_i$ is the mean of those deviations within group $i$, and $\bar{z}$ is the overall mean deviation.
 
-Levene's test is considered robust to non-normality and outliers, making it a useful tool for analysing data that do not meet the assumptions of normality.
-
-## Apply the Test
-
-```{r code-levene}
-car::leveneTest(dat ~ sample, data = r_dat)
+```{r code-peng-levene}
+car::leveneTest(body_mass_g ~ species, data = peng)
 ```
 
-Above, we see that *p* < 0.05, causing us to reject the null hypothesis of equal variances.
+A small *p*-value indicates evidence against equal variance. This structure is used directly in [ANOVA](08-anova.qmd).
+
+```{r code-peng-variance-table}
+peng_var
+```
 
 ## Other Tests for Homogeneity
 
-Several other statistical tests are available to assess homogeneity of variances:
+Several other tests are available for comparing variances:
 
--   **F-test** or variance ratio test. Use `var.test()`. It assumes normality and is designed for comparing two populations.
--   **Bartlett's test** assesses equality of variances across multiple groups and assumes normality. Use `bartlett.test()`.
--   **Brown-Forsythe test** is a modification of Levene's test based on medians. See `bf.test()` in **onewaytests**.
--   **Fligner-Killeen test** is a robust non-parametric test available in base R as `fligner.test()`.
+-   **F-test** compares two variances directly. Use `var.test()`. It assumes normality.
+-   **Bartlett's test** compares variances across multiple groups. Use `bartlett.test()`. It also assumes normality.
+-   **Brown-Forsythe test** is a median-based modification of Levene's test and is more robust to non-normality.
+-   **Fligner-Killeen test** is a robust non-parametric variance test available in base R as `fligner.test()`.
 
-As always, supplement the formal tests with diagnostic plots and with simple comparison of the observed variances.
+::: {.callout-note appearance="simple"}
+## Looking Ahead: Residual Plots
 
-## Reporting Assumption Checks
+Regression chapters assess changing variance with residual-versus-fitted plots. That diagnostic belongs with fitted models and is introduced in [Chapter 11](11-simple-linear-regression.qmd).
+:::
+
+# Paired Designs: Check the Differences
+
+In paired designs, the assumption applies to the **differences**, not to the raw measurements.
+
+```{r code-paired-setup}
+set.seed(1)
+paired <- tibble(
+  before = rnorm(20, 10, 2),
+  after  = before + rnorm(20, -1, 1)
+) |>
+  mutate(diff = after - before)
+```
+
+The paired structure means that each `after` value belongs to the same unit as one `before` value. The analysis will therefore be built on the differences.
+
+```{r fig-paired-diff}
+#| fig-cap: "Checks for paired data. A) Histogram of paired differences. B) Q-Q plot of paired differences."
+#| fig-width: 7
+#| fig-height: 3.5
+
+plt1 <- ggplot(paired, aes(diff)) +
+  geom_histogram(bins = 12, fill = "grey70", colour = "white") +
+  labs(x = "After - before", y = "Count")
+
+plt2 <- ggplot(paired, aes(sample = diff)) +
+  stat_qq(shape = 21, fill = "salmon", colour = "black") +
+  stat_qq_line(colour = "red4") +
+  labs(x = "Theoretical quantiles", y = "Sample quantiles")
+
+ggarrange(plt1, plt2, ncol = 2, labels = "AUTO")
+```
+
+```{r code-paired-shapiro}
+shapiro.test(paired$diff)
+```
+
+This is the structure used directly in the paired *t*-test in [Chapter 7](07-t_tests.qmd).
+
+# Associations: Check the Joint Structure
+
+Association problems have a different geometry. There are no groups, and there are no paired differences. The main diagnostic is the joint structure of the two variables.
+
+```{r fig-trees-scatter}
+#| fig-cap: "Scatter plot of tree height and volume from the base R `trees` dataset."
+#| fig-width: 5
+#| fig-height: 4
+
+ggplot(trees, aes(Height, Volume)) +
+  geom_point(shape = 21, fill = "salmon", colour = "black") +
+  labs(x = "Height", y = "Volume")
+```
+
+Here the question is whether the relationship is approximately linear and whether a few extreme values dominate the pattern. Checking each variable for normality in isolation would miss the main issue. The structure used here leads directly into [Correlation and Association](09-correlation-and-association.qmd).
+
+# Independence
+
+Independence is set by design. If repeated measurements are taken on the same individual, or if samples are nested within a site, tank, quadrat, or transect, then the observations are not independent.
+
+Suppose ten leaves are measured from each of three plants, but the analysis treats the thirty leaves as if they came from thirty independent plants. That is **pseudoreplication**. The apparent sample size is inflated, and the inferential result becomes too optimistic because the real experimental unit was the plant, not the leaf.
+
+Check independence by asking:
+
+1. what is the true experimental unit;
+2. are observations repeated, nested, spatially clustered, or temporally linked;
+3. does the design require a paired test, repeated-measures method, or mixed model.
+
+We return to these issues in [Pseudoreplication](17-pseudoreplication.qmd) and [Dependence and Mixed Models](18-dependence-and-mixed-models.qmd).
+
+# Reporting Assumption Checks
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
 
 **Methods**
 
-Approximate normality was assessed graphically and with the Shapiro-Wilk test, and equality of variances among groups was assessed with Levene's test before formal inference.
+Penguin body mass was examined by species before any formal group comparison. Normality was assessed within species using histograms, Q-Q plots, and the Shapiro-Wilk test. Homogeneity of variance across species was assessed with box plots, direct comparison of sample variances, and Levene's test.
 
 **Results**
 
-The grouped example data were broadly consistent with normality when the samples were assessed separately, but the variance differed substantially between groups. The assumption checks therefore showed that the data were not uniformly problematic: normality was acceptable, whereas homogeneity of variance required more caution in later model choice.
+Body-mass distributions differed among penguin species in both location and spread. The species-specific histograms and Q-Q plots gave the relevant diagnostic view because the assumption applied within species rather than to the pooled dataset. Levene's test indicated that variance was not uniform across species, so a later comparison of species means would need to take that heterogeneity into account.
 
 **Discussion**
 
-In a journal article, assumption checks are reported to justify the inferential method used. Their role is to show that the chosen analysis was defensible, or that an alternative was required where assumptions were not met.
+In a journal-style account, these diagnostics justify the choice of inferential method. Here they show that the grouped structure of the penguin data must be respected and that unequal variance among species would need to be handled explicitly in the later analysis.
 :::
 
-# Independence
+# Responding to Assumption Violations
 
-Independence is different from normality and homoscedasticity because it is usually determined by design. If repeated measurements are taken on the same individual, or if samples are nested within a site, tank, plot, or transect, then the observations are not independent. No transformation will fix this.
+Once assumptions have been checked, the response is usually one of four:
 
-This is why independence should be considered before data collection, not only after analysis. If the design creates dependence, then the solution is usually a different model, such as a paired test, repeated-measures analysis, mixed model, or other structure that acknowledges the dependence.
+1. proceed because the departures are minor and the planned method is adequate;
+2. change to a method that matches the data more closely;
+3. transform the response and then re-check the assumptions;
+4. recognise that the design does not support the intended inference.
 
-# Epic Fail... Now What?
+The best response depends on the structure of the problem. Counts, proportions, and non-independent observations often need a different method rather than a transformed version of the same method.
 
-Tests for assumptions fail often with real data. Once we have evaluated our data against the critical assumptions and discovered that one or more are not met, we are usually presented with two options:
-
-1. choose an appropriate **non-parametric test**, or
-2. apply a **transformation** and then re-check the assumptions.
-
-It is preferable to avoid transformation when a more suitable statistical method is available.
-
-::: {.callout-note appearance="simple"}
-## Parametric and Non-parametric Tests
-
-**Parametric tests** assume that the data follow a specific distribution, such as the normal distribution, and that the population parameters are known or can be estimated from the sample data.
-
-**Non-parametric tests** make fewer assumptions about the underlying distribution of the data and are used when the data do not meet the assumptions of parametric tests.
-
-In general, parametric tests are more powerful than non-parametric tests when the assumptions are met, but non-parametric tests are more robust and can be used in a wider range of situations.
-:::
-
-The non-parametric substitutes for the parametric tests we often use are discussed within the relevant method chapters: Wilcoxon procedures in [Chapter 7](07-t_tests.qmd), Kruskal-Wallis in [Chapter 8](08-anova.qmd), and rank-based correlation in [Chapter 9](09-correlation-and-association.qmd). [Chapter 10](10-test-selection.qmd) then summarises how those choices fit together. Transformations are the other major response, and we consider them in the rest of this chapter.
+The non-parametric alternatives for the main inferential methods are introduced within the relevant method chapters: Wilcoxon procedures in [Chapter 7](07-t_tests.qmd), Kruskal-Wallis in [Chapter 8](08-anova.qmd), and rank-based correlation in [Chapter 9](09-correlation-and-association.qmd). [Chapter 10](10-test-selection.qmd) then summarises how those choices fit together.
 
 # Why Transform Data?
 
-Data transformation is used to change the scale of the data in a way that makes it conform more closely to the assumptions of normality and homoscedasticity so that we can proceed with parametric tests in the usual way. Transformations can be used to:
+Transformations change the scale of the response so that the data are more compatible with the assumptions of the planned method. They are often used to reduce right-skew, stabilise variance, or linearise a relationship.
 
--   change the shape of the distribution,
--   reduce the effects of extreme values,
--   stabilise the variance,
--   and sometimes linearise a relationship.
+Use a transformation only when it improves the fit between the data and the method in a way that still supports a clear biological interpretation.
 
-When transforming data, one does a mathematical operation on the observations and then uses these transformed numbers in the statistical tests. After the analysis, quantities such as means and confidence intervals should be back-transformed to the original scale before being reported. Note that in back-transformed data the uncertainty is not necessarily symmetrical, so one cannot simply compute one limit and assume the other is equally far from the mean.
+After transformation, quantities such as means and confidence intervals usually need to be back-transformed before reporting. Back-transformed uncertainty is often asymmetric.
 
 > “Torture numbers and they will confess to anything” — Gregg Easterbrook
 
-When transforming data, it is a good idea to know a bit about how data within your field of study are usually transformed and to use the same approach in your own work. Do not try all the various transformations until you find one that works, otherwise it may seem as if you are massaging the data into an acceptable outcome.
+# Transformation Decision Guide
+
+| Data problem | Usual response | Comment |
+|:--|:--|:--|
+| Strong right-skew in positive continuous data | `log(x)` or `log10(x)` | Often useful for multiplicative processes or long right tails |
+| Count data with variance increasing with the mean | `sqrt(x)` or a count model | A Poisson or negative-binomial GLM is often better |
+| Proportions near 0 or 1 | Usually a binomial GLM | Arcsine transformations are now often unnecessary |
+| Severe right-skew with difficult scale | `1/x` in rare cases | Hard to interpret biologically |
+| Negative skew | Reflect, then transform if needed | Often suggests that a different model or scale may be better |
+
+If the response has its own natural error structure, such as counts, proportions, presence-absence data, or survival times, a generalised model is often better than transformation.
 
 # Common Transformations
 
 ## Log Transformation
 
-Log transformation is often applied to positively skewed data. It consists of taking the log of each observation. You can use either base-10 logs, `log10(x)`, or natural logs, `log(x)`. It makes no difference for the statistical test whether you use base-10 logs or natural logs, because they differ only by a constant factor.
+A log transformation is often useful for positive, right-skewed data. Use `log(x)` or `log10(x)`. The statistical conclusion does not depend on whether the base is $e$ or 10 because the two scales differ only by a constant factor.
 
-The back-transformation is to raise 10 or $e$ to the power of the transformed number. If you have zeros or negative numbers, you cannot take the log directly; you must add a constant first, for example `log10(x + 1)`. If you have count data and some counts are zero, the common convention is to add 0.5 to each number.
+If zeros are present, a constant is sometimes added first, for example `log(x + 1)`. Do that for a clear reason, not mechanically.
 
-Many variables in biology have log-normal distributions, meaning that after log transformation the values are normally distributed. This often happens when several independent multiplicative processes combine to determine the final value.
+## Square-Root Transformation
 
-## Square-root Transformation
-
-The square-root transformation, $\sqrt{x}$, is often used to stabilise the variance of data that have a non-linear relationship between mean and variance. It is effective for reducing right-skewness and is frequently useful for count or frequency data.
-
-The square-root transformation does not work with negative values, but one could add a constant first to make them positive.
+The square-root transformation, $\sqrt{x}$, is often used for count-like data or for responses where the variance increases with the mean.
 
 ## Arcsine Transformation
 
-Arcsine transformation is commonly used for proportions, which range from 0 to 1, or percentages that can be scaled to that range. Specifically, it has historically been used when the data follow a binomial distribution and have extreme proportions close to 0 or 1.
-
-This transformation involves taking the arcsine of the square root of a number:
+The arcsine square-root transformation,
 
 $$y' = \arcsin(\sqrt{y})$$ {#eq-arcsine}
+
+was historically used for proportions between 0 and 1. It still appears in older literature, but a binomial GLM is often the better solution because it respects the mean-variance relationship directly.
 
 The back-transformation is:
 
 $$y = \sin(y')^2$$ {#eq-arcsine-back}
 
-The numbers to be arcsine transformed must be in the range 0 to 1.
-
 ## Reciprocal Transformation
 
-The reciprocal transformation, `1/x`, is another variance-stabilising transformation and is used with severely positively skewed data. It can be effective, but it often makes the scale difficult to interpret biologically.
+The reciprocal transformation, `1/x`, can reduce strong right-skew, but it often produces a scale that is hard to explain biologically.
 
 ## Square and Cube Transformations
 
-Square and cube transformations are sometimes used for negatively skewed data:
-
--   square transformation: $y' = y^2$
--   cube transformation: $y' = y^3$
-
-These transformations magnify differences among larger values and can make outliers more influential, so they should be used with caution.
+Square and cube transformations can be useful after reflecting negatively skewed data, but they also magnify larger values and can make outliers more influential.
 
 ## Anscombe Transformation
 
-Another variance-stabilising transformation is the Anscombe transformation:
+For Poisson counts, the Anscombe transformation is:
 
-$$y' = \sqrt{\max(x + 1) - x}$$ {#eq-anscombe}
+$$y' = 2\sqrt{x + \frac{3}{8}}$$ {#eq-anscombe}
 
-It is applied to negatively skewed data and can be useful when dealing with count or frequency data that have a non-linear relationship between mean and variance.
+It was designed to stabilise variance in count data, but a Poisson or negative-binomial GLM is usually preferable now.
 
 # Worked Example with Transformations
 
-Suppose we have strongly right-skewed count-like data:
+To see what a transformation is trying to achieve, we use the built-in `airquality` dataset. Here the response is ozone concentration, and we compare **May-June** with **August-September**. This is a two-group comparison, so the relevant questions are the same ones used earlier in the chapter: are the distributions within groups reasonably well behaved, and are the group variances similar enough for a mean-based comparison?
 
-```{r fig-transform-demo}
-#| fig-cap: "A simulated example showing how a log transformation can reduce right-skewness."
-
-set.seed(123)
-skew_dat <- tibble(
-  raw = rgamma(300, shape = 1.5, scale = 6),
-  log10_dat = log10(raw + 1)
-)
-
-ggarrange(
-  ggplot(skew_dat, aes(raw)) +
-    geom_histogram(bins = 25, fill = "grey70", colour = "grey30") +
-    labs(x = "Raw data", y = "Frequency") +
-    theme_grey(),
-  ggplot(skew_dat, aes(log10_dat)) +
-    geom_histogram(bins = 25, fill = "grey70", colour = "grey30") +
-    labs(x = "log10(x + 1)", y = "Frequency") +
-    theme_grey(),
-  ncol = 2
-)
+```{r code-transform-setup}
+ozone_dat <- na.omit(airquality[, c("Ozone", "Month")]) |>
+  as_tibble() |>
+  filter(Month %in% c(5, 6, 8, 9)) |>
+  mutate(
+    season = factor(
+      ifelse(Month %in% c(5, 6), "May-June", "August-September")
+    ),
+    log_ozone = log(Ozone)
+  )
 ```
 
-The transformed data are not automatically guaranteed to be suitable, but the log transformation reduces the long right tail and makes the distribution more symmetric. The key point is that transformations are diagnostic tools for improving the match between data and model, not magical procedures that guarantee success.
+```{r fig-transform-demo}
+#| fig-cap: "A real-data example showing how a log transformation changes the distribution of ozone concentrations. A) Raw ozone values by season. B) Log-transformed ozone values by season."
 
-## Reporting
+plt1 <- ggplot(ozone_dat, aes(Ozone)) +
+  geom_histogram(bins = 20, fill = "grey70", colour = "grey30") +
+  facet_wrap(~season, scales = "free_x") +
+  labs(x = "Ozone", y = "Frequency")
 
-::: {.callout-note appearance="simple"}
-## Write-Up
+plt2 <- ggplot(ozone_dat, aes(log_ozone)) +
+  geom_histogram(bins = 20, fill = "grey70", colour = "grey30") +
+  facet_wrap(~season, scales = "free_x") +
+  labs(x = "log(Ozone)", y = "Frequency")
 
-**Methods**
+ggarrange(plt1, plt2, ncol = 2, labels = "AUTO")
+```
 
-Because the response variable was strongly right-skewed, a log-transformation was applied before further modelling. Histograms of the raw and transformed values were compared to assess whether the transformation improved distributional symmetry and reduced the influence of extreme observations.
+```{r code-transform-checks}
+ozone_dat |>
+  group_by(season) |>
+  summarise(
+    raw_w = unname(shapiro.test(Ozone)$statistic),
+    raw_p = shapiro.test(Ozone)$p.value,
+    log_w = unname(shapiro.test(log_ozone)$statistic),
+    log_p = shapiro.test(log_ozone)$p.value,
+    .groups = "drop"
+  )
 
-**Results**
+car::leveneTest(Ozone ~ season, data = ozone_dat)
+car::leveneTest(log_ozone ~ season, data = ozone_dat)
+```
 
-The raw data showed marked right-skewness, whereas the log-transformed values were more symmetric and more compatible with the assumptions of ordinary parametric modelling. The transformation reduced the dominance of the long right tail and improved the overall match between the observed distribution and a Gaussian-style analytical framework.
+The raw ozone values show strong right-skew in both seasons. On the raw scale, both groups depart clearly from normality and the variances differ. On the log scale, the upper tail is compressed, the group spreads are closer, and the Shapiro-Wilk and Levene results are far less problematic. The transformation has changed the scale in a way that makes a mean-based comparison more defensible.
 
-**Discussion**
-
-Transformations should not be presented as cosmetic manipulation. In a journal-style account, the important point is that the transformation was motivated by the structure of the data and that the transformed scale provided a more defensible basis for inference than the raw scale.
-:::
-
-# Transformations and Regression
-
-Regression models do not necessarily require data transformations to deal with heteroscedasticity. Generalised linear models can be used with a variety of variance and error structures via suitable link functions. Likewise, the linearity requirement applies specifically to linear regression. Some degree of curvature can be accommodated by polynomial regression or additive models, and more complex departures from linearity can be handled by nonlinear models or GAMs.
-
-So, transforming our data is not the only response to curved relationships or non-constant variance. Quite often, the better solution is using a model that matches the biological process more directly.
+This chapter stops at the diagnostic stage. The inferential step belongs in [Chapter 7](07-t_tests.qmd), where the same ozone data are analysed with a two-sample *t*-test on the transformed scale and the result is then back-transformed for reporting.
 
 # Check the Assumptions Again
 
-The assumptions of the transformed data *must* be checked again after applying a transformation. The transformed data may still not meet the assumptions, so applying tests for normality, homoscedasticity, and independence remains necessary before proceeding with formal inference.
-
-A a common mistake is that analysts transform the data and then assume that the problem is solved. It may be, but it often is not.
+Transforming the data does not end the diagnostic work. The transformed data must be checked again. The second pass decides whether the transformation actually improved the fit between the data and the planned method.
 
 # When Transformation Is Not the Right Solution
 
-Transformation is not the right solution when:
+Transformation is usually the wrong response when:
 
 -   the response is fundamentally a count, proportion, presence-absence variable, or survival time with its own natural error structure;
 -   the observations are not independent;
 -   the biological interpretation becomes less clear than the original problem;
--   a more appropriate model is already available.
-
-In those cases it is usually better to choose a method that matches the data structure, such as a non-parametric test, a GLM, a mixed model, or another extension.
+-   a more appropriate method already exists.
 
 # Summary
 
-1. Assumption checking is part of the analysis, not an optional afterthought.
-2. Use graphs first, then formal tests to support your judgement.
-3. Independence is usually a design issue and cannot be repaired by transformation.
-4. When assumptions fail, first ask whether a different model is more appropriate.
-5. If you transform data, do so for a defensible biological reason and then check the assumptions again.
+1. Assumptions apply to the structure implied by the analysis.
+2. Group comparisons require checks within groups and across group variances.
+3. Paired designs require checks on the differences.
+4. Associations require checks on the joint pattern of the variables.
+5. Independence comes from design, not from a formal test.
+6. Transformations should be justified by the data and followed by a second round of diagnostics.
