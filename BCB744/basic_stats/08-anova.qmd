@@ -4,6 +4,8 @@ date-format: "YYYY/MM/DD"
 title: "8. ANOVA"
 subtitle: "Comparing the Means of More than Two Groups"
 reference-location: margin
+params:
+  hide_answers: true
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -117,16 +119,29 @@ $$H_{a}: \text{not all group means are equal}$$
 
 If the global null hypothesis is rejected, we then ask which groups differ using a post hoc procedure such as Tukey's HSD.
 
-:::: {.callout-important}
-## Task G.1: Do It Now!
-Why is one global ANOVA preferable to six separate *t*-tests in the four-diet chick example?
-::::
-
 ::: {.callout-note appearance="simple"}
 ## Bonferroni Correction
 
 Should you insist on doing multiple *t*-tests, Bonferroni correction divides the significance threshold by the number of tests. It reduces the false-positive rate, but it can become very conservative. The better solution, when the scientific question concerns several group means at once, is to fit the appropriate multi-group model, such as an ANOVA, rather than correct a stack of pairwise *t*-tests after the fact.
 :::
+
+:::: {.callout-note appearance="simple"}
+## Self-Assessment Task G.1
+
+Why should we not just apply *t*-tests once per each of the pairs of comparisons we want to make? **(/3)**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+Applying *t*-tests repeatedly across multiple pairwise comparisons increases the probability of committing at least one Type I error --- that is, falsely rejecting a true null hypothesis. This inflation of the collective error rate arises because each test is conducted at a fixed significance level (*e.g.*, α = 0.05), but the cumulative chance of error grows with the number of tests. So, the overall inference becomes unreliable. Instead, methods such as ANOVA, adjusted p-values (*e.g.* or Bonferroni correction) should be used to control for this multiplicity.
+
+- ✓ Identifying the problem of multiple comparisons.
+- ✓ Explaining the consequence: increased risk of Type I error.
+- ✓ Suggesting a solution: using ANOVA or adjusted p-values.
+
+`r if (params$hide_answers) ":::"`
+::::
 
 # How ANOVA Partitions Variation
 
@@ -295,13 +310,69 @@ chicks_aov1 <- aov(weight ~ Diet, data = chicks_day21)
 summary(chicks_aov1)
 ```
 
-The ANOVA table answers the global question only. A significant result means that at least one diet mean differs from at least one other diet mean.
+:::: {.callout-note appearance="simple"}
+## Self-Assessment Task G.2
 
-:::: {.callout-important}
-## Task G.2: Do It Now!
-a. What does the ANOVA result say about chick masses at Day 21?
-b. Which part of the result is global, and which part still needs a follow-up test?
+a. What does the outcome say about the chicken masses? Which ones are different from each other? **(/2)**
+b. Devise a graphical display of this outcome. **(/4)**
+
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+a. **Interpretation of ANOVA Output**
+    - ✓ (x 2) The one-way ANOVA tests the null hypothesis that all four diet groups have the same mean chicken mass at Day 21. The output shows an *F*-statistic of 4.655 and a *p*-value of < 0.05. Since this *p*-value is less than the conventional 0.05 threshold, we reject the null hypothesis, conclude that there is evidence of a statistically significant difference in mean chicken mass between at least two of the diet groups.
+    - Note that before accepting the ANOVA results, we should check the assumptions of normality, homogeneity of variance. The ANOVA assumes that the data are normally distributed and that the variances across groups are equal. If these assumptions are violated and the results may not be valid.
+    - Assuming the assumptions are met, note that the ANOVA alone does not identify which specific diets differ. To determine that, a *post hoc* comparison --- such as Tukey’s HSD test --- is needed. Without such pairwise analysis, we cannot yet say which diets are different from one another. A graph may help visualise these differences.
+
+b. **Graphical Display**
+    - ✓ (x 4) A suitable figure would be a boxplot of chicken weight at Day 21, stratified by Diet. This graph shows the distribution, central tendency, and spread for each diet group, makes it easy to infer where potential differences may lie. I have created two options: A) showing also the mean ± CI and B) showing the raw data points.
+    - Below, we see that Diet 3’s median is visibly higher, its interquartile range (or CI) does not overlap with Diet 1. This suggests a substantive difference. However and the plot should be interpreted alongside formal statistical comparisons (the ANOVA) to avoid misreading potential noise as a signal.
+    - You could also have done a boxplot showing the mean ± SD, but this is less informative than the boxplot with the mean ± CI.
+
+```{r}
+#| fig-cap: "Chick weight at day 21 by diet (boxplot with mean and CI)."
+library(tidyverse)
+library(ggpubr)
+
+# Filter the data for Day 21
+chicks <- as_tibble(ChickWeight)
+chicks_day21 <- chicks %>% 
+  filter(Time == 21)
+
+# Create the plot
+plt1 <- ggplot(chicks_day21, aes(x = Diet, y = weight, fill = Diet)) +
+  geom_boxplot(alpha = 1.0, outlier.shape = NA) +
+  stat_summary(fun = mean, geom = "point", shape = 20, size = 3, colour = "black") +
+  stat_summary(fun.data = mean_cl_normal, geom = "errorbar", width = 0.2, colour = "black") +
+  theme_minimal(base_size = 14) +
+  labs(
+    x = "Diet Group",
+    y = "Mass (g)"
+  ) +
+  theme(legend.position = "none")
+
+# Or one with the raw data points included
+plt2 <- ggplot(chicks_day21, aes(x = Diet, y = weight, fill = Diet)) +
+  geom_boxplot(alpha = 1.0, outlier.shape = NA) +
+  geom_jitter(aes(fill = Diet), shape = 21, colour = "black", alpha = 0.9, width = 0.1) +
+  theme_minimal(base_size = 14) +
+  labs(
+    x = "Diet Group",
+    y = "Mass (g)"
+  ) +
+  theme(legend.position = "none")
+
+# Arrange the plots side by side
+ggarrange(plt1, plt2, ncol = 2, labels = c("A", "B")) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+`r if (params$hide_answers) ":::"`
 ::::
+
+The ANOVA table answers the global question only. A significant result means that at least one diet mean differs from at least one other diet mean.
 
 ## Identify Which Groups Differ {#sec-identify-groups-differ}
 
@@ -320,6 +391,66 @@ Each row in the Tukey output is one pairwise comparison. The `diff` column is th
 
 plot(TukeyHSD(chicks_aov1))
 ```
+
+:::: {.callout-important}
+## Do It Now!
+a. Produce a `ggplot2` version of the Tukey result.
+::::
+
+:::: {.callout-note appearance="simple"}
+## Self-Assessment Task G.3
+
+Look at the help file for the `TukeyHSD()` function to better understand what the output means.
+
+a. How does one interpret the results? What does this tell us about the effect that that different diets has on the chicken weights at Day 21? **(/3)**
+b. Figure out a way to plot the Tukey HSD outcomes in **ggplot**. **(/10)**
+c. Why does the ANOVA return a significant result, but the Tukey test shows that not all of the groups are significantly different from one another? **(/3)**
+
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+a. **Interpretation of Tukey HSD**
+    - ✓ (x 3) The Tukey HSD test, below, compares all possible pairs of means to determine which specific groups are different. The output shows the differences in means between each pair of diets, along with the associated confidence intervals, *p*-values. A significant difference is indicated by a *p*-value less than 0.05 and a confidence interval that does not include zero.
+    - ✓ (x 3) The Tukey HSD test results indicate that Diet 1 and Diet 3 are significantly different from each other, as the confidence interval does not include zero, the *p*-value is less than 0.05. This suggests that Diet 3 leads to a higher mean chicken mass compared to Diet 1. The other diet comparisons do not show significant differences.
+
+```{r}
+chicks.aov1 <- aov(weight ~ Diet, data = filter(chicks, Time == 21))
+TukeyHSD(chicks.aov1)
+```
+
+b. **Tukey HSD outcomes presented with `ggplot()`.**
+    - ✓ (x 10) One way to do it is like this:
+
+```{r}
+#| fig-cap: "Tukey results as data frame."
+# Create a data frame from the Tukey HSD results
+tukey_results <- as.data.frame(TukeyHSD(chicks.aov1)$Diet)
+tukey_results <- tukey_results %>%
+  rownames_to_column(var = "Comparison")
+
+# Create the plot
+ggplot(tukey_results, aes(x = Comparison, y = diff)) +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.2) +
+  geom_point(aes(fill = `p adj` < 0.05), size = 3,
+             colour = "black", shape = 21) +
+  scale_fill_manual(values = c("deepskyblue2", "deeppink2"),
+                     labels = c("Not Significant", "Significant")) +
+  labs(
+    x = "Diet Comparison",
+    y = "Difference in Means",
+    title = "Tukey HSD Results"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+```
+
+c. **Why the ANOVA is significant but Tukey is not**
+    - ✓ (x 3) The ANOVA tests whether there is at least one significant difference among the groups, while the Tukey HSD test specifically identifies which groups are different. The ANOVA can be significant even if not all groups are different, as it only requires one group to differ from the others. In this case, the ANOVA was significant, but the Tukey test showed that not all groups were significantly different from each other, indicating that while there is a difference in means, it may not be substantial enough to be statistically significant for all pairs.
+
+`r if (params$hide_answers) ":::"`
+::::
 
 ## Interpret the Results
 
@@ -346,12 +477,6 @@ At Day 21, mean chick mass differed among diets (one-way ANOVA: $F_{3,41} = 4.66
 
 The post hoc structure shows selective diet differences rather than universal separation among all four diet means. The global ANOVA detects structure among the means; Tukey's HSD identifies where that structure lies.
 :::
-
-:::: {.callout-important}
-## Task G.3: Do It Now!
-a. Why can the ANOVA be significant even though not every Tukey comparison is significant?
-b. Produce a `ggplot2` version of the Tukey result.
-::::
 
 # Factorial ANOVA
 
@@ -386,9 +511,47 @@ time_scan
 
 The results are interpretable, but my method was less than ideal (and not to mention, also repetitive). Each time point gets its own ANOVA, and the family-wise error rate rises again. Separate ANOVAs across time repeat the same multiple-testing problem as separate *t*-tests across diets.
 
-:::: {.callout-important}
-## Task G.4: Do It Now!
-What does the `time_scan` table suggest about when diet differences become visible, and why is that table still not the clean final analysis?
+:::: {.callout-note appearance="simple"}
+## Self-Assessment Task G.4
+
+a. How is time having an effect? **(/3)**
+b. What hypotheses can we construct around time? **(/2)**
+
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+a. **Time's effect**
+    - ✓ The effect of time is should be taken as an important influence (independent variable) in the experimental design, because ...
+    - ✓ ... we expect the mean chicken mass changes over time as the chickens eat and grow.
+    - ✓ Since time is experimentally important, it should be considered in the hypothesis that informs the design of the ANOVA model.
+
+b. **Hypotheses around time**
+    - ✓ The null hypothesis is that there is no difference in mean chicken mass across different time points.
+    - ✓ The alternative hypothesis is that there is a difference in mean chicken mass across different time points.
+
+`r if (params$hide_answers) ":::"`
+::::
+
+:::: {.callout-note appearance="simple"}
+## Self-Assessment Task G.5
+
+a. What do you conclude from the above series of ANOVAs? **(/3)**
+b. What problem is associated with running multiple tests in the way that we have done here? **(/2)**
+
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+a. **Conclusions from the series of ANOVAs**
+    - ✓ (x 3) The sequential ANOVAs across times 0, 2, 10, and 21 reveal how the effect of diet on chicken mass develops over time. At time 0, there is no evidence of a difference between diet groups (*p* > 0.05), which is expected, as all chicks begin from a similar baseline before dietary interventions have had time to act. By time 2, a statistically significant effect appears (*p* < 0.05), and this effect becomes more pronounced at time 10 (*p* < 0.001). By time 21, the effect remains significant (p < 0.005), though the *F*-statistic is slightly lower than at time 10. This temporal pattern suggests that dietary effects on body mass begin to diverge early, become more detectable over time. The implication is that there is a growing differentiation in growth trajectories due to diet.
+
+b. **Problems with running multiple tests**
+    - ✓ (x 2) Running multiple ANOVAs increases the risk of Type I error, as each test has a chance of falsely rejecting the null hypothesis. This inflation of the error rate can lead to erroneous conclusions about the significance of results. To mitigate this, we should consider using a single ANOVA model that includes time as a factor, rather than running separate tests for each time point. Or, we may use a regression model that includes time as a continuous variable.
+
+`r if (params$hide_answers) ":::"`
 ::::
 
 ## Two Factors in One Model
@@ -402,6 +565,28 @@ chicks_two_way <- filter(chicks, Time %in% c(0, 21)) |>
 summary(aov(weight ~ Diet + Time, data = chicks_two_way))
 ```
 
+:::: {.callout-note appearance="simple"}
+## Self-Assessment Task G.6
+
+a. Write out the hypotheses for this ANOVA. **(/2)**
+b. What do you conclude from the above ANOVA? **(/3)**
+
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+a. **Hypotheses for the ANOVA**
+    - ✓ Null Hypothesis (H₀): The mean chicken mass is the same at all time points; that is, time has no effect on mass. Formally we would write this as: μ₀ = μ₂ = μ₁₀ = μ₂₁.
+    - ✓	Alternative Hypothesis (H₁): At least one time point has a mean chick mass that differs from the others; time has an effect on chick mass.
+
+b. **Conclusions from the ANOVA**
+    - ✓ (x 3) The ANOVA output reports an *F*-statistic of 234.8 with a *p*-value far < 0.001. This provides overwhelming evidence against the null hypothesis. So, we must conclude that time has a significant, very strong effect on chicken mass. This is consistent with biological expectations: as chicks grow over time and their mass increase.
+    - Note, however, that this model ignores diet, treats all chickens as a single population observed at different times. The significant result reflects that growth occurs over time but it does not tell us whether or how different diets contribute to that growth --- only that time, on average, is strongly associated with (causing, in this instance) increasing body mass.
+
+`r if (params$hide_answers) ":::"`
+::::
+
 With this additive model, I ask whether diet and time each have an effect on chick mass, assuming that the diet effect is the same at both time points.
 
 ## Interaction in Factorial ANOVA
@@ -414,11 +599,11 @@ summary(aov(weight ~ Diet * Time, data = chicks_two_way))
 
 The interaction addresses the question whether diet-related differences are the same at Time 0 and Time 21. Stated differently, does the effect of diet change depending on when we sample the chicks? In this subset, yes, it depends. The interaction term is significant, so the effect of diet depends on time. [Chapter 15](15-interaction-effects.qmd) develops the interpretation of interactions in much more detail.
 
-:::: {.callout-important}
-## Task G.5: Do It Now!
+::: {.callout-important}
+## Do It Now!
 a. What does the interaction term mean biologically in this chick example?
 b. Why do we lose information if we fit only separate one-way ANOVAs across time?
-::::
+:::
 
 # If Assumptions Fail {#sec-alt}
 

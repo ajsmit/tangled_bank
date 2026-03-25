@@ -914,7 +914,7 @@ window.Quarto = {
    
   <ul>
 <li><a href="#introduction-from-raw-data-to-models" id="toc-introduction-from-raw-data-to-models" class="nav-link active" data-scroll-target="#introduction-from-raw-data-to-models"><span class="header-section-number">1</span> Introduction: From Raw Data to Models</a></li>
-  <li><a href="#models" id="toc-models" class="nav-link" data-scroll-target="#models"><span class="header-section-number">2</span> Models</a></li>
+  <li><a href="#models-errors-and-fitted-values" id="toc-models-errors-and-fitted-values" class="nav-link" data-scroll-target="#models-errors-and-fitted-values"><span class="header-section-number">2</span> Models, Errors, and Fitted Values</a></li>
   <li><a href="#residuals" id="toc-residuals" class="nav-link" data-scroll-target="#residuals"><span class="header-section-number">3</span> Residuals</a></li>
   <li><a href="#why-assumptions-apply-to-residuals" id="toc-why-assumptions-apply-to-residuals" class="nav-link" data-scroll-target="#why-assumptions-apply-to-residuals"><span class="header-section-number">4</span> Why Assumptions Apply to Residuals</a></li>
   <li>
@@ -970,7 +970,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026/03/23</p>
+      <p class="date">2026/03/25</p>
     </div>
   </div>
   
@@ -991,10 +991,10 @@ window.Quarto = {
 <div class="callout-body-container callout-body">
 <ul>
 <li>the shift from raw-data checks to model-based checks;</li>
-<li>what a fitted model, a predicted value, and a residual are;</li>
+<li>what a fitted model, a predicted value, an error, and a residual are;</li>
 <li>why regression assumptions apply to residuals;</li>
 <li>how to read residual-versus-fitted and residual Q-Q plots;</li>
-<li>how diagnostic patterns guide later modelling decisions.</li>
+<li>how diagnostic patterns guide model revision.</li>
 </ul>
 </div>
 </div>
@@ -1009,140 +1009,181 @@ window.Quarto = {
 </div>
 <div class="callout-body-container callout-body">
 <ul>
-<li>None</li>
+<li>Task H</li>
 </ul>
 </div>
 </div>
 <section id="introduction-from-raw-data-to-models" class="level1" data-number="1"><h1 data-number="1">
 <span class="header-section-number">1</span> Introduction: From Raw Data to Models</h1>
 <p>In earlier chapters, I checked assumptions on raw data. In <a href="../../BCB744/basic_stats/06-assumptions-and-transformations.html">Chapter 6</a>, I asked whether values within groups, paired differences, or observed associations were well behaved enough for the planned test.</p>
-<p>A regression model is a formal description of how a <strong>response variable</strong> changes with one or more <strong>predictor variables</strong>. A <strong>fitted model</strong> is that description after the data have been used to estimate it. The assumption checks then apply to the <strong>residuals</strong>, which are the differences between observed values and the values predicted by the fitted model.</p>
-<p>With regression, assumption testing still checks shape, spread, and dependence, but I now assess the residuals rather than raw observations. In this chapter, I introduce that shift before the regression chapters begin. <a href="../../BCB744/basic_stats/12-simple-linear-regression.html">Simple Linear Regression</a>, <a href="../../BCB744/basic_stats/14-multiple-regression-and-model-specification.html">Multiple Regression and Model Specification</a>, and <a href="../../BCB744/basic_stats/17-model-checking-and-evaluation.html">Model Checking and Evaluation</a> all build on it.</p>
-</section><section id="models" class="level1" data-number="2"><h1 data-number="2">
-<span class="header-section-number">2</span> Models</h1>
+<p>Regression changes the object being checked. A regression model splits the response into a systematic component that the model tries to explain and an error component that remains unexplained. After fitting the model, I inspect the residuals because they are the observed estimates of that remaining error.</p>
+<p>In this chapter, I first define the model structure, fitted values, errors, and residuals. I then map the main regression assumptions to the plots or design checks that address them. I end by showing how those diagnostics guide model revision in later chapters.</p>
+</section><section id="models-errors-and-fitted-values" class="level1" data-number="2"><h1 data-number="2">
+<span class="header-section-number">2</span> Models, Errors, and Fitted Values</h1>
 <p>A <strong>model</strong> is a mathematical description of how a response changes with one or more predictors.</p>
 <p>A <strong>response variable</strong> is the outcome being explained or predicted. Sometimes it is called the outcome or dependent variable.</p>
 <p>A <strong>predictor variable</strong> is a measured quantity used to explain or predict the response. It is also known as the independent variable.</p>
 <p>A <strong>fitted model</strong> is the version of the model after its unknown quantities have been estimated from the data.</p>
 <p>A <strong>predicted value</strong> is the value the fitted model expects for the response at a given predictor value.</p>
-<p>Consider a biological question: how does plant height change with light availability? Here, plant height is the response and light availability is the predictor. A fitted model would describe the expected plant height at each light level. So, the predicted value is the height that the fitted model gives for a plant growing under a specific amount of light.</p>
-<p>The purpose of the discussion in this chapter is to explain what is being checked once a model has been fitted. In the next chapter, I demonstrate fitting the straight-line model and assessing its fit.</p>
+<p>For a simple linear regression, I can write the model for observation <span class="math inline">\(i\)</span> as</p>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i
+\]</span></p>
+<p>The term <span class="math inline">\(\beta_0 + \beta_1 X_i\)</span> is the <strong>systematic component</strong> or <strong>mean structure</strong>. It gives the conditional mean <span class="math inline">\(E[Y_i \mid X_i]\)</span> when the model is appropriate. The term <span class="math inline">\(\varepsilon_i\)</span> is the <strong>error</strong>. It is the unobserved departure of the observed response from that conditional mean.</p>
+<p>This decomposition is important because two different parts of the model are being checked. Linearity concerns the mean structure, while constant variance concerns the spread of the errors around that mean structure.</p>
+<p>Consider a biological question: how does plant height change with light availability? Here, plant height is the response and light availability is the predictor. A fitted model would describe the expected plant height at each light level. The predicted value is therefore the height that the fitted model gives for a plant growing under a specific amount of light.</p>
+<p>The purpose of this chapter is exlpain what is being checked once a model has been fitted, and in the next chapter I fit the straight-line model and assess its fit.</p>
 </section><section id="residuals" class="level1" data-number="3"><h1 data-number="3">
 <span class="header-section-number">3</span> Residuals</h1>
 <p>A <strong>residual</strong> is the difference between an observed value and its predicted value:</p>
 <p><span class="math display">\[
 \text{residual} = \text{observed value} - \text{predicted value}
 \]</span></p>
-<p>Residuals represent the part of the response that the fitted model has not explained. They are the observed differences between the data and the fitted values, so they approximate the unexplained variation that remains after modelling. That remaining variation may arise from omitted predictors, measurement error, natural biological variation, or a model form that is too simple for the pattern in the data.</p>
-<p>I will use the built-in <code>trees</code> dataset throughout this chapter. The dataset records tree girth, height, and volume, and I will treat <code>Volume</code> as the response and <code>Girth</code> as the predictor.</p>
+<p>Residuals are observed quantities. Errors are theoretical quantities in the model and are not observed directly. Residuals estimate those unobserved errors and are used for diagnostic checks.</p>
+<p>In practical terms, residuals carry information about that remaining variation, which may arise from omitted predictors, measurement error, natural biological variation, or a model form that is too simple for the pattern in the data.</p>
+<p>For the real-data sections of this chapter, I will use the <code>penguins</code> dataset from the <code>palmerpenguins</code> package. After removing missing values, I will treat body mass (<code>body_mass_g</code>) as the response and flipper length (<code>flipper_length_mm</code>) as the predictor.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>trees_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(trees) <span class="sc">|&gt;</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a>  <span class="fu">mutate</span>(<span class="at">tree_id =</span> <span class="fu">row_number</span>())</span>
-<span id="cb1-3"><a href="#cb1-3"></a></span>
-<span id="cb1-4"><a href="#cb1-4"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Girth, <span class="at">data =</span> trees_tbl)</span>
-<span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a>tree_resids <span class="ot">&lt;-</span> trees_tbl <span class="sc">|&gt;</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-8"><a href="#cb1-8"></a>    <span class="at">predicted_volume =</span> <span class="fu">fitted</span>(model),</span>
-<span id="cb1-9"><a href="#cb1-9"></a>    <span class="at">residual =</span> <span class="fu">residuals</span>(model)</span>
-<span id="cb1-10"><a href="#cb1-10"></a>  )</span>
-<span id="cb1-11"><a href="#cb1-11"></a></span>
-<span id="cb1-12"><a href="#cb1-12"></a>tree_resids <span class="sc">|&gt;</span></span>
-<span id="cb1-13"><a href="#cb1-13"></a>  <span class="fu">select</span>(tree_id, Girth, Volume, predicted_volume, residual) <span class="sc">|&gt;</span></span>
-<span id="cb1-14"><a href="#cb1-14"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">8</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1-15"><a href="#cb1-15"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb1-16"><a href="#cb1-16"></a>    <span class="at">digits =</span> <span class="dv">2</span>,</span>
-<span id="cb1-17"><a href="#cb1-17"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Tree"</span>, <span class="st">"Girth"</span>, <span class="st">"Observed volume"</span>, <span class="st">"Predicted volume"</span>, <span class="st">"Residual"</span>)</span>
-<span id="cb1-18"><a href="#cb1-18"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">data</span>(<span class="st">"penguins"</span>, <span class="at">package =</span> <span class="st">"palmerpenguins"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a>penguins_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(penguins) <span class="sc">|&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>  <span class="fu">drop_na</span>(flipper_length_mm, body_mass_g) <span class="sc">|&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>  <span class="fu">mutate</span>(<span class="at">obs_id =</span> <span class="fu">row_number</span>())</span>
+<span id="cb1-6"><a href="#cb1-6"></a></span>
+<span id="cb1-7"><a href="#cb1-7"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(body_mass_g <span class="sc">~</span> flipper_length_mm, <span class="at">data =</span> penguins_tbl)</span>
+<span id="cb1-8"><a href="#cb1-8"></a></span>
+<span id="cb1-9"><a href="#cb1-9"></a>penguin_resids <span class="ot">&lt;-</span> penguins_tbl <span class="sc">|&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-11"><a href="#cb1-11"></a>    <span class="at">predicted_mass =</span> <span class="fu">fitted</span>(model),</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    <span class="at">residual =</span> <span class="fu">residuals</span>(model)</span>
+<span id="cb1-13"><a href="#cb1-13"></a>  )</span>
+<span id="cb1-14"><a href="#cb1-14"></a></span>
+<span id="cb1-15"><a href="#cb1-15"></a>penguin_resids <span class="sc">|&gt;</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a>  <span class="fu">select</span>(obs_id, species, flipper_length_mm, body_mass_g, predicted_mass, residual) <span class="sc">|&gt;</span></span>
+<span id="cb1-17"><a href="#cb1-17"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">8</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb1-20"><a href="#cb1-20"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Observation"</span>, <span class="st">"Species"</span>, <span class="st">"Flipper length"</span>, <span class="st">"Observed body mass"</span>, <span class="st">"Predicted body mass"</span>, <span class="st">"Residual"</span>)</span>
+<span id="cb1-21"><a href="#cb1-21"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead><tr class="header">
-<th style="text-align: right;">Tree</th>
-<th style="text-align: right;">Girth</th>
-<th style="text-align: right;">Observed volume</th>
-<th style="text-align: right;">Predicted volume</th>
+<th style="text-align: right;">Observation</th>
+<th style="text-align: left;">Species</th>
+<th style="text-align: right;">Flipper length</th>
+<th style="text-align: right;">Observed body mass</th>
+<th style="text-align: right;">Predicted body mass</th>
 <th style="text-align: right;">Residual</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">8.3</td>
-<td style="text-align: right;">10.3</td>
-<td style="text-align: right;">5.10</td>
-<td style="text-align: right;">5.20</td>
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: right;">181</td>
+<td style="text-align: right;">3750</td>
+<td style="text-align: right;">3212.26</td>
+<td style="text-align: right;">537.74</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">2</td>
-<td style="text-align: right;">8.6</td>
-<td style="text-align: right;">10.3</td>
-<td style="text-align: right;">6.62</td>
-<td style="text-align: right;">3.68</td>
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: right;">186</td>
+<td style="text-align: right;">3800</td>
+<td style="text-align: right;">3460.68</td>
+<td style="text-align: right;">339.32</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">3</td>
-<td style="text-align: right;">8.8</td>
-<td style="text-align: right;">10.2</td>
-<td style="text-align: right;">7.64</td>
-<td style="text-align: right;">2.56</td>
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: right;">195</td>
+<td style="text-align: right;">3250</td>
+<td style="text-align: right;">3907.85</td>
+<td style="text-align: right;">-657.85</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">4</td>
-<td style="text-align: right;">10.5</td>
-<td style="text-align: right;">16.4</td>
-<td style="text-align: right;">16.25</td>
-<td style="text-align: right;">0.15</td>
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: right;">193</td>
+<td style="text-align: right;">3450</td>
+<td style="text-align: right;">3808.48</td>
+<td style="text-align: right;">-358.48</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">5</td>
-<td style="text-align: right;">10.7</td>
-<td style="text-align: right;">18.8</td>
-<td style="text-align: right;">17.26</td>
-<td style="text-align: right;">1.54</td>
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: right;">190</td>
+<td style="text-align: right;">3650</td>
+<td style="text-align: right;">3659.43</td>
+<td style="text-align: right;">-9.43</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">6</td>
-<td style="text-align: right;">10.8</td>
-<td style="text-align: right;">19.7</td>
-<td style="text-align: right;">17.77</td>
-<td style="text-align: right;">1.93</td>
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: right;">181</td>
+<td style="text-align: right;">3625</td>
+<td style="text-align: right;">3212.26</td>
+<td style="text-align: right;">412.74</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">7</td>
-<td style="text-align: right;">11.0</td>
-<td style="text-align: right;">15.6</td>
-<td style="text-align: right;">18.78</td>
-<td style="text-align: right;">-3.18</td>
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: right;">195</td>
+<td style="text-align: right;">4675</td>
+<td style="text-align: right;">3907.85</td>
+<td style="text-align: right;">767.15</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">8</td>
-<td style="text-align: right;">11.0</td>
-<td style="text-align: right;">18.2</td>
-<td style="text-align: right;">18.78</td>
-<td style="text-align: right;">-0.58</td>
+<td style="text-align: left;">Adelie</td>
+<td style="text-align: right;">193</td>
+<td style="text-align: right;">3475</td>
+<td style="text-align: right;">3808.48</td>
+<td style="text-align: right;">-333.48</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>Each row in the table shows the same calculation. The fitted model predicts a tree volume from girth and the residual records the remaining difference between the observed and predicted volumes.</p>
-<p>The steps to extract the predicted values and the residuals are:</p>
+<p>Each row in the table shows the same calculation. The fitted model predicts body mass from flipper length and the residual records the remaining difference between the observed and predicted body mass.</p>
+<p>The steps to extract the predicted values and residuals are:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Girth, <span class="at">data =</span> trees_tbl)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(body_mass_g <span class="sc">~</span> flipper_length_mm, <span class="at">data =</span> penguins_tbl)</span>
 <span id="cb2-2"><a href="#cb2-2"></a></span>
-<span id="cb2-3"><a href="#cb2-3"></a><span class="fu">fitted</span>(model) <span class="co"># predicted</span></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="fu">residuals</span>(model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="fu">fitted</span>(model) <span class="co"># predicted values</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="fu">residuals</span>(model) <span class="co"># raw residuals</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Throughout this chapter, I use raw residuals because the goal is to establish the basic thinking behind the diagnostics. Later chapters introduce standardised and studentised residuals when I discuss unusual and influential observations.</p>
+<div class="callout callout-style-simple callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Self-Assessment Task H.2
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="a">
+<li>Examine the contents of the regression model object <code>sparrow_mod</code>. Explain the main components and how they relate to <code>summary(sparrow_mod)</code>.<br>
+</li>
+<li>Using values inside the model object, show how to reconstruct the observed response values from the fitted values and residuals.<br>
+</li>
+<li>Fit a linear regression through the model residuals and explain the result.<br>
+</li>
+<li>Fit a linear regression through the fitted values and explain the result.</li>
+</ol>
+</div>
 </div>
 </section><section id="why-assumptions-apply-to-residuals" class="level1" data-number="4"><h1 data-number="4">
 <span class="header-section-number">4</span> Why Assumptions Apply to Residuals</h1>
-<p>A fitted model aims to describe the systematic part of the relationship between a response and its predictors. The residuals contain what remains after that systematic part has been removed.</p>
+<p>A fitted model aims to describe the systematic part of the relationship between a response and its predictors. Fitting a linear model removes the conditional mean <span class="math inline">\(E[Y \mid X]\)</span>, leaving residuals centred at zero.</p>
 <p>I can show that visually with a small simulated example. In panel A of <a href="#fig-slope-removed" class="quarto-xref">Figure&nbsp;1</a>, the response increases with the predictor and the fitted line has a clear positive slope. In panel B, I plot the residuals from that fitted model against the same predictor. The slope has been removed, so the fitted line is now horizontal around zero. The residuals are therefore the remainder after fitting, which is why they become the object of diagnosis.</p>
-<p>Effectively, fitting a linear model therefore amounts to subtrackting the slope from the data.</p>
+<p>Fitting a linear model therefore amounts to subtracting the fitted mean trend from the data and then asking whether any structure remains.</p>
 <div class="cell">
 <details class="code-fold"><summary>Show Code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">set.seed</span>(<span class="dv">74411</span>)</span>
 <span id="cb3-2"><a href="#cb3-2"></a></span>
 <span id="cb3-3"><a href="#cb3-3"></a>sim_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb3-4"><a href="#cb3-4"></a>  <span class="at">light =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">40</span>),</span>
-<span id="cb3-5"><a href="#cb3-5"></a>  <span class="at">height =</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">1.8</span> <span class="sc">*</span> light <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">40</span>, <span class="at">sd =</span> <span class="dv">2</span>)</span>
+<span id="cb3-4"><a href="#cb3-4"></a>  <span class="at">light =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">100</span>),</span>
+<span id="cb3-5"><a href="#cb3-5"></a>  <span class="at">height =</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">1.8</span> <span class="sc">*</span> light <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="at">sd =</span> <span class="dv">2</span>)</span>
 <span id="cb3-6"><a href="#cb3-6"></a>)</span>
 <span id="cb3-7"><a href="#cb3-7"></a></span>
 <span id="cb3-8"><a href="#cb3-8"></a>sim_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(height <span class="sc">~</span> light, <span class="at">data =</span> sim_dat)</span>
@@ -1185,8 +1226,8 @@ Figure&nbsp;1: The systematic part of a relationship is removed when residuals a
 </div>
 </div>
 </div>
-<p>Assumptions therefore apply to the residuals because the residuals represent the unexplained variation. If the residuals still show a pattern, the model has left structure behind, and if the residuals have unstable spread, the model’s uncertainty estimates become less reliable.</p>
-<p>Contrast with earlier chapters:</p>
+<p>Assumptions therefore apply to the residuals because the residuals represent the unexplained variation. If the residuals still show a pattern, the model has left structure behind, and if they have unstable spread, the uncertainty estimates become less reliable.</p>
+<p>The shift from earlier chapters is straightforward:</p>
 <table class="caption-top table">
 <thead><tr class="header">
 <th>Context</th>
@@ -1215,40 +1256,91 @@ Figure&nbsp;1: The systematic part of a relationship is removed when residuals a
 <span class="header-section-number">5</span> Key Regression Assumptions</h1>
 <section id="linearity" class="level2" data-number="5.1"><h2 data-number="5.1" class="anchored" data-anchor-id="linearity">
 <span class="header-section-number">5.1</span> Linearity</h2>
-<p><strong>Linearity</strong> means that the fitted model has captured the mean relationship between the predictor and the response with an appropriate sloped straight-line form. In a simple linear regression, this means the residuals should not retain a sloped or curved pattern after the line has been fitted. I demonstrated this in <a href="#fig-slope-removed" class="quarto-xref">Figure&nbsp;1</a>.</p>
+<p><strong>Linearity</strong> means that the fitted model has captured the mean relationship between the predictor and the response with an appropriate straight-line form. In a simple linear regression, the residuals should not retain a sloped or curved pattern after the line has been fitted.</p>
 </section><section id="constant-variance" class="level2" data-number="5.2"><h2 data-number="5.2" class="anchored" data-anchor-id="constant-variance">
 <span class="header-section-number">5.2</span> Constant Variance</h2>
-<p><strong>Variance</strong>, in this context, means the spread of the residuals around zero. <strong>Constant variance</strong> means that this spread stays broadly similar across the range of fitted values, but if the spread expands or contracts systematically, uncertainty is estimated unevenly across the response range.</p>
+<p><strong>Constant variance</strong> means that the spread of the residuals around zero stays broadly similar across the fitted range. If the spread expands or contracts systematically, the variance structure is not being described well by the model.</p>
 </section><section id="independence" class="level2" data-number="5.3"><h2 data-number="5.3" class="anchored" data-anchor-id="independence">
 <span class="header-section-number">5.3</span> Independence</h2>
-<p><strong>Independence</strong> means that one residual does not carry information about another. This requirement depends on the sampling or experimental design. Therefore, repeated measures on the same individual, temporal correlation, spatial clustering, and nested sampling can all violate independence.</p>
+<p><strong>Independence</strong> means that one residual does not carry information about another. This requirement comes mainly from the sampling or experimental design. Repeated measures on the same individual, temporal correlation, spatial clustering, and nested sampling can all violate independence.</p>
+<p>When dependence is plausible, I do not rely on the usual residual-versus-fitted or Q-Q plots alone. I also inspect residuals in the order in which the data were collected. For time-series or repeated-measures data, that often means plotting residuals against time and looking for runs, cycles, or long stretches of positive or negative residuals. For spatial data, it may mean plotting residuals against location and looking for clusters of similar residuals.</p>
 </section><section id="normality-of-residuals" class="level2" data-number="5.4"><h2 data-number="5.4" class="anchored" data-anchor-id="normality-of-residuals">
 <span class="header-section-number">5.4</span> Normality of Residuals</h2>
-<p><strong>Approximate normality of residuals</strong> means that the distribution of residuals is reasonably close to a normal distribution. This affects the reliability of standard errors, confidence intervals, and tests in small samples. Linearity, constant variance, and independence usually deserve attention first.</p>
-</section></section><section id="diagnostic-plots" class="level1" data-number="6"><h1 data-number="6">
+<p><strong>Approximate normality of residuals</strong> means that the residual distribution is reasonably close to a normal distribution. This is most important for standard errors, confidence intervals, and tests in smaller samples. Mean structure, variance structure, and independence usually deserve priority because large departures there often explain what later appears in the residual distribution.</p>
+<p>The main checks are thus performed in this order:</p>
+<table class="caption-top table">
+<thead><tr class="header">
+<th>Assumption</th>
+<th>What it concerns</th>
+<th>Main check</th>
+<th>Visual cue</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Linearity</td>
+<td>mean structure <span class="math inline">\(E[Y \mid X]\)</span>
+</td>
+<td>residual-versus-fitted plot</td>
+<td>slope or curvature in residuals</td>
+</tr>
+<tr class="even">
+<td>Constant variance</td>
+<td>spread around the mean structure</td>
+<td>residual-versus-fitted plot</td>
+<td>funnel shape or changing vertical spread</td>
+</tr>
+<tr class="odd">
+<td>Normality</td>
+<td>distribution of residuals</td>
+<td>residual Q-Q plot</td>
+<td>systematic bends away from the line</td>
+</tr>
+<tr class="even">
+<td>Independence</td>
+<td>relationship among residuals across sampling units</td>
+<td>design plus residuals versus order, time, or space</td>
+<td>runs, cycles, or spatial clusters</td>
+</tr>
+</tbody>
+</table></section></section><section id="diagnostic-plots" class="level1" data-number="6"><h1 data-number="6">
 <span class="header-section-number">6</span> Diagnostic Plots</h1>
 <p>A <strong>diagnostic plot</strong> is a graph used to check whether the fitted model has left behind problematic structure in the residuals.</p>
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Diagnostic Workflow
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li>Fit the model.</li>
+<li>Plot residuals against fitted values to check mean structure and spread.</li>
+<li>Plot a residual Q-Q plot to check whether the residual distribution is close enough to normal for the intended inference.</li>
+<li>Revisit the sampling or experimental design, and where relevant plot residuals against time, space, or sampling order to check independence.</li>
+<li>Revise the model if the diagnostics show leftover structure.</li>
+</ol>
+</div>
+</div>
+<p>These plots are not decoration. They show where the model is still wrong and suggest what to revise next.</p>
 <section id="residual-versus-fitted-plot" class="level2" data-number="6.1"><h2 data-number="6.1" class="anchored" data-anchor-id="residual-versus-fitted-plot">
 <span class="header-section-number">6.1</span> Residual versus Fitted Plot</h2>
 <p>The <strong>residual-versus-fitted plot</strong> places fitted values on the x-axis and residuals on the y-axis.</p>
-<p>This plot is read by asking two questions:</p>
-<ol type="1">
-<li>Do the residuals scatter around zero without a systematic pattern?</li>
-<li>Does their spread stay broadly similar across the fitted range?</li>
-</ol>
-<p>Random scatter around zero supports the fitted mean structure. Curvature suggests that the straight-line form is missing part of the relationship. A funnel shape suggests changing variance.</p>
+<p>I read this plot by asking two questions. Do the residuals scatter around zero without a systematic pattern? Does their spread stay broadly similar across the fitted range? Random scatter around zero supports the fitted mean structure. Curvature suggests that the straight-line form is missing part of the relationship. A funnel shape suggests changing variance.</p>
 </section><section id="q-q-plot-of-residuals" class="level2" data-number="6.2"><h2 data-number="6.2" class="anchored" data-anchor-id="q-q-plot-of-residuals">
 <span class="header-section-number">6.2</span> Q-Q Plot of Residuals</h2>
 <p>The <strong>Q-Q plot of residuals</strong> compares the ordered residuals with the values expected from a normal distribution.</p>
-<p>Points that follow the reference line support approximate normality. Systematic bends in the tails show departures from normality. Small departures are common. Large departures deserve inspection, especially when the sample is small or when extreme points drive the pattern.</p>
+<p>Points that follow the reference line support approximate normality. In practice, the centre of the plot is usually more informative than one slightly wayward tail point. If most points track the line and only the most extreme one or two points drift modestly away, I usually treat that as acceptable, especially in a moderate sample. I become more concerned when many points form a clear S-shape, when both tails peel away strongly from the line, or when one or two extreme residuals dominate the ends of the plot. At that stage, the next step is to inspect the raw data, check for influential observations, and ask whether the response scale or response distribution is appropriate.</p>
 <p>The standard base-R diagnostic commands are:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">plot</span>(model, <span class="at">which =</span> <span class="dv">1</span>)  <span class="co"># residual vs fitted</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">plot</span>(model, <span class="at">which =</span> <span class="dv">1</span>)  <span class="co"># residual versus fitted</span></span>
 <span id="cb4-2"><a href="#cb4-2"></a><span class="fu">plot</span>(model, <span class="at">which =</span> <span class="dv">2</span>)  <span class="co"># Q-Q plot</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="example-1-idealised-diagnostic-plots" class="level2" data-number="6.3"><h2 data-number="6.3" class="anchored" data-anchor-id="example-1-idealised-diagnostic-plots">
 <span class="header-section-number">6.3</span> Example 1: Idealised Diagnostic Plots</h2>
-<p>I begin with a simulated example because it shows the desired idealised pattern clearly; real datasets are usually messier. In this idealised case, the fitted straight-line model is appropriate, the residual spread is even, and the residuals are approximately normal.</p>
+<p>I continue with the same simulated dataset used in <a href="#fig-slope-removed" class="quarto-xref">Figure&nbsp;1</a>. Here that same fitted model is viewed through the two standard diagnostic plots. In <a href="#fig-ideal-resid-fitted" class="quarto-xref">Figure&nbsp;2</a>, the residual spread is even and the smooth line stays close to horizontal. In <a href="#fig-ideal-resid-qq" class="quarto-xref">Figure&nbsp;3</a>, the residuals are also approximately normal.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-ideal-resid-fitted" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1273,84 +1365,91 @@ Figure&nbsp;3: Idealised Q-Q plot of residuals for a well-behaved straight-line 
 </div>
 </div>
 </div>
-<p>In <a href="#fig-ideal-resid-fitted" class="quarto-xref">Figure&nbsp;2</a>, the points form a roughly even cloud around zero: that is the main pattern to look for. The smooth line stays close to horizontal, so there is no clear curvature left in the residuals. The vertical spread is also fairly similar across the fitted range, so there is no strong sign of changing variance.</p>
-<p>In <a href="#fig-ideal-resid-qq" class="quarto-xref">Figure&nbsp;3</a>, most points lie close to the reference line. That is the idealised picture of approximate residual normality. In practice, small departures are common, especially near the tails. The important point is that the residuals should not show a strong systematic bend away from the line.</p>
-<p>These two plots therefore cover two of the assumptions we have of the residuals:</p>
-<ul>
-<li>the residual-versus-fitted plot checks whether structure or changing spread remains in the residuals;</li>
-<li>the Q-Q plot checks whether the residual distribution is approximately normal.</li>
-</ul>
-<p>I use this example only to show the desired appearance, but the next example uses real data where the patterns are less tidy and the interpretation is more realistic (and challenging).</p>
+<p>In <a href="#fig-ideal-resid-fitted" class="quarto-xref">Figure&nbsp;2</a>, the points form a roughly even cloud around zero. The smooth line stays close to horizontal, so there is no clear leftover mean structure. The vertical spread is also fairly similar across the fitted range, so there is no strong sign of changing variance.</p>
+<p>In <a href="#fig-ideal-resid-qq" class="quarto-xref">Figure&nbsp;3</a>, most points lie close to the reference line. That is the pattern expected when the residuals are close enough to normal for standard linear-model inference.</p>
+<p>Together, these plots show what I want to see before I interpret a fitted model. Real data rarely look this tidy, which is why the next example is more revealing.</p>
 </section></section><section id="example-2-worked-example-with-real-data" class="level1" data-number="7"><h1 data-number="7">
 <span class="header-section-number">7</span> Example 2: Worked Example with Real Data</h1>
-<p>I continue with the <code>trees</code> model:</p>
+<p>I now return to the penguins data. I fit body mass as a function of flipper length using all penguins together. That is a plausible first attempt because larger penguins usually have longer flippers, but it also ignores the fact that the dataset contains different species.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Girth, <span class="at">data =</span> trees_tbl)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(body_mass_g <span class="sc">~</span> flipper_length_mm, <span class="at">data =</span> penguins_tbl)</span>
 <span id="cb5-2"><a href="#cb5-2"></a></span>
-<span id="cb5-3"><a href="#cb5-3"></a><span class="fu">augment</span>(model) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a>  <span class="fu">select</span>(Girth, Volume, .fitted, .resid) <span class="sc">|&gt;</span></span>
-<span id="cb5-5"><a href="#cb5-5"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-3"><a href="#cb5-3"></a>penguin_aug <span class="ot">&lt;-</span> penguins_tbl <span class="sc">|&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb5-5"><a href="#cb5-5"></a>    <span class="at">.fitted =</span> <span class="fu">fitted</span>(model),</span>
+<span id="cb5-6"><a href="#cb5-6"></a>    <span class="at">.resid =</span> <span class="fu">residuals</span>(model)</span>
+<span id="cb5-7"><a href="#cb5-7"></a>  )</span>
+<span id="cb5-8"><a href="#cb5-8"></a></span>
+<span id="cb5-9"><a href="#cb5-9"></a>penguin_aug <span class="sc">|&gt;</span></span>
+<span id="cb5-10"><a href="#cb5-10"></a>  <span class="fu">select</span>(species, flipper_length_mm, body_mass_g, .fitted, .resid) <span class="sc">|&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 4
-  Girth Volume .fitted .resid
-  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;
-1   8.3   10.3    5.10  5.20 
-2   8.6   10.3    6.62  3.68 
-3   8.8   10.2    7.64  2.56 
-4  10.5   16.4   16.2   0.152
-5  10.7   18.8   17.3   1.54 
-6  10.8   19.7   17.8   1.93 </code></pre>
+<pre><code># A tibble: 6 × 5
+  species flipper_length_mm body_mass_g .fitted  .resid
+  &lt;fct&gt;               &lt;int&gt;       &lt;int&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+1 Adelie                181        3750   3212.  538.  
+2 Adelie                186        3800   3461.  339.  
+3 Adelie                195        3250   3908. -658.  
+4 Adelie                193        3450   3808. -358.  
+5 Adelie                190        3650   3659.   -9.43
+6 Adelie                181        3625   3212.  413.  </code></pre>
 </div>
 </div>
-<p>The fitted values are the model’s expected tree volumes. The residuals show how far the observed volumes depart from those fitted values.</p>
+<p>The fitted values are the model’s expected body masses. The residuals show how far the observed body masses depart from those fitted values.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-trees-resid-fitted" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-trees-resid-fitted-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="11-residuals-and-model-based-diagnostics_files/figure-html/fig-trees-resid-fitted-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Residuals versus fitted values for the tree-volume model."><img src="11-residuals-and-model-based-diagnostics_files/figure-html/fig-trees-resid-fitted-1.svg" class="img-fluid figure-img"></a>
+<div id="fig-penguins-resid-fitted" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-penguins-resid-fitted-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="11-residuals-and-model-based-diagnostics_files/figure-html/fig-penguins-resid-fitted-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Residuals versus fitted values for a pooled penguin body-mass model."><img src="11-residuals-and-model-based-diagnostics_files/figure-html/fig-penguins-resid-fitted-1.svg" class="img-fluid figure-img"></a>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trees-resid-fitted-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Residuals versus fitted values for the tree-volume model.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-penguins-resid-fitted-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Residuals versus fitted values for a pooled penguin body-mass model.
 </figcaption></figure>
 </div>
 </div>
 </div>
-<p>In <a href="#fig-trees-resid-fitted" class="quarto-xref">Figure&nbsp;4</a>, the residuals are centred near zero across most of the fitted range. The smooth line bends slightly at the ends, and the spread increases for larger fitted values. The straight-line model captures much of the relationship, but it leaves some structure in the residuals. That is the kind of signal that I point out in later chapters use when I introduce transformed, polynomial, or nonlinear models.</p>
+<p>Something seems “off” in <a href="#fig-penguins-resid-fitted" class="quarto-xref">Figure&nbsp;4</a>. The residuals do not form a roughly random cloud around zero. Instead, the smooth line bends from positive residuals at low fitted masses to negative residuals in the middle and back toward positive residuals at the upper end. That is evidence that one straight line is not describing the mean structure adequately.</p>
+<p>Here the likely cause is not an exotic response distribution but pooled biological groups. Adelie, Chinstrap, and Gentoo penguins differ in body size, so one line fitted to all species averages over distinct structures. I have ignored the grouping structure. The next step for would therefore be that I revise the model specification, for example by including species as a predictor or by allowing different lines for different species.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Do This Now!
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Plot body mass against flipper length for the penguins dataset and colour the points by species. Use that graph to check whether the residual pattern in <a href="#fig-penguins-resid-fitted" class="quarto-xref">Figure&nbsp;4</a> could be explained by pooled group structure rather than by a single curved relationship.</p>
+</div>
+</div>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-trees-resid-qq" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-trees-resid-qq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="11-residuals-and-model-based-diagnostics_files/figure-html/fig-trees-resid-qq-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Q-Q plot of residuals for the tree-volume model."><img src="11-residuals-and-model-based-diagnostics_files/figure-html/fig-trees-resid-qq-1.svg" class="img-fluid figure-img"></a>
+<div id="fig-penguins-resid-qq" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-penguins-resid-qq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="11-residuals-and-model-based-diagnostics_files/figure-html/fig-penguins-resid-qq-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Q-Q plot of residuals for a pooled penguin body-mass model."><img src="11-residuals-and-model-based-diagnostics_files/figure-html/fig-penguins-resid-qq-1.svg" class="img-fluid figure-img"></a>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trees-resid-qq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Q-Q plot of residuals for the tree-volume model.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-penguins-resid-qq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Q-Q plot of residuals for a pooled penguin body-mass model.
 </figcaption></figure>
 </div>
 </div>
 </div>
-<p>In <a href="#fig-trees-resid-qq" class="quarto-xref">Figure&nbsp;5</a>, most points follow the line closely through the centre of the distribution. The tails depart modestly. That pattern supports approximate normality well enough for an introductory straight-line model. The stronger warning in this example comes from the residual-versus-fitted plot rather than from the Q-Q plot.</p>
+<p>In <a href="#fig-penguins-resid-qq" class="quarto-xref">Figure&nbsp;5</a>, the residuals are close enough to normal that I would not treat distributional shape as the first problem. Approximate normality does not rescue a poor mean model due to ignoring the grouping structure, so my primary warning comes from <a href="#fig-penguins-resid-fitted" class="quarto-xref">Figure&nbsp;4</a>, not from the Q-Q plot.</p>
 </section><section id="linking-diagnostics-to-decisions" class="level1" data-number="8"><h1 data-number="8">
 <span class="header-section-number">8</span> Linking Diagnostics to Decisions</h1>
-<p>Use the diagnostic patterns to guide the next modelling step:</p>
-<ul>
-<li>Curvature in the residual-versus-fitted plot, as in <a href="#fig-trees-resid-fitted" class="quarto-xref">Figure&nbsp;4</a>, suggests a change in functional form. In later chapters that may mean a polynomial term, a smoother, or a mechanistic nonlinear model.</li>
-<li>Changing spread across fitted values, also visible in <a href="#fig-trees-resid-fitted" class="quarto-xref">Figure&nbsp;4</a>, suggests a transformation or a model with a different mean-variance structure.</li>
-<li>Strong non-normality in the residuals, which would appear in a Q-Q plot such as <a href="#fig-trees-resid-qq" class="quarto-xref">Figure&nbsp;5</a>, suggests checking outliers, influential observations, or a more suitable response distribution.</li>
-<li>Dependence in the residuals points back to the design and forward to repeated-measures or mixed-model methods.</li>
-</ul>
-<p>A diagnostic plot does not reveal success or failure by itself, but it does shows where the model still disagrees with the data and suggests that revising the model design may be in order.</p>
+<p>The penguins example shows why diagnostics should lead directly to model revision. The residual-versus-fitted plot does not suggest a small tweak to an otherwise adequate straight line. It suggests that I have fitted the wrong model because I ignored a biologically relevant grouping variable. In that case, the most sensible correction is to change the model specification by including species, by allowing species-specific slopes, or by fitting separate lines.</p>
+<p>That same logic extends beyond this example. When residuals show curvature, the fitted mean structure is incomplete. The correction may be to add an omitted predictor, include an interaction, transform a predictor or the response, add a polynomial term, use a smoother, or move to a nonlinear model whose form matches the biology more closely.</p>
+<p>When the residual spread changes across the fitted range, the variance structure is being described poorly. Possible corrections include transforming the response, modelling the variance explicitly, using weighted regression, or choosing a model family whose mean-variance relationship is more appropriate for the data.</p>
+<p>When the Q-Q plot shows strong tail departures, the next step is usually to inspect the data rather than to panic about normality in the abstract. Extreme residuals may reflect outliers, influential observations, an awkward response scale, or a response distribution that is not well handled by a Gaussian model.</p>
+<p>When residuals are dependent, the solution is rarely a cosmetic adjustment to the same model. Dependence points back to the design and often requires a different modelling framework altogether, such as repeated-measures methods, time-series models, spatial models, or mixed models.</p>
+<p>A diagnostic plot therefore points to the aspect of the model that needs revision and helps decide what kind of revision is defensible.</p>
 </section><section id="connection-to-earlier-chapters" class="level1" data-number="9"><h1 data-number="9">
 <span class="header-section-number">9</span> Connection to Earlier Chapters</h1>
-<p>Above, I extend the same checking habits you used earlier in <a href="../../BCB744/basic_stats/06-assumptions-and-transformations.html">Chapter 6</a>:</p>
-<ul>
-<li>Grouped comparisons checked variation within groups. Regression checks variation across fitted values.</li>
-<li>Normality was checked within groups or within paired differences. Regression checks normality in the residuals.</li>
-<li>Unequal spread across groups warned against simple mean comparisons. Regression checks whether residual spread changes across the fitted range.</li>
-</ul>
-<p>So, ask, is the structure plausible, is the spread stable, and are the observations independent? In regression, we should ask those questions <em>after</em> a model has already been fitted. In <em>t</em>-tests, ANOVAs, and correlations, we must apply assumption tests <em>before</em> applying the test.</p>
+<p>This chapter extends the checking habits developed in <a href="../../BCB744/basic_stats/06-assumptions-and-transformations.html">Chapter 6</a>. Grouped comparisons checked variation within groups. Paired analyses checked variation in the within-pair differences. Correlation inspected the observed joint pattern directly. Regression keeps the same questions about structure, spread, and dependence, but it asks them after the model has already been fitted.</p>
 </section><section id="forward-links" class="level1" data-number="10"><h1 data-number="10">
 <span class="header-section-number">10</span> Forward Links</h1>
-<p>In the next chapters, we use these diagnostics directly:</p>
+<p>Diagnostics will emerge again in:</p>
 <ul>
 <li>
 <a href="../../BCB744/basic_stats/12-simple-linear-regression.html">Chapter 12: Simple Linear Regression</a> fits and interprets the first full regression models.</li>
@@ -1362,10 +1461,13 @@ Figure&nbsp;5: Q-Q plot of residuals for the tree-volume model.
 <a href="../../BCB744/basic_stats/19-dependence-and-mixed-models.html">Chapter 19: Dependence and Mixed Models</a> takes up the cases where independence fails because observations are clustered or repeated.</li>
 </ul></section><section id="summary" class="level1" data-number="11"><h1 data-number="11">
 <span class="header-section-number">11</span> Summary</h1>
-<p>Residuals are the differences between observed and predicted values.</p>
-<p>Regression assumptions are checked on residuals because residuals contain the unexplained variation left by the fitted model.</p>
-<p>Residual-versus-fitted plots assess mean structure and spread. Q-Q plots assess approximate normality of residuals.</p>
-<p>Diagnostic patterns tell you whether the current model is adequate or whether the model needs revision.</p>
+<p>Regression starts from the decomposition</p>
+<p><span class="math display">\[
+\text{response} = \text{systematic component} + \text{error}
+\]</span></p>
+<p>After fitting the model, I inspect residuals because they estimate the unobserved errors.</p>
+<p>Residual-versus-fitted plots check the mean structure and the variance structure. Q-Q plots check whether the residual distribution is close enough to normal for the intended inference. Independence comes mainly from the design and, where relevant, from residual patterns across time, space, or sampling order.</p>
+<p>The purpose of these diagnostics is not description for its own sake. They tell me whether the current model is adequate or whether I need to revise it before interpreting coefficients or testing hypotheses.</p>
 
 
 <!-- -->
@@ -1373,7 +1475,7 @@ Figure&nbsp;5: Q-Q plot of residuals for the tree-volume model.
 </section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2026,
   author = {Smit, A. J.},
   title = {11. {Residuals} and {Model-Based} {Diagnostics}},
-  date = {2026-03-23},
+  date = {2026-03-25},
   url = {https://tangledbank.netlify.app/BCB744/basic_stats/11-residuals-and-model-based-diagnostics.html},
   langid = {en}
 }
@@ -1899,382 +2001,450 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb7-4"><a href="#cb7-4"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
 <span id="cb7-5"><a href="#cb7-5"></a><span class="an">date-format:</span><span class="co"> "YYYY/MM/DD"</span></span>
 <span id="cb7-6"><a href="#cb7-6"></a><span class="an">reference-location:</span><span class="co"> margin</span></span>
-<span id="cb7-7"><a href="#cb7-7"></a><span class="co">---</span></span>
-<span id="cb7-8"><a href="#cb7-8"></a></span>
-<span id="cb7-9"><a href="#cb7-9"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
-<span id="cb7-10"><a href="#cb7-10"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
-<span id="cb7-11"><a href="#cb7-11"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
-<span id="cb7-12"><a href="#cb7-12"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb7-13"><a href="#cb7-13"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb7-14"><a href="#cb7-14"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
-<span id="cb7-15"><a href="#cb7-15"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
-<span id="cb7-16"><a href="#cb7-16"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
-<span id="cb7-17"><a href="#cb7-17"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
-<span id="cb7-18"><a href="#cb7-18"></a>)</span>
-<span id="cb7-19"><a href="#cb7-19"></a></span>
-<span id="cb7-20"><a href="#cb7-20"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
-<span id="cb7-21"><a href="#cb7-21"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
-<span id="cb7-22"><a href="#cb7-22"></a>)</span>
-<span id="cb7-23"><a href="#cb7-23"></a><span class="in">```</span></span>
-<span id="cb7-24"><a href="#cb7-24"></a></span>
-<span id="cb7-25"><a href="#cb7-25"></a><span class="in">```{r code-libraries, echo=FALSE}</span></span>
-<span id="cb7-26"><a href="#cb7-26"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb7-27"><a href="#cb7-27"></a><span class="fu">library</span>(broom)</span>
-<span id="cb7-28"><a href="#cb7-28"></a><span class="in">```</span></span>
-<span id="cb7-29"><a href="#cb7-29"></a></span>
-<span id="cb7-30"><a href="#cb7-30"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb7-31"><a href="#cb7-31"></a><span class="fu">## In This Chapter</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="an">params:</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="co">  hide_answers: true</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co">---</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a></span>
+<span id="cb7-11"><a href="#cb7-11"></a><span class="in">```{r code-brewing-opts, echo=FALSE}</span></span>
+<span id="cb7-12"><a href="#cb7-12"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb7-13"><a href="#cb7-13"></a>  <span class="at">comment =</span> <span class="st">"R&gt;"</span>,</span>
+<span id="cb7-14"><a href="#cb7-14"></a>  <span class="at">warning =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-15"><a href="#cb7-15"></a>  <span class="at">message =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-16"><a href="#cb7-16"></a>  <span class="at">fig.asp =</span> <span class="cn">NULL</span>,</span>
+<span id="cb7-17"><a href="#cb7-17"></a>  <span class="at">fig.align =</span> <span class="st">"center"</span>,</span>
+<span id="cb7-18"><a href="#cb7-18"></a>  <span class="at">fig.retina =</span> <span class="dv">2</span>,</span>
+<span id="cb7-19"><a href="#cb7-19"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb7-20"><a href="#cb7-20"></a>)</span>
+<span id="cb7-21"><a href="#cb7-21"></a></span>
+<span id="cb7-22"><a href="#cb7-22"></a>ggplot2<span class="sc">::</span><span class="fu">theme_set</span>(</span>
+<span id="cb7-23"><a href="#cb7-23"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_grey</span>(<span class="at">base_size =</span> <span class="dv">8</span>)</span>
+<span id="cb7-24"><a href="#cb7-24"></a>)</span>
+<span id="cb7-25"><a href="#cb7-25"></a><span class="in">```</span></span>
+<span id="cb7-26"><a href="#cb7-26"></a></span>
+<span id="cb7-27"><a href="#cb7-27"></a><span class="in">```{r code-libraries, echo=FALSE}</span></span>
+<span id="cb7-28"><a href="#cb7-28"></a><span class="co">#| cache: false</span></span>
+<span id="cb7-29"><a href="#cb7-29"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb7-30"><a href="#cb7-30"></a><span class="fu">library</span>(broom)</span>
+<span id="cb7-31"><a href="#cb7-31"></a><span class="in">```</span></span>
 <span id="cb7-32"><a href="#cb7-32"></a></span>
-<span id="cb7-33"><a href="#cb7-33"></a><span class="ss">-   </span>the shift from raw-data checks to model-based checks;</span>
-<span id="cb7-34"><a href="#cb7-34"></a><span class="ss">-   </span>what a fitted model, a predicted value, and a residual are;</span>
-<span id="cb7-35"><a href="#cb7-35"></a><span class="ss">-   </span>why regression assumptions apply to residuals;</span>
-<span id="cb7-36"><a href="#cb7-36"></a><span class="ss">-   </span>how to read residual-versus-fitted and residual Q-Q plots;</span>
-<span id="cb7-37"><a href="#cb7-37"></a><span class="ss">-   </span>how diagnostic patterns guide later modelling decisions.</span>
-<span id="cb7-38"><a href="#cb7-38"></a>:::</span>
-<span id="cb7-39"><a href="#cb7-39"></a></span>
-<span id="cb7-40"><a href="#cb7-40"></a>::: {.callout-important appearance="simple"}</span>
-<span id="cb7-41"><a href="#cb7-41"></a><span class="fu">## Tasks to Complete in This Chapter</span></span>
+<span id="cb7-33"><a href="#cb7-33"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb7-34"><a href="#cb7-34"></a><span class="fu">## In This Chapter</span></span>
+<span id="cb7-35"><a href="#cb7-35"></a></span>
+<span id="cb7-36"><a href="#cb7-36"></a><span class="ss">-   </span>the shift from raw-data checks to model-based checks;</span>
+<span id="cb7-37"><a href="#cb7-37"></a><span class="ss">-   </span>what a fitted model, a predicted value, an error, and a residual are;</span>
+<span id="cb7-38"><a href="#cb7-38"></a><span class="ss">-   </span>why regression assumptions apply to residuals;</span>
+<span id="cb7-39"><a href="#cb7-39"></a><span class="ss">-   </span>how to read residual-versus-fitted and residual Q-Q plots;</span>
+<span id="cb7-40"><a href="#cb7-40"></a><span class="ss">-   </span>how diagnostic patterns guide model revision.</span>
+<span id="cb7-41"><a href="#cb7-41"></a>:::</span>
 <span id="cb7-42"><a href="#cb7-42"></a></span>
-<span id="cb7-43"><a href="#cb7-43"></a><span class="ss">-   </span>None</span>
-<span id="cb7-44"><a href="#cb7-44"></a>:::</span>
+<span id="cb7-43"><a href="#cb7-43"></a>::: {.callout-important appearance="simple"}</span>
+<span id="cb7-44"><a href="#cb7-44"></a><span class="fu">## Tasks to Complete in This Chapter</span></span>
 <span id="cb7-45"><a href="#cb7-45"></a></span>
-<span id="cb7-46"><a href="#cb7-46"></a><span class="fu"># Introduction: From Raw Data to Models</span></span>
-<span id="cb7-47"><a href="#cb7-47"></a></span>
-<span id="cb7-48"><a href="#cb7-48"></a>In earlier chapters, I checked assumptions on raw data. In <span class="co">[</span><span class="ot">Chapter 6</span><span class="co">](06-assumptions-and-transformations.qmd)</span>, I asked whether values within groups, paired differences, or observed associations were well behaved enough for the planned test.</span>
-<span id="cb7-49"><a href="#cb7-49"></a></span>
-<span id="cb7-50"><a href="#cb7-50"></a>A regression model is a formal description of how a **response variable** changes with one or more **predictor variables**. A **fitted model** is that description after the data have been used to estimate it. The assumption checks then apply to the **residuals**, which are the differences between observed values and the values predicted by the fitted model.</span>
-<span id="cb7-51"><a href="#cb7-51"></a></span>
-<span id="cb7-52"><a href="#cb7-52"></a>With regression, assumption testing still checks shape, spread, and dependence, but I now assess the residuals rather than raw observations. In this chapter, I introduce that shift before the regression chapters begin. <span class="co">[</span><span class="ot">Simple Linear Regression</span><span class="co">](12-simple-linear-regression.qmd)</span>, <span class="co">[</span><span class="ot">Multiple Regression and Model Specification</span><span class="co">](14-multiple-regression-and-model-specification.qmd)</span>, and <span class="co">[</span><span class="ot">Model Checking and Evaluation</span><span class="co">](17-model-checking-and-evaluation.qmd)</span> all build on it.</span>
-<span id="cb7-53"><a href="#cb7-53"></a></span>
-<span id="cb7-54"><a href="#cb7-54"></a><span class="fu"># Models</span></span>
-<span id="cb7-55"><a href="#cb7-55"></a></span>
-<span id="cb7-56"><a href="#cb7-56"></a>A **model** is a mathematical description of how a response changes with one or more predictors.</span>
-<span id="cb7-57"><a href="#cb7-57"></a></span>
-<span id="cb7-58"><a href="#cb7-58"></a>A **response variable** is the outcome being explained or predicted. Sometimes it is called the outcome or dependent variable.</span>
-<span id="cb7-59"><a href="#cb7-59"></a></span>
-<span id="cb7-60"><a href="#cb7-60"></a>A **predictor variable** is a measured quantity used to explain or predict the response. It is also known as the independent variable.</span>
-<span id="cb7-61"><a href="#cb7-61"></a></span>
-<span id="cb7-62"><a href="#cb7-62"></a>A **fitted model** is the version of the model after its unknown quantities have been estimated from the data.</span>
-<span id="cb7-63"><a href="#cb7-63"></a></span>
-<span id="cb7-64"><a href="#cb7-64"></a>A **predicted value** is the value the fitted model expects for the response at a given predictor value.</span>
-<span id="cb7-65"><a href="#cb7-65"></a></span>
-<span id="cb7-66"><a href="#cb7-66"></a>Consider a biological question: how does plant height change with light availability? Here, plant height is the response and light availability is the predictor. A fitted model would describe the expected plant height at each light level. So, the predicted value is the height that the fitted model gives for a plant growing under a specific amount of light.</span>
-<span id="cb7-67"><a href="#cb7-67"></a></span>
-<span id="cb7-68"><a href="#cb7-68"></a>The purpose of the discussion in this chapter is to explain what is being checked once a model has been fitted. In the next chapter, I demonstrate fitting the straight-line model and assessing its fit. </span>
-<span id="cb7-69"><a href="#cb7-69"></a></span>
-<span id="cb7-70"><a href="#cb7-70"></a><span class="fu"># Residuals</span></span>
-<span id="cb7-71"><a href="#cb7-71"></a></span>
-<span id="cb7-72"><a href="#cb7-72"></a>A **residual** is the difference between an observed value and its predicted value:</span>
-<span id="cb7-73"><a href="#cb7-73"></a></span>
-<span id="cb7-74"><a href="#cb7-74"></a>$$</span>
-<span id="cb7-75"><a href="#cb7-75"></a>\text{residual} = \text{observed value} - \text{predicted value}</span>
-<span id="cb7-76"><a href="#cb7-76"></a>$$</span>
-<span id="cb7-77"><a href="#cb7-77"></a></span>
-<span id="cb7-78"><a href="#cb7-78"></a>Residuals represent the part of the response that the fitted model has not explained. They are the observed differences between the data and the fitted values, so they approximate the unexplained variation that remains after modelling. That remaining variation may arise from omitted predictors, measurement error, natural biological variation, or a model form that is too simple for the pattern in the data.</span>
-<span id="cb7-79"><a href="#cb7-79"></a></span>
-<span id="cb7-80"><a href="#cb7-80"></a>I will use the built-in <span class="in">`trees`</span> dataset throughout this chapter. The dataset records tree girth, height, and volume, and I will treat <span class="in">`Volume`</span> as the response and <span class="in">`Girth`</span> as the predictor.</span>
-<span id="cb7-81"><a href="#cb7-81"></a></span>
-<span id="cb7-82"><a href="#cb7-82"></a><span class="in">```{r code-trees-setup}</span></span>
-<span id="cb7-83"><a href="#cb7-83"></a>trees_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(trees) <span class="sc">|&gt;</span></span>
-<span id="cb7-84"><a href="#cb7-84"></a>  <span class="fu">mutate</span>(<span class="at">tree_id =</span> <span class="fu">row_number</span>())</span>
-<span id="cb7-85"><a href="#cb7-85"></a></span>
-<span id="cb7-86"><a href="#cb7-86"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Girth, <span class="at">data =</span> trees_tbl)</span>
-<span id="cb7-87"><a href="#cb7-87"></a></span>
-<span id="cb7-88"><a href="#cb7-88"></a>tree_resids <span class="ot">&lt;-</span> trees_tbl <span class="sc">|&gt;</span></span>
-<span id="cb7-89"><a href="#cb7-89"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb7-90"><a href="#cb7-90"></a>    <span class="at">predicted_volume =</span> <span class="fu">fitted</span>(model),</span>
-<span id="cb7-91"><a href="#cb7-91"></a>    <span class="at">residual =</span> <span class="fu">residuals</span>(model)</span>
-<span id="cb7-92"><a href="#cb7-92"></a>  )</span>
-<span id="cb7-93"><a href="#cb7-93"></a></span>
-<span id="cb7-94"><a href="#cb7-94"></a>tree_resids <span class="sc">|&gt;</span></span>
-<span id="cb7-95"><a href="#cb7-95"></a>  <span class="fu">select</span>(tree_id, Girth, Volume, predicted_volume, residual) <span class="sc">|&gt;</span></span>
-<span id="cb7-96"><a href="#cb7-96"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">8</span>) <span class="sc">|&gt;</span></span>
-<span id="cb7-97"><a href="#cb7-97"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb7-98"><a href="#cb7-98"></a>    <span class="at">digits =</span> <span class="dv">2</span>,</span>
-<span id="cb7-99"><a href="#cb7-99"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Tree"</span>, <span class="st">"Girth"</span>, <span class="st">"Observed volume"</span>, <span class="st">"Predicted volume"</span>, <span class="st">"Residual"</span>)</span>
-<span id="cb7-100"><a href="#cb7-100"></a>  )</span>
-<span id="cb7-101"><a href="#cb7-101"></a><span class="in">```</span></span>
-<span id="cb7-102"><a href="#cb7-102"></a></span>
-<span id="cb7-103"><a href="#cb7-103"></a>Each row in the table shows the same calculation. The fitted model predicts a tree volume from girth and the residual records the remaining difference between the observed and predicted volumes.</span>
-<span id="cb7-104"><a href="#cb7-104"></a></span>
-<span id="cb7-105"><a href="#cb7-105"></a>The steps to extract the predicted values and the residuals are:</span>
-<span id="cb7-106"><a href="#cb7-106"></a></span>
-<span id="cb7-107"><a href="#cb7-107"></a><span class="in">```{r code-residual-basics}</span></span>
-<span id="cb7-108"><a href="#cb7-108"></a><span class="co">#| eval: false</span></span>
-<span id="cb7-109"><a href="#cb7-109"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Girth, <span class="at">data =</span> trees_tbl)</span>
-<span id="cb7-110"><a href="#cb7-110"></a></span>
-<span id="cb7-111"><a href="#cb7-111"></a><span class="fu">fitted</span>(model) <span class="co"># predicted</span></span>
-<span id="cb7-112"><a href="#cb7-112"></a><span class="fu">residuals</span>(model)</span>
-<span id="cb7-113"><a href="#cb7-113"></a><span class="in">```</span></span>
-<span id="cb7-114"><a href="#cb7-114"></a></span>
-<span id="cb7-115"><a href="#cb7-115"></a><span class="fu"># Why Assumptions Apply to Residuals</span></span>
-<span id="cb7-116"><a href="#cb7-116"></a></span>
-<span id="cb7-117"><a href="#cb7-117"></a>A fitted model aims to describe the systematic part of the relationship between a response and its predictors. The residuals contain what remains after that systematic part has been removed.</span>
-<span id="cb7-118"><a href="#cb7-118"></a></span>
-<span id="cb7-119"><a href="#cb7-119"></a>I can show that visually with a small simulated example. In panel A of @fig-slope-removed, the response increases with the predictor and the fitted line has a clear positive slope. In panel B, I plot the residuals from that fitted model against the same predictor. The slope has been removed, so the fitted line is now horizontal around zero. The residuals are therefore the remainder after fitting, which is why they become the object of diagnosis.</span>
+<span id="cb7-46"><a href="#cb7-46"></a><span class="ss">-   </span>Task H</span>
+<span id="cb7-47"><a href="#cb7-47"></a>:::</span>
+<span id="cb7-48"><a href="#cb7-48"></a></span>
+<span id="cb7-49"><a href="#cb7-49"></a><span class="fu"># Introduction: From Raw Data to Models</span></span>
+<span id="cb7-50"><a href="#cb7-50"></a></span>
+<span id="cb7-51"><a href="#cb7-51"></a>In earlier chapters, I checked assumptions on raw data. In <span class="co">[</span><span class="ot">Chapter 6</span><span class="co">](06-assumptions-and-transformations.qmd)</span>, I asked whether values within groups, paired differences, or observed associations were well behaved enough for the planned test.</span>
+<span id="cb7-52"><a href="#cb7-52"></a></span>
+<span id="cb7-53"><a href="#cb7-53"></a>Regression changes the object being checked. A regression model splits the response into a systematic component that the model tries to explain and an error component that remains unexplained. After fitting the model, I inspect the residuals because they are the observed estimates of that remaining error.</span>
+<span id="cb7-54"><a href="#cb7-54"></a></span>
+<span id="cb7-55"><a href="#cb7-55"></a>In this chapter, I first define the model structure, fitted values, errors, and residuals. I then map the main regression assumptions to the plots or design checks that address them. I end by showing how those diagnostics guide model revision in later chapters.</span>
+<span id="cb7-56"><a href="#cb7-56"></a></span>
+<span id="cb7-57"><a href="#cb7-57"></a><span class="fu"># Models, Errors, and Fitted Values</span></span>
+<span id="cb7-58"><a href="#cb7-58"></a></span>
+<span id="cb7-59"><a href="#cb7-59"></a>A **model** is a mathematical description of how a response changes with one or more predictors.</span>
+<span id="cb7-60"><a href="#cb7-60"></a></span>
+<span id="cb7-61"><a href="#cb7-61"></a>A **response variable** is the outcome being explained or predicted. Sometimes it is called the outcome or dependent variable.</span>
+<span id="cb7-62"><a href="#cb7-62"></a></span>
+<span id="cb7-63"><a href="#cb7-63"></a>A **predictor variable** is a measured quantity used to explain or predict the response. It is also known as the independent variable.</span>
+<span id="cb7-64"><a href="#cb7-64"></a></span>
+<span id="cb7-65"><a href="#cb7-65"></a>A **fitted model** is the version of the model after its unknown quantities have been estimated from the data.</span>
+<span id="cb7-66"><a href="#cb7-66"></a></span>
+<span id="cb7-67"><a href="#cb7-67"></a>A **predicted value** is the value the fitted model expects for the response at a given predictor value.</span>
+<span id="cb7-68"><a href="#cb7-68"></a></span>
+<span id="cb7-69"><a href="#cb7-69"></a>For a simple linear regression, I can write the model for observation $i$ as</span>
+<span id="cb7-70"><a href="#cb7-70"></a></span>
+<span id="cb7-71"><a href="#cb7-71"></a>$$</span>
+<span id="cb7-72"><a href="#cb7-72"></a>Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i</span>
+<span id="cb7-73"><a href="#cb7-73"></a>$$</span>
+<span id="cb7-74"><a href="#cb7-74"></a></span>
+<span id="cb7-75"><a href="#cb7-75"></a>The term $\beta_0 + \beta_1 X_i$ is the **systematic component** or **mean structure**. It gives the conditional mean $E[Y_i \mid X_i]$ when the model is appropriate. The term $\varepsilon_i$ is the **error**. It is the unobserved departure of the observed response from that conditional mean.</span>
+<span id="cb7-76"><a href="#cb7-76"></a></span>
+<span id="cb7-77"><a href="#cb7-77"></a>This decomposition is important because two different parts of the model are being checked. Linearity concerns the mean structure, while constant variance concerns the spread of the errors around that mean structure.</span>
+<span id="cb7-78"><a href="#cb7-78"></a></span>
+<span id="cb7-79"><a href="#cb7-79"></a>Consider a biological question: how does plant height change with light availability? Here, plant height is the response and light availability is the predictor. A fitted model would describe the expected plant height at each light level. The predicted value is therefore the height that the fitted model gives for a plant growing under a specific amount of light.</span>
+<span id="cb7-80"><a href="#cb7-80"></a></span>
+<span id="cb7-81"><a href="#cb7-81"></a>The purpose of this chapter is exlpain what is being checked once a model has been fitted, and in the next chapter I fit the straight-line model and assess its fit.</span>
+<span id="cb7-82"><a href="#cb7-82"></a></span>
+<span id="cb7-83"><a href="#cb7-83"></a><span class="fu"># Residuals</span></span>
+<span id="cb7-84"><a href="#cb7-84"></a></span>
+<span id="cb7-85"><a href="#cb7-85"></a>A **residual** is the difference between an observed value and its predicted value:</span>
+<span id="cb7-86"><a href="#cb7-86"></a></span>
+<span id="cb7-87"><a href="#cb7-87"></a>$$</span>
+<span id="cb7-88"><a href="#cb7-88"></a>\text{residual} = \text{observed value} - \text{predicted value}</span>
+<span id="cb7-89"><a href="#cb7-89"></a>$$</span>
+<span id="cb7-90"><a href="#cb7-90"></a></span>
+<span id="cb7-91"><a href="#cb7-91"></a>Residuals are observed quantities. Errors are theoretical quantities in the model and are not observed directly. Residuals estimate those unobserved errors and are used for diagnostic checks.</span>
+<span id="cb7-92"><a href="#cb7-92"></a></span>
+<span id="cb7-93"><a href="#cb7-93"></a>In practical terms, residuals carry information about that remaining variation, which may arise from omitted predictors, measurement error, natural biological variation, or a model form that is too simple for the pattern in the data.</span>
+<span id="cb7-94"><a href="#cb7-94"></a></span>
+<span id="cb7-95"><a href="#cb7-95"></a>For the real-data sections of this chapter, I will use the <span class="in">`penguins`</span> dataset from the <span class="in">`palmerpenguins`</span> package. After removing missing values, I will treat body mass (<span class="in">`body_mass_g`</span>) as the response and flipper length (<span class="in">`flipper_length_mm`</span>) as the predictor.</span>
+<span id="cb7-96"><a href="#cb7-96"></a></span>
+<span id="cb7-97"><a href="#cb7-97"></a><span class="in">```{r code-penguins-setup}</span></span>
+<span id="cb7-98"><a href="#cb7-98"></a><span class="fu">data</span>(<span class="st">"penguins"</span>, <span class="at">package =</span> <span class="st">"palmerpenguins"</span>)</span>
+<span id="cb7-99"><a href="#cb7-99"></a></span>
+<span id="cb7-100"><a href="#cb7-100"></a>penguins_tbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(penguins) <span class="sc">|&gt;</span></span>
+<span id="cb7-101"><a href="#cb7-101"></a>  <span class="fu">drop_na</span>(flipper_length_mm, body_mass_g) <span class="sc">|&gt;</span></span>
+<span id="cb7-102"><a href="#cb7-102"></a>  <span class="fu">mutate</span>(<span class="at">obs_id =</span> <span class="fu">row_number</span>())</span>
+<span id="cb7-103"><a href="#cb7-103"></a></span>
+<span id="cb7-104"><a href="#cb7-104"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(body_mass_g <span class="sc">~</span> flipper_length_mm, <span class="at">data =</span> penguins_tbl)</span>
+<span id="cb7-105"><a href="#cb7-105"></a></span>
+<span id="cb7-106"><a href="#cb7-106"></a>penguin_resids <span class="ot">&lt;-</span> penguins_tbl <span class="sc">|&gt;</span></span>
+<span id="cb7-107"><a href="#cb7-107"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb7-108"><a href="#cb7-108"></a>    <span class="at">predicted_mass =</span> <span class="fu">fitted</span>(model),</span>
+<span id="cb7-109"><a href="#cb7-109"></a>    <span class="at">residual =</span> <span class="fu">residuals</span>(model)</span>
+<span id="cb7-110"><a href="#cb7-110"></a>  )</span>
+<span id="cb7-111"><a href="#cb7-111"></a></span>
+<span id="cb7-112"><a href="#cb7-112"></a>penguin_resids <span class="sc">|&gt;</span></span>
+<span id="cb7-113"><a href="#cb7-113"></a>  <span class="fu">select</span>(obs_id, species, flipper_length_mm, body_mass_g, predicted_mass, residual) <span class="sc">|&gt;</span></span>
+<span id="cb7-114"><a href="#cb7-114"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">8</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-115"><a href="#cb7-115"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb7-116"><a href="#cb7-116"></a>    <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb7-117"><a href="#cb7-117"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Observation"</span>, <span class="st">"Species"</span>, <span class="st">"Flipper length"</span>, <span class="st">"Observed body mass"</span>, <span class="st">"Predicted body mass"</span>, <span class="st">"Residual"</span>)</span>
+<span id="cb7-118"><a href="#cb7-118"></a>  )</span>
+<span id="cb7-119"><a href="#cb7-119"></a><span class="in">```</span></span>
 <span id="cb7-120"><a href="#cb7-120"></a></span>
-<span id="cb7-121"><a href="#cb7-121"></a>Effectively, fitting a linear model therefore amounts to subtrackting the slope from the data.</span>
+<span id="cb7-121"><a href="#cb7-121"></a>Each row in the table shows the same calculation. The fitted model predicts body mass from flipper length and the residual records the remaining difference between the observed and predicted body mass.</span>
 <span id="cb7-122"><a href="#cb7-122"></a></span>
-<span id="cb7-123"><a href="#cb7-123"></a><span class="in">```{r fig-slope-removed}</span></span>
-<span id="cb7-124"><a href="#cb7-124"></a><span class="co">#| echo: true</span></span>
-<span id="cb7-125"><a href="#cb7-125"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb7-126"><a href="#cb7-126"></a><span class="co">#| code-summary: "Show Code"</span></span>
-<span id="cb7-127"><a href="#cb7-127"></a><span class="co">#| fig-cap: "The systematic part of a relationship is removed when residuals are extracted. Panel A shows sloped scattered data with a fitted line. Panel B shows the residuals from that same fitted model against the predictor. The fitted line is now horizontal because the linear trend has been removed."</span></span>
-<span id="cb7-128"><a href="#cb7-128"></a><span class="co">#| fig-width: 6.5</span></span>
-<span id="cb7-129"><a href="#cb7-129"></a><span class="co">#| fig-height: 3.5</span></span>
-<span id="cb7-130"><a href="#cb7-130"></a></span>
-<span id="cb7-131"><a href="#cb7-131"></a><span class="fu">set.seed</span>(<span class="dv">74411</span>)</span>
+<span id="cb7-123"><a href="#cb7-123"></a>The steps to extract the predicted values and residuals are:</span>
+<span id="cb7-124"><a href="#cb7-124"></a></span>
+<span id="cb7-125"><a href="#cb7-125"></a><span class="in">```{r code-residual-basics}</span></span>
+<span id="cb7-126"><a href="#cb7-126"></a><span class="co">#| eval: false</span></span>
+<span id="cb7-127"><a href="#cb7-127"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(body_mass_g <span class="sc">~</span> flipper_length_mm, <span class="at">data =</span> penguins_tbl)</span>
+<span id="cb7-128"><a href="#cb7-128"></a></span>
+<span id="cb7-129"><a href="#cb7-129"></a><span class="fu">fitted</span>(model) <span class="co"># predicted values</span></span>
+<span id="cb7-130"><a href="#cb7-130"></a><span class="fu">residuals</span>(model) <span class="co"># raw residuals</span></span>
+<span id="cb7-131"><a href="#cb7-131"></a><span class="in">```</span></span>
 <span id="cb7-132"><a href="#cb7-132"></a></span>
-<span id="cb7-133"><a href="#cb7-133"></a>sim_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb7-134"><a href="#cb7-134"></a>  <span class="at">light =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">40</span>),</span>
-<span id="cb7-135"><a href="#cb7-135"></a>  <span class="at">height =</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">1.8</span> <span class="sc">*</span> light <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">40</span>, <span class="at">sd =</span> <span class="dv">2</span>)</span>
-<span id="cb7-136"><a href="#cb7-136"></a>)</span>
+<span id="cb7-133"><a href="#cb7-133"></a>Throughout this chapter, I use raw residuals because the goal is to establish the basic thinking behind the diagnostics. Later chapters introduce standardised and studentised residuals when I discuss unusual and influential observations.</span>
+<span id="cb7-134"><a href="#cb7-134"></a></span>
+<span id="cb7-135"><a href="#cb7-135"></a>:::: {.callout-warning appearance="simple"}</span>
+<span id="cb7-136"><a href="#cb7-136"></a><span class="fu">## Self-Assessment Task H.2</span></span>
 <span id="cb7-137"><a href="#cb7-137"></a></span>
-<span id="cb7-138"><a href="#cb7-138"></a>sim_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(height <span class="sc">~</span> light, <span class="at">data =</span> sim_dat)</span>
-<span id="cb7-139"><a href="#cb7-139"></a></span>
-<span id="cb7-140"><a href="#cb7-140"></a>sim_plot_dat <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb7-141"><a href="#cb7-141"></a>  sim_dat <span class="sc">|&gt;</span></span>
-<span id="cb7-142"><a href="#cb7-142"></a>    <span class="fu">transmute</span>(light, <span class="at">value =</span> height, <span class="at">panel =</span> <span class="st">"A. Observed Data"</span>),</span>
-<span id="cb7-143"><a href="#cb7-143"></a>  sim_dat <span class="sc">|&gt;</span></span>
-<span id="cb7-144"><a href="#cb7-144"></a>    <span class="fu">transmute</span>(light, <span class="at">value =</span> <span class="fu">residuals</span>(sim_mod), <span class="at">panel =</span> <span class="st">"B. Residuals After Fitting"</span>)</span>
-<span id="cb7-145"><a href="#cb7-145"></a>)</span>
+<span id="cb7-138"><a href="#cb7-138"></a>a. Examine the contents of the regression model object <span class="in">`sparrow_mod`</span>. Explain the main components and how they relate to <span class="in">`summary(sparrow_mod)`</span>.  </span>
+<span id="cb7-139"><a href="#cb7-139"></a>b. Using values inside the model object, show how to reconstruct the observed response values from the fitted values and residuals.  </span>
+<span id="cb7-140"><a href="#cb7-140"></a>c. Fit a linear regression through the model residuals and explain the result.  </span>
+<span id="cb7-141"><a href="#cb7-141"></a>d. Fit a linear regression through the fitted values and explain the result.</span>
+<span id="cb7-142"><a href="#cb7-142"></a></span>
+<span id="cb7-143"><a href="#cb7-143"></a><span class="in">`r if (params$hide_answers) "::: {.content-hidden}"`</span></span>
+<span id="cb7-144"><a href="#cb7-144"></a></span>
+<span id="cb7-145"><a href="#cb7-145"></a>**Answer**</span>
 <span id="cb7-146"><a href="#cb7-146"></a></span>
-<span id="cb7-147"><a href="#cb7-147"></a>zero_line <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb7-148"><a href="#cb7-148"></a>  <span class="at">panel =</span> <span class="st">"B. Residuals After Fitting"</span>,</span>
-<span id="cb7-149"><a href="#cb7-149"></a>  <span class="at">yint =</span> <span class="dv">0</span></span>
-<span id="cb7-150"><a href="#cb7-150"></a>)</span>
-<span id="cb7-151"><a href="#cb7-151"></a></span>
-<span id="cb7-152"><a href="#cb7-152"></a><span class="fu">ggplot</span>(sim_plot_dat, <span class="fu">aes</span>(<span class="at">x =</span> light, <span class="at">y =</span> value)) <span class="sc">+</span></span>
-<span id="cb7-153"><a href="#cb7-153"></a>  <span class="fu">geom_hline</span>(</span>
-<span id="cb7-154"><a href="#cb7-154"></a>    <span class="at">data =</span> zero_line,</span>
-<span id="cb7-155"><a href="#cb7-155"></a>    <span class="fu">aes</span>(<span class="at">yintercept =</span> yint),</span>
-<span id="cb7-156"><a href="#cb7-156"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb7-157"><a href="#cb7-157"></a>    <span class="at">colour =</span> <span class="st">"grey40"</span>,</span>
-<span id="cb7-158"><a href="#cb7-158"></a>    <span class="at">linewidth =</span> <span class="fl">0.5</span></span>
-<span id="cb7-159"><a href="#cb7-159"></a>  ) <span class="sc">+</span></span>
-<span id="cb7-160"><a href="#cb7-160"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">1.9</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
-<span id="cb7-161"><a href="#cb7-161"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb7-162"><a href="#cb7-162"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>panel, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
-<span id="cb7-163"><a href="#cb7-163"></a>  <span class="fu">labs</span>(</span>
-<span id="cb7-164"><a href="#cb7-164"></a>    <span class="at">x =</span> <span class="st">"Predictor value"</span>,</span>
-<span id="cb7-165"><a href="#cb7-165"></a>    <span class="at">y =</span> <span class="st">"Response value"</span></span>
-<span id="cb7-166"><a href="#cb7-166"></a>  )</span>
-<span id="cb7-167"><a href="#cb7-167"></a><span class="in">```</span></span>
-<span id="cb7-168"><a href="#cb7-168"></a></span>
-<span id="cb7-169"><a href="#cb7-169"></a>Assumptions therefore apply to the residuals because the residuals represent the unexplained variation. If the residuals still show a pattern, the model has left structure behind, and if the residuals have unstable spread, the model's uncertainty estimates become less reliable.</span>
-<span id="cb7-170"><a href="#cb7-170"></a></span>
-<span id="cb7-171"><a href="#cb7-171"></a>Contrast with earlier chapters:</span>
-<span id="cb7-172"><a href="#cb7-172"></a></span>
-<span id="cb7-173"><a href="#cb7-173"></a><span class="pp">|</span> Context <span class="pp">|</span> What is checked <span class="pp">|</span></span>
-<span id="cb7-174"><a href="#cb7-174"></a><span class="pp">|---|---|</span></span>
-<span id="cb7-175"><a href="#cb7-175"></a><span class="pp">|</span> *t*-test or ANOVA <span class="pp">|</span> data within groups <span class="pp">|</span></span>
-<span id="cb7-176"><a href="#cb7-176"></a><span class="pp">|</span> paired design <span class="pp">|</span> paired differences <span class="pp">|</span></span>
-<span id="cb7-177"><a href="#cb7-177"></a><span class="pp">|</span> correlation <span class="pp">|</span> observed relationship between variables <span class="pp">|</span></span>
-<span id="cb7-178"><a href="#cb7-178"></a><span class="pp">|</span> regression <span class="pp">|</span> residuals from the fitted model <span class="pp">|</span></span>
+<span id="cb7-147"><a href="#cb7-147"></a><span class="ss">- </span><span class="in">`str(sparrow_mod)`</span> shows that the fitted model is a list-like object containing coefficients, residuals, fitted values, the model frame, terms, contrasts, and diagnostic quantities. <span class="in">`summary(sparrow_mod)`</span> extracts the most important inferential parts of that object: coefficient estimates, their standard errors, the test statistics, the residual standard error, and the model fit summaries.</span>
+<span id="cb7-148"><a href="#cb7-148"></a><span class="ss">- </span>The observed response can be reconstructed because observed value = fitted value + residual. In R:</span>
+<span id="cb7-149"><a href="#cb7-149"></a></span>
+<span id="cb7-152"><a href="#cb7-152"></a><span class="in">```{r}</span></span>
+<span id="cb7-153"><a href="#cb7-153"></a><span class="co">#| eval: false</span></span>
+<span id="cb7-154"><a href="#cb7-154"></a><span class="fu">fitted</span>(sparrow_mod) <span class="sc">+</span> <span class="fu">resid</span>(sparrow_mod)</span>
+<span id="cb7-155"><a href="#cb7-155"></a>sparrow_mod<span class="sc">$</span>fitted.values <span class="sc">+</span> sparrow_mod<span class="sc">$</span>residuals</span>
+<span id="cb7-156"><a href="#cb7-156"></a><span class="in">```</span></span>
+<span id="cb7-157"><a href="#cb7-157"></a></span>
+<span id="cb7-158"><a href="#cb7-158"></a><span class="ss">- </span>If I regress the residuals on <span class="in">`age`</span>, the fitted slope should be essentially zero and the test should be non-significant. That is because the residuals are orthogonal to the predictor used in the original least-squares fit.</span>
+<span id="cb7-159"><a href="#cb7-159"></a><span class="ss">- </span>If I regress the fitted values on <span class="in">`age`</span>, I recover the fitted linear trend itself. The relationship is therefore perfectly linear because the fitted values are generated from the regression model.</span>
+<span id="cb7-160"><a href="#cb7-160"></a></span>
+<span id="cb7-161"><a href="#cb7-161"></a><span class="in">`r if (params$hide_answers) ":::"`</span></span>
+<span id="cb7-162"><a href="#cb7-162"></a>::::</span>
+<span id="cb7-163"><a href="#cb7-163"></a></span>
+<span id="cb7-164"><a href="#cb7-164"></a><span class="fu"># Why Assumptions Apply to Residuals</span></span>
+<span id="cb7-165"><a href="#cb7-165"></a></span>
+<span id="cb7-166"><a href="#cb7-166"></a>A fitted model aims to describe the systematic part of the relationship between a response and its predictors. Fitting a linear model removes the conditional mean $E<span class="co">[</span><span class="ot">Y \mid X</span><span class="co">]</span>$, leaving residuals centred at zero.</span>
+<span id="cb7-167"><a href="#cb7-167"></a></span>
+<span id="cb7-168"><a href="#cb7-168"></a>I can show that visually with a small simulated example. In panel A of @fig-slope-removed, the response increases with the predictor and the fitted line has a clear positive slope. In panel B, I plot the residuals from that fitted model against the same predictor. The slope has been removed, so the fitted line is now horizontal around zero. The residuals are therefore the remainder after fitting, which is why they become the object of diagnosis.</span>
+<span id="cb7-169"><a href="#cb7-169"></a></span>
+<span id="cb7-170"><a href="#cb7-170"></a>Fitting a linear model therefore amounts to subtracting the fitted mean trend from the data and then asking whether any structure remains.</span>
+<span id="cb7-171"><a href="#cb7-171"></a></span>
+<span id="cb7-172"><a href="#cb7-172"></a><span class="in">```{r fig-slope-removed}</span></span>
+<span id="cb7-173"><a href="#cb7-173"></a><span class="co">#| echo: true</span></span>
+<span id="cb7-174"><a href="#cb7-174"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb7-175"><a href="#cb7-175"></a><span class="co">#| code-summary: "Show Code"</span></span>
+<span id="cb7-176"><a href="#cb7-176"></a><span class="co">#| fig-cap: "The systematic part of a relationship is removed when residuals are extracted. Panel A shows sloped scattered data with a fitted line. Panel B shows the residuals from that same fitted model against the predictor. The fitted line is now horizontal because the linear trend has been removed."</span></span>
+<span id="cb7-177"><a href="#cb7-177"></a><span class="co">#| fig-width: 6.5</span></span>
+<span id="cb7-178"><a href="#cb7-178"></a><span class="co">#| fig-height: 3.5</span></span>
 <span id="cb7-179"><a href="#cb7-179"></a></span>
-<span id="cb7-180"><a href="#cb7-180"></a><span class="fu"># Key Regression Assumptions</span></span>
+<span id="cb7-180"><a href="#cb7-180"></a><span class="fu">set.seed</span>(<span class="dv">74411</span>)</span>
 <span id="cb7-181"><a href="#cb7-181"></a></span>
-<span id="cb7-182"><a href="#cb7-182"></a><span class="fu">## Linearity</span></span>
-<span id="cb7-183"><a href="#cb7-183"></a></span>
-<span id="cb7-184"><a href="#cb7-184"></a>**Linearity** means that the fitted model has captured the mean relationship between the predictor and the response with an appropriate sloped straight-line form. In a simple linear regression, this means the residuals should not retain a sloped or curved pattern after the line has been fitted. I demonstrated this in @fig-slope-removed.</span>
-<span id="cb7-185"><a href="#cb7-185"></a></span>
-<span id="cb7-186"><a href="#cb7-186"></a><span class="fu">## Constant Variance</span></span>
-<span id="cb7-187"><a href="#cb7-187"></a></span>
-<span id="cb7-188"><a href="#cb7-188"></a>**Variance**, in this context, means the spread of the residuals around zero. **Constant variance** means that this spread stays broadly similar across the range of fitted values, but if the spread expands or contracts systematically, uncertainty is estimated unevenly across the response range.</span>
-<span id="cb7-189"><a href="#cb7-189"></a></span>
-<span id="cb7-190"><a href="#cb7-190"></a><span class="fu">## Independence</span></span>
-<span id="cb7-191"><a href="#cb7-191"></a></span>
-<span id="cb7-192"><a href="#cb7-192"></a>**Independence** means that one residual does not carry information about another. This requirement depends on the sampling or experimental design. Therefore, repeated measures on the same individual, temporal correlation, spatial clustering, and nested sampling can all violate independence.</span>
-<span id="cb7-193"><a href="#cb7-193"></a></span>
-<span id="cb7-194"><a href="#cb7-194"></a><span class="fu">## Normality of Residuals</span></span>
+<span id="cb7-182"><a href="#cb7-182"></a>sim_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-183"><a href="#cb7-183"></a>  <span class="at">light =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="at">length.out =</span> <span class="dv">100</span>),</span>
+<span id="cb7-184"><a href="#cb7-184"></a>  <span class="at">height =</span> <span class="dv">5</span> <span class="sc">+</span> <span class="fl">1.8</span> <span class="sc">*</span> light <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="at">sd =</span> <span class="dv">2</span>)</span>
+<span id="cb7-185"><a href="#cb7-185"></a>)</span>
+<span id="cb7-186"><a href="#cb7-186"></a></span>
+<span id="cb7-187"><a href="#cb7-187"></a>sim_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(height <span class="sc">~</span> light, <span class="at">data =</span> sim_dat)</span>
+<span id="cb7-188"><a href="#cb7-188"></a></span>
+<span id="cb7-189"><a href="#cb7-189"></a>sim_plot_dat <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb7-190"><a href="#cb7-190"></a>  sim_dat <span class="sc">|&gt;</span></span>
+<span id="cb7-191"><a href="#cb7-191"></a>    <span class="fu">transmute</span>(light, <span class="at">value =</span> height, <span class="at">panel =</span> <span class="st">"A. Observed Data"</span>),</span>
+<span id="cb7-192"><a href="#cb7-192"></a>  sim_dat <span class="sc">|&gt;</span></span>
+<span id="cb7-193"><a href="#cb7-193"></a>    <span class="fu">transmute</span>(light, <span class="at">value =</span> <span class="fu">residuals</span>(sim_mod), <span class="at">panel =</span> <span class="st">"B. Residuals After Fitting"</span>)</span>
+<span id="cb7-194"><a href="#cb7-194"></a>)</span>
 <span id="cb7-195"><a href="#cb7-195"></a></span>
-<span id="cb7-196"><a href="#cb7-196"></a>**Approximate normality of residuals** means that the distribution of residuals is reasonably close to a normal distribution. This affects the reliability of standard errors, confidence intervals, and tests in small samples. Linearity, constant variance, and independence usually deserve attention first.</span>
-<span id="cb7-197"><a href="#cb7-197"></a></span>
-<span id="cb7-198"><a href="#cb7-198"></a><span class="fu"># Diagnostic Plots</span></span>
-<span id="cb7-199"><a href="#cb7-199"></a></span>
-<span id="cb7-200"><a href="#cb7-200"></a>A **diagnostic plot** is a graph used to check whether the fitted model has left behind problematic structure in the residuals.</span>
-<span id="cb7-201"><a href="#cb7-201"></a></span>
-<span id="cb7-202"><a href="#cb7-202"></a><span class="fu">## Residual versus Fitted Plot</span></span>
-<span id="cb7-203"><a href="#cb7-203"></a></span>
-<span id="cb7-204"><a href="#cb7-204"></a>The **residual-versus-fitted plot** places fitted values on the x-axis and residuals on the y-axis.</span>
-<span id="cb7-205"><a href="#cb7-205"></a></span>
-<span id="cb7-206"><a href="#cb7-206"></a>This plot is read by asking two questions:</span>
-<span id="cb7-207"><a href="#cb7-207"></a></span>
-<span id="cb7-208"><a href="#cb7-208"></a><span class="ss">1. </span>Do the residuals scatter around zero without a systematic pattern?</span>
-<span id="cb7-209"><a href="#cb7-209"></a><span class="ss">2. </span>Does their spread stay broadly similar across the fitted range?</span>
-<span id="cb7-210"><a href="#cb7-210"></a></span>
-<span id="cb7-211"><a href="#cb7-211"></a>Random scatter around zero supports the fitted mean structure. Curvature suggests that the straight-line form is missing part of the relationship. A funnel shape suggests changing variance.</span>
-<span id="cb7-212"><a href="#cb7-212"></a></span>
-<span id="cb7-213"><a href="#cb7-213"></a><span class="fu">## Q-Q Plot of Residuals</span></span>
-<span id="cb7-214"><a href="#cb7-214"></a></span>
-<span id="cb7-215"><a href="#cb7-215"></a>The **Q-Q plot of residuals** compares the ordered residuals with the values expected from a normal distribution.</span>
-<span id="cb7-216"><a href="#cb7-216"></a></span>
-<span id="cb7-217"><a href="#cb7-217"></a>Points that follow the reference line support approximate normality. Systematic bends in the tails show departures from normality. Small departures are common. Large departures deserve inspection, especially when the sample is small or when extreme points drive the pattern.</span>
-<span id="cb7-218"><a href="#cb7-218"></a></span>
-<span id="cb7-219"><a href="#cb7-219"></a>The standard base-R diagnostic commands are:</span>
-<span id="cb7-220"><a href="#cb7-220"></a></span>
-<span id="cb7-221"><a href="#cb7-221"></a><span class="in">```{r code-base-diagnostics}</span></span>
-<span id="cb7-222"><a href="#cb7-222"></a><span class="co">#| eval: false</span></span>
-<span id="cb7-223"><a href="#cb7-223"></a><span class="fu">plot</span>(model, <span class="at">which =</span> <span class="dv">1</span>)  <span class="co"># residual vs fitted</span></span>
-<span id="cb7-224"><a href="#cb7-224"></a><span class="fu">plot</span>(model, <span class="at">which =</span> <span class="dv">2</span>)  <span class="co"># Q-Q plot</span></span>
-<span id="cb7-225"><a href="#cb7-225"></a><span class="in">```</span></span>
-<span id="cb7-226"><a href="#cb7-226"></a></span>
-<span id="cb7-227"><a href="#cb7-227"></a><span class="fu">## Example 1: Idealised Diagnostic Plots</span></span>
+<span id="cb7-196"><a href="#cb7-196"></a>zero_line <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-197"><a href="#cb7-197"></a>  <span class="at">panel =</span> <span class="st">"B. Residuals After Fitting"</span>,</span>
+<span id="cb7-198"><a href="#cb7-198"></a>  <span class="at">yint =</span> <span class="dv">0</span></span>
+<span id="cb7-199"><a href="#cb7-199"></a>)</span>
+<span id="cb7-200"><a href="#cb7-200"></a></span>
+<span id="cb7-201"><a href="#cb7-201"></a><span class="fu">ggplot</span>(sim_plot_dat, <span class="fu">aes</span>(<span class="at">x =</span> light, <span class="at">y =</span> value)) <span class="sc">+</span></span>
+<span id="cb7-202"><a href="#cb7-202"></a>  <span class="fu">geom_hline</span>(</span>
+<span id="cb7-203"><a href="#cb7-203"></a>    <span class="at">data =</span> zero_line,</span>
+<span id="cb7-204"><a href="#cb7-204"></a>    <span class="fu">aes</span>(<span class="at">yintercept =</span> yint),</span>
+<span id="cb7-205"><a href="#cb7-205"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-206"><a href="#cb7-206"></a>    <span class="at">colour =</span> <span class="st">"grey40"</span>,</span>
+<span id="cb7-207"><a href="#cb7-207"></a>    <span class="at">linewidth =</span> <span class="fl">0.5</span></span>
+<span id="cb7-208"><a href="#cb7-208"></a>  ) <span class="sc">+</span></span>
+<span id="cb7-209"><a href="#cb7-209"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">1.9</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
+<span id="cb7-210"><a href="#cb7-210"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb7-211"><a href="#cb7-211"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>panel, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb7-212"><a href="#cb7-212"></a>  <span class="fu">labs</span>(</span>
+<span id="cb7-213"><a href="#cb7-213"></a>    <span class="at">x =</span> <span class="st">"Predictor value"</span>,</span>
+<span id="cb7-214"><a href="#cb7-214"></a>    <span class="at">y =</span> <span class="st">"Response value"</span></span>
+<span id="cb7-215"><a href="#cb7-215"></a>  )</span>
+<span id="cb7-216"><a href="#cb7-216"></a><span class="in">```</span></span>
+<span id="cb7-217"><a href="#cb7-217"></a></span>
+<span id="cb7-218"><a href="#cb7-218"></a>Assumptions therefore apply to the residuals because the residuals represent the unexplained variation. If the residuals still show a pattern, the model has left structure behind, and if they have unstable spread, the uncertainty estimates become less reliable.</span>
+<span id="cb7-219"><a href="#cb7-219"></a></span>
+<span id="cb7-220"><a href="#cb7-220"></a>The shift from earlier chapters is straightforward:</span>
+<span id="cb7-221"><a href="#cb7-221"></a></span>
+<span id="cb7-222"><a href="#cb7-222"></a><span class="pp">|</span> Context <span class="pp">|</span> What is checked <span class="pp">|</span></span>
+<span id="cb7-223"><a href="#cb7-223"></a><span class="pp">|---|---|</span></span>
+<span id="cb7-224"><a href="#cb7-224"></a><span class="pp">|</span> *t*-test or ANOVA <span class="pp">|</span> data within groups <span class="pp">|</span></span>
+<span id="cb7-225"><a href="#cb7-225"></a><span class="pp">|</span> paired design <span class="pp">|</span> paired differences <span class="pp">|</span></span>
+<span id="cb7-226"><a href="#cb7-226"></a><span class="pp">|</span> correlation <span class="pp">|</span> observed relationship between variables <span class="pp">|</span></span>
+<span id="cb7-227"><a href="#cb7-227"></a><span class="pp">|</span> regression <span class="pp">|</span> residuals from the fitted model <span class="pp">|</span></span>
 <span id="cb7-228"><a href="#cb7-228"></a></span>
-<span id="cb7-229"><a href="#cb7-229"></a>I begin with a simulated example because it shows the desired idealised pattern clearly; real datasets are usually messier. In this idealised case, the fitted straight-line model is appropriate, the residual spread is even, and the residuals are approximately normal.</span>
+<span id="cb7-229"><a href="#cb7-229"></a><span class="fu"># Key Regression Assumptions</span></span>
 <span id="cb7-230"><a href="#cb7-230"></a></span>
-<span id="cb7-231"><a href="#cb7-231"></a><span class="in">```{r code-ideal-diagnostics}</span></span>
-<span id="cb7-232"><a href="#cb7-232"></a><span class="co">#| echo: false</span></span>
-<span id="cb7-233"><a href="#cb7-233"></a></span>
-<span id="cb7-234"><a href="#cb7-234"></a><span class="fu">set.seed</span>(<span class="dv">666</span>)</span>
-<span id="cb7-235"><a href="#cb7-235"></a></span>
-<span id="cb7-236"><a href="#cb7-236"></a>ideal_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb7-237"><a href="#cb7-237"></a>  <span class="at">x =</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">40</span>, <span class="at">length.out =</span> <span class="dv">100</span>),</span>
-<span id="cb7-238"><a href="#cb7-238"></a>  <span class="at">y =</span> <span class="dv">4</span> <span class="sc">+</span> <span class="fl">1.6</span> <span class="sc">*</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="at">sd =</span> <span class="fl">1.5</span>)</span>
-<span id="cb7-239"><a href="#cb7-239"></a>)</span>
+<span id="cb7-231"><a href="#cb7-231"></a><span class="fu">## Linearity</span></span>
+<span id="cb7-232"><a href="#cb7-232"></a></span>
+<span id="cb7-233"><a href="#cb7-233"></a>**Linearity** means that the fitted model has captured the mean relationship between the predictor and the response with an appropriate straight-line form. In a simple linear regression, the residuals should not retain a sloped or curved pattern after the line has been fitted.</span>
+<span id="cb7-234"><a href="#cb7-234"></a></span>
+<span id="cb7-235"><a href="#cb7-235"></a><span class="fu">## Constant Variance</span></span>
+<span id="cb7-236"><a href="#cb7-236"></a></span>
+<span id="cb7-237"><a href="#cb7-237"></a>**Constant variance** means that the spread of the residuals around zero stays broadly similar across the fitted range. If the spread expands or contracts systematically, the variance structure is not being described well by the model.</span>
+<span id="cb7-238"><a href="#cb7-238"></a></span>
+<span id="cb7-239"><a href="#cb7-239"></a><span class="fu">## Independence</span></span>
 <span id="cb7-240"><a href="#cb7-240"></a></span>
-<span id="cb7-241"><a href="#cb7-241"></a>ideal_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x, <span class="at">data =</span> ideal_dat)</span>
-<span id="cb7-242"><a href="#cb7-242"></a>ideal_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(ideal_mod)</span>
-<span id="cb7-243"><a href="#cb7-243"></a></span>
-<span id="cb7-244"><a href="#cb7-244"></a>ideal_qq <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">sample =</span> <span class="fu">sort</span>(ideal_aug<span class="sc">$</span>.resid)) <span class="sc">|&gt;</span></span>
-<span id="cb7-245"><a href="#cb7-245"></a>  <span class="fu">mutate</span>(<span class="at">theoretical =</span> <span class="fu">qqnorm</span>(ideal_aug<span class="sc">$</span>.resid, <span class="at">plot.it =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>x)</span>
-<span id="cb7-246"><a href="#cb7-246"></a><span class="in">```</span></span>
-<span id="cb7-247"><a href="#cb7-247"></a></span>
-<span id="cb7-248"><a href="#cb7-248"></a><span class="in">```{r fig-ideal-resid-fitted}</span></span>
-<span id="cb7-249"><a href="#cb7-249"></a><span class="co">#| echo: false</span></span>
-<span id="cb7-250"><a href="#cb7-250"></a><span class="co">#| fig-cap: "Idealised residual-versus-fitted plot for a well-behaved straight-line model."</span></span>
-<span id="cb7-251"><a href="#cb7-251"></a><span class="co">#| fig-width: 5</span></span>
-<span id="cb7-252"><a href="#cb7-252"></a><span class="co">#| fig-height: 3.5</span></span>
-<span id="cb7-253"><a href="#cb7-253"></a></span>
-<span id="cb7-254"><a href="#cb7-254"></a><span class="fu">ggplot</span>(ideal_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
-<span id="cb7-255"><a href="#cb7-255"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>, <span class="at">colour =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
-<span id="cb7-256"><a href="#cb7-256"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.0</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
-<span id="cb7-257"><a href="#cb7-257"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb7-258"><a href="#cb7-258"></a>  <span class="fu">labs</span>(</span>
-<span id="cb7-259"><a href="#cb7-259"></a>    <span class="at">x =</span> <span class="st">"Fitted value"</span>,</span>
-<span id="cb7-260"><a href="#cb7-260"></a>    <span class="at">y =</span> <span class="st">"Residual"</span></span>
-<span id="cb7-261"><a href="#cb7-261"></a>  )</span>
-<span id="cb7-262"><a href="#cb7-262"></a><span class="in">```</span></span>
-<span id="cb7-263"><a href="#cb7-263"></a></span>
-<span id="cb7-264"><a href="#cb7-264"></a><span class="in">```{r fig-ideal-resid-qq}</span></span>
-<span id="cb7-265"><a href="#cb7-265"></a><span class="co">#| echo: false</span></span>
-<span id="cb7-266"><a href="#cb7-266"></a><span class="co">#| fig-cap: "Idealised Q-Q plot of residuals for a well-behaved straight-line model."</span></span>
-<span id="cb7-267"><a href="#cb7-267"></a><span class="co">#| fig-width: 5</span></span>
-<span id="cb7-268"><a href="#cb7-268"></a><span class="co">#| fig-height: 3.5</span></span>
-<span id="cb7-269"><a href="#cb7-269"></a></span>
-<span id="cb7-270"><a href="#cb7-270"></a><span class="fu">ggplot</span>(ideal_qq, <span class="fu">aes</span>(<span class="at">x =</span> theoretical, <span class="at">y =</span> sample)) <span class="sc">+</span></span>
-<span id="cb7-271"><a href="#cb7-271"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.0</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
-<span id="cb7-272"><a href="#cb7-272"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb7-273"><a href="#cb7-273"></a>  <span class="fu">labs</span>(</span>
-<span id="cb7-274"><a href="#cb7-274"></a>    <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>,</span>
-<span id="cb7-275"><a href="#cb7-275"></a>    <span class="at">y =</span> <span class="st">"Residual quantiles"</span></span>
-<span id="cb7-276"><a href="#cb7-276"></a>  )</span>
-<span id="cb7-277"><a href="#cb7-277"></a><span class="in">```</span></span>
-<span id="cb7-278"><a href="#cb7-278"></a></span>
-<span id="cb7-279"><a href="#cb7-279"></a>In @fig-ideal-resid-fitted, the points form a roughly even cloud around zero: that is the main pattern to look for. The smooth line stays close to horizontal, so there is no clear curvature left in the residuals. The vertical spread is also fairly similar across the fitted range, so there is no strong sign of changing variance.</span>
-<span id="cb7-280"><a href="#cb7-280"></a></span>
-<span id="cb7-281"><a href="#cb7-281"></a>In @fig-ideal-resid-qq, most points lie close to the reference line. That is the idealised picture of approximate residual normality. In practice, small departures are common, especially near the tails. The important point is that the residuals should not show a strong systematic bend away from the line.</span>
-<span id="cb7-282"><a href="#cb7-282"></a></span>
-<span id="cb7-283"><a href="#cb7-283"></a>These two plots therefore cover two of the assumptions we have of the residuals:</span>
-<span id="cb7-284"><a href="#cb7-284"></a></span>
-<span id="cb7-285"><a href="#cb7-285"></a><span class="ss">- </span>the residual-versus-fitted plot checks whether structure or changing spread remains in the residuals;</span>
-<span id="cb7-286"><a href="#cb7-286"></a><span class="ss">- </span>the Q-Q plot checks whether the residual distribution is approximately normal.</span>
+<span id="cb7-241"><a href="#cb7-241"></a>**Independence** means that one residual does not carry information about another. This requirement comes mainly from the sampling or experimental design. Repeated measures on the same individual, temporal correlation, spatial clustering, and nested sampling can all violate independence.</span>
+<span id="cb7-242"><a href="#cb7-242"></a></span>
+<span id="cb7-243"><a href="#cb7-243"></a>When dependence is plausible, I do not rely on the usual residual-versus-fitted or Q-Q plots alone. I also inspect residuals in the order in which the data were collected. For time-series or repeated-measures data, that often means plotting residuals against time and looking for runs, cycles, or long stretches of positive or negative residuals. For spatial data, it may mean plotting residuals against location and looking for clusters of similar residuals.</span>
+<span id="cb7-244"><a href="#cb7-244"></a></span>
+<span id="cb7-245"><a href="#cb7-245"></a><span class="fu">## Normality of Residuals</span></span>
+<span id="cb7-246"><a href="#cb7-246"></a></span>
+<span id="cb7-247"><a href="#cb7-247"></a>**Approximate normality of residuals** means that the residual distribution is reasonably close to a normal distribution. This is most important for standard errors, confidence intervals, and tests in smaller samples. Mean structure, variance structure, and independence usually deserve priority because large departures there often explain what later appears in the residual distribution.</span>
+<span id="cb7-248"><a href="#cb7-248"></a></span>
+<span id="cb7-249"><a href="#cb7-249"></a>The main checks are thus performed in this order:</span>
+<span id="cb7-250"><a href="#cb7-250"></a></span>
+<span id="cb7-251"><a href="#cb7-251"></a><span class="pp">|</span> Assumption <span class="pp">|</span> What it concerns <span class="pp">|</span> Main check <span class="pp">|</span> Visual cue <span class="pp">|</span></span>
+<span id="cb7-252"><a href="#cb7-252"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb7-253"><a href="#cb7-253"></a><span class="pp">|</span> Linearity <span class="pp">|</span> mean structure $E<span class="co">[</span><span class="ot">Y \mid X</span><span class="co">]</span>$ <span class="pp">|</span> residual-versus-fitted plot <span class="pp">|</span> slope or curvature in residuals <span class="pp">|</span></span>
+<span id="cb7-254"><a href="#cb7-254"></a><span class="pp">|</span> Constant variance <span class="pp">|</span> spread around the mean structure <span class="pp">|</span> residual-versus-fitted plot <span class="pp">|</span> funnel shape or changing vertical spread <span class="pp">|</span></span>
+<span id="cb7-255"><a href="#cb7-255"></a><span class="pp">|</span> Normality <span class="pp">|</span> distribution of residuals <span class="pp">|</span> residual Q-Q plot <span class="pp">|</span> systematic bends away from the line <span class="pp">|</span></span>
+<span id="cb7-256"><a href="#cb7-256"></a><span class="pp">|</span> Independence <span class="pp">|</span> relationship among residuals across sampling units <span class="pp">|</span> design plus residuals versus order, time, or space <span class="pp">|</span> runs, cycles, or spatial clusters <span class="pp">|</span></span>
+<span id="cb7-257"><a href="#cb7-257"></a></span>
+<span id="cb7-258"><a href="#cb7-258"></a><span class="fu"># Diagnostic Plots</span></span>
+<span id="cb7-259"><a href="#cb7-259"></a></span>
+<span id="cb7-260"><a href="#cb7-260"></a>A **diagnostic plot** is a graph used to check whether the fitted model has left behind problematic structure in the residuals.</span>
+<span id="cb7-261"><a href="#cb7-261"></a></span>
+<span id="cb7-262"><a href="#cb7-262"></a>::: {.callout-note appearance="simple"}</span>
+<span id="cb7-263"><a href="#cb7-263"></a><span class="fu">## Diagnostic Workflow</span></span>
+<span id="cb7-264"><a href="#cb7-264"></a></span>
+<span id="cb7-265"><a href="#cb7-265"></a><span class="ss">1. </span>Fit the model.</span>
+<span id="cb7-266"><a href="#cb7-266"></a><span class="ss">2. </span>Plot residuals against fitted values to check mean structure and spread.</span>
+<span id="cb7-267"><a href="#cb7-267"></a><span class="ss">3. </span>Plot a residual Q-Q plot to check whether the residual distribution is close enough to normal for the intended inference.</span>
+<span id="cb7-268"><a href="#cb7-268"></a><span class="ss">4. </span>Revisit the sampling or experimental design, and where relevant plot residuals against time, space, or sampling order to check independence.</span>
+<span id="cb7-269"><a href="#cb7-269"></a><span class="ss">5. </span>Revise the model if the diagnostics show leftover structure.</span>
+<span id="cb7-270"><a href="#cb7-270"></a>:::</span>
+<span id="cb7-271"><a href="#cb7-271"></a></span>
+<span id="cb7-272"><a href="#cb7-272"></a>These plots are not decoration. They show where the model is still wrong and suggest what to revise next.</span>
+<span id="cb7-273"><a href="#cb7-273"></a></span>
+<span id="cb7-274"><a href="#cb7-274"></a><span class="fu">## Residual versus Fitted Plot</span></span>
+<span id="cb7-275"><a href="#cb7-275"></a></span>
+<span id="cb7-276"><a href="#cb7-276"></a>The **residual-versus-fitted plot** places fitted values on the x-axis and residuals on the y-axis.</span>
+<span id="cb7-277"><a href="#cb7-277"></a></span>
+<span id="cb7-278"><a href="#cb7-278"></a>I read this plot by asking two questions. Do the residuals scatter around zero without a systematic pattern? Does their spread stay broadly similar across the fitted range? Random scatter around zero supports the fitted mean structure. Curvature suggests that the straight-line form is missing part of the relationship. A funnel shape suggests changing variance.</span>
+<span id="cb7-279"><a href="#cb7-279"></a></span>
+<span id="cb7-280"><a href="#cb7-280"></a><span class="fu">## Q-Q Plot of Residuals</span></span>
+<span id="cb7-281"><a href="#cb7-281"></a></span>
+<span id="cb7-282"><a href="#cb7-282"></a>The **Q-Q plot of residuals** compares the ordered residuals with the values expected from a normal distribution.</span>
+<span id="cb7-283"><a href="#cb7-283"></a></span>
+<span id="cb7-284"><a href="#cb7-284"></a>Points that follow the reference line support approximate normality. In practice, the centre of the plot is usually more informative than one slightly wayward tail point. If most points track the line and only the most extreme one or two points drift modestly away, I usually treat that as acceptable, especially in a moderate sample. I become more concerned when many points form a clear S-shape, when both tails peel away strongly from the line, or when one or two extreme residuals dominate the ends of the plot. At that stage, the next step is to inspect the raw data, check for influential observations, and ask whether the response scale or response distribution is appropriate.</span>
+<span id="cb7-285"><a href="#cb7-285"></a></span>
+<span id="cb7-286"><a href="#cb7-286"></a>The standard base-R diagnostic commands are:</span>
 <span id="cb7-287"><a href="#cb7-287"></a></span>
-<span id="cb7-288"><a href="#cb7-288"></a>I use this example only to show the desired appearance, but the next example uses real data where the patterns are less tidy and the interpretation is more realistic (and challenging).</span>
-<span id="cb7-289"><a href="#cb7-289"></a></span>
-<span id="cb7-290"><a href="#cb7-290"></a><span class="fu"># Example 2: Worked Example with Real Data</span></span>
-<span id="cb7-291"><a href="#cb7-291"></a></span>
-<span id="cb7-292"><a href="#cb7-292"></a>I continue with the <span class="in">`trees`</span> model:</span>
+<span id="cb7-288"><a href="#cb7-288"></a><span class="in">```{r code-base-diagnostics}</span></span>
+<span id="cb7-289"><a href="#cb7-289"></a><span class="co">#| eval: false</span></span>
+<span id="cb7-290"><a href="#cb7-290"></a><span class="fu">plot</span>(model, <span class="at">which =</span> <span class="dv">1</span>)  <span class="co"># residual versus fitted</span></span>
+<span id="cb7-291"><a href="#cb7-291"></a><span class="fu">plot</span>(model, <span class="at">which =</span> <span class="dv">2</span>)  <span class="co"># Q-Q plot</span></span>
+<span id="cb7-292"><a href="#cb7-292"></a><span class="in">```</span></span>
 <span id="cb7-293"><a href="#cb7-293"></a></span>
-<span id="cb7-294"><a href="#cb7-294"></a><span class="in">```{r code-worked-model}</span></span>
-<span id="cb7-295"><a href="#cb7-295"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Volume <span class="sc">~</span> Girth, <span class="at">data =</span> trees_tbl)</span>
-<span id="cb7-296"><a href="#cb7-296"></a></span>
-<span id="cb7-297"><a href="#cb7-297"></a><span class="fu">augment</span>(model) <span class="sc">|&gt;</span></span>
-<span id="cb7-298"><a href="#cb7-298"></a>  <span class="fu">select</span>(Girth, Volume, .fitted, .resid) <span class="sc">|&gt;</span></span>
-<span id="cb7-299"><a href="#cb7-299"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">6</span>)</span>
-<span id="cb7-300"><a href="#cb7-300"></a><span class="in">```</span></span>
+<span id="cb7-294"><a href="#cb7-294"></a><span class="fu">## Example 1: Idealised Diagnostic Plots</span></span>
+<span id="cb7-295"><a href="#cb7-295"></a></span>
+<span id="cb7-296"><a href="#cb7-296"></a>I continue with the same simulated dataset used in @fig-slope-removed. Here that same fitted model is viewed through the two standard diagnostic plots. In @fig-ideal-resid-fitted, the residual spread is even and the smooth line stays close to horizontal. In @fig-ideal-resid-qq, the residuals are also approximately normal.</span>
+<span id="cb7-297"><a href="#cb7-297"></a></span>
+<span id="cb7-298"><a href="#cb7-298"></a><span class="in">```{r code-ideal-diagnostics}</span></span>
+<span id="cb7-299"><a href="#cb7-299"></a><span class="co">#| echo: false</span></span>
+<span id="cb7-300"><a href="#cb7-300"></a><span class="co">#| cache: false</span></span>
 <span id="cb7-301"><a href="#cb7-301"></a></span>
-<span id="cb7-302"><a href="#cb7-302"></a>The fitted values are the model's expected tree volumes. The residuals show how far the observed volumes depart from those fitted values.</span>
+<span id="cb7-302"><a href="#cb7-302"></a>ideal_aug <span class="ot">&lt;-</span> broom<span class="sc">::</span><span class="fu">augment</span>(sim_mod)</span>
 <span id="cb7-303"><a href="#cb7-303"></a></span>
-<span id="cb7-304"><a href="#cb7-304"></a><span class="in">```{r fig-trees-resid-fitted}</span></span>
-<span id="cb7-305"><a href="#cb7-305"></a><span class="co">#| echo: false</span></span>
-<span id="cb7-306"><a href="#cb7-306"></a><span class="co">#| fig-cap: "Residuals versus fitted values for the tree-volume model."</span></span>
-<span id="cb7-307"><a href="#cb7-307"></a><span class="co">#| fig-width: 5</span></span>
-<span id="cb7-308"><a href="#cb7-308"></a><span class="co">#| fig-height: 3.5</span></span>
-<span id="cb7-309"><a href="#cb7-309"></a></span>
-<span id="cb7-310"><a href="#cb7-310"></a>tree_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(model)</span>
-<span id="cb7-311"><a href="#cb7-311"></a></span>
-<span id="cb7-312"><a href="#cb7-312"></a><span class="fu">ggplot</span>(tree_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
-<span id="cb7-313"><a href="#cb7-313"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>, <span class="at">colour =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
-<span id="cb7-314"><a href="#cb7-314"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.2</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
-<span id="cb7-315"><a href="#cb7-315"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb7-316"><a href="#cb7-316"></a>  <span class="fu">labs</span>(</span>
-<span id="cb7-317"><a href="#cb7-317"></a>    <span class="at">x =</span> <span class="st">"Fitted volume"</span>,</span>
-<span id="cb7-318"><a href="#cb7-318"></a>    <span class="at">y =</span> <span class="st">"Residual"</span></span>
-<span id="cb7-319"><a href="#cb7-319"></a>  )</span>
-<span id="cb7-320"><a href="#cb7-320"></a><span class="in">```</span></span>
-<span id="cb7-321"><a href="#cb7-321"></a></span>
-<span id="cb7-322"><a href="#cb7-322"></a>In @fig-trees-resid-fitted, the residuals are centred near zero across most of the fitted range. The smooth line bends slightly at the ends, and the spread increases for larger fitted values. The straight-line model captures much of the relationship, but it leaves some structure in the residuals. That is the kind of signal that I point out in later chapters use when I introduce transformed, polynomial, or nonlinear models.</span>
-<span id="cb7-323"><a href="#cb7-323"></a></span>
-<span id="cb7-324"><a href="#cb7-324"></a><span class="in">```{r fig-trees-resid-qq}</span></span>
-<span id="cb7-325"><a href="#cb7-325"></a><span class="co">#| echo: false</span></span>
-<span id="cb7-326"><a href="#cb7-326"></a><span class="co">#| fig-cap: "Q-Q plot of residuals for the tree-volume model."</span></span>
-<span id="cb7-327"><a href="#cb7-327"></a><span class="co">#| fig-width: 5</span></span>
-<span id="cb7-328"><a href="#cb7-328"></a><span class="co">#| fig-height: 3.5</span></span>
-<span id="cb7-329"><a href="#cb7-329"></a></span>
-<span id="cb7-330"><a href="#cb7-330"></a>qq_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">sample =</span> <span class="fu">sort</span>(tree_aug<span class="sc">$</span>.resid)) <span class="sc">|&gt;</span></span>
-<span id="cb7-331"><a href="#cb7-331"></a>  <span class="fu">mutate</span>(<span class="at">theoretical =</span> <span class="fu">qqnorm</span>(tree_aug<span class="sc">$</span>.resid, <span class="at">plot.it =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>x)</span>
-<span id="cb7-332"><a href="#cb7-332"></a></span>
-<span id="cb7-333"><a href="#cb7-333"></a><span class="fu">ggplot</span>(qq_dat, <span class="fu">aes</span>(<span class="at">x =</span> theoretical, <span class="at">y =</span> sample)) <span class="sc">+</span></span>
-<span id="cb7-334"><a href="#cb7-334"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.1</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
-<span id="cb7-335"><a href="#cb7-335"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb7-336"><a href="#cb7-336"></a>  <span class="fu">labs</span>(</span>
-<span id="cb7-337"><a href="#cb7-337"></a>    <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>,</span>
-<span id="cb7-338"><a href="#cb7-338"></a>    <span class="at">y =</span> <span class="st">"Residual quantiles"</span></span>
-<span id="cb7-339"><a href="#cb7-339"></a>  )</span>
-<span id="cb7-340"><a href="#cb7-340"></a><span class="in">```</span></span>
-<span id="cb7-341"><a href="#cb7-341"></a></span>
-<span id="cb7-342"><a href="#cb7-342"></a>In @fig-trees-resid-qq, most points follow the line closely through the centre of the distribution. The tails depart modestly. That pattern supports approximate normality well enough for an introductory straight-line model. The stronger warning in this example comes from the residual-versus-fitted plot rather than from the Q-Q plot.</span>
-<span id="cb7-343"><a href="#cb7-343"></a></span>
-<span id="cb7-344"><a href="#cb7-344"></a><span class="fu"># Linking Diagnostics to Decisions</span></span>
-<span id="cb7-345"><a href="#cb7-345"></a></span>
-<span id="cb7-346"><a href="#cb7-346"></a>Use the diagnostic patterns to guide the next modelling step:</span>
-<span id="cb7-347"><a href="#cb7-347"></a></span>
-<span id="cb7-348"><a href="#cb7-348"></a><span class="ss">-   </span>Curvature in the residual-versus-fitted plot, as in @fig-trees-resid-fitted, suggests a change in functional form. In later chapters that may mean a polynomial term, a smoother, or a mechanistic nonlinear model.</span>
-<span id="cb7-349"><a href="#cb7-349"></a><span class="ss">-   </span>Changing spread across fitted values, also visible in @fig-trees-resid-fitted, suggests a transformation or a model with a different mean-variance structure.</span>
-<span id="cb7-350"><a href="#cb7-350"></a><span class="ss">-   </span>Strong non-normality in the residuals, which would appear in a Q-Q plot such as @fig-trees-resid-qq, suggests checking outliers, influential observations, or a more suitable response distribution.</span>
-<span id="cb7-351"><a href="#cb7-351"></a><span class="ss">-   </span>Dependence in the residuals points back to the design and forward to repeated-measures or mixed-model methods.</span>
-<span id="cb7-352"><a href="#cb7-352"></a></span>
-<span id="cb7-353"><a href="#cb7-353"></a>A diagnostic plot does not reveal success or failure by itself, but it does shows where the model still disagrees with the data and suggests that revising the model design may be in order.</span>
-<span id="cb7-354"><a href="#cb7-354"></a></span>
-<span id="cb7-355"><a href="#cb7-355"></a><span class="fu"># Connection to Earlier Chapters</span></span>
-<span id="cb7-356"><a href="#cb7-356"></a></span>
-<span id="cb7-357"><a href="#cb7-357"></a>Above, I extend the same checking habits you used earlier in <span class="co">[</span><span class="ot">Chapter 6</span><span class="co">](06-assumptions-and-transformations.qmd)</span>:</span>
-<span id="cb7-358"><a href="#cb7-358"></a></span>
-<span id="cb7-359"><a href="#cb7-359"></a><span class="ss">-   </span>Grouped comparisons checked variation within groups. Regression checks variation across fitted values.</span>
-<span id="cb7-360"><a href="#cb7-360"></a><span class="ss">-   </span>Normality was checked within groups or within paired differences. Regression checks normality in the residuals.</span>
-<span id="cb7-361"><a href="#cb7-361"></a><span class="ss">-   </span>Unequal spread across groups warned against simple mean comparisons. Regression checks whether residual spread changes across the fitted range.</span>
-<span id="cb7-362"><a href="#cb7-362"></a></span>
-<span id="cb7-363"><a href="#cb7-363"></a>So, ask, is the structure plausible, is the spread stable, and are the observations independent? In regression, we should ask those questions *after* a model has already been fitted. In *t*-tests, ANOVAs, and correlations, we must apply assumption tests *before* applying the test.</span>
+<span id="cb7-304"><a href="#cb7-304"></a>ideal_qq <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">sample =</span> <span class="fu">sort</span>(ideal_aug<span class="sc">$</span>.resid)) <span class="sc">|&gt;</span></span>
+<span id="cb7-305"><a href="#cb7-305"></a>  <span class="fu">mutate</span>(<span class="at">theoretical =</span> <span class="fu">qqnorm</span>(ideal_aug<span class="sc">$</span>.resid, <span class="at">plot.it =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>x)</span>
+<span id="cb7-306"><a href="#cb7-306"></a><span class="in">```</span></span>
+<span id="cb7-307"><a href="#cb7-307"></a></span>
+<span id="cb7-308"><a href="#cb7-308"></a><span class="in">```{r fig-ideal-resid-fitted}</span></span>
+<span id="cb7-309"><a href="#cb7-309"></a><span class="co">#| echo: false</span></span>
+<span id="cb7-310"><a href="#cb7-310"></a><span class="co">#| cache: false</span></span>
+<span id="cb7-311"><a href="#cb7-311"></a><span class="co">#| fig-cap: "Idealised residual-versus-fitted plot for a well-behaved straight-line model."</span></span>
+<span id="cb7-312"><a href="#cb7-312"></a><span class="co">#| fig-width: 5</span></span>
+<span id="cb7-313"><a href="#cb7-313"></a><span class="co">#| fig-height: 3.5</span></span>
+<span id="cb7-314"><a href="#cb7-314"></a></span>
+<span id="cb7-315"><a href="#cb7-315"></a><span class="fu">ggplot</span>(ideal_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
+<span id="cb7-316"><a href="#cb7-316"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>, <span class="at">colour =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
+<span id="cb7-317"><a href="#cb7-317"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.0</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
+<span id="cb7-318"><a href="#cb7-318"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb7-319"><a href="#cb7-319"></a>  <span class="fu">labs</span>(</span>
+<span id="cb7-320"><a href="#cb7-320"></a>    <span class="at">x =</span> <span class="st">"Fitted value"</span>,</span>
+<span id="cb7-321"><a href="#cb7-321"></a>    <span class="at">y =</span> <span class="st">"Residual"</span></span>
+<span id="cb7-322"><a href="#cb7-322"></a>  )</span>
+<span id="cb7-323"><a href="#cb7-323"></a><span class="in">```</span></span>
+<span id="cb7-324"><a href="#cb7-324"></a></span>
+<span id="cb7-325"><a href="#cb7-325"></a><span class="in">```{r fig-ideal-resid-qq}</span></span>
+<span id="cb7-326"><a href="#cb7-326"></a><span class="co">#| echo: false</span></span>
+<span id="cb7-327"><a href="#cb7-327"></a><span class="co">#| cache: false</span></span>
+<span id="cb7-328"><a href="#cb7-328"></a><span class="co">#| fig-cap: "Idealised Q-Q plot of residuals for a well-behaved straight-line model."</span></span>
+<span id="cb7-329"><a href="#cb7-329"></a><span class="co">#| fig-width: 5</span></span>
+<span id="cb7-330"><a href="#cb7-330"></a><span class="co">#| fig-height: 3.5</span></span>
+<span id="cb7-331"><a href="#cb7-331"></a></span>
+<span id="cb7-332"><a href="#cb7-332"></a><span class="fu">ggplot</span>(ideal_qq, <span class="fu">aes</span>(<span class="at">x =</span> theoretical, <span class="at">y =</span> sample)) <span class="sc">+</span></span>
+<span id="cb7-333"><a href="#cb7-333"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.0</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
+<span id="cb7-334"><a href="#cb7-334"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb7-335"><a href="#cb7-335"></a>  <span class="fu">labs</span>(</span>
+<span id="cb7-336"><a href="#cb7-336"></a>    <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>,</span>
+<span id="cb7-337"><a href="#cb7-337"></a>    <span class="at">y =</span> <span class="st">"Residual quantiles"</span></span>
+<span id="cb7-338"><a href="#cb7-338"></a>  )</span>
+<span id="cb7-339"><a href="#cb7-339"></a><span class="in">```</span></span>
+<span id="cb7-340"><a href="#cb7-340"></a></span>
+<span id="cb7-341"><a href="#cb7-341"></a>In @fig-ideal-resid-fitted, the points form a roughly even cloud around zero. The smooth line stays close to horizontal, so there is no clear leftover mean structure. The vertical spread is also fairly similar across the fitted range, so there is no strong sign of changing variance.</span>
+<span id="cb7-342"><a href="#cb7-342"></a></span>
+<span id="cb7-343"><a href="#cb7-343"></a>In @fig-ideal-resid-qq, most points lie close to the reference line. That is the pattern expected when the residuals are close enough to normal for standard linear-model inference.</span>
+<span id="cb7-344"><a href="#cb7-344"></a></span>
+<span id="cb7-345"><a href="#cb7-345"></a>Together, these plots show what I want to see before I interpret a fitted model. Real data rarely look this tidy, which is why the next example is more revealing.</span>
+<span id="cb7-346"><a href="#cb7-346"></a></span>
+<span id="cb7-347"><a href="#cb7-347"></a><span class="fu"># Example 2: Worked Example with Real Data</span></span>
+<span id="cb7-348"><a href="#cb7-348"></a></span>
+<span id="cb7-349"><a href="#cb7-349"></a>I now return to the penguins data. I fit body mass as a function of flipper length using all penguins together. That is a plausible first attempt because larger penguins usually have longer flippers, but it also ignores the fact that the dataset contains different species.</span>
+<span id="cb7-350"><a href="#cb7-350"></a></span>
+<span id="cb7-351"><a href="#cb7-351"></a><span class="in">```{r code-worked-model}</span></span>
+<span id="cb7-352"><a href="#cb7-352"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(body_mass_g <span class="sc">~</span> flipper_length_mm, <span class="at">data =</span> penguins_tbl)</span>
+<span id="cb7-353"><a href="#cb7-353"></a></span>
+<span id="cb7-354"><a href="#cb7-354"></a>penguin_aug <span class="ot">&lt;-</span> penguins_tbl <span class="sc">|&gt;</span></span>
+<span id="cb7-355"><a href="#cb7-355"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb7-356"><a href="#cb7-356"></a>    <span class="at">.fitted =</span> <span class="fu">fitted</span>(model),</span>
+<span id="cb7-357"><a href="#cb7-357"></a>    <span class="at">.resid =</span> <span class="fu">residuals</span>(model)</span>
+<span id="cb7-358"><a href="#cb7-358"></a>  )</span>
+<span id="cb7-359"><a href="#cb7-359"></a></span>
+<span id="cb7-360"><a href="#cb7-360"></a>penguin_aug <span class="sc">|&gt;</span></span>
+<span id="cb7-361"><a href="#cb7-361"></a>  <span class="fu">select</span>(species, flipper_length_mm, body_mass_g, .fitted, .resid) <span class="sc">|&gt;</span></span>
+<span id="cb7-362"><a href="#cb7-362"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">6</span>)</span>
+<span id="cb7-363"><a href="#cb7-363"></a><span class="in">```</span></span>
 <span id="cb7-364"><a href="#cb7-364"></a></span>
-<span id="cb7-365"><a href="#cb7-365"></a><span class="fu"># Forward Links</span></span>
+<span id="cb7-365"><a href="#cb7-365"></a>The fitted values are the model's expected body masses. The residuals show how far the observed body masses depart from those fitted values.</span>
 <span id="cb7-366"><a href="#cb7-366"></a></span>
-<span id="cb7-367"><a href="#cb7-367"></a>In the next chapters, we use these diagnostics directly:</span>
-<span id="cb7-368"><a href="#cb7-368"></a></span>
-<span id="cb7-369"><a href="#cb7-369"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">Chapter 12: Simple Linear Regression</span><span class="co">](12-simple-linear-regression.qmd)</span> fits and interprets the first full regression models.</span>
-<span id="cb7-370"><a href="#cb7-370"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">Chapter 14: Multiple Regression and Model Specification</span><span class="co">](14-multiple-regression-and-model-specification.qmd)</span> applies the same diagnostic ideas when several predictors appear in one model.</span>
-<span id="cb7-371"><a href="#cb7-371"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">Chapter 17: Model Checking and Evaluation</span><span class="co">](17-model-checking-and-evaluation.qmd)</span> develops residual analysis, leverage, influence, and model comparison in more detail.</span>
-<span id="cb7-372"><a href="#cb7-372"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">Chapter 19: Dependence and Mixed Models</span><span class="co">](19-dependence-and-mixed-models.qmd)</span> takes up the cases where independence fails because observations are clustered or repeated.</span>
-<span id="cb7-373"><a href="#cb7-373"></a></span>
-<span id="cb7-374"><a href="#cb7-374"></a><span class="fu"># Summary</span></span>
-<span id="cb7-375"><a href="#cb7-375"></a></span>
-<span id="cb7-376"><a href="#cb7-376"></a>Residuals are the differences between observed and predicted values.</span>
-<span id="cb7-377"><a href="#cb7-377"></a></span>
-<span id="cb7-378"><a href="#cb7-378"></a>Regression assumptions are checked on residuals because residuals contain the unexplained variation left by the fitted model.</span>
-<span id="cb7-379"><a href="#cb7-379"></a></span>
-<span id="cb7-380"><a href="#cb7-380"></a>Residual-versus-fitted plots assess mean structure and spread. Q-Q plots assess approximate normality of residuals.</span>
-<span id="cb7-381"><a href="#cb7-381"></a></span>
-<span id="cb7-382"><a href="#cb7-382"></a>Diagnostic patterns tell you whether the current model is adequate or whether the model needs revision.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb7-367"><a href="#cb7-367"></a><span class="in">```{r fig-penguins-resid-fitted}</span></span>
+<span id="cb7-368"><a href="#cb7-368"></a><span class="co">#| echo: false</span></span>
+<span id="cb7-369"><a href="#cb7-369"></a><span class="co">#| fig-cap: "Residuals versus fitted values for a pooled penguin body-mass model."</span></span>
+<span id="cb7-370"><a href="#cb7-370"></a><span class="co">#| fig-width: 5</span></span>
+<span id="cb7-371"><a href="#cb7-371"></a><span class="co">#| fig-height: 3.5</span></span>
+<span id="cb7-372"><a href="#cb7-372"></a></span>
+<span id="cb7-373"><a href="#cb7-373"></a><span class="fu">ggplot</span>(penguin_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
+<span id="cb7-374"><a href="#cb7-374"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>, <span class="at">colour =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
+<span id="cb7-375"><a href="#cb7-375"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.2</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
+<span id="cb7-376"><a href="#cb7-376"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb7-377"><a href="#cb7-377"></a>  <span class="fu">labs</span>(</span>
+<span id="cb7-378"><a href="#cb7-378"></a>    <span class="at">x =</span> <span class="st">"Fitted body mass"</span>,</span>
+<span id="cb7-379"><a href="#cb7-379"></a>    <span class="at">y =</span> <span class="st">"Residual"</span></span>
+<span id="cb7-380"><a href="#cb7-380"></a>  )</span>
+<span id="cb7-381"><a href="#cb7-381"></a><span class="in">```</span></span>
+<span id="cb7-382"><a href="#cb7-382"></a></span>
+<span id="cb7-383"><a href="#cb7-383"></a>Something seems "off" in @fig-penguins-resid-fitted. The residuals do not form a roughly random cloud around zero. Instead, the smooth line bends from positive residuals at low fitted masses to negative residuals in the middle and back toward positive residuals at the upper end. That is evidence that one straight line is not describing the mean structure adequately.</span>
+<span id="cb7-384"><a href="#cb7-384"></a></span>
+<span id="cb7-385"><a href="#cb7-385"></a>Here the likely cause is not an exotic response distribution but pooled biological groups. Adelie, Chinstrap, and Gentoo penguins differ in body size, so one line fitted to all species averages over distinct structures. I have ignored the grouping structure. The next step for would therefore be that I revise the model specification, for example by including species as a predictor or by allowing different lines for different species.</span>
+<span id="cb7-386"><a href="#cb7-386"></a></span>
+<span id="cb7-387"><a href="#cb7-387"></a>::: callout-important</span>
+<span id="cb7-388"><a href="#cb7-388"></a><span class="fu">## Do This Now!</span></span>
+<span id="cb7-389"><a href="#cb7-389"></a>Plot body mass against flipper length for the penguins dataset and colour the points by species. Use that graph to check whether the residual pattern in @fig-penguins-resid-fitted could be explained by pooled group structure rather than by a single curved relationship.</span>
+<span id="cb7-390"><a href="#cb7-390"></a>:::</span>
+<span id="cb7-391"><a href="#cb7-391"></a></span>
+<span id="cb7-392"><a href="#cb7-392"></a><span class="in">```{r fig-penguins-resid-qq}</span></span>
+<span id="cb7-393"><a href="#cb7-393"></a><span class="co">#| echo: false</span></span>
+<span id="cb7-394"><a href="#cb7-394"></a><span class="co">#| fig-cap: "Q-Q plot of residuals for a pooled penguin body-mass model."</span></span>
+<span id="cb7-395"><a href="#cb7-395"></a><span class="co">#| fig-width: 5</span></span>
+<span id="cb7-396"><a href="#cb7-396"></a><span class="co">#| fig-height: 3.5</span></span>
+<span id="cb7-397"><a href="#cb7-397"></a></span>
+<span id="cb7-398"><a href="#cb7-398"></a>qq_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">sample =</span> <span class="fu">sort</span>(penguin_aug<span class="sc">$</span>.resid)) <span class="sc">|&gt;</span></span>
+<span id="cb7-399"><a href="#cb7-399"></a>  <span class="fu">mutate</span>(<span class="at">theoretical =</span> <span class="fu">qqnorm</span>(penguin_aug<span class="sc">$</span>.resid, <span class="at">plot.it =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>x)</span>
+<span id="cb7-400"><a href="#cb7-400"></a></span>
+<span id="cb7-401"><a href="#cb7-401"></a><span class="fu">ggplot</span>(qq_dat, <span class="fu">aes</span>(<span class="at">x =</span> theoretical, <span class="at">y =</span> sample)) <span class="sc">+</span></span>
+<span id="cb7-402"><a href="#cb7-402"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.1</span>, <span class="at">colour =</span> <span class="st">"steelblue4"</span>) <span class="sc">+</span></span>
+<span id="cb7-403"><a href="#cb7-403"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb7-404"><a href="#cb7-404"></a>  <span class="fu">labs</span>(</span>
+<span id="cb7-405"><a href="#cb7-405"></a>    <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>,</span>
+<span id="cb7-406"><a href="#cb7-406"></a>    <span class="at">y =</span> <span class="st">"Residual quantiles"</span></span>
+<span id="cb7-407"><a href="#cb7-407"></a>  )</span>
+<span id="cb7-408"><a href="#cb7-408"></a><span class="in">```</span></span>
+<span id="cb7-409"><a href="#cb7-409"></a></span>
+<span id="cb7-410"><a href="#cb7-410"></a>In @fig-penguins-resid-qq, the residuals are close enough to normal that I would not treat distributional shape as the first problem. Approximate normality does not rescue a poor mean model due to ignoring the grouping structure, so my primary warning comes from @fig-penguins-resid-fitted, not from the Q-Q plot.</span>
+<span id="cb7-411"><a href="#cb7-411"></a></span>
+<span id="cb7-412"><a href="#cb7-412"></a><span class="fu"># Linking Diagnostics to Decisions</span></span>
+<span id="cb7-413"><a href="#cb7-413"></a></span>
+<span id="cb7-414"><a href="#cb7-414"></a>The penguins example shows why diagnostics should lead directly to model revision. The residual-versus-fitted plot does not suggest a small tweak to an otherwise adequate straight line. It suggests that I have fitted the wrong model because I ignored a biologically relevant grouping variable. In that case, the most sensible correction is to change the model specification by including species, by allowing species-specific slopes, or by fitting separate lines.</span>
+<span id="cb7-415"><a href="#cb7-415"></a></span>
+<span id="cb7-416"><a href="#cb7-416"></a>That same logic extends beyond this example. When residuals show curvature, the fitted mean structure is incomplete. The correction may be to add an omitted predictor, include an interaction, transform a predictor or the response, add a polynomial term, use a smoother, or move to a nonlinear model whose form matches the biology more closely.</span>
+<span id="cb7-417"><a href="#cb7-417"></a></span>
+<span id="cb7-418"><a href="#cb7-418"></a>When the residual spread changes across the fitted range, the variance structure is being described poorly. Possible corrections include transforming the response, modelling the variance explicitly, using weighted regression, or choosing a model family whose mean-variance relationship is more appropriate for the data.</span>
+<span id="cb7-419"><a href="#cb7-419"></a></span>
+<span id="cb7-420"><a href="#cb7-420"></a>When the Q-Q plot shows strong tail departures, the next step is usually to inspect the data rather than to panic about normality in the abstract. Extreme residuals may reflect outliers, influential observations, an awkward response scale, or a response distribution that is not well handled by a Gaussian model.</span>
+<span id="cb7-421"><a href="#cb7-421"></a></span>
+<span id="cb7-422"><a href="#cb7-422"></a>When residuals are dependent, the solution is rarely a cosmetic adjustment to the same model. Dependence points back to the design and often requires a different modelling framework altogether, such as repeated-measures methods, time-series models, spatial models, or mixed models.</span>
+<span id="cb7-423"><a href="#cb7-423"></a></span>
+<span id="cb7-424"><a href="#cb7-424"></a>A diagnostic plot therefore points to the aspect of the model that needs revision and helps decide what kind of revision is defensible.</span>
+<span id="cb7-425"><a href="#cb7-425"></a></span>
+<span id="cb7-426"><a href="#cb7-426"></a><span class="fu"># Connection to Earlier Chapters</span></span>
+<span id="cb7-427"><a href="#cb7-427"></a></span>
+<span id="cb7-428"><a href="#cb7-428"></a>This chapter extends the checking habits developed in <span class="co">[</span><span class="ot">Chapter 6</span><span class="co">](06-assumptions-and-transformations.qmd)</span>. Grouped comparisons checked variation within groups. Paired analyses checked variation in the within-pair differences. Correlation inspected the observed joint pattern directly. Regression keeps the same questions about structure, spread, and dependence, but it asks them after the model has already been fitted.</span>
+<span id="cb7-429"><a href="#cb7-429"></a></span>
+<span id="cb7-430"><a href="#cb7-430"></a><span class="fu"># Forward Links</span></span>
+<span id="cb7-431"><a href="#cb7-431"></a></span>
+<span id="cb7-432"><a href="#cb7-432"></a>Diagnostics will emerge again in:</span>
+<span id="cb7-433"><a href="#cb7-433"></a></span>
+<span id="cb7-434"><a href="#cb7-434"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">Chapter 12: Simple Linear Regression</span><span class="co">](12-simple-linear-regression.qmd)</span> fits and interprets the first full regression models.</span>
+<span id="cb7-435"><a href="#cb7-435"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">Chapter 14: Multiple Regression and Model Specification</span><span class="co">](14-multiple-regression-and-model-specification.qmd)</span> applies the same diagnostic ideas when several predictors appear in one model.</span>
+<span id="cb7-436"><a href="#cb7-436"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">Chapter 17: Model Checking and Evaluation</span><span class="co">](17-model-checking-and-evaluation.qmd)</span> develops residual analysis, leverage, influence, and model comparison in more detail.</span>
+<span id="cb7-437"><a href="#cb7-437"></a><span class="ss">-   </span><span class="co">[</span><span class="ot">Chapter 19: Dependence and Mixed Models</span><span class="co">](19-dependence-and-mixed-models.qmd)</span> takes up the cases where independence fails because observations are clustered or repeated.</span>
+<span id="cb7-438"><a href="#cb7-438"></a></span>
+<span id="cb7-439"><a href="#cb7-439"></a><span class="fu"># Summary</span></span>
+<span id="cb7-440"><a href="#cb7-440"></a></span>
+<span id="cb7-441"><a href="#cb7-441"></a>Regression starts from the decomposition</span>
+<span id="cb7-442"><a href="#cb7-442"></a></span>
+<span id="cb7-443"><a href="#cb7-443"></a>$$</span>
+<span id="cb7-444"><a href="#cb7-444"></a>\text{response} = \text{systematic component} + \text{error}</span>
+<span id="cb7-445"><a href="#cb7-445"></a>$$</span>
+<span id="cb7-446"><a href="#cb7-446"></a></span>
+<span id="cb7-447"><a href="#cb7-447"></a>After fitting the model, I inspect residuals because they estimate the unobserved errors.</span>
+<span id="cb7-448"><a href="#cb7-448"></a></span>
+<span id="cb7-449"><a href="#cb7-449"></a>Residual-versus-fitted plots check the mean structure and the variance structure. Q-Q plots check whether the residual distribution is close enough to normal for the intended inference. Independence comes mainly from the design and, where relevant, from residual patterns across time, space, or sampling order.</span>
+<span id="cb7-450"><a href="#cb7-450"></a></span>
+<span id="cb7-451"><a href="#cb7-451"></a>The purpose of these diagnostics is not description for its own sake. They tell me whether the current model is adequate or whether I need to revise it before interpreting coefficients or testing hypotheses.</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
