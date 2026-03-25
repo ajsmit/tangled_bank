@@ -64,11 +64,13 @@ Linear models are among the most useful statistical tools in biology because the
 
 The most basic of these models is the **simple linear model**, which has one continuous predictor and one continuous response. The aim may be *explanatory*, where the predictor is believed to influence the response, or *predictive*, where we want a formula that allows us to estimate likely values of the response from known values of the predictor. In either case, regression differs from [correlation](09-correlation-and-association.qmd) because it imposes a response-predictor structure on the data.
 
+As established in Chapter 11, every observed response can be written as $Y_i = \hat{Y}_i + e_i$, where $\hat{Y}_i$ is the model's prediction and $e_i$ is the residual. Diagnostics inspect the $e_i$.
+
 In the previous chapter, I defined residuals and showed how fitted models are checked. In this chapter, I apply that diagnostic checks to the full regression model.
 
 Below, I lay the groundwork for [polynomial regression](13-polynomial-regression.qmd), [multiple regression](14-multiple-regression-and-model-specification.qmd), [interaction terms](15-interaction-effects.qmd), [generalised linear models](20-generalised-linear-models.qmd), and several of the more flexible modelling approaches discussed later. If the response-predictor structure is sound and a straight-line model is biologically plausible, simple linear regression is often the correct point of departure.
 
-# Key Concepts
+# Main Concepts
 
 These ideas organise the chapter.
 
@@ -81,25 +83,49 @@ These ideas organise the chapter.
 
 # Nature of the Data and Assumptions
 
-The experimenter must ensure the following requirements for a simple linear regression:
+## Requirements Before Fitting
+
+As the experimenter, you must ensure the following requirements *before* a simple linear regression is fitted:
 
 1. **A defensible response-predictor structure:** There should be a theoretical or philosophical basis for treating one variable as the predictor and the other as the response. This may be explicitly causal, but it can also be predictive if that distinction is still biologically sensible.
 2. **Independence of observations:** Each measured value of the response must be independent of the others. If repeated measurements, clustered sampling, or temporal dependence are present, a different modelling framework may be required.
+
+   When temporal or spatial order is plausible, plot residuals against the order in which observations were collected. Runs of positive or negative residuals, or systematic cycles, indicate dependence that the model has not captured. For the sparrow and penguin examples you will encounter below, measurements are treated as independent, so this check is not performed here.
+
 3. **Continuous predictor:** The predictor variable should be continuous.
 4. **Continuous response:** The response variable should also be continuous.
 
+## Assumptions to Check After Fitting
+
 After the model has been fitted, the following assumptions must be checked:
 
-1. **Normality:** The residuals should be approximately normally distributed.
-2. **Homoscedasticity:** The residual variance should be roughly constant across the fitted values.
+1. **Normality:** The residuals $e_i$ should be approximately normally distributed.
+2. **Homoscedasticity:** The variance of the residuals $e_i$ should be roughly constant across the fitted values.
 3. **Linearity:** The mean relationship between the predictor and the response should be approximately linear.
 4. **Measurement error in the predictor:** Standard linear regression assumes that the predictor is measured without serious error. In practice this is only approximately true, and we return to this issue in [Chapter 16](16-collinearity-confounding-measurement-error.qmd).
 
-As in the earlier inferential chapters, the workflow is important. We first inspect the data, then fit the model, then examine the residuals, and *only then* interpret the coefficients with confidence.
+As in the earlier inferential chapters, you must pay attention to the workflow. We first inspect the data (EDA and graphically), then fit the model, then examine the residuals (graphically first, then assumption tests if desired), and *only then* interpret the coefficients with confidence.
+
+## Assumption–Diagnostic Mapping
+
+The table below summarises which diagnostic tool targets which assumption and what pattern to watch for.
+
+| Assumption | What it concerns | Main diagnostic | Visual signal to watch for |
+|---|---|---|---|
+| Linearity | mean structure | residual vs fitted plot | slope or curvature in residuals |
+| Constant variance | spread | residual vs fitted / scale-location | funnel or changing vertical spread |
+| Normality | residual distribution | residual Q-Q plot | systematic bends away from reference line |
+| Independence | relationship among residuals | residuals vs order/time/space | runs, cycles, clusters |
 
 # The Model
 
-Simple linear regression is the first statistical method in the work we have done thus far in which we write an explicit equation (the model) for the mean response and then estimate its parameters from data. The model itself and the least-squares fitting rule are set out in the `Core Equations` section below.
+Simple linear regression is the first statistical method in the work we have done thus far in which we write an explicit equation (the model) for the mean response and then estimate its parameters from data.
+
+The model is:
+
+$$Y_i = \alpha + \beta X_i + \epsilon_i$$ {#eq-slr-model}
+
+In @eq-slr-model, $Y_i$ is the response for observation $i$, $X_i$ is the predictor, $\alpha$ is the intercept, $\beta$ is the slope, and $\epsilon_i$ is the error term. Errors $\epsilon_i$ are unobserved theoretical quantities. Residuals $e_i$ are their observed estimates, computed after fitting, and are the objects used for diagnostic checks.
 
 The line is fitted by minimising the sum of squared residuals. This is why ordinary linear regression is often called an **ordinary least squares** method.
 
@@ -113,12 +139,24 @@ The animation below shows the fitted line rotating through the data as the error
 ```
 
 ::: {.callout-note appearance="simple"}
-## The Residuals, $\epsilon_i$
+## Errors and Residuals
 
-In most regression models we assume that the residuals are independent and identically distributed. When the residuals are approximately normal this can be written as $\epsilon_i \sim N(0, \sigma^2)$. The requirement of mean zero implies that, on average, the model does not systematically over- or under-predict. Constant variance implies that the spread of residuals is roughly similar across the predictor range. Independence implies that residuals do not carry systematic structure from one observation to the next.
+The model contains errors $\epsilon_i$, which are the unobserved theoretical deviations of each true response from the straight-line mean. In most regression models we assume that the errors are independent and identically distributed. When the errors are approximately normal this can be written as $\epsilon_i \sim N(0, \sigma^2)$. The requirement of mean zero implies that, on average, the model does not systematically over- or under-predict. Constant variance implies that the spread of errors is roughly similar across the predictor range. Independence implies that errors do not carry systematic structure from one observation to the next.
+
+The residuals $e_i = Y_i - \hat{Y}_i$ are the observed estimates of these unobserved errors. It is the residuals that are available after fitting and that we inspect in diagnostic plots.
 
 Violation of these assumptions can lead to biased or inefficient parameter estimates, poor uncertainty estimates, and misleading inference.
 :::
+
+The next section formalises how the line is chosen from the data.
+
+# The Fitting Rule
+
+The least-squares criterion used by `lm()` is to choose $\alpha$ and $\beta$ so that the residual sum of squares is as small as possible:
+
+$$\text{RSS} = \sum_{i=1}^{n}(Y_i - \hat{Y}_i)^2$$ {#eq-rss}
+
+@eq-rss is not a regression model. It is the fitting rule that tells us how the software decides which of all possible straight lines is the best-fitting one.
 
 # R Function
 
@@ -130,22 +168,6 @@ lm(response ~ predictor, data = df)
 ```
 
 You can read the formula `response ~ predictor` as "the response is modelled as a function of the predictor."
-
-# The Core Equations
-
-Simple linear regression has two equations that students should keep conceptually separate. The first describes the model for the mean response. The second describes how the fitted line is chosen from the data.
-
-The model itself is:
-
-$$Y_i = \alpha + \beta X_i + \epsilon_i$$ {#eq-slr}
-
-In @eq-slr, $Y_i$ is the response for observation $i$, $X_i$ is the predictor, $\alpha$ is the intercept, $\beta$ is the slope, and $\epsilon_i$ is the residual error. This is the equation that says what a straight-line mean structure looks like.
-
-The least-squares criterion used by `lm()` is then to choose $\alpha$ and $\beta$ so that the residual sum of squares is as small as possible:
-
-$$\text{RSS} = \sum_{i=1}^{n}(Y_i - \hat{Y}_i)^2$$ {#eq-rss}
-
-Equation @eq-rss is not a second regression model. It is the fitting rule. It tells us how the software decides which of all possible straight lines is the best-fitting one.
 
 The fitted model can then be explored with functions such as:
 
@@ -163,6 +185,17 @@ Outliers can have disproportionate effects on a simple linear regression because
 This does not mean that unusual observations must automatically be removed. Some are recording errors and should be corrected or excluded. Others are rare but real biological events and may carry important information. The correct response is therefore to identify potentially influential points, inspect them carefully, and decide whether they reveal error, unusual but valid biology, or a more fundamental model problem.
 
 # Example 1: Sparrow Wing Length and Age
+
+::: {.callout-note appearance="simple"}
+## Diagnostic Workflow for Simple Linear Regression
+
+1. Fit the model with `lm()`.
+2. Plot residuals versus fitted values — check for curvature (linearity) and changing spread (constant variance).
+3. Plot the residual Q-Q plot — check whether the residual distribution is close enough to normal.
+4. If temporal or spatial order is plausible, plot residuals against order — check for runs or cycles (independence).
+5. Inspect Cook's distance and leverage — identify observations with disproportionate influence.
+6. Revise the model if any diagnostic reveals leftover structure.
+:::
 
 I begin with a very small sparrow dataset because it makes the general approach clear. I then go to a fuller worked example using the Adelie penguin data from the `palmerpenguins` package, which is much closer to the style and level of complexity encountered in real biological analyses.
 
@@ -212,7 +245,7 @@ In @fig-sparrow, the scatter plot suggests a clear positive linear relationship:
 
 With the sparrow example, I ask whether wing length changes systematically with age.
 
-The statistic of interest in a simple linear regression is usually the slope in @eq-slr, which quantifies the magnitude and direction of dependence of the response on the predictor:
+The statistic of interest in a simple linear regression is usually the slope in @eq-slr-model, which quantifies the magnitude and direction of dependence of the response on the predictor:
 
 $$H_{0}: \beta = 0$$
 $$H_{a}: \beta \ne 0$$
@@ -248,9 +281,23 @@ plot(sparrow_mod)
 par(mfrow = c(1, 1))
 ```
 
+### Normality
+
+The Q-Q panel in @fig-sparrow-diagnostics shows the sample quantiles of the residuals plotted against the theoretical quantiles of a normal distribution. For these data the points track close to the reference line, indicating that the residuals do not depart strongly from normality.
+
+### Homoscedasticity
+
+The residuals-versus-fitted panel in @fig-sparrow-diagnostics does not reveal a systematic funnel or wedge pattern. The spread of residuals appears reasonably even across the range of fitted values, consistent with the constant-variance assumption.
+
+### Influential observations
+
+Because the dataset contains only 13 observations, formal influence diagnostics have limited statistical power. No single observation stands out dramatically in the scale-location or Cook's-distance panels, but conclusions based on such a small sample should be interpreted cautiously.
+
 In @fig-sparrow-diagnostics, the diagnostic plots suggest that the model is broadly adequate for these data. The residuals do not show severe curvature, the spread is reasonably even, and the Q-Q plot does not suggest a dramatic departure from normality. Because the dataset is small, these plots should be interpreted cautiously, but there is no obvious reason to abandon the linear model.
 
 ## Interpret the Results
+
+Inference applies within the observed range of the predictor. Extrapolation beyond the data is possible but requires explicit justification, because the straight-line form may not hold outside the observed range.
 
 I construct the final model fit as a figure, which I will use in my reporting.
 
@@ -297,7 +344,7 @@ This example is useful because it makes the biological interpretation of the slo
 
 The following example uses the `penguins` dataset from the `palmerpenguins` package to model bill length as a function of body mass in Adelie penguins.
 
-Although I could also calculate a correlation, I will use a simple linear regression because we want a predictive model that estimates bill length from body mass. This is a defensible use of simple linear regression even though we are not claiming that body mass directly causes bill length.
+Although I could also calculate a correlation, I will use a simple linear regression because I want a predictive model that estimates bill length from body mass. This is a defensible use of simple linear regression even though I am not claiming that body mass directly causes bill length.
 
 ```{r code-penguin-data}
 Adelie <- penguins[penguins$species == "Adelie", ]
@@ -377,7 +424,7 @@ I use the Shapiro-Wilk test as one formal check of the residual distribution.
 shapiro.test(residuals(mod1))
 ```
 
-Here the formal test does not suggest a serious departure from normality, but the graphical diagnostics are usually more informative than the test alone.
+The formal test does not flag a serious departure from normality here, but graphical diagnostics are usually more informative than the test alone, especially in moderate samples where the test has limited power to detect mild departures.
 
 ```{r fig-assump-plots}
 #| echo: false
@@ -421,11 +468,21 @@ The Breusch-Pagan test is one formal check of constant variance.
 bptest(mod1)
 ```
 
-The test does not suggest strong heteroscedasticity, and the residuals-versus-fitted and scale-location panels in @fig-assump-plots also indicate that the spread of residuals is reasonably even across the fitted range.
+The formal test is consistent with the visual impression from the residual plots. Graphical inspection should take precedence: if the scale-location plot shows a clear trend, the spread is not constant regardless of the test p-value. The test does not suggest strong heteroscedasticity, and the residuals-versus-fitted and scale-location panels in @fig-assump-plots also indicate that the spread of residuals is reasonably even across the fitted range.
 
 ### Check for Outliers
 
-Outliers and influential observations can be explored in several complementary ways. Here I look at DFFITS, Cook's distance, residuals versus leverage, and Cook's distance versus leverage.
+Outliers and influential observations can be explored in several complementary ways. Here I look at DFFITS, Cook's distance, residuals versus leverage, and Cook's distance versus leverage. Each diagnostic captures a different facet of how an observation affects the fitted model.
+
+**Leverage** measures how far an observation's predictor value sits from the centre of the predictor distribution. A high-leverage point has an unusual $X$ value. Leverage alone is not a problem: if a high-leverage point falls close to the fitted line, it does not distort it. The concern arises when a high-leverage point also has a large residual, because then it pulls the fitted line toward itself without the rest of the data providing a counterweight.
+
+**Cook's distance** measures the total change in all fitted values when one observation is removed from the fit. It therefore captures *overall influence*: a point with a large Cook's distance shifts the entire fitted surface when excluded. The threshold used here is $4/n$, where $n$ is the number of observations. Points exceeding this threshold are flagged for closer inspection, though the threshold is a rough guide rather than a firm rule.
+
+**DFFITS** (Difference in Fits) measures how much the fitted value *at that specific observation* changes when the observation is removed, expressed in units of estimated standard errors. Unlike Cook's distance, which summarises influence on all fitted values, DFFITS focuses on the local fitted value. The threshold here is $2\sqrt{p/n}$, where $p$ is the number of model parameters. A bar extending beyond the dashed threshold lines indicates an observation whose removal would notably shift the prediction at that point.
+
+**Residuals versus leverage** (panel C) combines the two sources of concern on a single plot. Leverage is on the $x$-axis and standardised residuals are on the $y$-axis. Points to the right have unusual predictor values; points far from zero on the $y$-axis have large residuals. The most problematic observations are those that appear simultaneously in the right (high leverage) and top or bottom (large residual) of the plot. Point size encodes Cook's distance, so large symbols in the upper or lower right are the highest priority to inspect.
+
+**Cook's distance versus leverage** (panel D) makes the relationship between position and influence explicit. Points that sit to the right of the vertical dashed line (twice the mean leverage) and above the horizontal dashed line (the Cook's threshold) combine both unusual predictor position and substantial overall influence. Any point in that upper-right region should be examined in the raw data.
 
 ```{r code-outlier-data}
 cooksd_thresh <- 4 / nrow(mod1_data)
@@ -512,15 +569,30 @@ ggplot(mod1_data, aes(x = body_mass_g, y = bill_length_mm)) +
   guides(size = guide_legend("Cook's Distance"))
 ```
 
-Figures @fig-penguin-outliers1 and @fig-penguin-outliers2 do not suggest a catastrophic influence problem, but they do remind us that some observations contribute more to the fitted line than others. If an identified point was an obvious data-entry error, I could correct or exclude it. If it was a real biological extreme, I'd keep it and discuss its influence.
+Reading @fig-penguin-outliers1 panel by panel:
+
+- **Panel A (DFFITS):** Most bars are well within the dashed threshold lines. No single bar extends far beyond the threshold, so no observation shifts its own fitted value dramatically when removed.
+- **Panel B (Cook's distance):** A handful of bars just exceed or approach the $4/n$ threshold (dashed red line), shown in black and labelled by row number. These are the candidates to inspect further, but no bar is dramatically taller than its neighbours.
+- **Panel C (Residuals vs leverage):** The vertical dashed blue line marks twice the mean leverage. Most points cluster toward the left (low leverage) and within ±2 standardised residuals. A few points sit near or beyond the leverage threshold, but none combine extreme leverage with a large residual. Point sizes (Cook's distance) are small throughout.
+- **Panel D (Cook's distance vs leverage):** Points above the horizontal threshold and to the right of the vertical threshold would be the highest-concern observations. Here no point occupies the upper-right region simultaneously.
+
+@fig-penguin-outliers2 locates the flagged observations in the original scatter plot. Highlighted points are not at the extremes of either variable and are not pulling the line in an obvious direction.
+
+Figures @fig-penguin-outliers1 and @fig-penguin-outliers2 do not suggest a catastrophic influence problem, but they do suggest that some observations contribute more to the fitted line than others. If an identified point was an obvious data-entry error, I could correct or exclude it. If it was a real biological extreme, I'd keep it and discuss its influence.
 
 ## Interpret the Results
 
 Now that the assumptions appear broadly acceptable, I can interpret the fitted model. The slope of the regression line is positive, so bill length increases with body mass. The coefficient is about $3.2 \times 10^{-3}$ mm/g, meaning that the expected bill length increases by about 0.0032 mm for every additional gram of body mass.
 
+Note that the units of the slope depend directly on the units of both variables. Here the slope is expressed in mm per gram, which produces a small numerical value. Rescaling body mass to kilograms (dividing by 1000) would yield a slope of about 3.2 mm/kg, which is easier to describe verbally. The biological meaning is unchanged.
+
 The multiple $R^2$ is about 0.30, so the model explains roughly 30% of the observed variation in bill length. A biologically informative regression does not *need* to explain nearly all the variation in the response to be worthwhile.
 
 The test of the slope provides strong evidence that the relationship is not zero ($p < 0.001$). I apply an ANOVA on the fitted model and this leads me to the same practical conclusion, which is that the straight-line model explains a meaningful amount of variation in bill length.
+
+Among the diagnostics, the residuals-versus-fitted plot is the most informative here. The spread is reasonably even and there is no clear curvature, which supports the straight-line mean structure for this species subset.
+
+Had the Q-Q plot shown strong tail departures or the residual spread changed markedly across the fitted range, the next step would be to consider a response transformation, a different model family, or the inclusion of additional predictors.
 
 ## Reporting
 
@@ -632,21 +704,21 @@ Find **two datasets** of your own and do a full simple linear regression analysi
 
 A strong answer should include all of the following:
 
-1. **Dataset choice and justification**  
+1. **Dataset choice and justification**
    Explain what each dataset measures, why the response-predictor structure is defensible, and why a straight-line model is biologically sensible as a first approximation.
-2. **Hypotheses**  
+2. **Hypotheses**
    State the null and alternative hypotheses in terms of the slope:
 
 $$H_0: \beta = 0$$
 $$H_a: \beta \ne 0$$
 
-3. **EDA**  
+3. **EDA**
    Provide summary statistics and scatterplots. Comment on outliers, clustering, spread, and whether a straight-line relationship looks plausible.
-4. **Model fitting**  
+4. **Model fitting**
    Fit the model with `lm(response ~ predictor, data = ...)`, then report the estimated slope, its standard error, confidence interval, the model $R^2$, and the p-value for the slope.
-5. **Diagnostics**  
+5. **Diagnostics**
    Show at least a residuals-versus-fitted plot and a residual Q-Q plot. Explain what they imply about linearity, constant variance, and approximate normality.
-6. **Results section**  
+6. **Results section**
    Write a concise Methods/Results style paragraph that reports the effect size, uncertainty, direction of the relationship, and the biological meaning of the model.
 
 A weak answer merely pastes R output. A strong answer interprets the slope biologically, justifies the model choice, and links the diagnostics to whether the model is trustworthy.
@@ -663,4 +735,4 @@ A weak answer merely pastes R output. A strong answer interprets the slope biolo
 -   Outlier diagnostics help us decide whether unusual observations are errors, influential extremes, or signs of model misspecification.
 -   Confidence intervals and prediction intervals answer different questions.
 
-In this chapter, I establish the workflow for modelling. In the next chapter, I extend the same workflow to curved relationships, and in [Chapter 14](14-multiple-regression-and-model-specification.qmd) I then move to several predictors at once.
+I established the workflow for modelling, above. In the next chapter, I extend the same workflow to curved relationships, and in [Chapter 14](14-multiple-regression-and-model-specification.qmd) I then move to several predictors at once.
