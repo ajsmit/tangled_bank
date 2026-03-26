@@ -1,0 +1,372 @@
+---
+title: "Life Expectancy and Schooling"
+subtitle: "A Simple Linear Regression Example Using the Kaggle Life Expectancy Data"
+author: "A. J. Smit"
+date: last-modified
+date-format: "YYYY/MM/DD"
+format:
+  html:
+    df-print: paged
+reference-location: margin
+params:
+  hide_answers: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center",
+  fig.retina = 2,
+  dpi = 300
+)
+
+library(tidyverse)
+library(broom)
+library(gt)
+library(patchwork)
+
+theme_set(theme_bw(base_size = 11))
+```
+
+:::: {.callout-important appearance="simple"}
+## Self-Assessment Task 12-1
+
+**1. Question:**
+
+Does **life expectancy** increase with **schooling** in the Kaggle life expectancy dataset?
+
+Complete a full simple linear regression analysis using life expectancy as the response and schooling as the predictor. Your job is not only to fit the model, but also to identify and justify the treatment of problematic observations.
+
+You should do the following:
+
+1. Prepare the data by selecting the variables needed for the analysis and removing rows with missing values.
+2. Fit the initial simple linear regression model.
+3. Plot the data and show the fitted regression line.
+4. Check the initial model diagnostics graphically.
+5. Identify the issue in the dataset.
+6. Provide evidence for this issue as a table.
+7. Explain why these cases appear problematic for this analysis.
+8. Remove the problematic cases and refit the model.
+9. Recheck the diagnostics graphically for the revised model.
+10. Interpret the final model clearly and state whether it is an improvement over the initial fit. Tabulate the important model-fit statistics in support of your conclusion.
+11. End with a short scientific write-up containing Methods, Results, and Discussion sections.
+
+**2. Marking Rubric**
+
+| Component | Marks |
+|---|---:|
+| Data preparation | 3 |
+| Initial model fitting and figure | 3 |
+| Initial model diagnostics | 3 |
+| Identifying and explaining the issue | 3 |
+| Evidence for the issue presented as a table | 4 |
+| Removing the problematic cases appropriately | 2 |
+| Refitting the analysis | 3 |
+| Rechecking the diagnostics | 3 |
+| Interpreting the final model and comparing it with the initial model | 3 |
+| Scientific write-up (Methods, Results, Discussion) | 3 |
+
+**Total: 30 marks**
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**3. Data Preparation**
+
+I begin by reading the dataset and keeping only the variables needed for this analysis.
+
+```{r}
+#| label: data-prep
+
+life_raw <- read.csv(
+  "../../data/BCB744/kaggle_life_expectancy_data.csv",
+  check.names = FALSE
+)
+
+life_dat <- life_raw |>
+  transmute(
+    Country,
+    Year,
+    life_expectancy = `Life expectancy`,
+    Schooling
+  ) |>
+  drop_na(life_expectancy, Schooling)
+
+nrow(life_dat)
+```
+
+The working dataset contains `r scales::comma(nrow(life_dat))` complete observations on life expectancy and schooling.
+
+**4. Diagnostics for the Initial Model**
+
+Regression assumptions should be checked graphically. I therefore inspect residuals versus fitted values, the normal Q-Q plot, the scale-location plot, and residuals versus leverage in @fig-full-diag.
+
+```{r}
+#| label: full-augment
+
+full_aug <- augment(mod_school_full)
+```
+
+```{r}
+#| label: fig-full-diag
+#| fig-cap: "Diagnostic plots for the simple linear regression of life expectancy on schooling using all complete cases."
+#| fig-width: 8
+#| fig-height: 7
+
+p_full_1 <- ggplot(full_aug, aes(x = .fitted, y = .resid)) +
+  geom_point(shape = 1, alpha = 0.4) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "red") +
+  labs(x = "Fitted values", y = "Residuals", title = "Residuals vs Fitted")
+
+p_full_2 <- ggplot(full_aug, aes(sample = .std.resid)) +
+  stat_qq(shape = 1, alpha = 0.5) +
+  stat_qq_line(colour = "red") +
+  labs(title = "Normal Q-Q", x = "Theoretical quantiles", y = "Standardised residuals")
+
+p_full_3 <- ggplot(full_aug, aes(x = .fitted, y = sqrt(abs(.std.resid)))) +
+  geom_point(shape = 1, alpha = 0.4) +
+  labs(
+    x = "Fitted values",
+    y = "Sqrt(|Standardised residuals|)",
+    title = "Scale-Location"
+  )
+
+p_full_4 <- ggplot(full_aug, aes(x = .hat, y = .std.resid)) +
+  geom_point(shape = 1, alpha = 0.4) +
+  labs(
+    x = "Leverage",
+    y = "Standardised residuals",
+    title = "Residuals vs Leverage"
+  )
+
+(p_full_1 + p_full_2) / (p_full_3 + p_full_4)
+```
+
+The initial diagnostics in @fig-full-diag suggest that the model captures the broad trend reasonably well, but there is evidence that the extreme low-schooling observations deserve scrutiny. The residual plots are not catastrophic, but the zero-schooling countries create a left-edge concentration that may be exerting unnecessary influence on the fitted line.
+
+**5. Countries With Zero Schooling**
+
+Before fitting the model, I inspect the cases where schooling is recorded as zero. A zero value here is biologically and socially unusual for several countries in the dataset, so it is worth checking whether these cases should be treated with caution.
+
+```{r}
+#| label: zero-schooling-data
+
+schooling_zero <- life_dat |>
+  filter(Schooling == 0) |>
+  distinct(Country, Year, Schooling) |>
+  arrange(Country, Year)
+
+schooling_zero_counts <- schooling_zero |>
+  count(Country, name = "Zero-schooling years")
+```
+
+@tbl-zero-schooling lists the countries represented by one or more rows where schooling is coded as zero.
+
+```{r}
+#| label: tbl-zero-schooling
+#| tbl-cap: "Countries with one or more observations in which schooling is coded as zero."
+#| echo: false
+
+schooling_zero_counts |>
+  gt()
+```
+
+The detailed country-year rows are shown in @tbl-zero-schooling-years.
+
+```{r}
+#| label: tbl-zero-schooling-years
+#| tbl-cap: "Country-year observations in which schooling is coded as zero."
+
+schooling_zero |>
+  gt()
+```
+
+Because several of these zero-schooling values are unlikely to be literal population-level measurements, I first fit the model with all complete cases and then refit it after excluding these countries.
+
+**6. Initial Model: All Complete Cases**
+
+I now fit the simple linear regression:
+
+$$
+\text{Life expectancy}_i = \beta_0 + \beta_1 \text{Schooling}_i + \varepsilon_i
+$$
+
+In this model, $\beta_1$ is the expected change in life expectancy associated with a one-unit increase in schooling.
+
+```{r}
+#| label: fit-full
+
+mod_school_full <- lm(life_expectancy ~ Schooling, data = life_dat)
+summary(mod_school_full)
+```
+
+The fitted relationship is shown in @fig-full-fit.
+
+```{r}
+#| label: fig-full-fit
+#| fig-cap: "Life expectancy as a function of schooling using all complete observations. The line shows the fitted simple linear regression and the shaded band shows the 95% confidence interval for the mean fitted response."
+#| fig-width: 6
+#| fig-height: 4.5
+
+ggplot(life_dat, aes(x = Schooling, y = life_expectancy)) +
+  geom_point(shape = 1, alpha = 0.35, colour = "grey35") +
+  geom_smooth(
+    method = "lm",
+    se = TRUE,
+    colour = "steelblue4",
+    fill = "lightblue"
+  ) +
+  labs(
+    x = "Schooling",
+    y = "Life expectancy"
+  )
+```
+
+@fig-full-fit shows a clear positive trend: countries with higher schooling values tend to have higher life expectancy. The relationship is not perfectly tight, but it is strong enough to make a simple straight-line model a reasonable first approximation.
+
+**7. Refit After Removing Zero-Schooling Countries**
+
+I now remove every country that appears in @tbl-zero-schooling and refit the model. This is a more conservative filtering decision than simply dropping the rows where schooling equals zero, because it assumes that a country with obviously suspect schooling values may contribute additional problematic observations in other years as well.
+
+```{r}
+#| label: data-filtered
+
+life_dat_filtered <- life_dat |>
+  filter(!Country %in% zero_countries)
+
+nrow(life_dat_filtered)
+```
+
+After this filtering step, `r scales::comma(nrow(life_dat_filtered))` observations remain.
+
+```{r}
+#| label: fit-filtered
+
+mod_school_filtered <- lm(life_expectancy ~ Schooling, data = life_dat_filtered)
+summary(mod_school_filtered)
+```
+
+The refitted relationship is shown in @fig-filtered-fit.
+
+```{r}
+#| label: fig-filtered-fit
+#| fig-cap: "Life expectancy as a function of schooling after removing countries with one or more zero-schooling observations."
+#| fig-width: 6
+#| fig-height: 4.5
+
+ggplot(life_dat_filtered, aes(x = Schooling, y = life_expectancy)) +
+  geom_point(shape = 1, alpha = 0.35, colour = "grey35") +
+  geom_smooth(
+    method = "lm",
+    se = TRUE,
+    colour = "steelblue4",
+    fill = "lightblue"
+  ) +
+  labs(
+    x = "Schooling",
+    y = "Life expectancy"
+  )
+```
+
+Compared with @fig-full-fit, @fig-filtered-fit shows a slightly cleaner linear pattern. The slope remains strongly positive, but the fit is less distorted by the extreme left-edge cases.
+
+**8. Diagnostics for the Filtered Model**
+
+I again inspect the standard regression diagnostics, now for the filtered model (@fig-filtered-diag).
+
+```{r}
+#| label: filtered-augment
+
+filtered_aug <- augment(mod_school_filtered)
+```
+
+```{r}
+#| label: fig-filtered-diag
+#| fig-cap: "Diagnostic plots for the simple linear regression of life expectancy on schooling after removing countries with zero-schooling observations."
+#| fig-width: 8
+#| fig-height: 7
+
+p_fil_1 <- ggplot(filtered_aug, aes(x = .fitted, y = .resid)) +
+  geom_point(shape = 1, alpha = 0.4) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "red") +
+  labs(x = "Fitted values", y = "Residuals", title = "Residuals vs Fitted")
+
+p_fil_2 <- ggplot(filtered_aug, aes(sample = .std.resid)) +
+  stat_qq(shape = 1, alpha = 0.5) +
+  stat_qq_line(colour = "red") +
+  labs(title = "Normal Q-Q", x = "Theoretical quantiles", y = "Standardised residuals")
+
+p_fil_3 <- ggplot(filtered_aug, aes(x = .fitted, y = sqrt(abs(.std.resid)))) +
+  geom_point(shape = 1, alpha = 0.4) +
+  labs(
+    x = "Fitted values",
+    y = "Sqrt(|Standardised residuals|)",
+    title = "Scale-Location"
+  )
+
+p_fil_4 <- ggplot(filtered_aug, aes(x = .hat, y = .std.resid)) +
+  geom_point(shape = 1, alpha = 0.4) +
+  labs(
+    x = "Leverage",
+    y = "Standardised residuals",
+    title = "Residuals vs Leverage"
+  )
+
+(p_fil_1 + p_fil_2) / (p_fil_3 + p_fil_4)
+```
+
+The filtered-model diagnostics in @fig-filtered-diag are more convincing. The residuals remain somewhat scattered, as expected in a large cross-country dataset, but the leverage pattern is less concerning and the model behaves more like a stable simple linear regression.
+
+**9. Comparing the Two Fits**
+
+To make the comparison explicit, I summarise the key coefficients and fit statistics in @tbl-model-compare.
+
+```{r}
+#| label: tbl-model-compare
+#| tbl-cap: "Comparison of the simple linear regression fitted before and after removing countries with zero-schooling observations."
+
+model_compare <- tibble(
+  Model = c("All complete cases", "Zero-schooling countries removed"),
+  N = c(nobs(mod_school_full), nobs(mod_school_filtered)),
+  Intercept = c(coef(mod_school_full)[1], coef(mod_school_filtered)[1]),
+  Slope = c(coef(mod_school_full)[2], coef(mod_school_filtered)[2]),
+  `95% CI lower` = c(confint(mod_school_full)[2, 1], confint(mod_school_filtered)[2, 1]),
+  `95% CI upper` = c(confint(mod_school_full)[2, 2], confint(mod_school_filtered)[2, 2]),
+  `R-squared` = c(summary(mod_school_full)$r.squared, summary(mod_school_filtered)$r.squared)
+)
+
+model_compare |>
+  mutate(
+    Intercept = round(Intercept, 3),
+    Slope = round(Slope, 3),
+    `95% CI lower` = round(`95% CI lower`, 3),
+    `95% CI upper` = round(`95% CI upper`, 3),
+    `R-squared` = round(`R-squared`, 3)
+  ) |>
+  gt()
+```
+
+@tbl-model-compare shows that removing the zero-schooling countries increases the estimated slope from about `r round(coef(mod_school_full)[2], 2)` to about `r round(coef(mod_school_filtered)[2], 2)` years of life expectancy per unit schooling. At the same time, $R^2$ increases from `r round(summary(mod_school_full)$r.squared, 3)` to `r round(summary(mod_school_filtered)$r.squared, 3)`, indicating a somewhat tighter linear association after filtering.
+
+**10. Write-up**
+
+**10.1 Methods**
+
+I analysed the relationship between life expectancy and schooling using the Kaggle life expectancy dataset. I retained country, year, life expectancy, and schooling, and removed rows with missing values for life expectancy or schooling. I first fitted a simple linear regression using all complete observations, with life expectancy as the response and schooling as the predictor. I then identified countries for which schooling was coded as zero (@tbl-zero-schooling and @tbl-zero-schooling-years). Because several of these zero values appeared implausible as literal measurements and were likely to represent coding anomalies or problematic records, I excluded all observations from those countries and refitted the regression. For both models, I examined the fitted relationship graphically (@fig-full-fit and @fig-filtered-fit) and assessed assumptions using residual-versus-fitted, normal Q-Q, scale-location, and residual-versus-leverage plots (@fig-full-diag and @fig-filtered-diag). Model coefficients and goodness-of-fit statistics were compared in Table @tbl-model-compare.
+
+**10.2 Results**
+
+Using all complete observations, life expectancy increased strongly with schooling (@fig-full-fit). The fitted slope was positive, indicating that countries with greater schooling tended to have higher life expectancy, and the simple linear regression explained a substantial proportion of the variation in life expectancy ($R^2 = `r round(summary(mod_school_full)$r.squared, 3)`). Inspection of the data revealed a small group of countries with one or more observations in which schooling was coded as zero (@tbl-zero-schooling and @tbl-zero-schooling-years). After removing those countries, the positive relationship remained clear and became slightly stronger (@fig-filtered-fit). The estimated slope increased from `r round(coef(mod_school_full)[2], 2)` to `r round(coef(mod_school_filtered)[2], 2)`, and model fit improved from $R^2 = `r round(summary(mod_school_full)$r.squared, 3)` to $R^2 = `r round(summary(mod_school_filtered)$r.squared, 3)` (@tbl-model-compare). The diagnostic plots for the filtered model (@fig-filtered-diag) suggested a cleaner and more stable fit than the initial model, with less concern about leverage from extreme low-schooling cases.
+
+**10.3 Discussion**
+
+This analysis indicates a strong positive association between schooling and life expectancy in the dataset, and the relationship is well captured by a simple linear model after removing countries with zero-schooling records. The comparison between the two fits suggests that those zero-schooling cases were influential enough to weaken the apparent linear pattern and reduce overall fit. Their removal produced a steeper slope and more convincing diagnostics, which supports the decision to treat them as questionable observations for this teaching example.
+
+The results should still be interpreted cautiously. These data are observational and cross-national, so the fitted slope should not be read as a direct causal effect of schooling on life expectancy. Many other factors, including wealth, healthcare access, infectious disease burden, governance, and conflict, may contribute to the observed pattern. Even so, the filtered model provides a useful example of simple linear regression because the predictor-response relationship is interpretable, the scatterplot shows a clear trend, and the diagnostics are broadly acceptable.
+
+`r if (params$hide_answers) ":::"`
+::::
