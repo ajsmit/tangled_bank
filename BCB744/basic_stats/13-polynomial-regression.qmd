@@ -32,11 +32,12 @@ library(gt)
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   why polynomial regression is still a linear model in its parameters;
--   how to decide when a quadratic or cubic term is warranted;
+-   why polynomial regression remains linear in its parameters while capturing curved responses;
+-   how to read residual curvature as a diagnostic signal that motivates polynomial terms;
 -   how to fit and compare polynomial models with `lm()`;
--   how to interpret curvature biologically without overclaiming mechanism;
--   how to report a polynomial regression in the same journal style used across the sequence.
+-   how `poly()` differs from raw powers, and when each is preferable;
+-   how to interpret the fitted curve biologically, including direction, turning points, and extrapolation limits;
+-   how to report a polynomial regression consistently with earlier chapters.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -47,51 +48,81 @@ library(gt)
 
 # Introduction
 
-In [simple linear regression](12-simple-linear-regression.qmd), we assumed that the expected response changes in a straight-line way with the predictor. In many biological settings, that first assumption is too rigid: responses often accelerate, decelerate, peak, or flatten.
+Residual curvature is the diagnostic signal that motivates polynomial regression. When a straight-line model leaves a curved pattern in the residual-versus-fitted plot, the mean structure is incomplete. Adding polynomial terms corrects that structureand keeps the same least-squares fitting approach. But you'll think about the analysis in the same way as a simple linear regression, and the approach to model diagnostics also stays as in in Chapters 11 and 12.
 
-Polynomial regression is the first extension of linear modelling that allows this kind of curvature while remaining in the familiar `lm()` framework. The fitted curve may look nonlinear, but the model is still linear in the coefficients, which means ordinary least squares, confidence intervals, and model diagnostics are still used in exactly the same way.
+As established in [Chapter 11](11-residuals-and-model-based-diagnostics.qmd), every observed response can be decomposed as $Y_i = \hat{Y}_i + e_i$, where $\hat{Y}_i$ is what the current model predicts and $e_i$ is what it fails to explain. If those residuals retain a systematic curved pattern, the model is leaving structure behind. Polynomial regression addresses that by adding powers of the predictor to the mean structure.
 
-In this chapter, I focus on how to detect curvature, how to add polynomial terms sensibly, and how to avoid using high-order polynomials as a substitute for biological reasoning.
+The fitted curve may look nonlinear on a scatter plot, but the model remains linear in its coefficients. So, this means ordinary least squares, standard errors, confidence intervals, and the residual diagnostic plots from Chapter 11 all remain valid without modification.
+
+Below, I work through when and why to add polynomial terms, how to choose the lowest-order model that removes residual structure, and how to interpret the resulting curve in biological terms.
 
 # Key Concepts
 
--   **Polynomial regression is linear in parameters** even though it is curved in the predictor.
--   **A quadratic term** allows one bend in the relationship.
--   **A cubic term** allows more complex curvature, but interpretation usually becomes harder.
--   **Model hierarchy is imortant:** if $X^2$ is in the model, retain $X$; if $X^3$ is in the model, retain both $X$ and $X^2$.
--   **Parsimony is important:** adding terms can improve apparent fit while harming generalisability.
+Polynomial regression modifies the mean structure of the linear model without changing the fitting procedure. A **quadratic term** ($X^2$) allows one bend in the response. A **cubic term** ($X^3$) allows a second bend, but interpretation becomes harder and sensitivity to individual observations increases.
+
+Two constraints apply throughout. **Hierarchy** requires that if $X^2$ is in the model then $X$ must also be included; if $X^3$ is included then $X$ and $X^2$ must also be included. Removing lower-order terms distorts the model geometry and is rarely defensible biologically. **Parsimony** requires that the polynomial degree should be as low as possible while still accounting for the residual structure observed in the simpler model.
 
 # When This Method Is Appropriate
 
-Polynomial regression is useful when:
+Polynomial regression is appropriate when:
 
--   a straight-line model leaves clear residual curvature;
--   the relationship is smooth and continuous rather than step-like;
--   there is no strong mechanistic equation yet, but a curved descriptive model is needed;
--   you want to stay within the familiar inferential approach offered by `lm()`.
+-   a straight-line model leaves clear curvature in the residual-versus-fitted plot;
+-   the biological relationship is smooth and continuous rather than step-like or threshold-driven;
+-   no mechanistic equation is available, but a curved descriptive model is needed;
+-   the analysis should remain within the `lm()` workflow.
 
-When the biology suggests a specific process (for example a saturating uptake model), a mechanistic nonlinear model (Chapter 22) may be better. When curvature is complex and not well represented by low-order powers, a [GAM](21-generalised-additive-models.qmd) may be better.
+If the biology implies a specific process, such as a Michaelis-Menten uptake curve or an exponential growth model, a [mechanistic nonlinear model](22-nonlinear-regression.qmd) fits that expectation more directly and extrapolates more sensibly. If the curvature is complex and cannot be well described by low-order powers, a [generalised additive model](21-generalised-additive-models.qmd) is preferable. Low-order polynomials occupy a useful middle ground because they are more flexible than a straight line and less assumption-laden than a mechanistic model. I have seldom needed to apply one in real-life biological applications, however.
 
 # Nature of the Data and Assumptions
 
-Because polynomial regression uses ordinary least squares, the core assumptions are the same as for simple linear regression:
+## Requirements Before Fitting
 
-1. independence of observations;
-2. approximately normal residuals;
-3. roughly constant residual variance;
-4. continuous response variable.
+Polynomial regression uses ordinary least squares and inherits the same data requirements as simple linear regression:
+
+1.  **A defensible response-predictor structure.** There should be a theoretical or biological reason to treat one variable as the response and the other as the predictor.
+2.  **Independence of observations.** Each measured value of the response must be independent of the others. Repeated measurements, clustered sampling, or temporal dependence require a different modelling approach.
+3.  **Continuous predictor.** The predictor must take values along a continuum over which the polynomial curve can be defined.
+4.  **Continuous response.** The response should be continuous. Counts or proportions require a different model family.
+
+## Assumptions to Check After Fitting
+
+After the model is fitted, residuals are used to check whether the assumptions hold:
+
+1.  **Linearity of residuals.** Adding polynomial terms should reduce or remove curvature in the residual-versus-fitted plot. If curvature persists, a higher-order term, a different transformation, or a more flexible model may be needed.
+2.  **Constant variance.** The spread of residuals should be roughly uniform across the fitted range. High-order polynomial terms can amplify variance at the extremes of the predictor, making heteroscedasticity more likely there.
+3.  **Approximate normality of residuals.** The Q-Q plot should not show systematic departures. High-degree polynomial terms increase sensitivity to extreme observations, so outliers warrant closer attention as model complexity increases.
+4.  **Independence.** Residuals should not retain temporal, spatial, or other structured patterns. The check is the same as in Chapter 12: inspect residuals against order, time, or space if those structures are plausible.
+
+## Assumption–Diagnostic Mapping
+
+The same assumption-to-diagnostic mapping used in Chapter 12 applies here:
+
+| Assumption | Main diagnostic | Visual signal to watch for |
+|---|---|---|
+| Linearity | residual vs fitted plot | slope or curvature in residuals |
+| Constant variance | residual vs fitted / scale-location | funnel or changing vertical spread |
+| Normality | residual Q-Q plot | systematic bends away from reference line |
+| Independence | residuals vs order/time/space | runs, cycles, clusters |
 
 # The Core Equations
 
-What changes in polynomial regression is the mean structure rather than the underlying fitting framework. A cubic polynomial can be written as:
+What polynomial regression changes is the mean structure. The errors $\varepsilon_i$ and the least-squares fitting rule remain unchanged. A cubic polynomial model is:
 
-$$Y_i = \alpha + \beta_1X_i + \beta_2X_i^2 + \beta_3X_i^3 + \epsilon_i$$ {#eq-poly}
+$$Y_i = \alpha + \beta_1X_i + \beta_2X_i^2 + \beta_3X_i^3 + \varepsilon_i$$ {#eq-poly}
 
-In @eq-poly, curvature is represented by powers of $X$, but the model remains linear in the unknown coefficients $\alpha, \beta_1, \beta_2, \beta_3$.
+In @eq-poly, curvature results from the powers of $X$, but the model is still linear in the coefficients $\alpha, \beta_1, \beta_2, \beta_3$. A quadratic model omits the cubic term. A straight-line model omits both higher-order terms. The hierarchy of models is nested, which means nested-model ANOVA can be used to compare them.
 
-For introductory work, the important point is not to memorise the highest-order form. It is to understand that polynomial regression adds powers of the predictor while still estimating ordinary regression coefficients. A quadratic model is therefore just a simpler version of @eq-poly in which the cubic term is omitted.
+The observed residuals $e_i = Y_i - \hat{Y}_i$ estimate the unobserved errors $\varepsilon_i$ and remain the objects used for all diagnostic checks, exactly as in Chapter 11.
 
-# R Function
+# The Fitting Rule
+
+Ordinary least squares minimises the residual sum of squares:
+
+$$\text{RSS} = \sum_{i=1}^{n}(Y_i - \hat{Y}_i)^2$$
+
+This criterion is identical to what `lm()` applies in simple linear regression. Adding polynomial terms to the model formula simply changes which $\hat{Y}_i$ is computed.
+
+# Implementation
 
 The model is still fitted with `lm()`:
 
@@ -102,17 +133,23 @@ lm(y ~ x + I(x^2) + I(x^3), data = df)              # cubic
 lm(y ~ poly(x, degree = 3), data = df)              # orthogonal polynomial basis
 ```
 
-For teaching and biological interpretation, raw powers (`I(x^2)`, `I(x^3)`) are usually easier to explain.
+**The `I()` wrapper.** R's formula language assigns special meaning to `^`. So, `x^2` inside a formula means the interaction of `x` with itself, not the arithmetic square of `x`. The `I()` function ("as-is") suppresses that special interpretation and forces R to evaluate the expression inside as ordinary arithmetic. Writing `I(x^2)` therefore passes the squared values of `x` as a new predictor column, which is what the polynomial model requires.
+
+**Raw powers versus `poly()`.** When `I(x^2)` and `I(x^3)` are used directly, the model terms are highly correlated with each other and with `x`, especially when `x` is not centred near zero. This collinearity inflates coefficient standard errors and can make the individual estimates hard to interpret or numerically unstable. The `poly()` function constructs orthogonal polynomial contrasts that are uncorrelated by design. Coefficient estimates from `poly()` are therefore more numerically stable, and model-comparison statistics are unaffected by the correlation structure. For teaching and biological interpretation, raw powers are usually easier to explain; for numerical reliability, especially at higher degrees, `poly()` is preferable.
+
+**Centring.** Centring $X$ before computing powers (*i.e.*, replacing $X$ with $(X - \bar{X})$) reduces the correlation between $X$ and $X^2$ when using raw powers, and makes the intercept interpretable as the predicted response at the mean predictor value. When the predictor is far from zero and spans a wide range, centring is worth the small additional step.
 
 # Example 1: CO$_2$ Uptake and Curved Response
 
 ## Example Dataset
 
-We use the classic `CO2` dataset from base R. These are real measurements of carbon dioxide uptake by grass plants, measured across increasing ambient CO$_2$ concentrations. The biological expectation is that uptake should increase at low concentrations and then begin to level off, so a straight line may be too simple.
+I use the `CO2` dataset from base R. These are measurements of carbon dioxide uptake by chilled Quebec grass plants (*Echinochloa crus-galli*) across increasing ambient CO$_2$ concentrations. Uptake is expected to rise steeply at low concentrations and then decelerate as the carboxylation system approaches saturation, so a straight-line model is likely to underfit the relationship.
 
-```{r code-data}
+A researcher seriously studying this system would fit a rectangular hyperbola (the Michaelis-Menten model) because the kinetics of Rubisco carboxylation are well characterised and that functional form applies sensibly. Here I use a polynomial instead, purely to demonstrate the method on a dataset where curvature is visible and unambiguous. The polynomial model is adequate as a descriptive approximation within the observed concentration range but should not be used for extrapolation or for inferring kinetic parameters. The first ten rows of the filtered dataset are shown in @tbl-co2-data.
+
+```{r tbl-co2-data}
 #| tbl-cap: "A subset of the `CO2` dataset showing chilled Quebec plants used in the polynomial-regression example."
-co2_df <- as_tibble(CO2) |> 
+co2_df <- as_tibble(CO2) |>
   filter(Treatment == "chilled", Type == "Quebec")
 
 gt(head(co2_df, 10))
@@ -132,30 +169,49 @@ co2_df |>
 ```
 
 ```{r fig-co2-scatter}
-#| fig-cap: "CO$_2$ uptake in chilled Quebec plants across concentration levels."
+#| fig-cap: "CO$_2$ uptake in chilled Quebec plants across concentration levels. The pattern is positive but clearly decelerating."
 #| fig-width: 4
 #| fig-height: 3
 
 ggplot(co2_df, aes(x = conc, y = uptake)) +
   geom_point(alpha = 0.75) +
-  labs(x = expression(CO[2]~concentration),
-       y = "CO2 uptake")
+  labs(x = expression(CO[2]~concentration~(mL~L^{-1})),
+       y = expression(CO[2]~uptake~(µmol~m^{-2}~s^{-1})))
 ```
 
-The relationship is clearly positive, but it is not perfectly straight. Uptake rises quickly at low to moderate concentrations and then appears to flatten. That pattern motivates trying a polynomial extension.
+@fig-co2-scatter shows a positive relationship with a clear bend: uptake increases steeply at low concentrations and then levels off. Before fitting polynomial terms, I fit a straight-line model and inspect its residuals to confirm the diagnostic signal.
 
-## State the Model Question and Hypotheses
+```{r fig-lin-resid-motivation}
+#| echo: false
+#| fig-cap: "Residual-versus-fitted plot for the straight-line model. The curved smooth line confirms that the linear mean structure is insufficient."
+#| fig-width: 4
+#| fig-height: 3
 
-The primary model question is whether including curvature meaningfully improves fit relative to a straight-line model.
+mod_lin_eda <- lm(uptake ~ conc, data = co2_df)
+lin_aug <- augment(mod_lin_eda)
 
-For the quadratic extension, a useful inferential pair is:
+ggplot(lin_aug, aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = 0, colour = "grey40", linewidth = 0.5) +
+  geom_point(size = 2.0, colour = "steelblue4") +
+  geom_smooth(method = "loess", se = FALSE, colour = "firebrick", linewidth = 0.8) +
+  labs(x = expression(Fitted~value~(µmol~m^{-2}~s^{-1})),
+       y = expression(Residual~(µmol~m^{-2}~s^{-1})))
+```
+
+@fig-lin-resid-motivation shows an obvious arc. The residuals are negative at low and high fitted values and positive in the middle. The straight-line model is systematically wrong across the concentration range, with the curvature motivating adding a quadratic term.
+
+## State the Model Question
+
+The central question is whether adding polynomial terms to the mean structure removes the residual curvature observed above. Polynomial terms are tools for improving model specification, not primarily for testing isolated coefficients.
+
+One useful formal check is whether the quadratic coefficient differs from zero:
 
 $$H_{0}: \beta_2 = 0$$
 $$H_{a}: \beta_2 \ne 0$$
 
-If $\beta_2 = 0$, the model collapses to a straight-line form. If $\beta_2 \neq 0$, the data support curvature.
+If $\beta_2 = 0$ cannot be rejected, the data offer no evidence for the quadratic shape. That test should be read alongside the model comparison statistics and the diagnostic plots, not in isolation.
 
-## Fit the Models
+## Fit the Model
 
 ```{r code-fit-models}
 mod_lin  <- lm(uptake ~ conc, data = co2_df)
@@ -167,14 +223,16 @@ summary(mod_quad)
 summary(mod_cub)
 ```
 
-A nested-model comparison helps us decide whether added terms improve the model enough to justify the extra complexity.
-
 ```{r code-anova-compare}
 anova(mod_lin, mod_quad, mod_cub)
 AIC(mod_lin, mod_quad, mod_cub)
 ```
 
-## Test Assumptions / Check Diagnostics
+The nested-model ANOVA tests whether each additional term reduces the RSS enough to justify its inclusion. It answers, is the improvement statistically supported? The AIC penalises model complexity and asks, across these models, which offers the best trade-off between fit and parsimony? The two tools are complementary. When both point to the same model, deciding on the best model is easy. When they disagree, for example, the ANOVA supports adding a cubic term but AIC favours the quadratic, I prefer the simpler model (the quadratic) unless the biological context provides a strong reason to expect the additional curvature.
+
+The working rule is to choose the lowest-order model that removes residual structure. Start with the linear model, inspect its residuals, add the quadratic term if curvature remains, then check whether the cubic term still improves the residual pattern. Stop as soon as the diagnostic plots show no further systematic structure.
+
+## Test Assumptions
 
 ```{r code-quad-diagnostics}
 quad_aug <- augment(mod_quad)
@@ -192,13 +250,13 @@ plot(mod_quad)
 par(mfrow = c(1, 1))
 ```
 
-No model is perfect, but if diagnostics are broadly acceptable and the residual curvature seen in the straight-line fit is reduced, the polynomial extension is usually justified.
+The graphical diagnostics in @fig-quad-diagnostics take priority over the formal tests. The Shapiro-Wilk test and the Breusch-Pagan test are supporting evidence, not the primary decision criterion. The residual-versus-fitted panel should show no remaining arc; the Q-Q plot should show residuals tracking the reference line without systematic departures. Both conditions are broadly met here for the quadratic model, which confirms that adding the quadratic term corrected the diagnostic problem identified in @fig-lin-resid-motivation.
 
 ## Interpret the Results
 
 ```{r fig-poly-fits}
 #| fig-cap: "Linear, quadratic, and cubic polynomial fits to the CO$_2$ uptake data."
-#| fig-width: 4
+#| fig-width: 5.5
 #| fig-height: 3
 
 co2_pred <- tibble(conc = seq(min(co2_df$conc), max(co2_df$conc), length.out = 200)) |>
@@ -213,14 +271,18 @@ co2_pred <- tibble(conc = seq(min(co2_df$conc), max(co2_df$conc), length.out = 2
 ggplot(co2_df, aes(x = conc, y = uptake)) +
   geom_point(alpha = 0.65) +
   geom_line(data = co2_pred, aes(y = fit, colour = model), linewidth = 0.9) +
-  labs(x = expression(CO[2]~concentration),
-       y = "CO2 uptake",
+  labs(x = expression(CO[2]~concentration~(mL~L^{-1})),
+       y = expression(CO[2]~uptake~(µmol~m^{-2}~s^{-1})),
        colour = "Model")
 ```
 
-In this dataset, the quadratic model captures biologically plausible deceleration in uptake at higher concentrations better than a straight line. The cubic model may fit marginal details, but if it does not provide a clear inferential or biological gain, the quadratic model is usually preferable.
+@fig-poly-fits shows the three fitted curves overlaid on the data. Interpreting a polynomial fit means describing the shape of the response and not simply citing the coefficient values. Individual polynomial coefficients are difficult to interpret in isolation since they depend on the scale of the predictor and the degree of the model. So, they should not normally be the primary result reported.
 
-The practical interpretation is not usually about the standalone value of $\beta_2$. Instead, it is about the shape of the response: uptake increases with concentration, but the rate of increase slows across the observed range.
+Be systematic. First, identify the **direction of curvature**: is the response accelerating (concave up) or decelerating (concave down) across the predictor range? For this dataset the response is decelerating because uptake increases with CO$_2$ concentration but at a diminishing rate. Second, identify any **turning point** in the fitted curve. A quadratic model has at most one turning point. We see in the curve here that it does not reverse within the observed concentration range, so the relationship remains monotonically positive throughout. Third, relate the shape to a **biological process**. You'd mention that the deceleration is consistent with a carboxylation system that saturates as substrate availability increases, matching the biochemistry of C3 carbon fixation.
+
+Inference applies within the observed predictor range, from the lowest to the highest CO$_2$ concentration in the dataset. Polynomial curves can behave erratically outside that range. A quadratic function will eventually reverse direction, and a cubic will eventually diverge. So, extrapolation beyond the data requires explicit biological justification and should be treated with caution.
+
+Note also that the scale of the predictor affects the slope interpretation. Concentration here is measured in µL/L. A one-unit increase in concentration corresponds to a very small change in the predictor. Rescaling to a biologically natural unit (for example, hundreds of µL/L) would produce larger, easier-to-state coefficients without changing the fitted curve.
 
 ## Reporting
 
@@ -229,26 +291,27 @@ The practical interpretation is not usually about the standalone value of $\beta
 
 **Methods**
 
-Carbon dioxide uptake was modelled as a function of ambient CO$_2$ concentration using ordinary least squares regression on the `CO2` plant dataset (chilled Quebec plants). A straight-line model was compared with quadratic and cubic polynomial extensions. Model comparison used nested-model ANOVA and AIC, and assumptions were assessed from residual diagnostics.
+Carbon dioxide uptake was modelled as a function of ambient CO$_2$ concentration using ordinary least squares regression on the `CO2` plant dataset (chilled Quebec plants). A straight-line model was fitted first and its residual-versus-fitted plot inspected for curvature. Quadratic and cubic polynomial extensions were then fitted, and model selection used nested-model ANOVA and AIC. The lowest-order model that removed residual curvature was selected. Assumptions were assessed from residual diagnostics.
 
 **Results**
 
-The straight-line model underestimated curvature in the concentration-uptake relationship. Adding a quadratic term improved model fit substantially relative to the linear model (nested-model comparison, $p < 0.001$), while the cubic extension provided little additional practical benefit. The selected quadratic model described a positive but decelerating relationship in which uptake increased with concentration but began to flatten at higher concentration values.
+The straight-line model left clear curvature in the residual-versus-fitted plot, indicating that the linear mean structure was insufficient. Adding a quadratic term substantially improved fit (nested-model comparison: $p < 0.001$) and removed the residual arc. The cubic extension provided no meaningful additional improvement relative to the quadratic model. The selected quadratic model described a positive and decelerating relationship (@fig-poly-fits): CO$_2$ uptake increased with concentration across the observed range but at a diminishing rate, consistent with substrate saturation of the carboxylation system. The model should be interpreted within the observed concentration range.
 
 **Discussion**
 
-A low-order polynomial provided a useful descriptive model of nonlinearity while retaining the familiar `lm()` workflow. Biologically, the fitted curve is consistent with diminishing marginal increases in uptake as CO$_2$ concentration rises. The model should be interpreted as a flexible approximation over the observed range rather than as a mechanistic process equation.
+A quadratic polynomial provided a parsimonious descriptive model of the concentration-uptake relationship while retaining the `lm()` workflow. The fitted curve is biologically plausible as a first-order approximation of carboxylase saturation, though a mechanistic Michaelis-Menten model would be preferred where the process is to be characterised precisely or extrapolation is required.
 :::
 
-# What to Do When Assumptions Fail / Alternatives
+# What to Do When Assumptions Fail
 
--   If residual curvature remains strong, move to a more flexible model such as a [GAM](21-generalised-additive-models.qmd).
--   If biology suggests a specific functional process, use a mechanistic nonlinear model (Chapter 22).
--   If polynomial degree must become high to fit the pattern, that is usually a warning sign of overfitting.
+Diagnostic outcomes point to different remedies depending on what they show.
+
+If the quadratic model still leaves residual curvature, fitting the cubic extension is the next step. If curvature persists at degree three (or if the degree required to describe the pattern is becoming ridiculously high) the pattern is probably too complex for polynomial terms and a [generalised additive model](21-generalised-additive-models.qmd) is better. A GAM estimates the smooth relationship from the data directly without committing to a polynomial form, which makes it more robust to complex or irregular curvature.
+
+If the biology provides a specific mechanistic expectation (*e.g.*, for example, Michaelis-Menten kinetics, logistic population growth, or a Gompertz growth curve) a [nonlinear model](22-nonlinear-regression.qmd) embeds that structure directly and extrapolates in a biologically sensible way. Now, the interpretable, biologically-relevant model parameters also become available, such as $V_{max}$ and $K_s$ for the Michaelis-Menten model. Polynomial approximations should not substitute for mechanistic models when the process is understood.
+
+If the residual spread increases markedly at the extremes of the predictor range (a pattern that high-degree polynomials can amplify), consider whether a response transformation (log or square root) stabilises variance before adding polynomial terms. If variance is still unstable after transformation, weighted least squares or a generalised linear model with an appropriate variance function may be needed.
 
 # Summary
 
--   Polynomial regression is a linear-model extension that captures smooth curvature.
--   Low-order polynomials (especially quadratic) are often enough for introductory biological applications.
--   Model comparison and diagnostics should drive term selection, not visual fit alone.
--   Interpretation should focus on response shape and biological plausibility, not just coefficient significance.
+Polynomial regression extends simple linear regression to curved responses by adding powers of the predictor to the mean structure. The fitting method, inferential tools, and diagnostic workflow remain unchanged. The choice of polynomial degree should be driven by residual diagnostics, in other words, fit the linear model first, inspect the residual-versus-fitted plot, and add polynomial terms only as long as they remove structure from the residuals. Model comparison using nested ANOVA and AIC supports that decision. Interpretation focuses on the shape of the fitted curve, such as the direction, turning points (if present), and biological plausibility, rather than on individual coefficient values. The fitted curve applies within the observed predictor range; extrapolation from polynomial models requires care.
