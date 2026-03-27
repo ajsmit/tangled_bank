@@ -37,13 +37,15 @@ palette(viridis(8))
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   why simple regression is often not enough;
--   how a multiple regression extends the simple linear model;
--   why model specification is part of the scientific argument;
--   how to think about omitted variables, proxies, and categorical predictors;
--   how dummy-variable coding works in practice for real bioregions;
--   how to fit and interpret a worked multiple regression example;
--   how interactions and contrasts fit into the broader multiple-regression workflow.
+-   why simple regression is often insufficient for biological questions with multiple drivers;
+-   how multiple regression models a response using several predictors simultaneously;
+-   why model specification is part of the scientific argument, not just a modelling choice;
+-   how to distinguish model specification from model selection;
+-   how to detect and respond to multicollinearity using the variance inflation factor;
+-   how to read the coefficient table and the ANOVA table, and when each is appropriate;
+-   how dummy-variable coding handles categorical predictors within the linear model;
+-   how ANCOVA relates to multiple regression;
+-   how to fit, diagnose, and report a worked multiple regression example using seaweed biogeographic data.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -54,61 +56,69 @@ palette(viridis(8))
 
 # Introduction
 
-In [Chapter 12](12-simple-linear-regression.qmd) we saw how to model the relationship between two variables using simple linear regression. However, in ecosystems the relationship between the response variable and the explanatory variables is more complex and in many cases cannot be adequately captured by a single driver. In such cases, multiple linear regression is used to model the relationship between the response variable and multiple explanatory variables.
+I modelled the relationship between two variables in [Chapter 12](12-simple-linear-regression.qmd). Biological systems are rarely that simple. Growth, abundance, species diversity, and dissimilarity in community composition are each driven by several environmental and biological factors acting simultaneously. Multiple linear regression is obvious progression from simple regression to more realistic applications, since it models a continuous response as a linear function of two or more predictors.
 
-Biological systems are rarely driven by one variable alone. A response such as growth, abundance, diversity, or disease prevalence usually reflects the combined influence of several environmental, physiological, or experimental factors. Multiple regression is therefore the natural extension of simple regression to a more realistic ecological setting.
+Adding predictors creates a more demanding scientific problem alongside the statistical one. Which predictors belong in the model, and why? What does each coefficient mean once others are present? So, I treat multiple regression and model specification together in this chapter, because separating them encourages data-driven assembly of predictors that produces unreliable models. I would rather place emphasis on biology and encourage theory-driven insights as the prime motivation of the model's construction.
 
-But adding more predictors creates a much more demanding scientific problem: **which predictors belong in the model, and why?** This chapter therefore combines two topics that should not be separated:
-
-1. multiple regression as a modelling framework; and
-2. model specification as the translation of biological ideas into statistical structure.
+The worked examples use seaweed biogeographic data from @smit2017seaweeds. The dataset reappears in several places in BCB744 and is well suited here because it contains a continuous response, continuous climate predictors, and a categorical regional predictor.
 
 # Key Concepts
 
-In this chapter, I organise the discussion around the following ideas.
+-   **Multiple regression** models a response using several predictors simultaneously. Each fitted coefficient is a partial effect; this is, the expected change in the response for a one-unit increase in that predictor when all other predictors are held constant.
+-   **Model specification** is the process of capturing the biological reasoning into a statistical formula. Specifying a model means deciding which variables belong, what functional forms they should take, and whether any interactions are needed.
+-   **Model selection** is the process of choosing among competing specified models. It follows specification; it does not replace it.
+-   **Multicollinearity** arises when predictors are strongly intercorrelated. It inflates coefficient standard errors and makes partial effects difficult to interpret.
+-   **Categorical predictors** enter the linear model through dummy-variable coding. Numerically, this is no different from including a continuous predictor, but the interpretation changes.
+-   **ANCOVA** combines a factor and a continuous covariate in one additive linear model. It is not a separate procedure; it is a special case of multiple regression.
 
--   **Multiple regression** models a response using several predictors at once.
--   **Holding other predictors constant** is what gives partial coefficients their meaning.
--   **Model specification** translates biological reasoning into a statistical formula.
--   **Omitted variables, poor functional form, and unjustified interactions** can distort inference.
--   **Predictor choice** should be theory-driven rather than data-convenience driven.
--   **Categorical predictors** are part of the same linear-model family and can be handled naturally in multiple regression.
--   **ANCOVA is not a separate mathematical species**; it is a linear model containing a factor and a continuous covariate.
+# Model Specification vs Model Selection
 
-# Nature of the Data and Assumptions
+When model building and fitting are approached as a single activity, the workflow isn't optimal and it might result in a sub-optimal outcome. Keep the two processes apart:
 
-The same broad assumptions that apply in simple linear regression apply here too, but now in a multivariable setting.
+**Model specification** happens before fitting. It means deciding, on biological grounds, which variables could plausibly affect the response, what functional form each relationship might take, and whether any predictors should interact. A good specification reflects the scientific hypothesis, but a poor one produces coefficients that are numerically valid but biologically uninterpretable.
 
--   **Response variable** The response should usually be continuous.
--   **Predictors** Predictor variables are often continuous, but they may also be categorical.
--   **Independence** The observations must be independent.
--   **Approximate linearity** The response should relate approximately linearly to each predictor on the scale used in the model.
--   **Residual assumptions** Residuals should be approximately normal with roughly constant variance.
--   **Limited multicollinearity** Predictors should not be so strongly overlapping that their coefficients become unstable or uninterpretable.
+**Model selection** happens only *after* a plausible set of models has been specified. It asks which of the candidate models is best supported by the data, using criteria such as AIC or nested model comparison. Therefore, selection only makes sense within a well-specified candidate set of models. If the specification is weak, for example because predictors are chosen by convenience rather than theory, selection will just identify the least bad option from a set that may not contain the right model at all.
 
-The additional difficulty in multiple regression is that the model must be judged as a fitted statistical object *and* also as a biological specification. Even if the residual assumptions are acceptable, the model can still be weak because the variables are badly chosen or badly motivated. We return to the interpretive problems created by multicollinearity, confounding, and measurement error in [Chapter 16](16-collinearity-confounding-measurement-error.qmd).
+The practical consequence is that the first question in any multiple regression analysis is not "which variables reduce AIC?" but "which variables represent the hypothesised process, and which are potential confounders?". Model selection tools such as stepwise algorithms or AIC comparison are used in [Example 1](#example-1-a-climate-model-for-the-east-coast-transition-zone) below, but they are applied within a candidate set that was motivated biologically, not assembled arbitrarily.
+
+The broader problems of omitted variables, confounding, and measurement error are treated in [Chapter 16](16-collinearity-confounding-measurement-error.qmd).
+
+# Nature of the Data
+
+## Requirements Before Fitting
+
+-   **Response variable:** The response should be continuous and measured without systematic error.
+-   **Predictors:** Predictors may be continuous or categorical. They should represent variables that could plausibly affect the response, not just variables that happen to be available.
+-   **Independence:** Observations must be independent. Spatial autocorrelation, repeated measurements on the same individual, or clustered sampling structures each require approaches beyond the standard multiple regression presented here.
+-   **Approximate linearity:** The response should relate approximately linearly to each continuous predictor on the scale used in the model. Scatterplots of the response against each predictor individually are the first check.
+
+## Assumptions After Fitting
+
+The residual assumptions in multiple regression are the same as in simple regression, and are also applied to the fitted multiple-predictor model.
+
+-   **Normality:** Residuals should be approximately normally distributed. A Q-Q plot of the residuals is the standard check.
+-   **Constant variance:** Residual variance should not trend with fitted values. A residuals-vs-fitted plot is the standard check.
+-   **No severe multicollinearity:** Predictors should not be so strongly intercorrelated that their partial coefficients become imprecise or uninterpretable. The variance inflation factor quantifies this.
+
+Even when residual assumptions are satisfied, the model can still be scientifically weak if the variables are chosen without biological justification. Statistical adequacy and scientific defensibility are separate criteria and both are indespensible to model building.
 
 # The Core Equation
 
-The general multiple-regression model can be written as:
+The multiple regression model is:
 
 $$Y_i = \alpha + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_p X_{pi} + \epsilon_i$$ {#eq-mlr}
 
-In @eq-mlr, each $\beta_j$ is a partial slope. That means each coefficient is interpreted while holding the other predictors in the model constant. This is the main mathematical difference from simple linear regression and the reason multiple-regression coefficients require more careful biological interpretation.
+Each $\beta_j$ in @eq-mlr is a partial slope: the expected change in $Y$ for a one-unit increase in $X_j$ while all other predictors remain constant. This conditional interpretation distinguishes multiple regression from a set of simple regressions run independently, and this is also where misinterpretation most commonly occurs.
+
+A partial coefficient is not a causal effect. It is an adjusted association. If an important driver of the response is omitted from the model and that omitted variable correlates with an included predictor, the included predictor's coefficient will absorb part of the omitted variable's effect. The coefficient then reflects a mixture of the predictor's own relationship with the response and the confounding from the omitted variable. This is the distinction between *collinearity* (which is a property of the included predictors) and *confounding*, which involves a predictor that should have been included but was not. [Chapter 16](16-collinearity-confounding-measurement-error.qmd) delves into both problems in more detail.
 
 # Outliers
 
-As in simple regression, outliers can have strong effects on coefficient estimation, standard errors, and interpretation. In multiple regression, however, unusual observations may be unusual in multivariate space even when they do not look extreme on any single predictor alone. So, diagnostic plots and leverage measures become especially important once we fit the model.
+Unusual observations can affect coefficient estimates and standard errors in multiple regression as they do in simple regression. The added difficulty is that an observation can be outlying in multivariate predictor space without appearing extreme on any single variable alone. Residuals versus leverage plots and Cook's distance are therefore more informative diagnostics in multiple regression than they would be in a simple regression. Both are produced by the standard diagnostic plotting functions used in the examples below.
 
 # R Function
 
-The `lm()` function in R is used to fit a multiple linear regression model. The syntax is similar to that of the `lm()` function used for simple linear regression, but now with several predictor variables.
-
-The function takes the basic form:
-
-```r
-lm(formula, data)
-```
+The `lm()` function fits a multiple regression model in the same way it fits a simple regression model, extended to include several terms in the formula.
 
 For a model with only continuous predictors:
 
@@ -118,14 +128,16 @@ lm(response ~ predictor1 + predictor2 + predictor3,
    data = dataset)
 ```
 
-Interaction effects are implemented by including the product of two variables in the formula:
+Interaction effects between two predictors:
 
 ```{r}
 #| eval: false
 lm(response ~ predictor1 * predictor2, data = dataset)
 ```
 
-When we have both continuous and categorical predictors, the formula is simply extended:
+This expands to `predictor1 + predictor2 + predictor1:predictor2`. The main effects are always included when an interaction is specified this way.
+
+When the model contains both continuous and categorical predictors, the formula is extended accordingly:
 
 ```{r}
 #| eval: false
@@ -134,100 +146,22 @@ lm(response ~ continuous_predictor1 + continuous_predictor2 +
    data = dataset)
 ```
 
-R automatically handles the dummy-variable coding of factors. This is one reason multiple regression and ANOVA are so closely connected.
+R handles dummy-variable coding of factors automatically. This is one reason multiple regression and ANOVA belong to the same linear-model family.
 
-# Where ANCOVA Fits
+# Example 1: A Climate Model for the East Coast Transition Zone {#example-1-a-climate-model-for-the-east-coast-transition-zone}
 
-Students are often taught **ANCOVA** as if it were a separate named procedure standing halfway between ANOVA and regression. In practice, ANCOVA is just a linear model that contains:
+The seaweed dataset from @smit2017seaweeds contains:
 
--   a **categorical predictor** representing groups or treatments; and
--   a **continuous covariate** that we want to adjust for.
-
-In R, the regression framing is written as:
-
-```{r}
-#| eval: false
-lm(response ~ factor_group + covariate, data = dataset)
-```
-
-If one wants to keep the older ANOVA-style framing, the same additive structure can also be written as:
-
-```{r}
-#| eval: false
-aov(response ~ factor_group + covariate, data = dataset)
-```
-
-The reason ANCOVA belongs in this chapter is that the model is algebraically the same as multiple regression with mixed predictor types. The factor is represented through dummy variables, the covariate enters as an ordinary slope term, and the fitted group coefficients are interpreted **after adjusting for the covariate**.
-
-This is also why the distinction between ANOVA and ANCOVA is mostly one of emphasis:
-
--   **ANOVA framing** emphasises comparing group means;
--   **ANCOVA framing** emphasises comparing groups while controlling for a continuous covariate;
--   **regression framing** makes the common model structure explicit.
-
-Mathematically, there is no difference. The fitted model is the same. What changes is the teaching emphasis and, in R, the style of output that is foregrounded.
-
-If the model is:
-
-```{r}
-#| eval: false
-lm(y ~ group + x, data = df)
-```
-
-or equivalently:
-
-```{r}
-#| eval: false
-aov(y ~ group + x, data = df)
-```
-
-then:
-
--   the coefficient of `x` is the adjusted slope of the covariate;
--   the coefficients of `group` are adjusted differences among the factor levels relative to the reference level;
--   the whole model can be described either as a regression with a factor and a covariate or as an ANCOVA.
-
-The practical difference is therefore one of emphasis:
-
--   `lm()` encourages you to read coefficients, fitted slopes, confidence intervals, and the common linear-model structure directly.
--   `aov()` encourages you to read the analysis in ANOVA-style terms, with sums of squares and omnibus tests emphasised.
--   For ANCOVA, `lm()` is usually the clearer teaching choice because it makes it obvious that the covariate and the factor are part of the same linear model.
-
-The important assumption in the usual introductory ANCOVA framing is that the slope of the covariate is the **same across groups**. In regression language, that means we are fitting an additive model without a `group:x` interaction.
-
-If the biological question is whether the covariate-response slope differs among groups, then the model is no longer a simple ANCOVA in the introductory sense. It becomes an **interaction model**, and that is the topic of [Chapter 15](15-interaction-effects.qmd).
-
-So the clean teaching rule is:
-
--   `y ~ group + x` → ANCOVA-style additive model;
--   `y ~ group * x` → interaction model with group-specific slopes.
-
-# Why Model Specification is Important
-
-In simple regression, the modelling decision is often obvious: one response, one predictor. In multiple regression, the structure of the model becomes part of the argument. The important questions are:
-
--   Which variables represent the hypothesised process?
--   Which variables are potential confounders that must be controlled?
--   Which variables are only proxies for a harder-to-measure mechanism?
--   Should the relationship be linear, transformed, or nonlinear?
--   Does the effect of one predictor depend on another?
-
-Model specification therefore comes before model fitting. If the biological logic is weak, the fitted model is likely to be weak as well. The practical consequences of confounders, proxies, and measurement error are developed in much more detail in [Chapter 16](16-collinearity-confounding-measurement-error.qmd).
-
-# Example 1: A Climate Model for the East Coast Transition Zone
-
-The main worked example in this chapter uses the seaweed data produced in the analysis by @smit2017seaweeds. The same dataset is used repeatedly in `BCB_Stats`, and it is well suited to this chapter because it contains:
-
--   a continuous response variable, the mean Sørensen dissimilarity `Y`;
--   several continuous climatological predictors;
--   and a categorical predictor, the bioregional classification `bio`.
+-   `Y` — mean Sørensen dissimilarity between adjacent seaweed assemblages along the South African coast;
+-   several continuous climatological predictors derived from sea-surface temperature records;
+-   `bio` — a categorical bioregional classification.
 
 ```{r code-seaweed-data}
 sw <- read.csv("../../data/BCB743/seaweed/spp_df2.csv")
 rbind(head(sw, 3), tail(sw, 3))[,-1]
 ```
 
-We begin by focusing on the East Coast Transition Zone (`ECTZ`) and asking which combination of climate variables best explains variation in `Y`.
+I begin with the East Coast Transition Zone (`ECTZ`) and ask which combination of climate variables best explains variation in `Y`.
 
 ```{r code-seaweed-subset}
 sw_ectz <- sw |>
@@ -236,20 +170,18 @@ sw_ectz <- sw |>
 sw_sub1 <- sw_ectz[, c("Y", "augMean", "febRange", "febSD", "augSD", "annMean")]
 ```
 
-## Do an Exploratory Data Analysis (EDA)
+## Exploratory Data Analysis
 
-We first inspect the scale and range of the variables in the subset we intend to model.
+Before fitting any model, I summarise the candidate variables and examine each predictor against the response.
 
 ```{r code-seaweed-summary}
 summary(sw_sub1)
 ```
 
-Before fitting a multiple regression, it is also useful to look at each predictor individually against the response because it provides intuition about the data structure before we begin combining effects.
-
 ```{r fig-seaweed-slr}
 #| fig-width: 8
 #| fig-height: 7.5
-#| fig-cap: "Individual simple linear regressions fitted to the variables `augMean`, `febRange`, `febSD`, `augSD`, and `annMean` as predictors of the seaweed species composition as measured by the Sørensen dissimilarity, `Y`."
+#| fig-cap: "Simple linear regressions fitted separately for five candidate climate predictors against mean Sørensen dissimilarity (`Y`) in the East Coast Transition Zone."
 
 predictors <- c("augMean", "febRange", "febSD", "augSD", "annMean")
 
@@ -270,11 +202,49 @@ ggpubr::ggarrange(plotlist = plts1, ncol = 2,
                   nrow = 3, labels = "AUTO")
 ```
 
-The individual plots show that each predictor appears to relate positively and approximately linearly to the response when considered alone. But those one-predictor views do not tell us how the predictors behave once they are considered together, and they do not tell us whether some predictors overlap so strongly that their coefficients become unstable.
+@fig-seaweed-slr shows that each predictor relates approximately linearly and positively to `Y` when examined alone. To make the strength of each marginal relationship precise, I extract the slope, its standard error, the coefficient of determination, and the overall model *p*-value from each fitted model and assemble them into @tbl-slr-fits.
 
-## State the Hypotheses
+```{r tbl-slr-fits}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Show code"
+#| tbl-cap: "Summary statistics for the five simple linear regressions of mean Sørensen dissimilarity (`Y`) against individual climate predictors in the East Coast Transition Zone. Slope and SE are the partial coefficient and its standard error. *R*² is the coefficient of determination; *p* is the overall model *p*-value from the *F*-test against the intercept-only null."
 
-The null hypothesis for the overall model is that there is no significant relationship between the response `Y` and any of the entered climatological variables, implying that the coefficients for all predictors are equal to zero:
+fmt_pval <- function(p) {
+  case_when(
+    p < 0.001 ~ "< 0.001",
+    p < 0.01  ~ paste0("= ", formatC(p, digits = 3, format = "f")),
+    p < 0.05  ~ paste0("= ", formatC(p, digits = 3, format = "f")),
+    TRUE      ~ paste0("= ", formatC(p, digits = 3, format = "f"))
+  )
+}
+
+slr_table <- map2_dfr(predictors, models, function(pred, mod) {
+  tidy_mod   <- tidy(mod)
+  glance_mod <- glance(mod)
+  tibble(
+    Predictor = pred,
+    Slope     = tidy_mod$estimate[2],
+    SE        = tidy_mod$std.error[2],
+    `R²`      = glance_mod$r.squared,
+    `F`       = glance_mod$statistic,
+    `p`       = fmt_pval(glance_mod$p.value)
+  )
+})
+
+slr_table |>
+  gt() |>
+  fmt_number(columns = c(Slope, SE, `R²`), decimals = 3) |>
+  fmt_number(columns = `F`, decimals = 2)
+```
+
+All five predictors are individually significant at $\alpha = 0.05$, and each accounts for a substantial proportion of the variance in `Y` when fitted alone. These simple regressions are not checked for distributional assumptions; residual normality and homoscedasticity will be assessed properly on the final, correctly specified model. Checking assumptions on exploratory marginal fits would be premature: the residuals from a single-predictor model still contain all the variance that the remaining predictors explain, so any assumption violations diagnosed here may simply reflect omitted predictors rather than genuine model failure. The relevant question at this stage is whether each predictor is plausibly related to the response and approximately linear in that relationship; @fig-seaweed-slr and @tbl-slr-fits together confirm that both conditions are met.
+
+These one-predictor views do not show how the predictors behave when considered together. In particular, they give no indication of how much the predictors overlap with each other.
+
+## Hypotheses
+
+The null hypothesis for the overall model is that none of the entered climatological variables explains variation in `Y`:
 
 $$H_{0}: \beta_1 = \beta_2 = \beta_3 = \beta_4 = \beta_5 = 0$$
 
@@ -282,16 +252,17 @@ The alternative is that at least one coefficient differs from zero:
 
 $$H_{a}: \exists \, \beta_i \ne 0 \text{ for at least one } i$$
 
-At the main-effects level, each predictor has its own hypothesis:
+At the coefficient level, each predictor has its own hypothesis:
 
-$$H_{0}: \beta_i = 0$$
-$$H_{a}: \beta_i \ne 0$$
+$$H_{0}: \beta_i = 0 \quad H_{a}: \beta_i \ne 0$$
 
-However, as soon as several predictors are included in the model, each coefficient becomes a **partial** effect. Its interpretation depends on the presence of the others.
+These individual tests must be read as partial tests: each evaluates the contribution of that predictor given the others in the model.
 
 ## Fit the Initial Model
 
-We first fit a full model containing the five climate predictors, and a null model containing only the intercept.
+I fit a full model containing all five climate predictors and a null model containing only the intercept.
+
+The **null model** (`lm(Y ~ 1, data = sw_sub1)`) estimates a single parameter: the grand mean of `Y`. It contains no predictors, so its fitted value is identical for every observation and its residuals are the deviations of each observation from that mean. The null model is the baseline against which any more fully-specified model is compared: a nested test asks whether adding predictors reduces residual variance by more than chance alone.
 
 ```{r code-full-model}
 full_mod1 <- lm(Y ~ augMean + febRange + febSD + augSD + annMean,
@@ -301,19 +272,39 @@ null_mod1 <- lm(Y ~ 1, data = sw_sub1)
 summary(full_mod1)
 ```
 
-The full model fits strongly, but the coefficient table already hints at a practical problem: some variables that looked useful on their own are no longer clearly interpretable once the others are included. This is a common sign of multicollinearity.
+::: {.callout-note appearance="simple"}
+`null_mod1` is not passed explicitly to `summary()` or any other function in the code block above. `summary()` on a fitted `lm` object computes the overall $F$-statistic internally, by comparing the fitted model's residual sum of squares with the total sum of squares around the grand mean of `Y`. That total sum of squares is what the null model's residuals would give, and R derives it directly from the response vector without needing the null model object. The explicit `null_mod1` is therefore fitted here for two reasons: to make the conceptual baseline visible as a named model object, and to allow a direct nested comparison using `anova()`, which is demonstrated below.
+:::
+
+Calling `anova(null_mod1, full_mod1)` makes the nested comparison clear by asking whether adding all five climate predictors to the intercept-only baseline reduces residual variance by more than would be expected by chance.
+
+```{r code-null-vs-full}
+anova(null_mod1, full_mod1)
+```
+
+The $F$-statistic and $p$-value here are numerically identical to the overall model $F$ reported at the bottom of `summary(full_mod1)` above. The difference is that `anova()` reveals the comparison's details by naming both models and printing the residual sums of squares for each. Seeing both outputs side by side is useful because it shows that `summary()`'s overall $F$-test is exactly a nested model comparison against the intercept-only baseline, even when that baseline model is never explicitly fitted.
+
+The full model explains a large proportion of the variance in `Y`, but the coefficient table already hints at a problem: two predictors that were individually significant in @tbl-slr-fits are no longer clearly distinguishable from zero once all five are included simultaneously. This pattern is characteristic of multicollinearity.
 
 ## Check for Multicollinearity
 
-Some of the predictors may be highly correlated with each other, and this can make the model less precise and harder to interpret because the coefficients' standard errors become inflated. A formal way to detect multicollinearity is to calculate the variance inflation factor (VIF) for each predictor.
+The **variance inflation factor** (VIF) for a predictor $X_j$ measures how much the variance of $\hat\beta_j$ is inflated relative to what it would be if $X_j$ were uncorrelated with the other predictors. A VIF of 1 indicates no collinearity with the remaining predictors. Values above 5 begin to suggest instability in the coefficient estimate, and values above 10 usually make interpretation unreliable. The formula is:
+
+$$\text{VIF}_j = \frac{1}{1 - R^2_j}$$
+
+where $R^2_j$ is the coefficient of determination from regressing $X_j$ on all other predictors in the model. When $R^2_j$ is large, $X_j$ can be reconstructed almost entirely from the other predictors, and its partial coefficient becomes imprecise.
 
 ```{r code-initial-vif}
 vif(full_mod1)
 ```
 
-The VIF values show that some predictors overlap too strongly for comfortable interpretation. We therefore simplify the candidate set before asking which predictors belong in the final model.
+Several predictors have VIF values well above 10, indicating that the full five-predictor model is not interpretable as specified. The solution in this case is to remove the most problematic predictor and refit, iterating until VIF values are acceptable. This is a pragmatic response to collinearity within the data at hand, but it does not resolve the deeper question of why the variables are intercorrelated or what is lost when a variable is removed. [Chapter 16](16-collinearity-confounding-measurement-error.qmd) addresses those questions.
 
-This is a useful practical response to collinearity, but it is not the whole conceptual story. [Chapter 16](16-collinearity-confounding-measurement-error.qmd) explains why overlapping predictors create interpretive instability, how that differs from confounding, and why measurement error can produce similar practical difficulties.
+Note also the distinction from confounding: collinearity is a property of the included predictors since they carry overlapping information. Confounding involves a predictor that was omitted entirely but correlates both with an included predictor and with the response, causing the included predictor's coefficient to be biased. Both problems undermine interpretation, but through different mechanisms.
+
+## Reduce Multicollinearity
+
+The following iterative procedure removes the predictor with the highest VIF at each step until all remaining VIF values fall below a threshold of 10.
 
 ```{r code-reduce-vif}
 threshold <- 10
@@ -337,13 +328,15 @@ summary(vif_mod)
 vif(vif_mod)
 ```
 
-This process leaves a much more interpretable candidate model. The retained predictors are `augMean`, `febSD`, and `augSD`, and the VIF values are now comfortably low.
-
-Regularisation techniques such as ridge regression, lasso regression, or elastic net can also be used to deal with multicollinearity. These are discussed later in [Chapter 25](25-regularisation.qmd).
+The retained predictors are `augMean`, `febSD`, and `augSD`, with VIF values now well below the threshold. Regularisation methods such as ridge regression or LASSO can also handle collinearity without discarding predictors, and these are introduced in [Chapter 25](25-regularisation.qmd).
 
 ## Fit the Selected Model
 
-It may be that not all variables retained after the VIF screen are needed to explain the response. We can therefore use forward selection to identify the most parsimonious model within this reduced candidate set.
+Not all three retained predictors may be needed to explain the response. I use forward stepwise AIC to identify the most parsimonious model within the reduced candidate set.
+
+VIF screening and stepwise AIC address different problems and must be applied in that order. VIF screening is a stability check; it asks whether the coefficient estimates are numerically reliable given the intercorrelations among the predictors. If two predictors share most of their information, their partial coefficients become imprecise and their standard errors inflate, regardless of how well either predicts the response.
+
+AIC-based selection cannot fix this: it will choose among poorly identified models and may retain collinear predictors simply because their combined redundancy happens to reduce the AIC criterion slightly. Removing collinear predictors first produces a candidate variable set in which every remaining predictor carries reasonably independent information. Selection then operates on a set of well-identified models and the AIC differences between them are interpretable. Applying `stepAIC` to the original five-predictor set, before VIF screening, would risk retaining a subset of correlated predictors whose coefficients look stable in the selected model only because the worst offenders were excluded by chance during the search.
 
 ```{r code-forward-selection}
 mod1 <- stepAIC(
@@ -364,118 +357,195 @@ $$
 Y = \alpha + \beta_1 \text{augMean} + \beta_2 \text{febSD} + \beta_3 \text{augSD} + \epsilon
 $$
 
-This is a useful teaching result because it shows that model building is not simply about keeping every plausible variable. It is about arriving at a model that is statistically stable and biologically interpretable.
+## Reading the Coefficient Table and the ANOVA Table
 
-## Test the Assumptions / Check Diagnostics
+`summary()` and `anova()` each answer a different question, and both appear above.
 
-Before interpreting the model in earnest, we must check whether its assumptions are adequate. Added-variable plots are useful because they show the relationship between the response and each predictor while accounting for the effect of the other predictors.
+The **coefficient table** from `summary()` tests each partial effect *conditional* on all other predictors in the model. The *t*-statistic for `augMean` asks: given that `febSD` and `augSD` are already in the model, does `augMean` still contribute? Each test conditions on the full model as specified.
+
+The **ANOVA table** from `anova()` is *sequential*. It partitions the total sum of squares in the order the predictors were entered: `augMean` is assessed first, then `febSD` gets credit for what `augMean` left unexplained, and `augSD` gets the remainder. Change the order of predictors in the formula and the sums of squares in the ANOVA table change. For testing whether a predictor contributes after adjusting for all others, the coefficient table is the appropriate place to look. The ANOVA table is more informative when the question is about the total variance attributable to each predictor in a natural sequence, or when comparing nested models (see [Chapter 15](15-interaction-effects.qmd)).
+
+## A Note on Scaling and Centring
+
+The coefficient for `augMean` gives the expected change in `Y` for a one-unit increase in August mean temperature, in degrees Celsius. When predictors are on very different measurement scales, comparing their coefficients directly is not meaningful, So, a one-unit change in temperature and a one-unit change in temperature variability are not equivalent steps. Standardising predictors to zero mean and unit variance before fitting makes their coefficients comparable in the sense that each then represents the change in `Y` per one standard deviation of the predictor. Centring alone (subtracting the mean without rescaling) does not change the slopes but makes the intercept interpretable as the fitted value of `Y` at average predictor values rather than at predictor values of zero, which are often outside the data range entirely.
+
+## Check Diagnostics
+
+Added-variable plots show the relationship between the response and each predictor after accounting for all the others in the model. They are the appropriate visual analogue to partial coefficients.
 
 ```{r fig-mod1-partial}
 #| fig-width: 8
 #| fig-height: 5
-#| fig-cap: "Partial regression plots for `mod1` with the selected variables `augMean`, `febSD`, and `augSD`."
+#| fig-cap: "Added-variable (partial regression) plots for the selected model `mod1`. Each panel shows the relationship between the response and one predictor after removing the effects of the other two predictors."
 
 avPlots(mod1, col = "dodgerblue4", col.lines = "magenta")
 ```
 
-The added-variable plot for `augMean` shows a particularly strong and tight partial relationship with the response. The `febSD` and `augSD` plots show weaker effects with more scatter, but both still contribute.
-
-We can also look at standard diagnostic plots for the model as a whole.
+In @fig-mod1-partial, a tight, steeply sloped partial relationship indicates a strong predictor given the others. `augMean` shows a clear, strong partial relationship. `febSD` and `augSD` show weaker but positive partial associations. If a partial plot showed a nonlinear pattern, that would suggest the predictor needs a transformation or polynomial term. If a partial plot showed no relationship at all, that predictor contributes little once the others are accounted for.
 
 ```{r fig-mod1-diagnostics}
 #| fig-width: 8
 #| fig-height: 5
-#| fig-cap: "Diagnostic plots to assess the fit of the final multiple linear regression model, `mod1`."
+#| fig-cap: "Standard diagnostic plots for `mod1`. Top left: residuals vs fitted values; top right: normal Q-Q; bottom left: scale-location; bottom right: residuals vs leverage."
 
 autoplot(mod1, shape = 21, colour = "dodgerblue4",
          smooth.colour = "magenta") +
   theme_grey()
 ```
 
-The model appears broadly acceptable. There may be mild curvature or slight heteroscedasticity, but there is no glaring red flag severe enough to invalidate interpretation. As always, adequacy is a matter of judgement, not perfection.
+Reading @fig-mod1-diagnostics:
 
-Component-plus-residual plots provide another useful perspective because they show whether the relationship between the response and each predictor appears reasonably linear in the fitted model.
+-   **Residuals vs fitted:** Points should scatter around zero without a systematic trend. A curve here suggests a missing predictor or a nonlinear term. Fanning, the tendency to display an increasing spread with fitted values, indicates heteroscedasticity and may require a response transformation.
+-   **Normal Q-Q:** Points should fall close to the diagonal. Systematic departure at both tails suggests non-normality; a heavy right tail in particular may require a log transformation of the response.
+-   **Scale-location:** The square root of absolute residuals should be roughly horizontal, and a rising trend confirms heteroscedasticity.
+-   **Residuals vs leverage:** Points with high leverage and large residuals are influential. The dashed contour lines mark Cook's distance of 0.5 and 1.0, and points outside those contours should be examined individually to confirm that they represent genuine observations and not data entry errors or atypical conditions.
+
+My overall interpretation of @fig-mod1-diagnostics is that the model looks broadly acceptable. There is no severe curvature, no strong fanning, and no obviously influential outliers. Adequacy is a judgement, not a binary pass or fail.
 
 ```{r fig-mod1-crplots}
 #| fig-width: 8
 #| fig-height: 5
-#| fig-cap: "Component plus residual diagnostic plots to assess the fit of the final multiple linear regression model, `mod1`."
+#| fig-cap: "Component-plus-residual plots for `mod1`. Each panel shows whether the relationship between the response and that predictor is approximately linear in the fitted model."
 
 crPlots(mod1, col = "dodgerblue4", col.lines = "magenta")
 ```
 
+The component-plus-residual plots in @fig-mod1-crplots are an additional linearity check. A straight pink line against the data cloud confirms that a linear term is adequate for that predictor in the model. Curvature in any panel would suggest adding a polynomial or transformed version of that predictor.
+
+::: {.callout-note appearance="simple"}
+The added-variable plots in @fig-mod1-partial and the component-plus-residual plots in @fig-mod1-crplots address different questions and plot different quantities against each other, which is why they can look similar without being equivalent.
+
+An **added-variable plot** for predictor $X_j$ plots two sets of residuals against each other: the residuals from regressing $Y$ on all predictors *except* $X_j$, against the residuals from regressing $X_j$ on all those same other predictors. Both axes have been purged of the other predictors' effects. The slope of the line in that panel is exactly the partial coefficient $\hat\beta_j$. What the plot reveals is the partial relationship; that is, the strength and direction of $X_j$'s contribution to $Y$ after everything else in the model has been removed from both variables. If $X_j$ has no partial effect, the cloud in its panel will be horizontal. If $X_j$'s partial effect is nonlinear, the cloud will curve.
+
+A **component-plus-residual plot** (also called a partial-residual plot) for predictor $X_j$ plots $e_i + \hat\beta_j X_{ji}$ on the vertical axis — the raw residuals with the fitted linear component of $X_j$ added back in — against $X_{ji}$ itself on the horizontal axis. The idea is to reconstruct what the response would look like as a function of $X_j$ alone, after adjusting for the other predictors. The slope of the fitted line in the panel is again $\hat\beta_j$, but now the vertical axis is on the original scale of the predictor rather than on a residualised scale.
+
+The practical difference is that added-variable plots are better for assessing the *existence* and *strength* of a partial effect and for detecting influential observations, because both axes are free of the other predictors. Component-plus-residual plots are better for diagnosing the *functional form* of each predictor's contribution, because the vertical axis retains the scale of $X_j$ and any smooth curve fitted through the cloud reveals whether a linear term is adequate or whether a nonlinear term is needed. In both plots, the line should be roughly straight; but it is the component-plus-residual plot where departures from linearity are most directly interpretable as evidence that a predictor needs to be transformed.
+:::
+
 ## Interpret the Results
 
-The fitted model shows that `augMean`, `febSD`, and `augSD` are all positively related to Sørensen dissimilarity in the East Coast Transition Zone once they are considered together. The strongest partial effect is associated with `augMean`, while `febSD` and `augSD` make smaller but still clearly positive contributions.
+The three retained predictors are August mean temperature (`augMean`), February temperature standard deviation (`febSD`), and August temperature standard deviation (`augSD`). They are all positively associated with mean Sørensen dissimilarity in the East Coast Transition Zone. The strongest partial effect is `augMean`, while `febSD` and `augSD` make smaller but positive contributions.
 
-Each slope in a multiple regression must be read conditionally: it gives the expected change in the response for a one-unit increase in that predictor **while the other predictors are held constant**. That conditional interpretation is the strength of the model, but it is also where the dangers lie. If predictors overlap strongly, or if one predictor stands in for an omitted biological cause, the apparent partial effect can become difficult to interpret. [Chapter 16](16-collinearity-confounding-measurement-error.qmd) returns to that problem directly.
+Reading the partial coefficients: a 1 °C increase in August mean temperature is associated with an increase in mean Sørensen dissimilarity of approximately $\hat\beta_1$, holding February and August temperature variability constant. That "holding constant" qualification is the central point of the conditional interpretation. So, if the predictors were uncorrelated, this would simplify to the marginal effect seen in @fig-seaweed-slr. Because they are moderately correlated even after VIF screening, the partial coefficients differ somewhat from the simple-regression slopes.
 
-The model fit is strong: the adjusted $R^2$ is about 0.84, so the selected predictors explain a large proportion of the observed variation in `Y`. The overall model test provides very strong evidence that the model explains more variation than an intercept-only model ($p < 0.001$).
+The adjusted $R^2$ is approximately 0.84, indicating that the selected predictors account for a large proportion of the observed variation in `Y`. The ordinary $R^2$ is the proportion of total variance in the response explained by the model:
 
-The ANOVA table is useful here because it shows how much variance each predictor adds sequentially to the model. But remember that this sequential interpretation depends on the order in which predictors are entered.
+$$R^2 = 1 - \frac{\text{SS}_\text{res}}{\text{SS}_\text{tot}}$$
 
-## Reporting
+It never decreases when a predictor is added, even if that predictor carries no real information, because adding any variable, however useless, can only reduce or hold steady the residual sum of squares $\text{SS}_\text{res}$. In a multiple regression with several predictors, this means $R^2$ will overstate explanatory power if the model was arrived at by adding predictors freely. The adjusted $R^2$ corrects for this by penalising for the number of predictors $p$ relative to the sample size $n$:
+
+$$R^2_\text{adj} = 1 - \frac{\text{SS}_\text{res} / (n - p - 1)}{\text{SS}_\text{tot} / (n - 1)}$$
+
+The denominator of the penalty term, $n - p - 1$, is the residual degrees of freedom. As $p$ increases, $n - p - 1$ shrinks, the ratio $\text{SS}_\text{res}/(n - p - 1)$ grows, and $R^2_\text{adj}$ falls. That is, unless the additional predictor explains enough variance to compensate. The adjusted $R^2$ can therefore decrease when a weak predictor is added, which $R^2$ cannot. For comparing models with different numbers of predictors, the adjusted $R^2$ is the more honest summary of fit.
+
+The partial coefficients are not causal estimates. The model does not rule out the possibility that some shared, unmeasured environmental driver explains both the temperatures and the dissimilarity. They are adjusted associations within the fitted model.
+
+## Report
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
 
 **Methods**
 
-Multiple linear regression was used to model mean Sørensen dissimilarity in the East Coast Transition Zone as a function of candidate climate predictors. Collinearity among predictors was assessed before final interpretation, and overlapping predictors were removed to obtain a more stable final model.
+Mean Sørensen dissimilarity in the East Coast Transition Zone was modelled as a function of candidate climate predictors using multiple linear regression. Collinearity among predictors was assessed using variance inflation factors; predictors with VIF above 10 were removed iteratively until the remaining predictors were below that threshold. Forward stepwise AIC was used to identify the most parsimonious model within the reduced candidate set. Assumptions were assessed using added-variable plots, standard diagnostic plots, and component-plus-residual plots.
 
 **Results**
 
-In the East Coast Transition Zone, mean Sørensen dissimilarity was well explained by a multiple linear regression containing August mean temperature, February temperature variability, and August temperature variability (adjusted $R^2 = 0.84$; overall model $p < 0.001$). All three retained predictors had positive partial effects, with August mean temperature showing the strongest contribution ($\beta = 0.283$), followed by February temperature variability ($\beta = 0.050$) and August temperature variability ($\beta = 0.022$). Predictors with problematic overlap were removed before final interpretation, so the reported coefficients represent comparatively stable partial relationships.
+Mean Sørensen dissimilarity in the East Coast Transition Zone was strongly explained by a multiple linear regression containing August mean temperature, February temperature variability, and August temperature variability (adjusted $R^2 = 0.84$; overall model $F$-test $p < 0.001$). All three retained predictors had positive partial effects. The 95% confidence intervals confirm that the partial effects of `augMean` and `febSD` exclude zero comfortably, while the interval for `augSD` is positive but wider.
+
+```{r}
+confint(mod1)
+```
 
 **Discussion**
 
-The main discussion point is that the model identifies a small set of comparatively stable climatic predictors, rather than treating every candidate variable as independently meaningful. This is why model specification and collinearity screening matter in multiple regression.
+The model identifies a small set of comparatively stable climatic predictors of compositional turnover in the East Coast Transition Zone. The dominant partial effect of August mean temperature is consistent with the pronounced temperature gradient along this coastline, which separates warm-temperate assemblages of the east from cool-water communities to the south. February temperature variability and August temperature variability contribute additional signal, reflecting that compositional differences are also sensitive to thermal range and seasonal extremes.
 :::
 
-# Example 2: Categorical Predictors with Distance and Bioregion
+# Example 2: Categorical Predictors — Distance and Bioregion
 
-Multiple regression can include both continuous and categorical predictors. In R, this is done by entering the categorical variable as a factor. This is important because many ecological questions involve a mixture of environmental gradients and group structure.
-
-For example:
-
-```{r}
-#| eval: false
-lm(response ~ dist + factor(bio), data = df)
-```
-
-Once categorical predictors are included, multiple regression and ANOVA become part of the same linear-model family. This is why the earlier ANOVA chapter and the present modelling chapters connect so naturally.
+Multiple regression can include both continuous and categorical predictors. In R this is done by entering the categorical variable as a factor. Once a factor is included, multiple regression and ANOVA become part of the same linear-model family, since both are fitted by `lm()` and both produce least-squares estimates within the same framework.
 
 ## Dummy Variable Coding
 
-When a categorical variable is included in a regression model, R does not fit a separate coefficient for every level plus an intercept. That would be redundant. Instead, it uses **dummy variables** (also called **indicator variables**) to represent the levels of the factor.
+When a categorical variable with $k$ levels is included in a regression, R represents it using $k - 1$ dummy variables. One level is taken as the reference, and its contribution is absorbed into the model intercept. Each remaining level receives a coefficient that gives the difference in fitted intercept relative to that reference.
 
-Suppose a categorical predictor `C` has three levels: `C1`, `C2`, and `C3`. If `C1` is used as the reference level (by default, `lm()` chooses the first alpha-numeric factor), then only two dummy variables are needed:
-
--   `D1 = 1` when the observation belongs to `C2`, and `0` otherwise;
--   `D2 = 1` when the observation belongs to `C3`, and `0` otherwise.
-
-The reference level `C1` is represented by `D1 = 0` and `D2 = 0`. In that case the model can be written as:
+The four seaweed bioregions are `AMP`, `B-ATZ`, `BMP`, and `ECTZ`. With `AMP` as the reference level, the additive model containing both geographic distance and bioregion is:
 
 $$
-Y_i = \alpha + \beta_1 X_i + \gamma_1 D_{i1} + \gamma_2 D_{i2} + \epsilon_i
+Y_i = \alpha + \beta_1 \text{dist}_i
++ \gamma_1 D_{i,\text{B-ATZ}}
++ \gamma_2 D_{i,\text{BMP}}
++ \gamma_3 D_{i,\text{ECTZ}}
++ \epsilon_i
 $$
 
-Here:
+where each $D$ is an indicator variable: it equals 1 for observations belonging to that bioregion and 0 for all others.
 
--   $\alpha$ is the intercept for the reference category;
--   $\beta_1$ is the slope of the continuous predictor `X` for the reference category;
--   $\gamma_1$ is the difference in intercept between `C2` and the reference category `C1`;
--   $\gamma_2$ is the difference in intercept between `C3` and the reference category `C1`.
+**What the equation says.** Look at the equation term by term. The term $\beta_1 \text{dist}_i$ contributes the same amount to the predicted $Y$ regardless of which bioregion site $i$ belongs to: the slope $\beta_1$ is shared across all regions. The dummy terms switch on or off depending on the bioregion. For a site in `AMP`, all three dummies are zero, so the predicted value simplifies to $\alpha + \beta_1 \text{dist}_i$. For a site in `B-ATZ`, only $D_{i,\text{B-ATZ}} = 1$, so the predicted value is $\alpha + \beta_1 \text{dist}_i + \gamma_1$. The $\gamma$ coefficients therefore describe *shifts in the intercept*, so they adjust the expected baseline level of dissimilarity for each bioregion up or down from the `AMP` reference, independently of how far apart the sites are.
 
-This is the coding that `lm()` uses by default for factors. The first level of the factor is taken as the reference level unless you change it explicitly with `relevel()`. The practical implication is that when you see coefficients such as `bioBMP` or `bioECTZ`, they do not represent absolute means for those groups. They represent differences from the reference bioregion, holding the continuous predictors constant.
+Put differently: the coefficient $\gamma_1$ is not the mean `Y` for `B-ATZ`. It is the *difference* between the average level of `Y` in `B-ATZ` and the average level of `Y` in `AMP`, after accounting for distance. A positive $\hat\gamma_2$ for `BMP` means that, at any given geographic distance, sites in `BMP` show higher mean dissimilarity than sites in `AMP`. This is what the model is designed to address: **does the average level of Sørensen dissimilarity differ among bioregions once distance is accounted for?**
 
-If an interaction between a continuous predictor and a factor is added, the same reasoning extends to the slopes. The main slope belongs to the reference level, and the interaction terms show how the slope changes in the other levels relative to that reference. That is the natural next step, but it belongs in [Chapter 15](15-interaction-effects.qmd), where the whole focus is on how those slope differences are interpreted.
+**What the equation does not say.** The model has only one slope for `dist`, $\beta_1$. That single value applies equally in `AMP`, `B-ATZ`, `BMP`, and `ECTZ`. If you drew the fitted regression line for each bioregion, all four lines would be parallel, that is, the share the same gradient but they have different heights. The model therefore cannot answer whether dissimilarity *accumulates with distance faster or slower in some bioregions than in others*. Whether the lines should instead have different slopes is a separate biological question entirely: it asks whether the rate of compositional turnover with distance differs among bioregions, not merely whether the baseline level differs. Answering that question requires adding an interaction term, `dist:bio`, which allows each bioregion to have its own slope. That extension is the subject of [Chapter 15](15-interaction-effects.qmd).
+
+For this chapter, the additive structure is the right tool for the questions being asked. The bioregion coefficients in `summary()` are intercept adjustments. They describe *how high or low the mean dissimilarity is* in each region relative to `AMP`, after removing the distance effect. They say nothing about the steepness of that distance effect in any particular region.
+
+**A visual way to think about it.** @fig-parallel-lines shows the reasoning in two steps.
+
+Panel A shows the simplest possible model: `Y ~ bio` with no distance predictor at all. The fitted value for each bioregion is just its group mean, producing a horizontal line for every region. The lines have no slope because distance plays no role here. This is also precisely what a one-way ANOVA produces. The vertical gaps between the horizontal lines represent the raw mean differences among bioregions in `Y`.
+
+Panel B adds `dist` to the model: `Y ~ dist + bio`. All four horizontal lines from panel A now tilt by the same angle, acquiring the shared slope $\hat\beta_1$. Their vertical separation is preserved, so the gaps between the lines are unchanged from panel A, because the bioregion coefficients still describe the same intercept differences. What the slope adds is the ability to account for the tendency of dissimilarity to increase with geographic distance, and in this model, it does so by the same amount in every bioregion.
+
+That vertical gap between any two lines (constant across the entire x-axis in panel B) is what the bioregion coefficients measure. For example, the coefficient $\hat\gamma_2$ for `BMP` is the vertical distance between the `BMP` line and the `AMP` line at any point along the distance axis.
+
+```{r fig-parallel-lines}
+#| fig-cap: "(A) A one-way ANOVA model (`Y ~ bio`) produces one horizontal fitted line per bioregion, sitting at each group's mean dissimilarity. Distance plays no role. (B) The additive model (`Y ~ dist + bio`) tilts all four lines by the same slope but preserves their vertical separation. The lines are strictly parallel: same gradient, different heights. The vertical gap between any two lines equals the difference in their bioregion coefficients."
+#| fig-width: 8
+#| fig-height: 3.25
+#| code-fold: true
+
+fit_anova <- lm(Y ~ bio, data = sw)
+fit_ancova <- lm(Y ~ dist + bio, data = sw)
+
+dist_range <- seq(min(sw$dist), max(sw$dist), length.out = 200)
+bios       <- unique(sw$bio)
+
+pred_anova <- expand.grid(dist = dist_range, bio = bios)
+pred_anova$fit <- predict(fit_anova, newdata = pred_anova)
+
+pred_ancova <- expand.grid(dist = dist_range, bio = bios)
+pred_ancova$fit <- predict(fit_ancova, newdata = pred_ancova)
+
+p_a <- ggplot() +
+  geom_point(data = sw, aes(x = dist, y = Y, colour = bio),
+             shape = 1, alpha = 0.4) +
+  geom_line(data = pred_anova, aes(x = dist, y = fit, colour = bio),
+            linewidth = 0.9) +
+  scale_colour_brewer(palette = "Set1", name = "Bioregion") +
+  labs(x = "Distance (km)", y = "Mean Sørensen Dissimilarity",
+       subtitle = "Y ~ bio  (group means only; no slope)") +
+  theme_grey()
+
+p_b <- ggplot() +
+  geom_point(data = sw, aes(x = dist, y = Y, colour = bio),
+             shape = 1, alpha = 0.4) +
+  geom_line(data = pred_ancova, aes(x = dist, y = fit, colour = bio),
+            linewidth = 0.9) +
+  scale_colour_brewer(palette = "Set1", name = "Bioregion") +
+  labs(x = "Distance (km)", y = "Mean Sørensen Dissimilarity",
+       subtitle = "Y ~ dist + bio  (shared slope, different intercepts)") +
+  theme_grey()
+
+ggarrange(p_a, p_b, ncol = 2, labels = "AUTO", common.legend = TRUE,
+          legend = "right")
+```
+
+The parallelism in panel B is the algebraic consequence of the additive structure. If the lines were *not* parallel (*i.e.*, if the slope of `dist` differed among bioregions), the additive model would be the wrong model. Whether that is the case here is the question that motivates the interaction models in [Chapter 15](15-interaction-effects.qmd).
 
 ## What the Coding Looks Like in Practice
 
-The abstract notation above is necessary, but it becomes much easier once we look at the actual coding used for the seaweed bioregions. We first create one row for each bioregion and then inspect the model matrix that `lm()` would construct internally.
-
 ```{r code-bio-demo}
+#| code-fold: true
 bio_demo <- tibble(
   bio = factor(c("AMP", "B-ATZ", "BMP", "ECTZ"),
                levels = levels(factor(sw$bio)))
@@ -485,22 +555,21 @@ bio_model_matrix <- model.matrix(~ bio, data = bio_demo) |>
   as.data.frame() |>
   mutate(bio = bio_demo$bio) |>
   relocate(bio)
-
-bio_model_matrix
 ```
 
 ```{r tbl-bio-demo}
 #| echo: false
-#| tbl-cap: "How the seaweed bioregions are represented by default dummy coding when `AMP` is the reference level."
+#| tbl-cap: "Dummy-variable coding for the four seaweed bioregions when `AMP` is the reference level. Each row shows the values of the three indicator variables for that bioregion. `AMP` is coded entirely as zeros, so its contribution is captured by the model intercept."
 
 bio_model_matrix |>
   gt()
 ```
 
 ```{r fig-bio-dummy-coding}
-#| fig-cap: "Dummy-variable coding for the seaweed bioregions. `AMP` is the reference level, so its dummy columns are all zero."
+#| fig-cap: "Visualisation of the dummy-variable coding shown in @tbl-bio-demo. `AMP` (reference level) has all zeros; the three other bioregions each have a single 1 in their corresponding indicator column."
 #| fig-width: 4
 #| fig-height: 3
+#| code-fold: true
 
 bio_model_matrix |>
   pivot_longer(cols = -bio, names_to = "term", values_to = "value") |>
@@ -511,59 +580,52 @@ bio_model_matrix |>
   theme_grey()
 ```
 
-This picture makes the bookkeeping explicit. `AMP` is the reference level, so all the dummy columns are zero there. `B-ATZ`, `BMP`, and `ECTZ` each receive a `1` in their own indicator column, which is why their fitted coefficients must be read as differences from `AMP`, not as stand-alone group means.
+**Reading the table.** Each row of @tbl-bio-demo is a bioregion; each column after the first is a dummy variable. The first column, `(Intercept)`, contains a 1 for every observation without exception. It is not a variable in the usual sense; it is the column that allows the model to estimate a constant term. Multiplying $\alpha$ by 1 for every row is how the intercept enters the linear predictor $\mathbf{X}\pmb{\beta}$ in matrix notation. When you see `(Intercept)` in `summary()` output, the coefficient next to it is $\hat\alpha$, which is the fitted value of $Y$ when every other column in the model matrix is zero, which in this case means an `AMP` observation at `dist = 0`.
 
-The same logic will later carry directly into interaction models. But before we go there, it is useful to stay with the simpler additive case in which distance has one common slope and the bioregions differ only in their intercepts.
+The three dummy columns come after it. The dummy for a given bioregion is 1 for that bioregion's row and 0 for every other row. `AMP` has a 0 in every dummy column — that is not an error or a gap; it is the definition of the reference level. When all dummies are zero, the model collapses to the intercept column alone, so $\hat\alpha$ *is* the fitted baseline for `AMP`.
 
-## State the Biological Question
+@fig-bio-dummy-coding shows the same information as a grid. The pattern clearly reveals that no two bioregions share a 1 in the same dummy variable column. Each bioregion is uniquely identified by exactly one blue cell, or, in the case of `AMP`, by the absence of blue cells.
 
-The seaweed dataset includes two additional variables that we have not yet considered closely:
+**Translating to `summary()` output.** When `sw$bio` is passed to `lm()` as a factor, R creates the three dummy columns shown in @tbl-bio-demo and fits a coefficient to each. The coefficient table in `summary()` will contain rows named `bioB-ATZ`, `bioBMP`, and `bioECTZ`. It will *not* contain a row for `bioAMP`, because `AMP` is captured entirely by the intercept. Reading those output rows correctly requires remembering the table:
 
--   `dist`, the geographic distance between seaweed samples along the coast of South Africa; and
--   `bio`, the bioregional classification of the samples.
+-   For an `AMP` observation: all three dummies are 0. The fitted value from the categorical part of the model is $\alpha$, i.e., the intercept alone.
+-   For a `BMP` observation: `bioBMP = 1`, the other two dummies are 0. The fitted value from the categorical part is $\alpha + \hat\gamma_2$, where $\hat\gamma_2$ is the coefficient of `bioBMP`. The model has shifted the fitted line for `BMP` up (or down) relative to `AMP` by exactly $\hat\gamma_2$.
+-   For an `ECTZ` observation: `bioECTZ = 1`, the others are 0. The fitted value is $\alpha + \hat\gamma_3$.
 
-These variables lend themselves to a few interesting questions:
+Changing the reference level with `relevel()` shifts which bioregion is absorbed into the intercept but does not change the fitted values, residuals, or the model's overall explanatory power. It only redistributes how the group differences are expressed in the coefficient table.
 
-1. Is the Sørensen dissimilarity of the seaweed flora  related to geographic distance?
-2. Does the average Sørensen dissimilarity vary among bioregions?
-3. Is the effect of geographic distance on Sørensen dissimilarity different for each bioregion?
+## Biological Question and Hypotheses
 
-The first two questions are additive-model questions and therefore belong in this chapter. The third question asks whether the slope of distance differs among bioregions, which is an interaction question and is therefore deferred to [Chapter 15](15-interaction-effects.qmd).
+The two variables used in this example are:
 
-## State the Model and Hypotheses
+-   `dist` — geographic distance between adjacent sample sites along the South African coastline;
+-   `bio` — the bioregional classification of each site.
 
-For the additive model in this chapter, the response can be written as:
+Now that the structure of the model equation is clear from the dummy-coding discussion above, I can precisely state the biological questions. The additive model is fitted to address two questions:
 
-$$
-Y = \alpha + \beta_1 \text{dist} + \beta_2 \text{bio} + \epsilon
-$$
+1. Is mean Sørensen dissimilarity related to geographic distance along the coast?
+2. After accounting for distance, does mean dissimilarity differ among bioregions?
 
-Because `bio` has four levels, the fitted model is actually expanded internally into several dummy variables. With `AMP` as the reference bioregion, the model is equivalent to:
+The null hypothesis for the distance effect is that geographic separation does not predict dissimilarity once bioregion is accounted for:
 
-$$
-\begin{aligned}
-Y = \alpha &+ \beta_1 \text{dist}
-+ \beta_2 \text{bio}_{\text{B-ATZ}}
-+ \beta_3 \text{bio}_{\text{BMP}}
-+ \beta_4 \text{bio}_{\text{ECTZ}}
-+ \epsilon
-\end{aligned}
-$$
+$$H_{0}: \beta_1 = 0$$
 
-In words:
+$$H_{a}: \beta_1 \ne 0$$
 
--   the intercept and `dist` slope describe the reference bioregion;
--   the `bio` coefficients describe how the intercept differs in the other bioregions relative to the reference;
--   the slope of `dist` is assumed to be the same in all bioregions.
+The null hypothesis for the bioregion effect is that no bioregion differs from `AMP` in average dissimilarity after accounting for distance:
 
-The overall null is that neither the distance effect nor the bioregion effect contributes to explaining the response. At the coefficient level, we therefore ask whether the slope of `dist` differs from zero and whether the bioregion coefficients differ from the reference level.
+$$H_{0}: \gamma_1 = \gamma_2 = \gamma_3 = 0$$
+
+$$H_{a}: \gamma_i \ne 0 \text{ for at least one } i$$
+
+The coefficient table from `summary()` tests each predictor's partial effect; the nested model comparison via `anova()` tests the overall contribution of `bio` beyond the distance-only model.
 
 ## Visualise the Main Effects
 
 ```{r fig-mod2-main-effects}
 #| fig-width: 8
 #| fig-height: 2.5
-#| fig-cap: "Plot of main effects of A) distance along the coast and B) bioregional classification on the Sørensen dissimilarity index."
+#| fig-cap: "Main effects of (A) geographic distance along the coast and (B) bioregional classification on mean Sørensen dissimilarity. Points in panel A are coloured by bioregion to show how the distance–dissimilarity relationship maps onto regional structure."
 
 p1 <- ggplot(sw, aes(x = dist, y = Y)) +
   geom_point(shape = 1, aes(colour = bio)) +
@@ -585,7 +647,7 @@ p2 <- ggplot(sw, aes(x = bio, y = Y)) +
 ggarrange(p1, p2, ncol = 2, labels = "AUTO")
 ```
 
-The plot of `Y` against distance already suggests that distance matters. Colouring by bioregion and inspecting the boxplots also suggest that the average level of `Y` differs among bioregions. The additive model is the first sensible way to combine those two patterns in one regression.
+@fig-mod2-main-effects shows that `Y` increases with distance and that the average level of `Y` differs visibly among bioregions. The additive model combines both patterns in a single regression without yet allowing the distance slope to vary by region.
 
 ## Fit and Assess Nested Models
 
@@ -598,53 +660,55 @@ summary(mod2)
 anova(mod2)
 ```
 
-The nested comparison shows that adding the bioregion effect to the distance-only model improves the fit strongly. The residual sum of squares decreases sharply, and the test indicates that the richer additive model provides a substantially better fit ($p < 0.001$).
+The nested comparison uses the sequential ANOVA approach described in [Example 1](#reading-the-coefficient-table-and-the-anova-table) and asks whether adding `bio` to the distance-only model reduces residual variance by more than chance. The residual sum of squares drops sharply, and the $F$-test is highly significant ($p < 0.001$), so the more comprehensive additive model fits significantly better.
 
-At this stage we are still fitting the simpler model in which distance has one common slope. That keeps the interpretation aligned with the main goal of Chapter 14: understanding how continuous and categorical predictors coexist in one additive linear model. In [Chapter 15](15-interaction-effects.qmd), we return to the same biological setting and ask whether allowing the slope of distance to differ among bioregions improves the model further.
+The `summary()` output shows the partial effect of `dist` and the coefficient for each non-reference bioregion. Each `bio` coefficient is the difference in fitted intercept from `AMP` after conditioning on distance.
 
 ## Interpret the Additive Model
 
-The coefficient table must be read with care because `bio` is represented through dummy-variable coding. The reference bioregion is absorbed into the intercept, and the remaining bioregion coefficients are interpreted relative to that reference.
+The additive model assumes one common slope for `dist` across all bioregions. The fitted distance effect is strongly positive, so as sample sites become more geographically separated along the coast, their seaweed assemblages become more dissimilar. The bioregion coefficients show that baseline dissimilarity differs among regions even after that distance effect is removed.
 
-So, if `AMP` is the reference level, then:
+The model does not yet address whether the rate at which dissimilarity increases with distance differs among bioregions. If that is the next biological question (it plausibly is, because distinct oceanographic provinces might produce different turnover rates) then the model must be extended to include an interaction between `dist` and `bio`. I will cover that step in [Chapter 15](15-interaction-effects.qmd).
 
--   the coefficient for `dist` is the slope for `AMP`;
--   the coefficient for `bioBMP` is the difference in intercept between `BMP` and `AMP` when `dist = 0`;
--   the same fitted slope of `dist` applies across the bioregions in this additive model.
+## Where ANCOVA Fits
 
-The same reasoning applies to the other bioregions. In this chapter, the important point is that adding a factor to a regression model changes the intercept structure while preserving one shared slope for the continuous predictor.
+**ANCOVA** is often taught as a method distinct from regression and ANOVA. It is not. ANCOVA is a linear model that contains one factor and at least one continuous covariate in an additive structure. The model `mod2` above fits exactly that description since `bio` is the factor and `dist` is the covariate. The coefficient table and ANOVA table produced by `lm()` and `aov()` for an ANCOVA model are algebraically the same.
 
-The broad interpretation is straightforward even if the bookkeeping is not:
+In R:
 
--   the effect of distance on `Y` is strong;
--   the mean level of `Y` differs among bioregions;
--   and those two sources of structure can be handled within the same additive linear model.
+```{r}
+#| eval: false
+lm(Y ~ bio + dist, data = sw)   # regression-style output
+aov(Y ~ bio + dist, data = sw)  # ANOVA-style output
+```
 
-If we now decide that different bioregions may also have different **rates** at which dissimilarity increases with distance, then we must move to an interaction model. That is the starting point of the next chapter.
+Both fit the same model. The difference is in the emphasis of the output: `lm()` emphasises the coefficient table and makes the covariate slope explicit; `aov()` draws attention to the ANOVA table and omnibus *F*-tests. I prefer teaching the `lm()` approach over an ANCOVA.
 
-## Reporting
+The standard ANCOVA assumption is that the covariate slope is the **same across factor levels**, *i.e.*, the same `dist` slope applies in all bioregions. In model terms, that is the additive structure without a `bio:dist` interaction. If there is biological reason to expect that different bioregions show different turnover rates with distance, the interaction model becomes appropriate, and the simple ANCOVA framing no longer applies.
+
+## Report
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
 
 **Methods**
 
-Nested linear models were used to test whether Sørensen dissimilarity was related to geographic distance and whether mean dissimilarity differed among bioregions. A distance-only model was compared with an additive model containing both distance and bioregion.
+Nested linear models were used to test whether mean Sørensen dissimilarity was related to geographic distance and whether mean dissimilarity differed among bioregions after accounting for distance. A distance-only model was compared with an additive model containing distance and bioregional classification using a sequential *F*-test.
 
 **Results**
 
-Sørensen dissimilarity increased strongly with geographic distance, and the additive model showed that mean dissimilarity also differed among bioregions. Adding bioregion to the distance-only model improved fit substantially ($p < 0.001$), indicating that both continuous geographic separation and categorical bioregional context contributed to explaining variation in the response. The fitted distance effect was strongly positive, while the bioregion coefficients indicated differences in baseline dissimilarity relative to the reference bioregion.
+Mean Sørensen dissimilarity increased with geographic distance along the South African coast, and an additive model showed that dissimilarity also differed among bioregions independently. Adding bioregion to the distance-only model improved fit substantially ($p < 0.001$; @fig-mod2-main-effects). The fitted distance effect was strongly positive, and the bioregion coefficients indicated that baseline dissimilarity differed among regions relative to the `AMP` reference level.
 
 **Discussion**
 
-The biologically important point is that compositional turnover is structured jointly by distance and bioregional context. At this stage, however, the model still assumes one common distance effect across the coastline. The next chapter asks whether that simplifying assumption is biologically defensible.
+Compositional turnover is jointly structured by geographic distance and bioregional context. The additive model attributes both effects to separate, non-interacting sources of variation. The assumption that distance has the same effect in all bioregions remains to be tested; that question is addressed in [Chapter 15](15-interaction-effects.qmd).
 :::
 
-# Example 3: The Final Additive Model
+# Example 3: The Full Additive Model
 
-We can now expand the selected climate model to include `bio` as an additive predictor alongside `augMean`, `febSD`, and `augSD`. This creates a more complete model in which the climatic effects are estimated jointly with bioregional differences, but still under the additive assumption.
+I now combine the selected climate predictors from [Example 1](#example-1-a-climate-model-for-the-east-coast-transition-zone) with `bio` as an additive predictor, using the full dataset rather than the ECTZ subset alone. This produces a model in which climatic effects are estimated jointly with bioregional differences.
 
-## Fit the Comprehensive Additive Model
+## Fit the Model
 
 ```{r code-mod3-fit}
 sw_sub2 <- sw |>
@@ -660,43 +724,72 @@ summary(full_mod3)
 anova(full_mod3)
 ```
 
-The richer additive model is clearly better than the climate-only model. The AIC is lower, and the nested comparison indicates that adding bioregional structure improves fit strongly even before we allow any climate slopes to vary among bioregions.
+The climate-plus-bioregion model fits substantially better than the climate-only model: the AIC is lower and the nested comparison is highly significant. Adding `bio` captures broad regional differences in baseline dissimilarity that the climate predictors alone do not account for. This is ecologically plausible because the South African coast traverses distinct biogeographic provinces shaped by contrasting oceanographic features (the warm Agulhas current to the south-east and the cold Benguela upwelling to the west) that create regional biotic signatures beyond what the three retained temperature metrics capture.
 
-The model is now richer than the one we began with because it combines several continuous climate predictors with a categorical regional structure. That does not yet imply that the climate relationships differ among bioregions. It only means that bioregional shifts in baseline response matter and should be accounted for.
+## Assess Assumptions
 
-## Interpret the Full Additive Model
+Before interpreting the coefficients, the residual assumptions need to be checked on the fitted model. The standard four-panel diagnostics and component-plus-residual plots for the continuous predictors are shown below.
 
-The summary of `full_mod3` shows that:
+```{r fig-mod3-diagnostics}
+#| fig-width: 8
+#| fig-height: 5
+#| fig-cap: "Standard diagnostic plots for `full_mod3`. Top left: residuals vs fitted values; top right: normal Q-Q plot of residuals; bottom left: scale-location; bottom right: residuals vs leverage with Cook's distance contours."
 
--   `augMean` remains a strong predictor of `Y`;
--   `bio` contributes additional explanatory structure beyond the climate predictors alone;
--   the overall model explains a substantial proportion of the variation in the response.
+autoplot(full_mod3, shape = 21, colour = "dodgerblue4",
+         smooth.colour = "magenta") +
+  theme_grey()
+```
 
-So, the outcome is that the relationship between the seaweed dissimilarity index and the selected climate variables can be modelled more convincingly once broad bioregional differences are included. That is a more defensible additive ecological statement than anything we could obtain from a single-predictor regression.
+Reading @fig-mod3-diagnostics:
 
-## Reporting
+-   **Residuals vs fitted:** In the residuals-versus-fitted panel, the residuals are centred near zero, but the fitted values fall into visible clusters because the model includes a categorical predictor. This is expected from the additive structure with bioregion-specific intercept shifts, so the main question is whether the residual spread changes systematically across the fitted range or whether a clear curved pattern appears. The plot does not indicate a strong departure from linearity, but it also does not support a stronger claim than that.
+-   **Normal Q-Q:** The normal Q-Q plot should be interpreted in the same cautious way. Most residuals appear to follow the reference line reasonably closely, but some deviations are concentrated in the tails. However, this type of pattern is common in ecological data and does not, by itself, invalidate the model. This suggests that normality is only approximate rather than exact.
+-   **Scale-location:** The scale-location panel is the main check on constant variance. Here the spread of the residuals appears broadly similar across fitted values, although minor changes in spread may remain. I therefore interpret the variance assumption as acceptable for ordinary least squares, without claiming perfectly constant variance.
+-   **Residuals vs leverage:** The residuals-versus-leverage panel does not suggest a single observation dominating the fit. Any points with moderately elevated leverage should still be checked individually, but the figure does not indicate an obvious case in which one or a few observations determine the estimated coefficients.
+
+```{r fig-mod3-crplots}
+#| fig-width: 8
+#| fig-height: 5
+#| fig-cap: "Component-plus-residual plots for the three continuous predictors in `full_mod3`. A straight fitted line confirms that a linear term is adequate for that predictor after accounting for the others."
+
+crPlots(full_mod3, col = "dodgerblue4", col.lines = "magenta")
+```
+
+The component-plus-residual plots are most useful for assessing whether the continuous predictors require nonlinear terms. These plots do not show strong, systematic curvature, so the linear terms for augMean, febSD, and augSD appear adequate at the present level of resolution. Overall, I'd say the diagnostics support treating the additive linear model as a reasonable summary of the data, while recognising that model adequacy in regression is a matter of degree rather than a binary decision.
+
+## Interpret the Model
+
+`augMean` remains the dominant climate predictor. The `bio` coefficients show that after adjusting for the three climate variables, the baseline dissimilarity still differs among regions. The model is additive, so the climate slopes are assumed to be the same in all bioregions.
+
+At this stage my analysis has reached the limit of the additive structure. The next biological question is whether climate relationships themselves differ among bioregions, *i.e.*, whether the slope of `augMean` is steeper in the ECTZ than in the BMP, for example. That question requires interactions, which are the subject of [Chapter 15](15-interaction-effects.qmd).
+
+## Report
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
 
 **Methods**
 
-A comprehensive additive multiple regression was fitted to evaluate whether mean Sørensen dissimilarity was explained jointly by the selected climate predictors and by bioregional classification. The additive climate-plus-bioregion model was compared with the corresponding climate-only model using information criteria and nested model comparison.
+A comprehensive additive multiple regression was fitted to evaluate whether mean Sørensen dissimilarity was explained jointly by August mean temperature, February temperature standard deviation, August temperature standard deviation, and bioregional classification. A climate-plus-bioregion model was compared with a climate-only model using AIC and a nested *F*-test.
 
 **Results**
 
-The additive multiple regression explained a large proportion of the variation in mean Sørensen dissimilarity and fit the data substantially better than the corresponding climate-only model (lower AIC; nested model comparison $p < 0.001$). August mean temperature remained the dominant positive predictor, and the inclusion of bioregion showed that broad regional differences in baseline dissimilarity persisted even after the selected climate variables had been taken into account.
+The climate-plus-bioregion additive model fitted the data substantially better than the corresponding climate-only model (lower AIC; nested model comparison $p < 0.001$). August mean temperature remained the dominant positive predictor. The inclusion of bioregion showed that regional differences in baseline dissimilarity persisted even after the climate variables were accounted for. The overall model explained a large proportion of the variation in mean Sørensen dissimilarity.
 
 **Discussion**
 
-This final additive model supports the ecological interpretation that compositional turnover is shaped both by climate and by broad regional context. If the next biological question is whether the climate slopes themselves differ among bioregions, then the analysis must move beyond additive structure and into the interaction framework developed in Chapter 15.
+Compositional turnover along the South African coast is shaped both by the selected climate variables and by broader biogeographic structure. The additive model assumes that the climate slopes are uniform across bioregions. Whether that assumption is defensible — or whether the Agulhas and Benguela systems show distinct rates of climate-driven turnover — is a question for the interaction models developed in [Chapter 15](15-interaction-effects.qmd).
 :::
 
 # Alternative Categorical Variable Coding Schemes (Contrasts)
 
-Throughout the chapter, the categorical variables have been handled with the default dummy-variable coding. But alternative coding schemes are possible, and they change the way the coefficients are interpreted.
+The examples above use the default treatment coding in R, which takes the first factor level as the reference and expresses all other levels as deviations from it. Two other coding schemes are occasionally useful.
 
-The following synthetic example shows a few different possibilities.
+**Effect coding** (sum-to-zero coding) expresses each level's coefficient as a deviation from the grand mean rather than from one reference level. The last level is the one dropped, and its effect is the negative sum of the other coefficients.
+
+**Helmert coding** compares each level to the average of all subsequent levels and can be informative when factor levels have a natural ordering.
+
+The choice of coding does not affect the fitted values or residuals. It only changes how the coefficients are expressed and therefore how they are interpreted. The practical advice is to use the default treatment coding unless there is a specific scientific reason to express effects differently.
 
 ```{r code-contrasts-data}
 set.seed(123)
@@ -711,37 +804,38 @@ data_contr <- data.frame(y, x, cat_var)
 head(data_contr)
 ```
 
-With default treatment coding, one level becomes the reference category:
+Default treatment coding:
 
 ```{r code-contrasts-default}
 contrasts(data_contr$cat_var)
 ```
 
-This means that the coefficient for each non-reference level is interpreted as the difference between that level and the reference level, holding the other predictors constant.
-
-You can change the reference level:
+Change the reference level:
 
 ```{r code-contrasts-relevel}
 data_contr$cat_var <- relevel(data_contr$cat_var, ref = "C")
 contrasts(data_contr$cat_var)
 ```
 
-Or use effect coding:
+Effect coding:
 
 ```{r code-contrasts-sum}
 contrasts(data_contr$cat_var) <- contr.sum(4)
 contrasts(data_contr$cat_var)
 ```
 
-The practical lesson is not that students must memorise every contrast scheme. It is that the interpretation of categorical coefficients depends on how the coding is done.
+The key lesson is not that these coding schemes must be memorised. It is that the interpretation of categorical coefficients in a regression output is inseparable from the coding that produced them.
+
+# Towards Interaction Models
+
+The three examples in this chapter all use additive structure, in other words, the effect of each predictor is assumed to be independent of the others. In the context of the seaweed model, this means the climate slope does not depend on which bioregion an observation comes from, and the bioregion difference does not depend on climate.
+
+That additivity assumption is an explicit claim about what structures seaweed diversity along South Africa. For the seaweed data, it may not hold. In fact, @smit2017seaweeds have fitted this model (a variation thereof) and concluded that region-specific slopes are indeed needed. If the slopes differ, the additive model will average across a real biological heterogeneity and produce a fitted `augMean` coefficient that is an average of two different relationships, which would be misleading.
+
+In [Chapter 15](15-interaction-effects.qmd), I relax the additivity assumption and fit models with explicit interactions. The same seaweed dataset is used there, so the biological context carries directly over. The step from `Y ~ augMean + bio` to `Y ~ augMean * bio` is small in code but large in interpretation, since it shifts from asking "what is the average climate effect?" to asking "does the climate effect differ among bioregions, and if so, how?"
 
 # Summary
 
--   Multiple regression extends simple regression to several predictors.
--   Model specification is not a side issue; it is part of the scientific argument.
--   The meaning of each coefficient depends on the other predictors included in the model.
--   Multicollinearity can make a model statistically unstable and biologically difficult to interpret.
--   Categorical predictors and interaction terms belong naturally within the multiple-regression framework.
--   A useful multiple regression is one that is both statistically adequate and scientifically defensible.
+Multiple regression models a continuous response as a linear function of several predictors simultaneously. The main interpretive feature is the partial coefficient, that is, each $\hat\beta_j$ gives the expected change in $Y$ for a one-unit increase in $X_j$ while all other predictors are held at their observed values. This conditional interpretation is what distinguishes a coefficient from a multiple regression from the slope in a simple regression.
 
-In this chapter, I lay out the full modelling sequence: additive models, interactions, richer bioregional structures, and categorical coding. In the next chapter, I return to the interaction problem directly and develop it in more focused detail.
+Model specification, such deciding which variables belong and what structure the model should have, is an act of scientific reasoning, not a data-processing step. Multicollinearity, confounding, and measurement error each undermine the reliability of fitted coefficients in different ways; the variance inflation factor detects collinearity but does not resolve confounding. This requires thinking carefully about which variables are absent from the model, so your expert knowledge of biological theory will rescue you at this point.
