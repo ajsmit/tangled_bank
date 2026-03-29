@@ -6,7 +6,7 @@ date-format: "YYYY/MM/DD"
 reference-location: margin
 ---
 
-![A meme about unexpected distributions.](../../images/paranormal_distributions.jpeg){fig-align="center" width="250"}
+![A meme about unexpected distributions.](../../images/paranormal_distributions.jpeg){#fig-paranormal-distributions fig-align="center" width="250"}
 
 ```{r code-brewing-opts}
 #| echo: false
@@ -54,7 +54,7 @@ library(palmerpenguins)
 
 # Introduction
 
-Assumption checks determine whether a planned inferential method is defensible. In this chapter, I apply those checks to **raw data** rather than to model residuals. Residual-based diagnostics belong to the later regression chapters, beginning with [Residuals and Model-Based Diagnostics](11-residuals-and-model-based-diagnostics.qmd). My aim here is to prepare directly for the tests you meet next: [*t*-tests](07-t_tests.qmd), [ANOVA](08-anova.qmd), and [Correlation and Association](09-correlation-and-association.qmd).
+Assumption checks determine whether a planned inferential method is defensible. In this chapter, I apply those checks to **raw data** rather than to model residuals. Residual-based diagnostics belong to the later regression chapters, beginning with [Residuals and Model-Based Diagnostics](11-residuals-and-model-based-diagnostics.qmd). My aim here is to prepare you for the tests you meet next: [*t*-tests](07-t_tests.qmd), [ANOVA](08-anova.qmd), and [Correlation and Association](09-correlation-and-association.qmd). The opening meme in @fig-paranormal-distributions is a light reminder that distributions are often less cooperative than we hope.
 
 I organise the discussion around data structure. So, group comparisons require checks within groups and across group variances. Paired designs require checks on the differences. Associations require checks on the joint pattern of the variables.
 
@@ -70,6 +70,12 @@ Assumption checking follows a series of steps:
 6. re-check if the analysis changes.
 
 Different assumptions often fail together which is why I tie the workflow the analysis rather than to a list of tests.
+
+<!-- ::: callout-important
+## Do It Now!
+
+You want to compare the tail lengths of three lizard species using a one-way ANOVA. Work through the six-step assumption-checking workflow above and write one concrete action for each step specific to this scenario. For example, what would you "inspect visually" (step 2)? What would "identify the data structure" (step 1) mean here? At step 5, what are the four possible responses, and which seems most likely to be needed before proceeding with ANOVA?
+::: -->
 
 # Identifying the Data Structure
 
@@ -100,12 +106,13 @@ I compare bill length across penguin species. The grouping structure is seen in 
 
 ## Graphical Checks
 
-Start with plots. Histograms show the shape within each species. A **Q-Q plot** compares the observed quantiles of the data with the quantiles expected from a normal distribution. If the distribution is close to normal, the points fall roughly along a straight reference line.
+Start with plots. Histograms show the shape within each species. A **Q-Q plot** compares the observed quantiles of the data with the quantiles expected from a normal distribution. If the distribution is close to normal, the points fall roughly along a straight reference line. These grouped and pooled views are shown in @fig-group-normality.
 
 ```{r fig-group-normality}
 #| fig-cap: "Normality checks for grouped data. A) Histograms of bill length within each penguin species. B) A pooled Q-Q plot that ignores species. C) Q-Q plots drawn separately within species."
 #| fig-width: 8
 #| fig-height: 8
+#| code-fold: true
 
 plt1 <- ggplot(peng, aes(body_mass_g)) +
   geom_histogram(bins = 20, fill = "grey70", colour = "white") +
@@ -126,7 +133,7 @@ plt3 <- ggplot(peng, aes(sample = body_mass_g)) +
 ggarrange(plt1, plt2, plt3, ncol = 1, labels = "AUTO")
 ```
 
-The pooled Q-Q plot bends because it combines Adelie, Chinstrap, and Gentoo penguins into one mixture distribution. The grouped Q-Q plots are the relevant ones because the comparison is made across species. That is the pattern we carry forward into [Chapter 7](07-t_tests.qmd) and [Chapter 8](08-anova.qmd).
+In @fig-group-normality, the pooled Q-Q plot bends because it combines Adelie, Chinstrap, and Gentoo penguins into one mixture distribution. The grouped Q-Q plots are the relevant ones because the comparison is made across species. That is the pattern we carry forward into [Chapter 7](07-t_tests.qmd) and [Chapter 8](08-anova.qmd).
 
 ## Formal Test
 
@@ -154,7 +161,31 @@ peng |>
 
 When *p* is greater than 0.05, the test shows no strong evidence against normality. That result does not prove exact normality, but it shows that the observed departure is not strong enough for this test to detect at the sample size available. There is sufficient evidence against the null, suggesting that Gentoo penguins have non-normal data.
 
-That result does not automatically end the analysis, but it does change the next step. First, inspect the plots and ask whether the departure is mild or severe. Second, continue to the variance check below, because non-normality and unequal variance often appear together. If one or more groups are clearly non-normal, and especially if variance also differs among groups, the later comparison should use a method that tolerates those features better. In the chapters that follow, that may mean Welch's version of the test, a rank-based alternative, a transformation followed by a fresh round of checks, or a different model altogether. The decision depends on the size of the departure, the sample sizes, and the biological scale on which you need to interpret the result.
+That result does not automatically end the analysis, but it does change the next step. First, inspect the plots in @fig-group-normality and ask whether the departure is mild or severe. Second, continue to the variance check below, because non-normality and unequal variance often appear together. If one or more groups are clearly non-normal, and especially if variance also differs among groups, the later comparison should use a method that tolerates those features better. In the chapters that follow, that may mean Welch's version of the test, a rank-based alternative, a transformation followed by a fresh round of checks, or a different model altogether. The decision depends on the size of the departure, the sample sizes, and the biological scale on which you need to interpret the result.
+
+::: callout-important
+## Do It Now!
+
+Using the `penguins` dataset (load **palmerpenguins**), run the normality checks for `flipper_length_mm` instead of `bill_length_mm`. For each species, produce a Q-Q plot and apply the Shapiro-Wilk test. Do the conclusions differ from what was found for bill length? Copy the code from above and adapt it. Report your W statistics and *p*-values and describe in one sentence whether you would consider the flipper length data approximately normal within each species.
+
+<!-- ```r
+library(palmerpenguins)
+library(tidyverse)
+peng <- penguins |> drop_na(flipper_length_mm, species)
+
+# Q-Q plots by species
+ggplot(peng, aes(sample = flipper_length_mm)) +
+  stat_qq() + stat_qq_line(colour = "red") +
+  facet_wrap(~species, scales = "free") +
+  labs(title = "Flipper length Q-Q plots by species")
+
+# Shapiro-Wilk by species
+peng |>
+  group_by(species) |>
+  summarise(W = shapiro.test(flipper_length_mm)$statistic,
+            p  = shapiro.test(flipper_length_mm)$p.value)
+``` -->
+:::
 
 ## Other Tests for Normality
 
@@ -184,6 +215,7 @@ We use penguin body mass because the spread differs more clearly across species:
 #| fig-cap: "Variance checks for grouped data. A) Box plots of body mass by penguin species. B) Sample variances by species."
 #| fig-width: 8
 #| fig-height: 4
+#| code-fold: true
 
 peng_var <- peng |>
   group_by(species) |>
@@ -200,7 +232,7 @@ plt2 <- ggplot(peng_var, aes(species, sample_var, fill = species)) +
 ggpubr::ggarrange(plt1, plt2, ncol = 2, widths = c(1.4, 1))
 ```
 
-The box plots show the spread clearly. Large differences in spread suggest heteroscedasticity.
+The box plots and variance bars in @fig-group-variance show the spread clearly. Large differences in spread suggest heteroscedasticity.
 
 The most commonly used formal test is **Levene's test**, `car::leveneTest()`. Its null hypothesis is that the group variances are equal:
 
@@ -251,12 +283,13 @@ paired <- tibble(
   mutate(diff = after - before)
 ```
 
-The paired structure means that each `after` value belongs to the same unit as one `before` value. The analysis will therefore be built on the differences.
+The paired structure means that each `after` value belongs to the same unit as one `before` value. The analysis will therefore be built on the differences, which are visualised in @fig-paired-diff.
 
 ```{r fig-paired-diff}
 #| fig-cap: "Checks for paired data. A) Histogram of paired differences. B) Q-Q plot of paired differences."
 #| fig-width: 7
 #| fig-height: 3.5
+#| code-fold: true
 
 plt1 <- ggplot(paired, aes(diff)) +
   geom_histogram(bins = 12, fill = "grey70", colour = "white") +
@@ -274,7 +307,7 @@ ggarrange(plt1, plt2, ncol = 2, labels = "AUTO")
 shapiro.test(paired$diff)
 ```
 
-This is the structure used directly in the paired *t*-test in [Chapter 7](07-t_tests.qmd).
+The histogram and Q-Q plot in @fig-paired-diff are the relevant diagnostics because the paired *t*-test is built on the differences, not on the raw `before` and `after` values. This is the structure used directly in the paired *t*-test in [Chapter 7](07-t_tests.qmd).
 
 # Associations: Check the Joint Structure
 
@@ -284,13 +317,14 @@ Association problems have a different geometry. There are no groups, and there a
 #| fig-cap: "Scatter plot of tree height and volume from the base R `trees` dataset."
 #| fig-width: 5
 #| fig-height: 4
+#| code-fold: true
 
 ggplot(trees, aes(Height, Volume)) +
   geom_point(shape = 21, fill = "salmon", colour = "black") +
   labs(x = "Height", y = "Volume")
 ```
 
-Here the questions are whether the relationship is approximately linear and whether a few extreme values dominate the pattern. Checking each variable for normality in isolation would miss the main issue. The structure used here leads directly into [Correlation and Association](09-correlation-and-association.qmd).
+In @fig-trees-scatter, the questions are whether the relationship is approximately linear and whether a few extreme values dominate the pattern. Checking each variable for normality in isolation would miss the main issue. The structure used here leads directly into [Correlation and Association](09-correlation-and-association.qmd).
 
 # Independence
 
@@ -306,6 +340,19 @@ Check independence by asking:
 
 We return to these issues in [Pseudoreplication](18-pseudoreplication.qmd) and [Dependence and Mixed Models](19-dependence-and-mixed-models.qmd).
 
+::: callout-important
+## Do It Now!
+
+For each scenario below, state whether the observations are independent and identify the potential source of non-independence if there is one:
+
+a. You measure oxygen consumption in 20 individual fish, one per tank, across two temperature treatments.
+b. You measure body mass in 30 individual fish, but six fish share each of five tanks, and tanks are the actual treatment units.
+c. You sample 15 quadrats along a single 100 m transect to estimate cover of an invasive alga.
+d. You measure blood pressure in 10 patients before and after a treatment.
+
+Which of these would call for a paired test, a mixed model, or a simple independent-samples test? Discuss with a partner.
+:::
+
 # Reporting Assumption Checks
 
 ::: {.callout-note appearance="simple"}
@@ -317,7 +364,7 @@ Penguin body mass was examined by species before any formal group comparison. No
 
 **Results**
 
-Body-mass distributions differed among penguin species in both location and spread. The species-specific histograms and Q-Q plots gave the relevant diagnostic view because the assumption applied within species rather than to the pooled dataset. Levene's test indicated that variance was not uniform across species, so a later comparison of species means would need to take that heterogeneity into account.
+Body-mass distributions differed among penguin species in both location and spread. The species-specific histograms and Q-Q plots in @fig-group-normality gave the relevant diagnostic view because the assumption applied within species rather than to the pooled dataset. The box plots and variance summaries in @fig-group-variance reinforced that variance was not uniform across species, so a later comparison of species means would need to take that heterogeneity into account.
 
 **Discussion**
 
@@ -358,6 +405,20 @@ After transformation, quantities such as means and confidence intervals usually 
 | Negative skew | Reflect, then transform if needed | Often suggests that a different model or scale may be better |
 
 If the response has its own natural error structure, such as counts, proportions, presence-absence data, or survival times, a generalised model is often better than transformation.
+
+::: callout-important
+## Do It Now!
+
+Use the decision guide above to recommend a transformation (or decide that transformation is not appropriate) for each of the following:
+
+a. Seabird nest counts per island (range: 0 to 2500; variance increases with the mean).
+b. Percentage cover of lichen on rock surfaces (range: 2% to 98%; most sites around 50%).
+c. Salmon body mass in grams (range: 1.5 to 8.2 kg; slight right-skew).
+d. Presence or absence of a parasitic worm (binary: 0 or 1).
+e. Time-to-death of bacteria exposed to an antibiotic (range: 5 to 240 minutes; strongly right-skewed).
+
+For each, state the transformation or model type you would recommend and give a one-sentence justification.
+:::
 
 # Common Transformations
 
@@ -403,7 +464,10 @@ It was designed to stabilise variance in count data, but a Poisson or negative-b
 
 To demonstrate what a transformation is trying to achieve, I use the built-in `airquality` dataset. Here the response is ozone concentration, and I compare **May-June** with **August-September**. This is a two-group comparison, so the relevant questions are the same ones used earlier in the chapter: are the distributions within groups reasonably well behaved, and are the group variances similar enough for a mean-based comparison?
 
-```{r code-transform-setup}
+```{r fig-transform-demo}
+#| fig-cap: "A real-data example showing how a log transformation changes the distribution of ozone concentrations. A) Raw ozone values by season. B) Log-transformed ozone values by season."
+#| code-fold: true
+
 ozone_dat <- na.omit(airquality[, c("Ozone", "Month")]) |>
   as_tibble() |>
   filter(Month %in% c(5, 6, 8, 9)) |>
@@ -413,10 +477,6 @@ ozone_dat <- na.omit(airquality[, c("Ozone", "Month")]) |>
     ),
     log_ozone = log(Ozone)
   )
-```
-
-```{r fig-transform-demo}
-#| fig-cap: "A real-data example showing how a log transformation changes the distribution of ozone concentrations. A) Raw ozone values by season. B) Log-transformed ozone values by season."
 
 plt1 <- ggplot(ozone_dat, aes(Ozone)) +
   geom_histogram(bins = 20, fill = "grey70", colour = "grey30") +
@@ -432,6 +492,8 @@ ggarrange(plt1, plt2, ncol = 2, labels = "AUTO")
 ```
 
 ```{r code-transform-checks}
+#| code-fold: true
+
 ozone_dat |>
   group_by(season) |>
   summarise(
@@ -446,7 +508,7 @@ car::leveneTest(Ozone ~ season, data = ozone_dat)
 car::leveneTest(log_ozone ~ season, data = ozone_dat)
 ```
 
-The raw ozone values show strong right-skew in both seasons. On the raw scale, both groups depart clearly from normality and the variances differ. On the log scale, the upper tail is compressed, the group spreads are closer, and the Shapiro-Wilk and Levene results are far less problematic. The transformation has changed the scale in a way that makes a mean-based comparison more defensible.
+Figure @fig-transform-demo shows the effect of the transformation directly. The raw ozone values show strong right-skew in both seasons. On the raw scale, both groups depart clearly from normality and the variances differ. On the log scale, the upper tail is compressed, the group spreads are closer, and the Shapiro-Wilk and Levene results are far less problematic. The transformation has changed the scale in a way that makes a mean-based comparison more defensible.
 
 In this chapter, I stop at the diagnostic stage since the inferential step belongs in [Chapter 7](07-t_tests.qmd) where the same ozone data are analysed with a two-sample *t*-test on the transformed scale before the result is back-transformed for reporting.
 
@@ -462,6 +524,38 @@ Transformation is usually the wrong response when:
 -   the observations are not independent;
 -   the biological interpretation becomes less clear than the original problem;
 -   a more appropriate method already exists.
+
+::: callout-important
+## Do It Now!
+
+The `airquality` dataset (built into R) contains ozone concentrations measured in New York over several months. Run the full assumption-checking workflow on ozone (`Ozone`) split by `Month`:
+
+a. Produce histograms and Q-Q plots grouped by month.
+b. Apply the Shapiro-Wilk test within each month.
+c. Apply Levene's test for equal variance across months (use `car::leveneTest()`).
+d. Based on your diagnostics, would you apply a log transformation? Apply it and re-check.
+
+<!-- ```r
+library(car)
+aq <- na.omit(airquality)
+aq$Month <- factor(aq$Month)
+
+# Graphical checks
+ggplot(aq, aes(sample = Ozone)) +
+  stat_qq() + stat_qq_line(colour = "red") +
+  facet_wrap(~Month, scales = "free")
+
+# Formal tests
+aq |> group_by(Month) |>
+  summarise(W = shapiro.test(Ozone)$statistic,
+            p = shapiro.test(Ozone)$p.value)
+
+leveneTest(Ozone ~ Month, data = aq)
+
+# Log transform and re-check
+aq$logOzone <- log(aq$Ozone)
+``` -->
+:::
 
 # Summary
 

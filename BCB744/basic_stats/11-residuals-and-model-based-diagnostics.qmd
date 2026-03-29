@@ -132,6 +132,19 @@ residuals(model) # raw residuals
 
 Throughout this chapter, I use raw residuals because the goal is to establish the basic thinking behind the diagnostics. Later chapters introduce standardised and studentised residuals when I discuss unusual and influential observations.
 
+::: callout-important
+## Do It Now!
+
+Look at the table printed above. For observations 1 and 4, verify by hand that `residual = observed body mass - predicted body mass`. Then answer: which of the eight penguins shown is most strongly over-predicted by the model, and which is most strongly under-predicted?
+
+<!-- ```r
+# Run this to inspect the table values directly:
+penguin_resids |>
+  select(obs_id, species, flipper_length_mm, body_mass_g, predicted_mass, residual) |>
+  slice_head(n = 8)
+``` -->
+:::
+
 # Why Assumptions Apply to Residuals
 
 A fitted model aims to describe the systematic part of the relationship between a response and its predictors. Fitting a linear model removes the conditional mean $E[Y \mid X]$, leaving residuals centred at zero.
@@ -188,6 +201,23 @@ ggplot(sim_plot_dat, aes(x = light, y = value)) +
 
 Assumptions therefore apply to the residuals because the residuals represent the unexplained variation. If the residuals still show a pattern, the model has left structure behind, and if they have unstable spread, the uncertainty estimates become less reliable.
 
+::: callout-important
+## Do It Now!
+
+Reproduce @fig-slope-removed for a different simulated dataset. Use a steeper slope and more noise:
+
+```r
+set.seed(99)
+my_dat <- tibble(
+  x = seq(1, 10, length.out = 80),
+  y = 2 + 3.5 * x + rnorm(80, sd = 5)
+)
+my_mod <- lm(y ~ x, data = my_dat)
+```
+
+Plot the raw data with the fitted line (panel A) and then plot the residuals against `x` (panel B). Confirm that the residuals are centred on zero and that no clear slope remains. Discuss with a partner why the residual plot looks the way it does even though the original relationship was strongly positive.
+:::
+
 The shift from earlier chapters is straightforward:
 
 | Context | What is checked |
@@ -197,7 +227,7 @@ The shift from earlier chapters is straightforward:
 | correlation | observed relationship between variables |
 | regression | residuals from the fitted model |
 
-# Key Regression Assumptions
+# Main Regression Assumptions
 
 ## Linearity
 
@@ -206,6 +236,20 @@ The shift from earlier chapters is straightforward:
 ## Constant Variance
 
 **Constant variance** means that the spread of the residuals around zero stays broadly similar across the fitted range. If the spread expands or contracts systematically, the variance structure is not being described well by the model.
+
+::: callout-important
+## Do It Now!
+
+The table below maps assumptions to the plots that check them. Without looking at the rest of the chapter, try to fill in the "Visual cue" column from memory or first principles. Then read on and compare your answers with the table in the next section.
+
+| Assumption | What it concerns | Main check | Your predicted visual cue |
+|---|---|---|---|
+| Linearity | mean structure | residual vs fitted | ? |
+| Constant variance | spread | residual vs fitted | ? |
+| Normality | residual distribution | Q-Q plot | ? |
+
+Discuss: which of these three would you check first, and why?
+:::
 
 ## Independence
 
@@ -262,6 +306,32 @@ plot(model, which = 1)  # residual versus fitted
 plot(model, which = 2)  # Q-Q plot
 ```
 
+::: callout-important
+## Do It Now!
+
+Simulate a dataset that deliberately violates constant variance (heteroscedasticity) and plot the residual-versus-fitted plot to see what that violation looks like:
+
+```r
+set.seed(42)
+n <- 100
+x <- seq(1, 10, length.out = n)
+y <- 3 + 1.5 * x + rnorm(n, sd = 0.4 * x)   # SD grows with x
+het_mod <- lm(y ~ x)
+```
+
+<!-- ```r
+library(broom)
+het_aug <- augment(het_mod)
+ggplot(het_aug, aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = 0, colour = "grey40") +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, colour = "firebrick") +
+  labs(x = "Fitted value", y = "Residual")
+``` -->
+
+Describe the shape you see. How does it differ from the ideal plot shown next in @fig-ideal-resid-fitted?
+:::
+
 ## Example 1: Idealised Diagnostic Plots
 
 I continue with the same simulated dataset used in @fig-slope-removed. Here that same fitted model is viewed through the two standard diagnostic plots. In @fig-ideal-resid-fitted, the residual spread is even and the smooth line stays close to horizontal. In @fig-ideal-resid-qq, the residuals are also approximately normal.
@@ -282,6 +352,7 @@ ideal_qq <- tibble(sample = sort(ideal_aug$.resid)) |>
 #| fig-cap: "Idealised residual-versus-fitted plot for a well-behaved straight-line model."
 #| fig-width: 5
 #| fig-height: 3.5
+#| code-fold: true
 
 ggplot(ideal_aug, aes(x = .fitted, y = .resid)) +
   geom_hline(yintercept = 0, linewidth = 0.5, colour = "grey40") +
@@ -299,6 +370,7 @@ ggplot(ideal_aug, aes(x = .fitted, y = .resid)) +
 #| fig-cap: "Idealised Q-Q plot of residuals for a well-behaved straight-line model."
 #| fig-width: 5
 #| fig-height: 3.5
+#| code-fold: true
 
 ggplot(ideal_qq, aes(x = theoretical, y = sample)) +
   geom_point(size = 2.0, colour = "steelblue4") +
@@ -340,6 +412,7 @@ The fitted values are the model's expected body masses. The residuals show how f
 #| fig-cap: "Residuals versus fitted values for a pooled penguin body-mass model."
 #| fig-width: 5
 #| fig-height: 3.5
+#| code-fold: true
 
 ggplot(penguin_aug, aes(x = .fitted, y = .resid)) +
   geom_hline(yintercept = 0, linewidth = 0.5, colour = "grey40") +
@@ -365,6 +438,7 @@ Plot body mass against flipper length for the penguins dataset and colour the po
 #| fig-cap: "Q-Q plot of residuals for a pooled penguin body-mass model."
 #| fig-width: 5
 #| fig-height: 3.5
+#| code-fold: true
 
 qq_dat <- tibble(sample = sort(penguin_aug$.resid)) |>
   mutate(theoretical = qqnorm(penguin_aug$.resid, plot.it = FALSE)$x)
@@ -377,6 +451,36 @@ ggplot(qq_dat, aes(x = theoretical, y = sample)) +
     y = "Residual quantiles"
   )
 ```
+
+::: callout-important
+## Do It Now!
+
+Refit the penguin model including `species` as an additional predictor and re-examine both diagnostic plots:
+
+```r
+model_species <- lm(body_mass_g ~ flipper_length_mm + species,
+                    data = penguins_tbl)
+
+aug_species <- penguins_tbl |>
+  mutate(.fitted = fitted(model_species),
+         .resid  = residuals(model_species))
+```
+
+<!-- ```r
+# Residual vs fitted
+ggplot(aug_species, aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = 0, colour = "grey40") +
+  geom_point(aes(colour = species), size = 1.8) +
+  geom_smooth(method = "loess", se = FALSE, colour = "firebrick") +
+  labs(x = "Fitted body mass", y = "Residual")
+``` -->
+
+Does the curved pattern in @fig-penguins-resid-fitted disappear once species is included? What does this tell you about the source of the earlier diagnostic problem?
+
+In addition to your residual-vs-fitted plot, also produce a Q-Q plot of the residuals for the new model and compare it with @fig-penguins-resid-qq.
+
+Above, I am preempting some later work. See [Chapter 14](14-multiple-regression-and-model-specification.qmd) before returing here, if necessary.
+:::
 
 In @fig-penguins-resid-qq, the residuals are close enough to normal that I would not treat distributional shape as the first problem. Approximate normality does not rescue a poor mean model due to ignoring the grouping structure, so my primary warning comes from @fig-penguins-resid-fitted, not from the Q-Q plot.
 
@@ -393,6 +497,21 @@ When the Q-Q plot shows strong tail departures, the next step is usually to insp
 When residuals are dependent, the solution is rarely a cosmetic adjustment to the same model. Dependence points back to the design and often requires a different modelling framework altogether, such as repeated-measures methods, time-series models, spatial models, or mixed models.
 
 A diagnostic plot therefore points to the aspect of the model that needs revision and helps decide what kind of revision is defensible.
+
+::: callout-important
+## Do It Now!
+
+Work through the four diagnostic scenarios described below. For each one, decide which assumption is most likely violated and what the preferred next step is. Discuss your reasoning with a partner before reading further.
+
+| Scenario | What the diagnostic shows | Which assumption? | Next step? |
+|---|---|---|---|
+| A | Residuals fan out strongly from left to right in the residual-vs-fitted plot | ? | ? |
+| B | Q-Q plot shows a pronounced S-bend, with both tails lifting away from the line | ? | ? |
+| C | Residuals form a clear arc (positive, then negative, then positive) across the fitted range | ? | ? |
+| D | Residuals plotted against collection order show long runs of positive values followed by long runs of negative values | ? | ? |
+
+After completing the table, check your answers against the "Linking Diagnostics to Decisions" section above.
+:::
 
 # Connection to Earlier Chapters
 

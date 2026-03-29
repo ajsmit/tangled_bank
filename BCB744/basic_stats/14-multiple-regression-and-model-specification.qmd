@@ -71,6 +71,24 @@ The worked examples use seaweed biogeographic data from @smit2017seaweeds. The d
 -   **Categorical predictors** enter the linear model through dummy-variable coding. Numerically, this is no different from including a continuous predictor, but the interpretation changes.
 -   **ANCOVA** combines a factor and a continuous covariate in one additive linear model. It is not a separate procedure; it is a special case of multiple regression.
 
+::: callout-important
+## Do It Now!
+
+Consider this scenario: a researcher wants to know what drives kelp biomass on the South African coast. She measures water temperature, nitrate concentration, wave energy, light availability, and distance from upwelling centres at 80 sites. Before fitting anything, discuss with a partner:
+
+1. Which of these variables would you include in a multiple regression model, and why?
+2. Is there any variable you would exclude on biological grounds alone?
+3. If two of the predictors are very strongly correlated (say, temperature and distance from upwelling), what does that tell you about what the model will and will not be able to do?
+
+Write down your candidate model as an R formula:
+
+```r
+lm(kelp_biomass ~ ???, data = kelp_df)
+```
+
+This is a specification exercise — there is no single right answer, but every choice must be justifiable.
+:::
+
 # Model Specification vs Model Selection
 
 When model building and fitting are approached as a single activity, the workflow isn't optimal and it might result in a sub-optimal outcome. Keep the two processes apart:
@@ -101,6 +119,26 @@ The residual assumptions in multiple regression are the same as in simple regres
 -   **No severe multicollinearity:** Predictors should not be so strongly intercorrelated that their partial coefficients become imprecise or uninterpretable. The variance inflation factor quantifies this.
 
 Even when residual assumptions are satisfied, the model can still be scientifically weak if the variables are chosen without biological justification. Statistical adequacy and scientific defensibility are separate criteria and both are indespensible to model building.
+
+::: callout-important
+## Do It Now!
+
+Load the seaweed dataset and produce a pairs plot of the five candidate predictors and the response `Y` for the ECTZ subset. Look for approximate linearity and for strong correlations among predictors.
+
+```r
+sw <- read.csv("../../data/BCB743/seaweed/spp_df2.csv")
+sw_ectz <- sw[sw$bio == "ECTZ", ]
+sw_sub1 <- sw_ectz[, c("Y", "augMean", "febRange", "febSD", "augSD", "annMean")]
+
+pairs(sw_sub1, pch = 16, col = "dodgerblue4", cex = 0.7)
+```
+
+From the plot, answer:
+
+1. Do any of the predictors appear to violate the approximate linearity requirement with `Y`?
+2. Which pairs of predictors look strongly correlated with each other? What problem would that create in a multiple regression?
+3. Does `Y` look roughly symmetric, or would a transformation help?
+:::
 
 # The Core Equation
 
@@ -182,6 +220,7 @@ summary(sw_sub1)
 #| fig-width: 8
 #| fig-height: 7.5
 #| fig-cap: "Simple linear regressions fitted separately for five candidate climate predictors against mean Sørensen dissimilarity (`Y`) in the East Coast Transition Zone."
+#| code-fold: true
 
 predictors <- c("augMean", "febRange", "febSD", "augSD", "annMean")
 
@@ -242,6 +281,33 @@ All five predictors are individually significant at $\alpha = 0.05$, and each ac
 
 These one-predictor views do not show how the predictors behave when considered together. In particular, they give no indication of how much the predictors overlap with each other.
 
+::: callout-important
+## Do It Now!
+
+Reproduce the five individual simple regressions shown in the figure above, but extract the $R^2$ and slope from each using `broom::glance()` and `broom::tidy()`. Then rank the predictors from strongest to weakest marginal association with `Y`.
+
+```r
+library(broom)
+predictors <- c("augMean", "febRange", "febSD", "augSD", "annMean")
+
+map_dfr(predictors, function(p) {
+  mod <- lm(as.formula(paste("Y ~", p)), data = sw_ectz)
+  tibble(
+    predictor  = p,
+    slope      = tidy(mod)$estimate[2],
+    r_squared  = glance(mod)$r.squared,
+    p_value    = glance(mod)$p.value
+  )
+}) |> arrange(desc(r_squared))
+```
+
+After running this:
+
+1. Which predictor alone explains the most variance in `Y`?
+2. Does the predictor with the steepest slope also have the highest $R^2$? If not, why not?
+3. Would you include all five in the multiple regression at this stage? What would be the risk?
+:::
+
 ## Hypotheses
 
 The null hypothesis for the overall model is that none of the entered climatological variables explains variation in `Y`:
@@ -299,6 +365,34 @@ vif(full_mod1)
 ```
 
 Several predictors have VIF values well above 10, indicating that the full five-predictor model is not interpretable as specified. The solution in this case is to remove the most problematic predictor and refit, iterating until VIF values are acceptable. This is a pragmatic response to collinearity within the data at hand, but it does not resolve the deeper question of why the variables are intercorrelated or what is lost when a variable is removed. [Chapter 16](16-collinearity-confounding-measurement-error.qmd) addresses those questions.
+
+::: callout-important
+## Do It Now!
+
+Fit the full five-predictor model and check its VIFs. Then remove the single predictor with the highest VIF, refit, and check again. Record which predictor was removed and how the remaining VIF values changed.
+
+```r
+library(car)
+full_mod1 <- lm(Y ~ augMean + febRange + febSD + augSD + annMean,
+                data = sw_sub1)
+vif(full_mod1)
+```
+
+After removing the worst offender (say `annMean`):
+
+```r
+mod_reduced <- lm(Y ~ augMean + febRange + febSD + augSD,
+                  data = sw_sub1)
+vif(mod_reduced)
+```
+
+Discuss with a partner:
+
+1. Which predictor had the highest VIF, and what does that say about its relationship with the others?
+2. Did removing one predictor bring all remaining VIFs below 10, or is another iteration needed?
+3. What information is potentially lost by removing a predictor this way?
+:::
+
 
 Note also the distinction from confounding: collinearity is a property of the included predictors since they carry overlapping information. Confounding involves a predictor that was omitted entirely but correlates both with an included predictor and with the response, causing the included predictor's coefficient to be biased. Both problems undermine interpretation, but through different mechanisms.
 
@@ -365,6 +459,28 @@ The **coefficient table** from `summary()` tests each partial effect *conditiona
 
 The **ANOVA table** from `anova()` is *sequential*. It partitions the total sum of squares in the order the predictors were entered: `augMean` is assessed first, then `febSD` gets credit for what `augMean` left unexplained, and `augSD` gets the remainder. Change the order of predictors in the formula and the sums of squares in the ANOVA table change. For testing whether a predictor contributes after adjusting for all others, the coefficient table is the appropriate place to look. The ANOVA table is more informative when the question is about the total variance attributable to each predictor in a natural sequence, or when comparing nested models (see [Chapter 15](15-interaction-effects.qmd)).
 
+::: callout-important
+## Do It Now!
+
+Run `summary(mod1)` and `anova(mod1)` on the selected three-predictor model, then answer the questions below.
+
+```r
+summary(mod1)
+anova(mod1)
+```
+
+1. The `summary()` output reports a *t*-statistic for each predictor. The `anova()` output reports an *F*-statistic for each predictor. For a single predictor, $F = t^2$. Verify this for `augMean` by squaring its *t*-value from `summary()` and comparing it to the *F*-value from `anova()`.
+2. Now refit the model with the predictors in a different order and rerun `anova()`:
+
+```r
+mod1_reordered <- lm(Y ~ augSD + febSD + augMean, data = sw_vif)
+anova(mod1_reordered)
+```
+
+Do the sums of squares change? Does the `summary()` coefficient table change? Explain why or why not.
+:::
+
+
 ## A Note on Scaling and Centring
 
 The coefficient for `augMean` gives the expected change in `Y` for a one-unit increase in August mean temperature, in degrees Celsius. When predictors are on very different measurement scales, comparing their coefficients directly is not meaningful, So, a one-unit change in temperature and a one-unit change in temperature variability are not equivalent steps. Standardising predictors to zero mean and unit variance before fitting makes their coefficients comparable in the sense that each then represents the change in `Y` per one standard deviation of the predictor. Centring alone (subtracting the mean without rescaling) does not change the slopes but makes the intercept interpretable as the fitted value of `Y` at average predictor values rather than at predictor values of zero, which are often outside the data range entirely.
@@ -377,6 +493,7 @@ Added-variable plots show the relationship between the response and each predict
 #| fig-width: 8
 #| fig-height: 5
 #| fig-cap: "Added-variable (partial regression) plots for the selected model `mod1`. Each panel shows the relationship between the response and one predictor after removing the effects of the other two predictors."
+#| code-fold: true
 
 avPlots(mod1, col = "dodgerblue4", col.lines = "magenta")
 ```
@@ -387,6 +504,7 @@ In @fig-mod1-partial, a tight, steeply sloped partial relationship indicates a s
 #| fig-width: 8
 #| fig-height: 5
 #| fig-cap: "Standard diagnostic plots for `mod1`. Top left: residuals vs fitted values; top right: normal Q-Q; bottom left: scale-location; bottom right: residuals vs leverage."
+#| code-fold: true
 
 autoplot(mod1, shape = 21, colour = "dodgerblue4",
          smooth.colour = "magenta") +
@@ -406,6 +524,7 @@ My overall interpretation of @fig-mod1-diagnostics is that the model looks broad
 #| fig-width: 8
 #| fig-height: 5
 #| fig-cap: "Component-plus-residual plots for `mod1`. Each panel shows whether the relationship between the response and that predictor is approximately linear in the fitted model."
+#| code-fold: true
 
 crPlots(mod1, col = "dodgerblue4", col.lines = "magenta")
 ```
@@ -594,6 +713,28 @@ The three dummy columns come after it. The dummy for a given bioregion is 1 for 
 
 Changing the reference level with `relevel()` shifts which bioregion is absorbed into the intercept but does not change the fitted values, residuals, or the model's overall explanatory power. It only redistributes how the group differences are expressed in the coefficient table.
 
+::: callout-important
+## Do It Now!
+
+Fit the additive model with `bio` as a factor and then refit it with `ECTZ` as the reference level instead of `AMP`. Compare the two `summary()` outputs.
+
+```r
+sw$bio <- factor(sw$bio)          # AMP is the default reference
+mod_amp_ref <- lm(Y ~ dist + bio, data = sw)
+summary(mod_amp_ref)
+
+sw$bio <- relevel(sw$bio, ref = "ECTZ")
+mod_ectz_ref <- lm(Y ~ dist + bio, data = sw)
+summary(mod_ectz_ref)
+```
+
+Answer the following:
+
+1. Do the fitted values change when you switch the reference level? Check with `all.equal(fitted(mod_amp_ref), fitted(mod_ectz_ref))`.
+2. What does the intercept represent in each model?
+3. The coefficient for `bioECTZ` in the first model is a comparison against `AMP`. What comparison does the coefficient for `bioAMP` represent in the second model?
+:::
+
 ## Biological Question and Hypotheses
 
 The two variables used in this example are:
@@ -626,6 +767,7 @@ The coefficient table from `summary()` tests each predictor's partial effect; th
 #| fig-width: 8
 #| fig-height: 2.5
 #| fig-cap: "Main effects of (A) geographic distance along the coast and (B) bioregional classification on mean Sørensen dissimilarity. Points in panel A are coloured by bioregion to show how the distance–dissimilarity relationship maps onto regional structure."
+#| code-fold: true
 
 p1 <- ggplot(sw, aes(x = dist, y = Y)) +
   geom_point(shape = 1, aes(colour = bio)) +
@@ -734,6 +876,7 @@ Before interpreting the coefficients, the residual assumptions need to be checke
 #| fig-width: 8
 #| fig-height: 5
 #| fig-cap: "Standard diagnostic plots for `full_mod3`. Top left: residuals vs fitted values; top right: normal Q-Q plot of residuals; bottom left: scale-location; bottom right: residuals vs leverage with Cook's distance contours."
+#| code-fold: true
 
 autoplot(full_mod3, shape = 21, colour = "dodgerblue4",
          smooth.colour = "magenta") +
@@ -751,17 +894,40 @@ Reading @fig-mod3-diagnostics:
 #| fig-width: 8
 #| fig-height: 5
 #| fig-cap: "Component-plus-residual plots for the three continuous predictors in `full_mod3`. A straight fitted line confirms that a linear term is adequate for that predictor after accounting for the others."
+#| code-fold: true
 
 crPlots(full_mod3, col = "dodgerblue4", col.lines = "magenta")
 ```
 
-The component-plus-residual plots are most useful for assessing whether the continuous predictors require nonlinear terms. These plots do not show strong, systematic curvature, so the linear terms for augMean, febSD, and augSD appear adequate at the present level of resolution. Overall, I'd say the diagnostics support treating the additive linear model as a reasonable summary of the data, while recognising that model adequacy in regression is a matter of degree rather than a binary decision.
+The component-plus-residual plots in @fig-mod3-crplots are most useful for assessing whether the continuous predictors require nonlinear terms. These plots do not show strong, systematic curvature, so the linear terms for augMean, febSD, and augSD appear adequate at the present level of resolution. Overall, I'd say the diagnostics support treating the additive linear model as a reasonable summary of the data, while recognising that model adequacy in regression is a matter of degree rather than a binary decision.
 
 ## Interpret the Model
 
 `augMean` remains the dominant climate predictor. The `bio` coefficients show that after adjusting for the three climate variables, the baseline dissimilarity still differs among regions. The model is additive, so the climate slopes are assumed to be the same in all bioregions.
 
 At this stage my analysis has reached the limit of the additive structure. The next biological question is whether climate relationships themselves differ among bioregions, *i.e.*, whether the slope of `augMean` is steeper in the ECTZ than in the BMP, for example. That question requires interactions, which are the subject of [Chapter 15](15-interaction-effects.qmd).
+
+::: callout-important
+## Do It Now!
+
+Compare the climate-only and climate-plus-bioregion models using both AIC and a nested *F*-test, then interpret what the numbers mean biologically.
+
+```r
+sw_sub2 <- sw |> dplyr::select(Y, augMean, febSD, augSD, bio)
+mod_climate_only  <- lm(Y ~ augMean + febSD + augSD, data = sw_sub2)
+mod_climate_bio   <- lm(Y ~ augMean + febSD + augSD + bio, data = sw_sub2)
+
+AIC(mod_climate_only, mod_climate_bio)
+anova(mod_climate_only, mod_climate_bio, test = "F")
+```
+
+Discuss:
+
+1. By how many AIC units does the climate-plus-bioregion model improve over the climate-only model? Is that a meaningful difference (rule of thumb: $\Delta$AIC > 2 is noteworthy)?
+2. What does a significant nested *F*-test tell you that AIC alone does not?
+3. In plain biological language, what does it mean that adding `bio` to the model improves fit — even after the three climate predictors are already included?
+:::
+
 
 ## Report
 

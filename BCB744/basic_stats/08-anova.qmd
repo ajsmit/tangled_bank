@@ -54,12 +54,12 @@ Find here a [Cheatsheet](../../docs/Methods_cheatsheet_v1.pdf) on statistical me
 ::: {.callout-important appearance="simple"}
 ## Tasks to Complete in This Chapter
 
--   Self-Assessment Task 8-1
--   Self-Assessment Task 8-2
--   Self-Assessment Task 8-3
--   Self-Assessment Task 8-4
--   Self-Assessment Task 8-5
--   Self-Assessment Task 8-6
+-   [Self-Assessment Task 8-1](#self-assessment-task-8-1)
+-   [Self-Assessment Task 8-2](#self-assessment-task-8-2)
+-   [Self-Assessment Task 8-3](#self-assessment-task-8-3)
+-   [Self-Assessment Task 8-4](#self-assessment-task-8-4)
+-   [Self-Assessment Task 8-5](#self-assessment-task-8-5)
+-   [Self-Assessment Task 8-6](#self-assessment-task-8-6)
 :::
 
 ```{r code-chicks-setup}
@@ -130,20 +130,33 @@ If the global null hypothesis is rejected, we then ask which groups differ using
 Should you insist on doing multiple *t*-tests, Bonferroni correction divides the significance threshold by the number of tests. It reduces the false-positive rate, but it can become very conservative. The better solution, when the scientific question concerns several group means at once, is to fit the appropriate multi-group model, such as an ANOVA, rather than correct a stack of pairwise *t*-tests after the fact.
 :::
 
-:::: {.callout-important}
+:::: {#self-assessment-task-8-1 .callout-important}
 ## Self-Assessment Task 8-1
 
-Why should we not just apply *t*-tests once per each of the pairs of comparisons we want to make? **(/3)**
+a. Why should we not just apply *t*-tests once per each of the pairs of comparisons we want to make? **(/3)**
+
+b. Using the table above, calculate the probability of at least one false positive when comparing five groups ($K = 5$) at $\alpha = 0.05$ using pairwise *t*-tests. How many comparisons would that involve? Then calculate the same probability at $\alpha = 0.01$. Is a Bonferroni correction or a single ANOVA the better solution? Discuss with a partner and be ready to explain your reasoning.
 
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
 **Answer**
 
-Applying *t*-tests repeatedly across multiple pairwise comparisons increases the probability of committing at least one Type I error --- that is, falsely rejecting a true null hypothesis. This inflation of the collective error rate arises because each test is conducted at a fixed significance level (*e.g.*, α = 0.05), but the cumulative chance of error grows with the number of tests. So, the overall inference becomes unreliable. Instead, methods such as ANOVA, adjusted p-values (*e.g.* or Bonferroni correction) should be used to control for this multiplicity.
+a. Applying *t*-tests repeatedly across multiple pairwise comparisons increases the probability of committing at least one Type I error --- that is, falsely rejecting a true null hypothesis. This inflation of the collective error rate arises because each test is conducted at a fixed significance level (*e.g.*, α = 0.05), but the cumulative chance of error grows with the number of tests. So, the overall inference becomes unreliable. Instead, methods such as ANOVA, adjusted p-values (*e.g.* or Bonferroni correction) should be used to control for this multiplicity.
 
 - ✓ Identifying the problem of multiple comparisons.
 - ✓ Explaining the consequence: increased risk of Type I error.
 - ✓ Suggesting a solution: using ANOVA or adjusted p-values.
+
+b.
+
+```r
+# Number of pairwise comparisons for K groups
+K <- 5
+comparisons <- K * (K - 1) / 2
+prob_at_least_one_false_pos <- 1 - (1 - 0.05)^comparisons
+cat("Comparisons:", comparisons, "\nP(at least 1 Type I error):",
+    round(prob_at_least_one_false_pos, 3), "\n")
+```
 
 `r if (params$hide_answers) ":::"`
 ::::
@@ -155,12 +168,13 @@ ANOVA gets to the global question by partitioning the total variation in the res
 -   variation among the group means;
 -   variation within the groups.
 
-If the group means differ more than we would expect from within-group variation alone, the ANOVA result becomes large enough to reject $H_0$.
+If the group means differ more than we would expect from within-group variation alone, the ANOVA result becomes large enough to reject $H_0$. This partition is illustrated in @fig-anova-decomposition. This partition is illustrated in @fig-anova-decomposition.
 
 ```{r fig-anova-decomposition}
 #| fig-cap: "Visual intuition for ANOVA. The dashed blue line is the grand mean. The red points are the diet means. Distance from the red points to the blue line contributes to between-group variation. Distance from observations to their group mean contributes to within-group variation."
 #| fig-width: 5
 #| fig-height: 3.5
+#| code-fold: true
 
 grand_mean <- mean(chicks_day21$weight)
 
@@ -256,12 +270,13 @@ This is a one-way design because there is one grouping variable, `Diet`, with fo
 
 ## Do an Exploratory Data Analysis (EDA)
 
-I begin with a boxplot and jittered points so that the distribution within each diet is visible.
+I begin with a boxplot and jittered points so that the distribution within each diet is visible in @fig-boxwhisker2.
 
 ```{r fig-boxwhisker2}
 #| fig-cap: "Boxplot and jittered observations for chick mass at Day 21 under four diets. Black points show the diet means and the vertical bars show one standard deviation above and below each mean."
 #| fig-width: 5
 #| fig-height: 3.5
+#| code-fold: true
 
 ggplot(chicks_day21, aes(x = Diet, y = weight)) +
   geom_boxplot(
@@ -315,7 +330,7 @@ chicks_aov1 <- aov(weight ~ Diet, data = chicks_day21)
 summary(chicks_aov1)
 ```
 
-:::: {.callout-important}
+:::: {#self-assessment-task-8-2 .callout-important}
 ## Self-Assessment Task 8-2
 
 a. What does the outcome say about the chicken masses? Which ones are different from each other? **(/2)**
@@ -393,16 +408,19 @@ Each row in the Tukey output is one pairwise comparison. The `diff` column is th
 #| fig-cap: "Tukey HSD comparisons among the four chick diets at Day 21."
 #| fig-width: 5
 #| fig-height: 3.5
+#| code-fold: true
 
 plot(TukeyHSD(chicks_aov1))
 ```
 
-:::: {.callout-important}
-## Do It Now!
-a. Produce a `ggplot2` version of the Tukey result.
-::::
+The pairwise pattern is easier to scan in @fig-tukeydiff.
 
 :::: {.callout-important}
+## Do It Now!
+Produce a `ggplot2` version of the Tukey result.
+::::
+
+:::: {#self-assessment-task-8-3 .callout-important}
 ## Self-Assessment Task 8-3
 
 Look at the help file for the `TukeyHSD()` function to better understand what the output means.
@@ -410,7 +428,6 @@ Look at the help file for the `TukeyHSD()` function to better understand what th
 a. How does one interpret the results? What does this tell us about the effect that that different diets has on the chicken weights at Day 21? **(/3)**
 b. Figure out a way to plot the Tukey HSD outcomes in **ggplot**. **(/10)**
 c. Why does the ANOVA return a significant result, but the Tukey test shows that not all of the groups are significantly different from one another? **(/3)**
-
 
 `r if (params$hide_answers) "::: {.content-hidden}"`
 
@@ -483,6 +500,26 @@ At Day 21, mean chick mass differed among diets (one-way ANOVA: $F_{3,41} = 4.66
 The post hoc structure shows selective diet differences rather than universal separation among all four diet means. The global ANOVA detects structure among the means; Tukey's HSD identifies where that structure lies.
 :::
 
+::: callout-important
+## Do It Now!
+
+Repeat the ANOVA analysis above using the built-in `PlantGrowth` dataset instead of the `chicks` data. This dataset contains dry weight of plants under a control condition and two treatment conditions.
+
+a. Make a box plot of `weight ~ group`.
+b. Check the normality assumption within each group (histograms or Shapiro-Wilk).
+c. Fit a one-way ANOVA: `aov(weight ~ group, data = PlantGrowth)`.
+d. If the global test is significant, apply Tukey's HSD and identify which groups differ.
+e. Write a two-sentence Results statement following the format above.
+
+<!-- ```r
+data(PlantGrowth)
+boxplot(weight ~ group, data = PlantGrowth)
+fit <- aov(weight ~ group, data = PlantGrowth)
+summary(fit)
+TukeyHSD(fit)
+``` -->
+:::
+
 # Factorial ANOVA
 
 So far, there has been one grouping variable only. I now extend the same idea to more than one factor.
@@ -516,8 +553,28 @@ time_scan
 
 The results are interpretable, but my method was less than ideal (and not to mention, also repetitive). Each time point gets its own ANOVA, and the family-wise error rate rises again. Separate ANOVAs across time repeat the same multiple-testing problem as separate *t*-tests across diets.
 
-:::: {.callout-important appearance="simple"}
+:::: {#self-assessment-task-8-4 .callout-important appearance="simple"}
 ## Self-Assessment Task 8-4
+
+a. What do you conclude from the above series of ANOVAs? **(/3)**
+b. What problem is associated with running multiple tests in the way that we have done here? **(/2)**
+
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+**Answer**
+
+a. **Conclusions from the series of ANOVAs**
+    - ✓ (x 3) The sequential ANOVAs across times 0, 2, 10, and 21 reveal how the effect of diet on chicken mass develops over time. At time 0, there is no evidence of a difference between diet groups (*p* > 0.05), which is expected, as all chicks begin from a similar baseline before dietary interventions have had time to act. By time 2, a statistically significant effect appears (*p* < 0.05), and this effect becomes more pronounced at time 10 (*p* < 0.001). By time 21, the effect remains significant (p < 0.005), though the *F*-statistic is slightly lower than at time 10. This temporal pattern suggests that dietary effects on body mass begin to diverge early, become more detectable over time. The implication is that there is a growing differentiation in growth trajectories due to diet.
+
+b. **Problems with running multiple tests**
+    - ✓ (x 2) Running multiple ANOVAs increases the risk of Type I error, as each test has a chance of falsely rejecting the null hypothesis. This inflation of the error rate can lead to erroneous conclusions about the significance of results. To mitigate this, we should consider using a single ANOVA model that includes time as a factor, rather than running separate tests for each time point. Or, we may use a regression model that includes time as a continuous variable.
+
+`r if (params$hide_answers) ":::"`
+::::
+
+:::: {#self-assessment-task-8-5 .callout-important appearance="simple"}
+## Self-Assessment Task 8-5
 
 a. How is time having an effect? **(/3)**
 b. What hypotheses can we construct around time? **(/2)**
@@ -539,26 +596,6 @@ b. **Hypotheses around time**
 `r if (params$hide_answers) ":::"`
 ::::
 
-:::: {.callout-important appearance="simple"}
-## Self-Assessment Task 8-5
-
-a. What do you conclude from the above series of ANOVAs? **(/3)**
-b. What problem is associated with running multiple tests in the way that we have done here? **(/2)**
-
-
-`r if (params$hide_answers) "::: {.content-hidden}"`
-
-**Answer**
-
-a. **Conclusions from the series of ANOVAs**
-    - ✓ (x 3) The sequential ANOVAs across times 0, 2, 10, and 21 reveal how the effect of diet on chicken mass develops over time. At time 0, there is no evidence of a difference between diet groups (*p* > 0.05), which is expected, as all chicks begin from a similar baseline before dietary interventions have had time to act. By time 2, a statistically significant effect appears (*p* < 0.05), and this effect becomes more pronounced at time 10 (*p* < 0.001). By time 21, the effect remains significant (p < 0.005), though the *F*-statistic is slightly lower than at time 10. This temporal pattern suggests that dietary effects on body mass begin to diverge early, become more detectable over time. The implication is that there is a growing differentiation in growth trajectories due to diet.
-
-b. **Problems with running multiple tests**
-    - ✓ (x 2) Running multiple ANOVAs increases the risk of Type I error, as each test has a chance of falsely rejecting the null hypothesis. This inflation of the error rate can lead to erroneous conclusions about the significance of results. To mitigate this, we should consider using a single ANOVA model that includes time as a factor, rather than running separate tests for each time point. Or, we may use a regression model that includes time as a continuous variable.
-
-`r if (params$hide_answers) ":::"`
-::::
-
 ## Two Factors in One Model
 
 A two-way ANOVA brings diet and time into the same model. Below, `Time` is converted to a factor because the question is about distinct sampling times. Should I keep time as a continuous covariate, this would change the model into a linear regression, as I show in [Chapter 12](12-simple-linear-regression.qmd) and extend in [Chapter 14](14-multiple-regression-and-model-specification.qmd).
@@ -570,7 +607,7 @@ chicks_two_way <- filter(chicks, Time %in% c(0, 21)) |>
 summary(aov(weight ~ Diet + Time, data = chicks_two_way))
 ```
 
-:::: {.callout-important appearance="simple"}
+:::: {#self-assessment-task-8-6 .callout-important appearance="simple"}
 ## Self-Assessment Task 8-6
 
 a. Write out the hypotheses for this ANOVA. **(/2)**
@@ -649,7 +686,23 @@ pairwise.wilcox.test(
 
 Kruskal-Wallis is a one-way method. There is no direct two-way Kruskal-Wallis counterpart that plays the same introductory role for factorial designs. Once the design includes multiple factors, the analysis needs a different modelling strategy rather than a simple rank-based extension of the one-way test.
 
+::: callout-important
+## Do It Now!
 
+The `InsectSprays` dataset (built into R) gives counts of insects under six spray treatments. Counts are non-negative integers that may not meet ANOVA's normality assumption.
+
+a. Make a box plot: `boxplot(count ~ spray, data = InsectSprays)`. Is there obvious right-skew or unequal variance?
+b. Run the Shapiro-Wilk test within each spray group.
+c. Apply the Kruskal-Wallis test: `kruskal.test(count ~ spray, data = InsectSprays)`.
+d. If significant, apply the pairwise Wilcoxon test with Holm correction.
+e. Compare this result with a log-transformed ANOVA on the same data. Do the conclusions agree?
+
+<!-- ```r
+kruskal.test(count ~ spray, data = InsectSprays)
+pairwise.wilcox.test(InsectSprays$count, InsectSprays$spray,
+                     p.adjust.method = "holm")
+``` -->
+:::
 
 # What This Chapter Does Not Cover
 

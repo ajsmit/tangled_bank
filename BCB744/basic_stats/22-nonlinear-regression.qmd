@@ -144,6 +144,7 @@ The first decision is whether the biology gives you a reason to prefer a specifi
 #| fig-cap: "Examples of curved models fitted to simulated data. A polynomial can capture modest curvature, a GAM can adapt flexibly to the data, and a mechanistic nonlinear model can represent a known saturating biological response."
 #| fig-width: 7
 #| fig-height: 4.5
+#| code-fold: true
 set.seed(13)
 
 x_poly <- seq(-10, 10, length.out = 30)
@@ -254,6 +255,7 @@ mf_data |>
 ```{r fig-mf-eda}
 #| echo: false
 #| fig-cap: "Plot of uptake rate, V, as a function of substrate concentration, [S], for a multiple flask experiment. The relationship is clearly curved and tends towards saturation."
+#| code-fold: true
 ggplot(mf_data, aes(x = S, y = V, group = rep)) +
   geom_jitter(size = 2, shape = 1, colour = "royalblue2", width = 0.08) +
   labs(
@@ -295,6 +297,7 @@ The starting values do not have to be exact, but they should be sensible. Here w
 ```{r fig-mf-fit}
 #| echo: false
 #| fig-cap: "Michaelis-Menten model fitted to the uptake data. The dashed lines indicate the estimated Km and Vmax values."
+#| code-fold: true
 coef_nls <- coef(nls_mod)
 Vmax_est <- coef_nls["Vmax"]
 Km_est <- coef_nls["Km"]
@@ -330,6 +333,7 @@ shapiro.test(mf_data$resid)
 ```{r fig-mf-diagnostics}
 #| echo: false
 #| fig-cap: "Basic diagnostics for the Michaelis-Menten fit. The residuals show no serious trend with the fitted values, and the distribution is approximately symmetric."
+#| code-fold: true
 plt_hist <- ggplot(mf_data, aes(resid)) +
   geom_histogram(aes(y = after_stat(density)),
                  bins = 10,
@@ -348,7 +352,7 @@ plt_resid <- ggplot(mf_data, aes(fitted, resid)) +
 ggarrange(plt_hist, plt_resid, ncol = 2)
 ```
 
-These diagnostics do not suggest any serious problem. The residual spread is fairly even, and the histogram is approximately symmetric. As always, you should not rely on a single formal test, but the residual behaviour is consistent with a usable fit.
+The diagnostics in @fig-mf-diagnostics do not suggest any serious problem. The residual spread is fairly even, and the histogram is approximately symmetric. As always, you should not rely on a single formal test, but the residual behaviour is consistent with a usable fit.
 
 ## Interpret the Results
 
@@ -403,6 +407,7 @@ mf_data2 <- generate_data(
 ```{r fig-mf-treatment}
 #| echo: false
 #| fig-cap: "Simulated nutrient uptake curves for three treatments. The pattern suggests treatment-specific nonlinear responses rather than a single shared curve."
+#| code-fold: true
 ggplot(mf_data2, aes(S, V, colour = trt)) +
   geom_jitter(shape = 1, width = 0.08) +
   labs(
@@ -412,7 +417,7 @@ ggplot(mf_data2, aes(S, V, colour = trt)) +
   )
 ```
 
-At that point, the modelling problem becomes a bit more challenging and exciting. A separate `nls()` fit can be used for each treatment, or a nonlinear mixed-effects model can be used when dependence or grouping must be handled explicitly. That is the nonlinear counterpart of the fixed-effects and mixed-effects logic introduced in [Chapter 19](19-dependence-and-mixed-models.qmd). If the response is also non-normal, you are moving towards the broader territory covered in [Chapter 20](20-generalised-linear-models.qmd).
+The treatment-specific curvature in @fig-mf-treatment makes the modelling problem more challenging and exciting. A separate `nls()` fit can be used for each treatment, or a nonlinear mixed-effects model can be used when dependence or grouping must be handled explicitly. That is the nonlinear counterpart of the fixed-effects and mixed-effects logic introduced in [Chapter 19](19-dependence-and-mixed-models.qmd). If the response is also non-normal, you are moving towards the broader territory covered in [Chapter 20](20-generalised-linear-models.qmd).
 
 The important point is that nonlinear modelling “draws a curve” *and* it chooses a mean structure that matches the process and then extending that structure carefully when treatments, dependence, or more complicated designs are present.
 
@@ -465,6 +470,7 @@ head(mm_data, 8) |>
 #| fig-cap: "Repeated-measures uptake data from the perturbation experiment. Each dashed line traces one flask through time as substrate concentration declines."
 #| fig-width: 4
 #| fig-height: 3
+#| code-fold: true
 
 ggplot(mm_data, aes(x = S, y = V, colour = trt, group = interaction(trt, flask))) +
   geom_point(shape = 1, size = 1.8, alpha = 0.8) +
@@ -476,7 +482,7 @@ ggplot(mm_data, aes(x = S, y = V, colour = trt, group = interaction(trt, flask))
   )
 ```
 
-The relationship is again saturating, so a Michaelis-Menten mean structure is still sensible. The important difference is that each dashed trajectory comes from the same flask measured repeatedly. That means the residuals are likely to be correlated within flask, and the flasks are nested within treatment.
+The relationship in @fig-mm-eda is again saturating, so a Michaelis-Menten mean structure is still sensible. The important difference is that each dashed trajectory comes from the same flask measured repeatedly. That means the residuals are likely to be correlated within flask, and the flasks are nested within treatment.
 
 ## State the Model Question
 
@@ -557,6 +563,7 @@ shapiro.test(mm_data$resid_nlme)
 #| fig-cap: "Basic diagnostics for the nonlinear mixed-effects model. The residual pattern is acceptable for a teaching example, with no strong trend against the fitted values."
 #| fig-width: 4
 #| fig-height: 3
+#| code-fold: true
 
 plt_hist_mm <- ggplot(mm_data, aes(resid_nlme)) +
   geom_histogram(aes(y = after_stat(density)),
@@ -575,7 +582,7 @@ plt_resid_mm <- ggplot(mm_data, aes(fitted_nlme, resid_nlme)) +
 ggarrange(plt_hist_mm, plt_resid_mm, ncol = 2)
 ```
 
-These diagnostics show whether the fitted nonlinear mean structure and the residual assumptions are at least broadly compatible with the data.
+The diagnostics in @fig-mm-diagnostics show whether the fitted nonlinear mean structure and the residual assumptions are at least broadly compatible with the data.
 
 ## Interpret the Results
 
@@ -608,6 +615,7 @@ param_tbl
 #| fig-cap: "Treatment-specific nonlinear mixed-effects fits for the perturbation experiment."
 #| fig-width: 4
 #| fig-height: 3
+#| code-fold: true
 
 pred_mm_nlme <- crossing(
   trt = factor(c("low", "med", "high"), levels = c("low", "med", "high")),

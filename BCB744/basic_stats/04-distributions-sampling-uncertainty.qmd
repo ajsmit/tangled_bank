@@ -205,6 +205,24 @@ ggarrange(
 
 Note that both the Bernoulli and Binomial distributions assume independence between trials and a fixed, constant success probability, but in real ecological data these assumptions are not always fully met. I will revisit this in [Chapter 20](20-generalised-linear-models.qmd) when we discuss quasi-binomial models for overdispersed proportions.
 
+::: callout-important
+## Do It Now!
+
+A marine biologist surveys 30 rock pools. In each pool, she records whether a sea urchin (*Parechinus angulosus*) is present (1) or absent (0). Suppose the true probability of presence is $p = 0.4$.
+
+a. What is the expected number of occupied pools? Calculate this by hand: $E(X) = np$.
+b. Simulate this scenario in R with `rbinom(1000, size = 30, prob = 0.4)`. Plot a histogram of the 1000 outcomes. Where does the histogram peak? Does it match your calculation?
+c. Now change `size` to 5 and then to 100. How does the shape of the distribution change?
+
+<!-- ```r
+# Simulate and plot
+sims <- rbinom(1000, size = 30, prob = 0.4)
+hist(sims, breaks = 15, col = "steelblue",
+     xlab = "Number of occupied pools", main = "Binomial(30, 0.4)")
+abline(v = 30 * 0.4, col = "red", lwd = 2)  # expected value
+``` -->
+:::
+
 ## The Poisson Distribution
 
 ::: {.column-margin}
@@ -411,6 +429,25 @@ The **central limit theorem (CLT)** states that the sampling distribution of the
 The CLT is why Normal-based tests and confidence intervals work reasonably well in many practical situations, because we are relying on the behaviour of sample means, not the raw data. It also explains why checking normality of *residuals* matters more than checking normality of the raw response variable in most regression contexts.
 :::
 
+::: callout-important
+## Do It Now!
+
+Generate 200 observations from a Normal distribution with mean 50 and SD 10 (`rnorm(200, mean = 50, sd = 10)`). Then:
+
+a. Compute the mean and median. Are they close? They should be — why?
+b. Compute the proportion of observations that fall within 1, 2, and 3 SDs of the mean. Compare to the 68–95–99.7 rule.
+c. Make a Q-Q plot (`qqnorm(); qqline()`). Do the points follow the reference line?
+
+<!-- ```r
+set.seed(42)
+x <- rnorm(200, mean = 50, sd = 10)
+cat("Mean:", mean(x), "  Median:", median(x), "\n")
+cat("Within 1 SD:", mean(abs(x - mean(x)) < sd(x)), "\n")
+cat("Within 2 SD:", mean(abs(x - mean(x)) < 2 * sd(x)), "\n")
+qqnorm(x); qqline(x, col = "red")
+``` -->
+:::
+
 ## The Log-Normal Distribution
 
 ::: {.column-margin}
@@ -609,6 +646,86 @@ Three continuous distributions arise primarily in hypothesis testing and confide
 
 None of these three distributions is typically used to model raw biological data; they are the theoretical distributions of test statistics under null hypotheses.
 
+::: callout-important
+## Do It Now!
+
+Think of two biological variables you have measured or would expect to measure in your research. For each one, identify: (1) whether it is discrete or continuous, (2) what biological process generates it, (3) which distribution from this chapter most plausibly describes it, and (4) what would make that distribution choice wrong (e.g., overdispersion, bounded range, always positive). Share your choices with a partner and see if you agree.
+:::
+
+::: {.callout-important appearance="default"}
+## Do This Now!
+
+**Distributions Emerge from Real Processes**
+
+The distributions described above seem like abstract mathematical ideas, but they *do* arise directly from the physical or biological processes that generate data.
+
+In this exercise, I would like for you to produce three real datasets, one per group, through running simple "experiments". At the end, you will pool the data and compare the observed shapes graphically. **Start by dividing the class into three groups. Each group will be responsible for doing a different experiment.**
+
+---
+
+**Group 1: The Coin-Flip Experiment (*Binomial*)**
+
+* Each student in the group performs **5 rounds** of flipping a coin **20 times** per round, recording the number of **heads** after each round. Each round yields one number, so each student contributes 5 observations. With 8 students in the group you will collect **40 observations** in total. Record all 40 values in a shared list.
+
+* Each flip is an independent Bernoulli trial with probability of success $p = 0.5$. When you count how many successes occur in a fixed number $n = 20$ of such trials, the result is by definition a Binomial$(n = 20,\; p = 0.5)$ random variable. The process is comprised of fixed number of independent binary trials with a constant success probability, and this is precisely what defines the Binomial.
+
+* The 40 counts should cluster around 10 (the expected value $np = 20 \times 0.5$) and thin out symmetrically toward 0 and 20.
+
+---
+
+**Group 2: The Seed-Scatter Experiment (*Poisson*)**
+
+* Each student in the group needs one sheet of A4 paper ruled into a **4 × 5 grid** (20 equal cells; draw this beforehand). Take a small handful of **rice grains, small seeds, or beads** (roughly 40–60 objects). Hold the handful at a predefined constant height (establish ideal height exerimentally and use it consistently throughout) directly above the paper, close your eyes, and release your hand's content so they fall randomly across the sheet. Count the number of objects that land inside each of the 20 grid cells (ignore any that fall outside the paper). Each student contributes 20 counts, and with 8 students in the group you will collect **160 counts** in total, more than enough to reveal the distribution shape clearly. Record all 160 values in a shared list.
+
+* When objects fall independently and with no spatial preference, the process generating counts per unit area is a Poisson process: events (landings) are independent of one another, two objects cannot land at exactly the same point, and the average rate per grid cell is constant (roughly total objects ÷ 20). The count per grid cell is therefore a Poisson random variable with $\lambda \approx$ (total objects dropped) / 20.
+
+* The distribution will be right-skewed, with many grid cells containing few objects and occasionally a cell containing many. If $\lambda \approx 2$, expect roughly 13% of grid cells to be empty, 27% to contain exactly one object, and so on. This should be consistent with @fig-poisson.
+
+---
+
+**Group 3: The Dice-Rolling Experiment (*Normal* via the CLT)**
+
+* Each student in the group performs **5 rounds**. In each round, roll a single die 10 times in succession and record the **sum** of all 10 values. Each round yields one number, so each student contributes 5 observations. With 8 students in the group you will collect **40 observations** in total. Record all 40 sums in a shared list.
+
+* Each die face is drawn from a discrete uniform distribution over $\{1, 2, 3, 4, 5, 6\}$, with mean $\mu = 3.5$ and variance $\sigma^2 = 35/12 \approx 2.92$. The sum of 10 independent dice is the sum of 10 i.i.d. random variables. The central limit theorem (see @sec-clt below) guarantees that this sum is approximately Normal, with mean $10 \times 3.5 = 35$ and standard deviation $\sqrt{10 \times 2.92} \approx 5.4$. The key insight is that **normality is a property of the summation process, not of any individual die**. A single die is uniform; 10 summed dice are approximately normal.
+
+* The 40 sums will cluster around 35 and thin out symmetrically in both directions, with most values falling between roughly 24 and 46 (within two standard deviations of the mean).
+
+---
+
+**Pooling and Comparing the Data in R**
+
+Once all three groups have collected their data, enter them into R and produce histograms for comparison. Replace the `c(...)` placeholders with your actual values.
+
+```r
+library(tidyverse)
+
+# Enter each group's data
+group1 <- c(...)  # Group 1: 40 values — heads per round (5 rounds × 8 students)
+group2 <- c(...)  # Group 2: 160 values — seed counts per grid cell (20 cells × 8 students)
+group3 <- c(...)  # Group 3: 40 values — sum of 10 dice per round (5 rounds × 8 students)
+
+# Combine into a single data frame for plotting
+dat <- bind_rows(
+  tibble(group = "Group 1: coin flips (Binomial)",   x = group1),
+  tibble(group = "Group 2: seed counts (Poisson)",   x = group2),
+  tibble(group = "Group 3: dice sums (Normal/CLT)",  x = group3)
+)
+
+ggplot(dat, aes(x = x)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", colour = "white") +
+  facet_wrap(~group, scales = "free", ncol = 1) +
+  labs(x = "Observed value", y = "Count")
+```
+
+**Discuss as a class.**
+
+- Does the shape of each histogram match what the theory predicts?
+- Can you identify which histogram belongs to which distribution just from its shape?
+- What would happen if Group 1 used a biased coin ($p \neq 0.5$)? If Group 2 scattered seeds in clusters rather than randomly? If Group 3 rolled only 2 dice instead of 10?
+- Group 3's result demonstrates the central limit theorem in physical form --- this is the same principle that justifies Normal-based tests for means even when raw data are not normal, which is discussed in the next section.
+:::
+
 # Sampling-Level Thinking
 
 ## Samples, Populations, and Sampling Variation
@@ -669,6 +786,23 @@ For the sample mean:
 $$SE_{\bar{x}} = \frac{SD}{\sqrt{n}}$$
 
 As sample size $n$ increases, the standard error decreases proportionally to $1/\sqrt{n}$. So, doubling your sample size reduces the SE by a factor of $\sqrt{2} \approx 1.41$. This formalises the intuitive idea that larger samples produce more precise estimates. The SE is not a property of the raw data; it is a property of the estimation procedure.
+
+::: callout-important
+## Do It Now!
+
+You have a sample of 16 kelp stipe lengths (cm): `c(38, 41, 35, 44, 39, 42, 37, 40, 43, 36, 45, 38, 41, 39, 40, 42)`.
+
+a. Compute the SD and SE by hand using the formulas, then verify with R.
+b. If you doubled the sample to 32 observations (same SD), what would the new SE be? Do you need to collect more data to compute this — or can you calculate it from what you already have?
+c. What does a smaller SE tell you about the precision of your estimate of the mean?
+
+<!-- ```r
+x <- c(38, 41, 35, 44, 39, 42, 37, 40, 43, 36, 45, 38, 41, 39, 40, 42)
+sd_x <- sd(x)
+se_x <- sd_x / sqrt(length(x))
+cat("SD:", round(sd_x, 3), "  SE:", round(se_x, 3), "\n")
+``` -->
+:::
 
 ## Confidence Intervals
 

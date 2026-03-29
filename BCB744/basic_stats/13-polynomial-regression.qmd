@@ -62,6 +62,21 @@ Polynomial regression modifies the mean structure of the linear model without ch
 
 Two constraints apply throughout. **Hierarchy** requires that if $X^2$ is in the model then $X$ must also be included; if $X^3$ is included then $X$ and $X^2$ must also be included. Removing lower-order terms distorts the model geometry and is rarely defensible biologically. **Parsimony** requires that the polynomial degree should be as low as possible while still accounting for the residual structure observed in the simpler model.
 
+::: callout-important
+## Do It Now!
+
+Before reading the "When This Method Is Appropriate" section, classify each relationship below as likely requiring (a) a straight-line model, (b) a polynomial model, or (c) a mechanistic nonlinear model. Be prepared to justify your choice.
+
+| Biological relationship | Most likely model |
+|---|---|
+| Body length increases roughly proportionally with age in juvenile fish over a short growth window | ? |
+| CO$_2$ uptake in a leaf rises steeply at low light and saturates at high light | ? |
+| Enzyme activity peaks at an optimum temperature and declines on both sides | ? |
+| Daily running distance in mice increases approximately linearly with days of training over 3 weeks | ? |
+
+Discuss: what feature of the data or underlying biology pushes you toward a polynomial rather than a straight line?
+:::
+
 # When This Method Is Appropriate
 
 Polynomial regression is appropriate when:
@@ -103,6 +118,28 @@ The same assumption-to-diagnostic mapping used in Chapter 12 applies here:
 | Constant variance | residual vs fitted / scale-location | funnel or changing vertical spread |
 | Normality | residual Q-Q plot | systematic bends away from reference line |
 | Independence | residuals vs order/time/space | runs, cycles, clusters |
+
+::: callout-important
+## Do It Now!
+
+The `I()` wrapper in R formulas is easy to forget. Run the two lines below and compare what each one actually fits:
+
+```r
+data("CO2")
+co2_df <- subset(CO2, Treatment == "chilled" & Type == "Quebec")
+
+# Version A — wrong way to try to fit a quadratic
+fit_a <- lm(uptake ~ conc^2, data = co2_df)
+
+# Version B — correct quadratic
+fit_b <- lm(uptake ~ conc + I(conc^2), data = co2_df)
+
+summary(fit_a)
+summary(fit_b)
+```
+
+How many terms appear in the coefficient table for each model? Why does `conc^2` without `I()` not add a squared term? What does `conc^2` mean to R's formula parser?
+:::
 
 # The Core Equations
 
@@ -155,6 +192,33 @@ co2_df <- as_tibble(CO2) |>
 gt(head(co2_df, 10))
 ```
 
+::: callout-important
+## Do It Now!
+
+Before fitting any model, spend a few minutes on the CO$_2$ dataset directly. Run this summary code and answer the questions below:
+
+```r
+co2_df <- as_tibble(CO2) |>
+  filter(Treatment == "chilled", Type == "Quebec")
+
+# How many observations?
+nrow(co2_df)
+
+# How many distinct concentration levels?
+co2_df |> count(conc)
+
+# Quick scatter plot
+ggplot(co2_df, aes(x = conc, y = uptake)) +
+  geom_point() +
+  labs(x = expression(CO[2]~concentration~(mL~L^{-1})),
+       y = expression(CO[2]~uptake~(µmol~m^{-2}~s^{-1})))
+```
+
+1. At the lowest concentration level, how variable is uptake across observations?
+2. Does the relationship look linear? If not, describe the shape.
+3. Based on the scatter plot alone, do you expect a straight-line model to over-predict or under-predict uptake in the middle of the concentration range?
+:::
+
 ## Do an Exploratory Data Analysis (EDA)
 
 ```{r code-summary}
@@ -172,6 +236,7 @@ co2_df |>
 #| fig-cap: "CO$_2$ uptake in chilled Quebec plants across concentration levels. The pattern is positive but clearly decelerating."
 #| fig-width: 4
 #| fig-height: 3
+#| code-fold: true
 
 ggplot(co2_df, aes(x = conc, y = uptake)) +
   geom_point(alpha = 0.75) +
@@ -186,6 +251,7 @@ ggplot(co2_df, aes(x = conc, y = uptake)) +
 #| fig-cap: "Residual-versus-fitted plot for the straight-line model. The curved smooth line confirms that the linear mean structure is insufficient."
 #| fig-width: 4
 #| fig-height: 3
+#| code-fold: true
 
 mod_lin_eda <- lm(uptake ~ conc, data = co2_df)
 lin_aug <- augment(mod_lin_eda)
@@ -199,6 +265,19 @@ ggplot(lin_aug, aes(x = .fitted, y = .resid)) +
 ```
 
 @fig-lin-resid-motivation shows an obvious arc. The residuals are negative at low and high fitted values and positive in the middle. The straight-line model is systematically wrong across the concentration range, with the curvature motivating adding a quadratic term.
+
+::: callout-important
+## Do It Now!
+
+Examine the residual-versus-fitted plot for the straight-line model shown in @fig-lin-resid-motivation. Describe the shape of the curved smooth line in your own words.
+
+Now sketch (on paper or digitally) the shape you would expect the residuals to show if:
+
+- the straight-line model *over*-predicts uptake at both low and high fitted values, and
+- the model *under*-predicts in the middle of the range.
+
+Does your sketch match the actual plot? This arc shape is the diagnostic signal that motivates adding a quadratic term. Explain why the arc implies that a polynomial extension would be an improvement.
+:::
 
 ## State the Model Question
 
@@ -232,6 +311,24 @@ The nested-model ANOVA tests whether each additional term reduces the RSS enough
 
 The working rule is to choose the lowest-order model that removes residual structure. Start with the linear model, inspect its residuals, add the quadratic term if curvature remains, then check whether the cubic term still improves the residual pattern. Stop as soon as the diagnostic plots show no further systematic structure.
 
+::: callout-important
+## Do It Now!
+
+Look at the ANOVA and AIC output from the three-model comparison:
+
+```r
+anova(mod_lin, mod_quad, mod_cub)
+AIC(mod_lin, mod_quad, mod_cub)
+```
+
+Answer the following without running additional code:
+
+1. Which model has the lowest AIC? What does that mean in terms of the trade-off between fit and parsimony?
+2. The nested-model ANOVA tests whether adding the quadratic term significantly reduces the residual sum of squares. What are the degrees of freedom for that test, and is the result significant?
+3. Does adding the cubic term beyond the quadratic produce a significant improvement according to the ANOVA? Does AIC agree?
+4. Based on these two pieces of evidence together, which model would you choose and why?
+:::
+
 ## Test Assumptions
 
 ```{r code-quad-diagnostics}
@@ -245,6 +342,7 @@ bptest(mod_quad)
 #| fig-cap: "Standard diagnostics for the quadratic model."
 #| fig-width: 6
 #| fig-height: 5
+#| code-fold: true
 par(mfrow = c(2, 2))
 plot(mod_quad)
 par(mfrow = c(1, 1))
@@ -252,12 +350,28 @@ par(mfrow = c(1, 1))
 
 The graphical diagnostics in @fig-quad-diagnostics take priority over the formal tests. The Shapiro-Wilk test and the Breusch-Pagan test are supporting evidence, not the primary decision criterion. The residual-versus-fitted panel should show no remaining arc; the Q-Q plot should show residuals tracking the reference line without systematic departures. Both conditions are broadly met here for the quadratic model, which confirms that adding the quadratic term corrected the diagnostic problem identified in @fig-lin-resid-motivation.
 
+::: callout-important
+## Do It Now!
+
+Examine the four diagnostic panels in @fig-quad-diagnostics for the quadratic model. For each panel, write one sentence describing what you see and whether it raises any concern:
+
+| Panel | What you see | Concern? |
+|---|---|---|
+| Residuals vs Fitted | ? | ? |
+| Normal Q-Q | ? | ? |
+| Scale-Location | ? | ? |
+| Residuals vs Leverage | ? | ? |
+
+Then compare the quadratic model diagnostics with what you would expect from the straight-line model (recall @fig-lin-resid-motivation). Has the quadratic term resolved the main diagnostic problem? Is there any remaining issue worth noting?
+:::
+
 ## Interpret the Results
 
 ```{r fig-poly-fits}
 #| fig-cap: "Linear, quadratic, and cubic polynomial fits to the CO$_2$ uptake data."
 #| fig-width: 5.5
 #| fig-height: 3
+#| code-fold: true
 
 co2_pred <- tibble(conc = seq(min(co2_df$conc), max(co2_df$conc), length.out = 200)) |>
   mutate(
@@ -300,6 +414,19 @@ The straight-line model left clear curvature in the residual-versus-fitted plot,
 **Discussion**
 
 A quadratic polynomial provided a parsimonious descriptive model of the concentration-uptake relationship while retaining the `lm()` workflow. The fitted curve is biologically plausible as a first-order approximation of carboxylase saturation, though a mechanistic Michaelis-Menten model would be preferred where the process is to be characterised precisely or extrapolation is required.
+:::
+
+::: callout-important
+## Do It Now!
+
+Look at the three fitted curves in @fig-poly-fits. Without reading the interpretation text below the figure, answer these questions:
+
+1. Where does the straight-line model perform worst relative to the data points?
+2. Do the quadratic and cubic curves look noticeably different from each other across the observed concentration range?
+3. The quadratic curve does not reverse direction within the observed range. What would it mean biologically if it did reverse?
+4. Suppose you wanted to predict CO$_2$ uptake at a concentration of 2000 mL/L (well beyond the observed range). Which model would you trust the least for this extrapolation, and why?
+
+Discuss your answers with a partner.
 :::
 
 # What to Do When Assumptions Fail

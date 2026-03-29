@@ -45,7 +45,7 @@ library(ggthemes)
 ::: {.callout-important appearance="simple"}
 ## Tasks to Complete in This Chapter
 
--   Self-Assessment Task 3-1
+-   [Self-Assessment Task 3-1](#self-assessment-task-3-1)
 :::
 
 # Introduction
@@ -95,29 +95,51 @@ datasaurus_dozen |>
   dplyr::filter(dataset == "dino") |> 
   dplyr::select(-dataset) |> 
   write_csv(here::here("data", "BCB744", "random_not.csv"))
+datasaurus_dozen |> 
+  dplyr::filter(dataset == "circle") |> 
+  dplyr::select(-dataset) |> 
+  write_csv(here::here("data", "BCB744", "random_not_either.csv"))
 ```
 
-Retrieve the `random_not.csv` data file provided for this exercise and calculate the mean and standard deviation of the variables.
+Retrieve the `random_not.csv` and `random_not_either.csv` data files provided for this exercise and calculate the mean and standard deviation of the variables in each file.
 
 ```{r code-xy-read-csv-here-here}
 #| eval: false
 #| echo: false
-xy <- read_csv(here::here("data", "BCB744", "random_not.csv"))
-xy |> 
+xy_dino <- read_csv(here::here("data", "BCB744", "random_not.csv"))
+xy_circle <- read_csv(here::here("data", "BCB744", "random_not_either.csv"))
+
+xy_dino |> 
   summarise(mean_x = mean(x),
-            sd_x = sd(y),
+            sd_x = sd(x),
+            mean_y = mean(y),
+            sd_y = sd(y))
+
+xy_circle |> 
+  summarise(mean_x = mean(x),
+            sd_x = sd(x),
             mean_y = mean(y),
             sd_y = sd(y))
 ```
 
-Then make a scatter plot. What do you see?
+Then make scatter plots of the two datasets side by side and compare them. The contrast is obvious in @fig-plot-x-xy-x. What do you see?
 
 ```{r fig-plot-x-xy-x}
-#| fig-cap: "Plot x xy x."
+#| fig-cap: "Scatter plots of two datasets with the same means and standard deviations."
 #| eval: false
 #| echo: false
-plot(x = xy$x, y = xy$y, asp = 1, xlab = NA, ylab = NA,
-     main = "Hello there!")
+#| code-fold: true
+p1 <- ggplot(xy_dino, aes(x = x, y = y)) +
+  geom_point(colour = "black") +
+  coord_equal() +
+  labs(title = "random_not.csv", x = "x", y = "y")
+
+p2 <- ggplot(xy_circle, aes(x = x, y = y)) +
+  geom_point(colour = "black") +
+  coord_equal() +
+  labs(title = "random_not_either.csv", x = "x", y = "y")
+
+ggpubr::ggarrange(p1, p2, ncol = 2)
 ```
 
 What do you conclude?
@@ -139,6 +161,7 @@ We have a choice of **absolute** frequency histograms, where the bar heights are
 #| fig-cap: "Example histograms for the Old Faithful data. A) A default frequency histogram. B) A relative frequency histogram with 1-minute bins. C) A relative frequency histogram with 0.5-minute bins. D) An ECDF."
 #| fig-width: 5.5
 #| fig-height: 4
+#| code-fold: true
 
 hist1 <- ggplot(data = faithful, aes(x = eruptions)) +
   geom_histogram(colour = "black", fill = "salmon", alpha = 0.6) +
@@ -185,6 +208,7 @@ What if the same continuous variable is measured in several groups? The `iris` d
 #| fig-cap: "Grouped histograms for the four *Iris* variables."
 #| fig-width: 6
 #| fig-height: 4
+#| code-fold: true
 
 iris.long <- iris %>% 
   gather(key = "variable", value = "size", -Species)
@@ -210,6 +234,7 @@ Compared with a histogram, a density plot is smoother and often easier to compar
 #| fig-cap: "Density-plot variations based on the Old Faithful data. A) A basic density plot. B) A density plot with a rug. C) A histogram overlaid with a density curve. D) A count histogram with a rescaled density curve."
 #| fig-width: 5.5
 #| fig-height: 4
+#| code-fold: true
 
 dens1 <- ggplot(data = faithful, aes(x = eruptions)) +
   geom_density(colour = "black", fill = "salmon", alpha = 0.6) +
@@ -242,6 +267,24 @@ dens4 <- ggplot(data = faithful, aes(x = eruptions)) +
 ggarrange(dens1, dens2, dens3, dens4, ncol = 2, nrow = 2, labels = "AUTO")
 ```
 
+::: callout-important
+## Do It Now!
+
+Using the `faithful` dataset, produce two side-by-side plots: a histogram (choose a sensible bin width) and a density plot of `eruptions`. Look at the shapes. Do you see one peak or two? What does that tell you biologically? Now change the bin width in the histogram — does the apparent number of peaks change? Discuss with a partner whether the histogram or density plot is more revealing for this dataset and why.
+
+<!-- ```r
+library(ggplot2)
+library(ggpubr)
+p1 <- ggplot(faithful, aes(x = eruptions)) +
+  geom_histogram(binwidth = 0.25, fill = "steelblue", colour = "white") +
+  labs(x = "Eruption duration (min)", title = "Histogram")
+p2 <- ggplot(faithful, aes(x = eruptions)) +
+  geom_density(fill = "salmon", alpha = 0.6) +
+  labs(x = "Eruption duration (min)", title = "Density plot")
+ggarrange(p1, p2, ncol = 2)
+``` -->
+:::
+
 # Comparing Groups {#sec-comparing-groups}
 
 We now compare distributions across categories. The main choice here is whether you want to show the full distribution within each group or only a summary. In most biological applications, the distribution is revealing.
@@ -256,6 +299,7 @@ I create a simple example using the `msleep` dataset (@fig-boxplot1). Additional
 
 ```{r fig-boxplot1}
 #| fig-cap: "Box plot summarising the amount of sleep required by different 'vores'."
+#| code-fold: true
 
 msleep |> 
   ggplot(aes(x = vore, y = sleep_total)) + 
@@ -282,6 +326,7 @@ Here is a second example, this time with notched box plots (@fig-boxplot2):
 #| fig-cap: "A panelled collection of box plots, one for each of the four variables, with a scatter plot to indicate the spread of the raw data points."
 #| fig-width: 5.5
 #| fig-height: 4
+#| code-fold: true
 
 library(ggsci)
 
@@ -306,6 +351,7 @@ A box plot is better when you want a compact summary. A violin plot is better wh
 #| fig-cap: "Variations of violin plots applied to the *Iris* data."
 #| fig-width: 5.5
 #| fig-height: 5
+#| code-fold: true
 
 vio1 <- ggplot(data = iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
   geom_violin() + 
@@ -339,13 +385,24 @@ ggarrange(vio1, vio2, vio3, vio4, ncol = 2, nrow = 2, labels = "AUTO")
 
 The [**ggpubr**](https://rpkgs.datanovia.com/ggpubr/) package also provides many convenience functions for publication-quality graphs, including violin plots.
 
+::: callout-important
+## Do It Now!
 
-:::: {.callout-important appearance="simple"}
+For each of the following scenarios, decide whether a box plot or a violin plot is more appropriate, and briefly justify your choice:
+
+a. You have body-mass data for three penguin species (n ≈ 150 per species) and want to check whether the distributions are symmetric or skewed.
+b. You are comparing gill-net catch-per-unit-effort across five coastal sites, but n = 8 per site.
+c. A reviewer asks you to show the raw spread of pH measurements at two sites in a manuscript figure.
+
+After deciding individually, compare your choices with a partner. Are there cases where both would be acceptable?
+:::
+
+:::: {#self-assessment-task-3-1 .callout-important appearance="simple"}
 ## Self-Assessment Task 3-1
 
 a. Using a tidy workflow, assemble a summary table of the **palmerpenguins** dataset that has a similar appearance as that produced by `psych::describe(penguins)`. **(/5)**
 
-    - For bonus marks (which will not count anything) of up to 10% added to Task E, apply a beautiful, creative styling to the table using the  [**kable**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) package. Try and make it as publication ready as possible. Refer to a few journal articles to see how to professionally typeset tables.
+    - For bonus marks (which will not count anything), apply a beautiful, creative styling to the table using the [**kable**](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) package. Try and make it as publication ready as possible. Refer to a few journal articles to see how to professionally typeset tables.
 
 b. Still using the **palmerpenguins** dataset, perform an exploratory data analysis to investigate the relationship between penguin species, their morphological traits (bill length and bill depth, flipper length, and body mass). Employ the tidyverse approaches learned earlier in the module to explore the data, account for the grouping structures present within the dataset. **(/10)**
 
@@ -402,6 +459,7 @@ iris.cnt <- iris %>%
 #| fig-cap: "Bar graphs for categorical summaries in the built-in *Iris* data. A) A stacked count bar graph. B) A stacked proportion bar graph. C) A pie chart using the same proportions. D) A side-by-side count bar graph."
 #| fig-width: 6
 #| fig-height: 4.5
+#| code-fold: true
 
 plt1 <- ggplot(data = iris.cnt, aes(x = "", y = n, fill = Species)) +
   geom_bar(width = 1, stat = "identity") +
@@ -433,12 +491,13 @@ ggarrange(plt1, plt2, plt3, plt4, nrow = 2, ncol = 2,
           labels = "AUTO", common.legend = TRUE)
 ```
 
-Here is the second use, where the bars represent means with standard deviations:
+Here is the second use, where the bars represent means with standard deviations, as shown in @fig-bargraphs2:
 
 ```{r fig-bargraphs2}
 #| fig-cap: "Bar graphs indicating the mean size (± SD) for various flower features of three species of *Iris*."
 #| fig-width: 5.5
 #| fig-height: 4
+#| code-fold: true
 
 iris |>
   pivot_longer(cols = Sepal.Length:Petal.Width,
@@ -459,6 +518,12 @@ iris |>
 ```
 
 The rule to keep in mind is to use bar graphs for counts or proportions, and to use box plots or violin plots when you need to show how continuous data are distributed within groups.
+
+::: callout-important
+## Do It Now!
+
+Open a recent biology paper (your own reading list, or ask me for one). Find a bar graph that shows mean ± SD (or ± SE) for a continuous variable across treatment groups. Ask yourself: (1) does the bar graph reveal the distribution shape or just a summary? (2) What plot type would be more informative? Can you redraw the same comparison as a box plot or violin plot using the approximate data you can read from the original figure (you'll need n, the mean, and the SD)? If you can, would your interpretation of the results change?
+:::
 
 # Visualising Relationships {#sec-bivariateplots}
 
@@ -481,6 +546,7 @@ All of these are illustrated in @fig-scatter1. The example shows the relationshi
 #| fig-cap: "Examples of scatter plots made for the *Iris* data. A) A default scatter plot showing the relationship between petal length and width. B) The same data with fitted lines added."
 #| fig-width: 7
 #| fig-height: 3
+#| code-fold: true
 
 plt1 <- ggplot(data = iris, aes(x = Petal.Length, y = Petal.Width, colour = Species)) +
   geom_point() +
@@ -501,6 +567,21 @@ ggarrange(plt1, plt2, ncol = 2, nrow = 1, labels = "AUTO", legend = "right",
 
 These same features make scatter plots useful later as diagnostic tools for modelling.
 
+::: callout-important
+## Do It Now!
+
+Using the built-in `msleep` dataset, make a scatter plot of `bodywt` (x-axis) against `brainwt` (y-axis). Colour the points by `vore`. Then add a separate linear trend line for each feeding group using `geom_smooth(method = "lm", se = FALSE)`.
+
+Describe what you see: do the feeding groups appear to follow the same body-mass to brain-mass relationship, or do some groups differ? Are there any obvious outliers, and do the points cluster more strongly in some groups than others? Does adding grouped trend lines change your interpretation compared with looking at the scatter alone? You will revisit this kind of plot when we fit regression models in [Chapter 12](12-simple-linear-regression.qmd).
+
+<!-- ```r
+ggplot(msleep, aes(x = bodywt, y = brainwt, colour = vore)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Body mass (kg)", y = "Brain mass (kg)", colour = "Diet group")
+``` -->
+:::
+
 ## Line Graphs {#sec-linegraph}
 
 A line graph connects data points with lines and is most useful when the order of the observations must be considered. The usual case is time, but any ordered continuous scale can serve the same role. A line graph therefore implies continuity from one observation to the next in a way that a scatter plot does not.
@@ -511,6 +592,7 @@ We typically encounter line graphs in time-series displays. Points may be shown 
 #| fig-cap: "A time-series plot showing the monthly climatology for several sites around South Africa. The specific line drawn here forms a stepped graph."
 #| fig-height: 8
 #| fig-width: 8
+#| code-fold: true
 
 library(lubridate)
 read_csv(file.path("..", "..", "data", "BCB744", "SACTN_SAWS.csv")) |> 
@@ -531,12 +613,13 @@ These plots extend the same principles to higher-dimensional data. They are stil
 
 ## Heatmaps {#sec-heatmaps}
 
-Heatmaps encode values in a matrix as colour. They are useful when the structure of interest lies across two ordered dimensions at once, such as time by variable, site by species, or a correlation matrix. We will see another heatmap in Chapter 9 on [Correlation and association](09-correlation-and-association.qmd). A calendar heatmap is a specialised form that lays time out in calendar space rather than on a single axis.
+Heatmaps encode values in a matrix as colour. They are useful when the structure of interest lies across two ordered dimensions at once, such as time by variable, site by species, or a correlation matrix. We will see another heatmap in Chapter 9 on [Correlation and association](09-correlation-and-association.qmd). A calendar heatmap is a specialised form that lays time out in calendar space rather than on a single axis. The Western Australian example in @fig-calendar shows how this reveals clustering in time. The Western Australian example in @fig-calendar shows how this reveals clustering in time.
 
 ```{r fig-calendar}
 #| fig-cap: "A calendar heatmap showing a time series of SST for Western Australia. The marine heatwave of summer 2011 is visible in the warm colours."
 #| fig-width: 7.5
 #| fig-height: 5.5
+#| code-fold: true
 
 source("https://raw.githubusercontent.com/iascchen/VisHealth/master/R/calendarHeat.R")
 
@@ -584,10 +667,13 @@ NWA <- fread(paste0(csv_dir, csv_file)) |>
 fwrite(NWA, file = file.path("..", "..", "data", "BCB744", "NWA_Hovmoller.csv"))
 ```
 
+A Hovmoller diagram such as @fig-hovmoller makes the latitude-by-time structure explicit.
+
 ```{r fig-hovmoller}
 #| fig-cap: "A Hovmöller diagram of zonally averaged SST for a region off Northwest Africa in the Canary upwelling system."
 #| fig-width: 7.5
 #| fig-height: 5.5
+#| code-fold: true
 
 library(data.table)
 library(colorspace)
@@ -607,6 +693,7 @@ NWA |>
 #| fig-cap: "Zonally averaged time series of SST in the Canary Current system displayed as a horizon plot."
 #| fig-width: 7.5
 #| fig-height: 5.5
+#| code-fold: true
 
 library(ggHoriPlot)
 
@@ -648,6 +735,8 @@ NWA %>% ggplot() +
   xlab("Year") +
   ggtitle("Canary current system zonal SST")
 ```
+
+The same zonal SST structure can also be compressed into the horizon display in @fig-horizonplot.
 
 ## Other Examples (To Develop)
 
