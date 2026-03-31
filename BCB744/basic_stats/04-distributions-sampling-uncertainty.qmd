@@ -184,24 +184,74 @@ The Binomial distribution extends the Bernoulli to $n$ independent trials, each 
 
 -   **Mendelian genetics:** In a monohybrid cross, each offspring inherits either the dominant or recessive allele with probabilities following Mendel's ratios. The number of offspring showing the dominant phenotype in a litter of $n$ is Binomially distributed.
 
-@fig-binomial illustrates the Binomial distribution for $p = 0.75$ across 100 trials, visualised as density, quantile, probability, and QQ plots.
+@fig-binomial illustrates the Binomial distribution for $p = 0.75$ across 100 trials.
 
 ```{r fig-binomial}
 #| code-fold: true
-#| fig-cap: "Binomial distribution with 40 observations per simulation, 10 simulations, 100 trials, and $p = 0.75$. This could represent 10 separate germination experiments, each planting 100 seeds with a 75% germination probability."
+#| fig-cap: "Binomial distribution with 40 observations per simulation, 10 simulations, 100 trials, and $p = 0.75$. This could represent 10 separate germination experiments, each planting 100 seeds with a 75% germination probability. The Normal Q–Q plot reveals the characteristic staircase pattern of a discrete distribution and the mild right-skew: points curve away from the reference line at both ends."
 #| fig-width: 7
-#| fig-height: 4.5
+#| fig-height: 3
 
 binom <- tidy_binomial(.n = 40, .num_sims = 10, .prob = 0.75, .size = 100)
 
+pqq <- ggplot(binom, aes(sample = y)) +
+  stat_qq_line(colour = "indianred", linewidth = 0.4) +
+  stat_qq(colour = "steelblue3", alpha = 0.4, size = 0.8) +
+  labs(x = "Normal quantiles", y = "Sample quantiles",
+       title = "Normal Q–Q Plot") +
+  theme_grey(base_size = 8)
+
 ggarrange(
-  tidy_autoplot(binom, .plot_type = "density"),
-  tidy_autoplot(binom, .plot_type = "quantile"),
-  tidy_autoplot(binom, .plot_type = "probability"),
-  tidy_autoplot(binom, .plot_type = "qq"),
-  ncol = 2, nrow = 2
+  tidy_autoplot(binom, .plot_type = "density") + theme_grey(base_size = 8),
+  pqq,
+  ncol = 2, nrow = 1, labels = "AUTO"
 )
 ```
+
+@fig-binomial A shows a near-symmetric, bell-shaped density centred around 75 successes out of 100 trials, consistent with the expected value $np = 100 \times 0.75 = 75$. The spread is modest, reflecting the relatively low variance $np(1-p) = 18.75$.
+
+@fig-binomial B reveals the characteristic staircase pattern of a discrete distribution: instead of a smooth curve of points, they fall in horizontal bands corresponding to each integer value. Despite this discreteness, the points track the reference line closely across the bulk of the distribution, indicating that this near-symmetric Binomial is well approximated by a Normal. Minor departures at the tails reflect the finite support of the Binomial.
+
+::: {.callout-note appearance="simple"}
+## How to Read the Two Diagnostic Panels
+
+Each distribution figure in this chapter shows two panels side by side: a **density plot** on the left and a **Normal Q–Q plot** on the right. Together they reveal the shape of the distribution and how far it departs from normality.
+
+---
+
+**Panel A — Density Plot**
+
+This panel shows how values are spread along the x-axis.
+
+* The **x-axis** is the variable (*e.g.*, counts, waiting times, or proportions).
+* The **y-axis** is the probability density — how often values near a given point occur relative to others.
+* A single tall peak indicates that most values cluster around a central value.
+* A long tail to the right (right-skewed) or left (left-skewed) indicates that extreme values are more common in that direction.
+* Multiple lines correspond to independent simulations; if they overlap closely the distribution is stable across runs.
+
+---
+
+**Panel B — Normal Q–Q Plot**
+
+A **Quantile–Quantile plot** (Q–Q plot) compares the *quantiles* of the simulated data against the quantiles of a theoretical Normal distribution. It answers the question: *how closely does this distribution resemble a Normal?*
+
+* The **x-axis** shows the theoretical quantiles you would expect if the data were perfectly Normal.
+* The **y-axis** shows the actual quantiles observed in the simulated data.
+* If the data are approximately Normal, the points will lie along the diagonal reference line (shown in red).
+* Systematic departures from the line indicate non-normality:
+  - Points curving **upward at the right tail** indicate **right skewness** (more large values than a Normal would have).
+  - Points curving **downward at the left tail** indicate **left skewness**.
+  - Points diverging at **both tails** indicate **heavy tails** (more extreme values than a Normal).
+  - A nearly straight line indicates approximate normality, even if the underlying distribution is not Normal by construction.
+
+The Normal distribution is always the **reference** in these Q–Q plots. A distribution that plots as a straight line here can be treated as approximately Normal for the purposes of parametric inference.
+:::
+
+In @fig-binomial A (density plot), we see a discrete distribution with a clear peak near the expected number of successes. Most values cluster tightly around this peak, with a slight extension toward higher values. This reflects repeated trials with a high success probability: most experiments produce similar counts, with moderate variability.
+
+@fig-binomial B (Normal Q–Q plot) shows a stepped pattern rather than a smooth line. This arises because the data are discrete counts rather than continuous values. The mild curvature away from the reference line indicates slight skewness. As the number of trials increases, the points move closer to the line, reflecting that the Binomial becomes approximately Normal for large sample sizes.
+
+So, the distribution is governed by repeated independent trials with fixed probability, producing clustered counts and approximate normality only at larger scales.
 
 Note that both the Bernoulli and Binomial distributions assume independence between trials and a fixed, constant success probability, but in real ecological data these assumptions are not always fully met. I will revisit this in [Chapter 20](20-generalised-linear-models.qmd) when we discuss quasi-binomial models for overdispersed proportions.
 
@@ -260,18 +310,27 @@ The Poisson distribution models the number of events or counts occurring in a fi
 #| code-fold: true
 #| fig-cap: "Poisson distribution with 50 observations per simulation, 10 simulations, and $\\lambda = 2$. This could represent the expected number of a particular invertebrate species per 1 m² quadrat in a habitat where the mean density is 2 individuals per quadrat."
 #| fig-width: 7
-#| fig-height: 4.5
+#| fig-height: 3
 
 pois <- tidy_poisson(.n = 50, .lambda = 2, .num_sims = 10)
 
+pqq_pois <- ggplot(pois, aes(sample = y)) +
+  stat_qq_line(colour = "indianred", linewidth = 0.4) +
+  stat_qq(colour = "steelblue3", alpha = 0.4, size = 0.8) +
+  labs(x = "Normal quantiles", y = "Sample quantiles",
+       title = "Normal Q–Q Plot") +
+  theme_grey(base_size = 8)
+
 ggarrange(
-  tidy_autoplot(pois, .plot_type = "density"),
-  tidy_autoplot(pois, .plot_type = "quantile"),
-  tidy_autoplot(pois, .plot_type = "probability"),
-  tidy_autoplot(pois, .plot_type = "qq"),
-  ncol = 2, nrow = 2
+  tidy_autoplot(pois, .plot_type = "density") + theme_grey(base_size = 8),
+  pqq_pois,
+  ncol = 2, nrow = 1, labels = "AUTO"
 )
 ```
+
+@fig-poisson A shows a strongly right-skewed distribution. Most observations are small counts (including zeros), with a rapid decline in frequency as counts increase. This reflects a process where events occur independently at a constant rate: low counts are common, high counts are rare.
+
+In @fig-poisson B, we see clear curvature away from the Normal reference line, especially in the upper tail. This indicates that the distribution has more small values and fewer large values than a Normal would predict. The pattern reflects random events occurring in space or time at a constant rate; the strong skewness signals that a Normal model is inappropriate for such data.
 
 ## The Negative Binomial Distribution
 
@@ -306,18 +365,27 @@ In ecology, the Negative Binomial is best understood as a Poisson distribution w
 #| code-fold: true
 #| fig-cap: "Negative Binomial distribution with 50 observations per simulation, 10 simulations, size parameter $r = 5$, and $p = 0.7$. The long right tail reflects the typical pattern of overdispersed ecological count data."
 #| fig-width: 7
-#| fig-height: 4.5
+#| fig-height: 3
 
 negbinom <- tidy_negative_binomial(.n = 50, .size = 5, .prob = 0.7, .num_sims = 10)
 
+pqq_nb <- ggplot(negbinom, aes(sample = y)) +
+  stat_qq_line(colour = "indianred", linewidth = 0.4) +
+  stat_qq(colour = "steelblue3", alpha = 0.4, size = 0.8) +
+  labs(x = "Normal quantiles", y = "Sample quantiles",
+       title = "Normal Q–Q Plot") +
+  theme_grey(base_size = 8)
+
 ggarrange(
-  tidy_autoplot(negbinom, .plot_type = "density"),
-  tidy_autoplot(negbinom, .plot_type = "quantile"),
-  tidy_autoplot(negbinom, .plot_type = "probability"),
-  tidy_autoplot(negbinom, .plot_type = "qq"),
-  ncol = 2, nrow = 2
+  tidy_autoplot(negbinom, .plot_type = "density") + theme_grey(base_size = 8),
+  pqq_nb,
+  ncol = 2, nrow = 1, labels = "AUTO"
 )
 ```
+
+@fig-negbinom A shows a right-skewed distribution with a longer tail than the Poisson. Many observations are small, but there are more large values than expected under a Poisson process and this indicates aggregation. So, some observations accumulate far more counts than others.
+
+@fig-negbinom B shows obvious deviation from the Normal reference line, especially in the upper tail. The spread of points indicates substantial variability beyond what a Normal model would capture and this is consistent with heterogeneous processes where some locations or individuals have higher underlying rates. This is called overdispersion, and it is a property of ecological data.
 
 ## The Geometric Distribution
 
@@ -344,24 +412,33 @@ The Geometric distribution models the number of failures that occur before the f
 
 -   **Breeding success:** If a bird pair has probability $p$ of successfully fledging at least one chick per breeding attempt, the number of failed attempts before their first success follows a Geometric distribution.
 
-@fig-geom shows the Geometric distribution for $p = 0.7$; most realisations cluster near zero (few failures before success), but the long tail captures the occasional run of poor outcomes.
+@fig-geom shows the Geometric distribution for $p = 0.7$.
 
 ```{r fig-geom}
 #| code-fold: true
 #| fig-cap: "Geometric distribution with 50 observations per simulation, 10 simulations, and $p = 0.7$. Most observations cluster near zero (few failures before success), but the long tail captures the occasional run of bad luck."
 #| fig-width: 7
-#| fig-height: 4.5
+#| fig-height: 3
 
 geom <- tidy_geometric(.n = 50, .prob = 0.7, .num_sims = 10)
 
+pqq_geom <- ggplot(geom, aes(sample = y)) +
+  stat_qq_line(colour = "indianred", linewidth = 0.4) +
+  stat_qq(colour = "steelblue3", alpha = 0.4, size = 0.8) +
+  labs(x = "Normal quantiles", y = "Sample quantiles",
+       title = "Normal Q–Q Plot") +
+  theme_grey(base_size = 8)
+
 ggarrange(
-  tidy_autoplot(geom, .plot_type = "density"),
-  tidy_autoplot(geom, .plot_type = "quantile"),
-  tidy_autoplot(geom, .plot_type = "probability"),
-  tidy_autoplot(geom, .plot_type = "qq"),
-  ncol = 2, nrow = 2
+  tidy_autoplot(geom, .plot_type = "density") + theme_grey(base_size = 8),
+  pqq_geom,
+  ncol = 2, nrow = 1, labels = "AUTO"
 )
 ```
+
+We see in @fig-geom A a sharp concentration of values near zero, but with frequencies dropping quickly as values increase. This indicates that success typically occurs after few failures, but occasional long sequences of failures still occur.
+
+@fig-geom B shows strong curvature away from the Normal reference line, which confirms that the distribution is highly skewed with a long right tail. Success often occurs quickly, but infrequent long waits are possible. So, these long waits pull the upper tail far beyond what any Normal model would predict.
 
 # Continuous Distributions {#sec-continuous}
 
@@ -398,24 +475,33 @@ The Normal distribution is the most widely used distribution (and the most desir
 
 -   **Residuals in linear models:** Even when the raw data are not normal, the residuals from a well-specified linear model often are, satisfying a key assumption for inference.
 
-@fig-normal shows five simulations of the standard normal ($\mu = 0$, $\sigma = 1$) across all four diagnostic plot types.
+@fig-normal shows five simulations of the standard normal ($\mu = 0$, $\sigma = 1$).
 
 ```{r fig-normal}
 #| code-fold: true
-#| fig-cap: "Normal distribution with 100 observations per simulation and 5 simulations ($\\mu = 0$, $\\sigma = 1$, i.e. the standard normal). In practice, biological variables will have different means and standard deviations, but the symmetric bell shape will be the same."
+#| fig-cap: "Normal distribution with 100 observations per simulation and 5 simulations ($\\mu = 0$, $\\sigma = 1$, i.e. the standard normal). In practice, biological variables will have different means and standard deviations, but the symmetric bell shape will be the same. The Q–Q plot points follow the reference line closely, confirming normality."
 #| fig-width: 7
-#| fig-height: 4.5
+#| fig-height: 3
 
 norm <- tidy_normal(.n = 100, .num_sims = 5)
 
+pqq_norm <- ggplot(norm, aes(sample = y)) +
+  stat_qq_line(colour = "indianred", linewidth = 0.4) +
+  stat_qq(colour = "steelblue3", alpha = 0.4, size = 0.8) +
+  labs(x = "Normal quantiles", y = "Sample quantiles",
+       title = "Normal Q–Q Plot") +
+  theme_grey(base_size = 8)
+
 ggarrange(
-  tidy_autoplot(norm, .plot_type = "density"),
-  tidy_autoplot(norm, .plot_type = "quantile"),
-  tidy_autoplot(norm, .plot_type = "probability"),
-  tidy_autoplot(norm, .plot_type = "qq"),
-  ncol = 2, nrow = 2, common.legend = TRUE
+  tidy_autoplot(norm, .plot_type = "density") + theme_grey(base_size = 8),
+  pqq_norm,
+  ncol = 2, nrow = 1, labels = "AUTO"
 )
 ```
+
+In @fig-normal A we see a symmetric, bell-shaped distribution centred around zero. Values are evenly distributed on both sides, with fewer observations in the tails. Multiple simulations overlap closely, which indicates a stable, well-behaved distribution.
+
+@fig-normal B shows points lying almost exactly along the reference line. This is what normality looks like. Points track the diagonal smoothly from lower-left to upper-right, with only minor scatter at the extremes. This is the reference pattern against which all other Q–Q plots in this chapter should be compared.
 
 ::: {.callout-note appearance="simple"}
 ## The Central Limit Theorem
@@ -475,24 +561,33 @@ If a variable is the product of many small, independent, positive multiplicative
 
 -   **Latency times for diseases:** The incubation periods of many infectious diseases, which depend on multiplicative amplification of pathogens within a host, are log-normally distributed.
 
-@fig-lognormal shows the characteristic right-skewed shape of the Log-Normal. Notice how the density plot has a long tail to the right while the QQ plot departs markedly from the normal reference line in both tails.
+@fig-lognormal shows the characteristic right-skewed shape of the Log-Normal.
 
 ```{r fig-lognormal}
 #| code-fold: true
-#| fig-cap: "Log-Normal distribution with 100 observations per simulation and 5 simulations ($\\mu = 0$, $\\sigma = 0.5$). The strong right skew is characteristic. On a log scale, this distribution becomes Normal."
+#| fig-cap: "Log-Normal distribution with 100 observations per simulation and 5 simulations ($\\mu = 0$, $\\sigma = 0.5$). The strong right skew in the density plot is echoed by the upward curve of Q–Q points away from the reference line in the upper tail. On a log scale, this distribution becomes Normal."
 #| fig-width: 7
-#| fig-height: 4.5
+#| fig-height: 3
 
 lnorm <- tidy_lognormal(.n = 100, .meanlog = 0, .sdlog = 0.5, .num_sims = 5)
 
+pqq_ln <- ggplot(lnorm, aes(sample = y)) +
+  stat_qq_line(colour = "indianred", linewidth = 0.4) +
+  stat_qq(colour = "steelblue3", alpha = 0.4, size = 0.8) +
+  labs(x = "Normal quantiles", y = "Sample quantiles",
+       title = "Normal Q–Q Plot") +
+  theme_grey(base_size = 8)
+
 ggarrange(
-  tidy_autoplot(lnorm, .plot_type = "density"),
-  tidy_autoplot(lnorm, .plot_type = "quantile"),
-  tidy_autoplot(lnorm, .plot_type = "probability"),
-  tidy_autoplot(lnorm, .plot_type = "qq"),
-  ncol = 2, nrow = 2, common.legend = TRUE
+  tidy_autoplot(lnorm, .plot_type = "density") + theme_grey(base_size = 8),
+  pqq_ln,
+  ncol = 2, nrow = 1, labels = "AUTO"
 )
 ```
+
+In @fig-lognormal A, we see a strongly right-skewed distribution. There are many small values cluster near zero while a long tail of large values extends to the right. This is typical of multiplicative biological processes such as body mass or chlorophyll-*a* concentration.
+
+In the Normal-QQ plot, seen in @fig-lognormal B, there is a clear upward curvature in the upper tail. Large observed values far exceed what a Normal distribution would predict. The left tail falls below the reference line to produce the characteristic S-shape of a positively skewed distribution. Log-transforming the data would collapse this curvature and bring the points onto the reference line.
 
 ## The Gamma Distribution
 
@@ -526,19 +621,29 @@ The Gamma distribution is a flexible two-parameter family for positive, right-sk
 
 ```{r fig-gamma}
 #| code-fold: true
-#| fig-cap: "Gamma distribution with 100 observations per simulation, 5 simulations, shape $\\alpha = 1$, and scale $\\beta = 0.4$. With $\\alpha = 1$, this reduces to an Exponential distribution. Increasing $\\alpha$ shifts the mass rightward and reduces skewness."
+#| fig-cap: "Gamma distribution with 100 observations per simulation, 5 simulations, shape $\\alpha = 1$, and scale $\\beta = 0.4$. With $\\alpha = 1$, this reduces to an Exponential distribution. Increasing $\\alpha$ shifts the mass rightward and reduces skewness. The Q–Q plot shows the pronounced right-skew departure from normality."
 #| fig-width: 7
-#| fig-height: 4.5
+#| fig-height: 3
 
 gam <- tidy_gamma(.n = 100, .shape = 1, .scale = 0.4, .num_sims = 5)
 
+pqq_gam <- ggplot(gam, aes(sample = y)) +
+  stat_qq_line(colour = "indianred", linewidth = 0.4) +
+  stat_qq(colour = "steelblue3", alpha = 0.4, size = 0.8) +
+  labs(x = "Normal quantiles", y = "Sample quantiles",
+       title = "Normal Q–Q Plot") +
+  theme_grey(base_size = 8)
+
 ggarrange(
-  tidy_autoplot(gam, .plot_type = "density"),
-  tidy_autoplot(gam, .plot_type = "probability"),
-  tidy_autoplot(gam, .plot_type = "qq"),
-  ncol = 2, nrow = 2, common.legend = TRUE
+  tidy_autoplot(gam, .plot_type = "density") + theme_grey(base_size = 8),
+  pqq_gam,
+  ncol = 2, nrow = 1, labels = "AUTO"
 )
 ```
+
+We see in @fig-gamma A a right-skewed distribution: with $\alpha = 1$, most observations are near small values, with a gradual decline toward larger values. This is identical to the Exponential shape.
+
+@fig-gamma B shows consistent deviation from the Normal line, especially in the upper range. The upward curvature confirms positive skewness. As the shape parameter $\alpha$ increases, this curvature would progressively straighten, and the Q–Q plot would approach the reference line.
 
 ## The Exponential Distribution
 
@@ -568,24 +673,33 @@ The Exponential distribution models the time between successive events in a Pois
 
 -   **Lifespan under constant hazard:** If an organism faces a constant per-unit-time mortality risk (*e.g.*, random predation), its lifespan is exponentially distributed. Most real organisms do not have constant hazard (risk increases with age), so the Weibull or Gamma is more realistic, but the Exponential serves as the simplest baseline.
 
-@fig-exp shows the steep decline from zero that is the hallmark of the Exponential: short waiting times are far more probable than long ones.
+@fig-exp shows the steep decline from zero that is the hallmark of the Exponential.
 
 ```{r fig-exp}
 #| code-fold: true
-#| fig-cap: "Exponential distribution with 100 observations per simulation, 5 simulations, and rate $\\lambda = 1$. The steep decline from zero reflects the high probability of short waiting times and the low probability of long ones."
+#| fig-cap: "Exponential distribution with 100 observations per simulation, 5 simulations, and rate $\\lambda = 1$. The steep decline from zero reflects the high probability of short waiting times and the low probability of long ones. The Q–Q plot curves strongly upward, indicating heavy right skewness."
 #| fig-width: 7
-#| fig-height: 4.5
+#| fig-height: 3
 
 expon <- tidy_exponential(.n = 100, .rate = 1, .num_sims = 5)
 
+pqq_exp <- ggplot(expon, aes(sample = y)) +
+  stat_qq_line(colour = "indianred", linewidth = 0.4) +
+  stat_qq(colour = "steelblue3", alpha = 0.4, size = 0.8) +
+  labs(x = "Normal quantiles", y = "Sample quantiles",
+       title = "Normal Q–Q Plot") +
+  theme_grey(base_size = 8)
+
 ggarrange(
-  tidy_autoplot(expon, .plot_type = "density"),
-  tidy_autoplot(expon, .plot_type = "quantile"),
-  tidy_autoplot(expon, .plot_type = "probability"),
-  tidy_autoplot(expon, .plot_type = "qq"),
-  ncol = 2, nrow = 2, common.legend = TRUE
+  tidy_autoplot(expon, .plot_type = "density") + theme_grey(base_size = 8),
+  pqq_exp,
+  ncol = 2, nrow = 1, labels = "AUTO"
 )
 ```
+
+@fig-exp A shows a steep drop from zero, with most values very small and few large values. This indicates that short waiting times are common and long waiting times are rare. This is a direct consequence of the memoryless property.
+
+In @fig-exp B you can see a strong upward curvature away from the Normal line, reflecting extreme right skewness. The departure is among the most pronounced of any distribution in this chapter, reflecting the single-parameter simplicity of the Exponential and its inability to produce anything close to symmetric variation. The lack of symmetry shows that Normal-based methods are unsuitable for raw data of this form.
 
 ## The Beta Distribution
 
@@ -615,48 +729,33 @@ The Beta distribution is the natural distribution for proportions and probabilit
 
 -   **Survival and detection probabilities:** In mark-recapture models, detection probabilities and apparent survival rates are bounded in $[0, 1]$ and are typically modelled with Beta priors in a Bayesian framework.
 
-@fig-beta shows a right-skewed Beta ($\alpha = 2$, $\beta = 5$), placing most probability mass below 0.5; this is consistent with, for example, a moderately rare species whose detection probability is typically low.
+@fig-beta shows a right-skewed Beta ($\alpha = 2$, $\beta = 5$).
 
 ```{r fig-beta}
 #| code-fold: true
-#| fig-cap: "Beta distribution with 100 observations per simulation, 5 simulations, $\\alpha = 2$, and $\\beta = 5$. This right-skewed shape on the $[0,1]$ interval could represent, for example, occupancy probabilities for a moderately rare species across a set of habitat patches."
+#| fig-cap: "Beta distribution with 100 observations per simulation, 5 simulations, $\\alpha = 2$, and $\\beta = 5$. This right-skewed shape on the $[0,1]$ interval could represent, for example, occupancy probabilities for a moderately rare species across a set of habitat patches. The Q–Q plot shows moderate departure from normality in the upper tail."
 #| fig-width: 7
-#| fig-height: 4.5
+#| fig-height: 3
 
 bet <- tidy_beta(.n = 100, .shape1 = 2, .shape2 = 5, .ncp = 0, .num_sims = 5)
 
+pqq_bet <- ggplot(bet, aes(sample = y)) +
+  stat_qq_line(colour = "indianred", linewidth = 0.4) +
+  stat_qq(colour = "steelblue3", alpha = 0.4, size = 0.8) +
+  labs(x = "Normal quantiles", y = "Sample quantiles",
+       title = "Normal Q–Q Plot") +
+  theme_grey(base_size = 8)
+
 ggarrange(
-  tidy_autoplot(bet, .plot_type = "density"),
-  tidy_autoplot(bet, .plot_type = "quantile"),
-  tidy_autoplot(bet, .plot_type = "probability"),
-  tidy_autoplot(bet, .plot_type = "qq"),
-  ncol = 2, nrow = 2, common.legend = TRUE
+  tidy_autoplot(bet, .plot_type = "density") + theme_grey(base_size = 8),
+  pqq_bet,
+  ncol = 2, nrow = 1, labels = "AUTO"
 )
 ```
 
-## Inference-Related Distributions
+@fig-beta A shows a distribution confined strictly between 0 and 1, with most values concentrated below 0.5, which is consistent with a detection probability that is more often low than high. The bounded support is a important and defining feature. So, unlike the Normal, the Beta cannot produce values outside $[0, 1]$.
 
-Three continuous distributions arise primarily in hypothesis testing and confidence interval construction rather than as direct models of biological data-generating processes. You will encounter all three in later chapters, but a short introduction is useful here.
-
-**The Student *t*-distribution** arises when estimating the mean of a normally distributed population with an unknown variance from a small sample. It has heavier tails than the Normal, reflecting increased uncertainty from small samples. As sample size grows, the $t$-distribution converges to the Normal. We use it in [Chapter 7](07-t_tests.qmd) for one- and two-sample $t$-tests and in regression to test whether coefficients differ from zero.
-
-**The Chi-squared ($\chi^2$) distribution** is the sum of the squares of $\nu$ independent standard Normal variables. It arises in tests of categorical data ([Chapter 7](07-t_tests.qmd)), in comparing variances, and in model goodness-of-fit tests. It is always positive and right-skewed.
-
-**The *F*-distribution** is the ratio of two independent chi-squared variables divided by their degrees of freedom. It arises in ANOVA ([Chapter 8](08-anova.qmd)), where we compare a ratio of variances (mean squares) to test whether group means differ. It also appears in the overall $F$-test of regression models.
-
-None of these three distributions is typically used to model raw biological data; they are the theoretical distributions of test statistics under null hypotheses.
-
-::: callout-important
-## Do It Now!
-
-Think of two biological variables you have measured or would expect to measure in your research. For each one, identify: (1) whether it is discrete or continuous, (2) what biological process generates it, (3) which distribution from this chapter most plausibly describes it, and (4) what would make that distribution choice wrong (*e.g.*, overdispersion, bounded range, always positive). Share your choices with a partner and see if you agree.
-:::
-
-::: {.callout-important appearance="default"}
-## Do This Now!
-
-Select your favourite three conitnuous variables in the BCB7342 field trip set of data. Assess your data's distribution, provide visual support, and discuss.
-:::
+@fig-beta B shows deviation from the Normal line, particularly in the upper range. This reflects both the mild right skew and the bounded support. The departure is more moderate than for the Exponential or Log-Normal and illustrates that not all non-normal distributions are equally far from normality.
 
 <!-- ::: {.callout-important appearance="default"}
 ## Do This Now!
@@ -732,6 +831,99 @@ ggplot(dat, aes(x = x)) +
 - Group 3's result demonstrates the central limit theorem in physical form --- this is the same principle that justifies Normal-based tests for means even when raw data are not normal, which is discussed in the next section.
 ::: -->
 
+# Identifying Your Data's Distribution
+
+Traditionally, visualising the data with a histogram, empirical density, empirical CDF, and QQ plot together gives the most comprehensive picture (@fig-dist-diagnostics). The QQ plot is especially revealing, because if the data come from the reference distribution, the points should fall on the 45° diagonal line.
+
+```{r fig-dist-diagnostics}
+#| fig-cap: "Four-panel diagnostics for 200 normally distributed observations: histogram, kernel density estimate, empirical CDF, and Normal QQ plot. The close adherence to the 45° line in the QQ plot confirms approximate normality."
+#| fig-width: 6
+#| fig-height: 5
+#| code-fold: true
+
+set.seed(123)
+y <- rnorm(n = 200, mean = 13, sd = 2)
+old_par <- par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+hist(y,          main = "Histogram",             xlab = "y")
+plot(density(y), main = "Kernel density",        xlab = "y")
+plot(ecdf(y),    main = "Empirical CDF",         xlab = "y")
+z <- (y - mean(y)) / sd(y)
+qqnorm(z, main = "Normal QQ plot"); abline(0, 1, col = "red")
+par(old_par)
+```
+
+The red 45° line marks where points should fall if the data are normal. Systematic departures from the line (such as S-curves indicating heavy or light tails, J-curves indicating skew) point toward alternative distributions.
+
+Here is a practical decision guide to finding your data's distribution. It combines your expert knowledge about the biological process that generated your data with the numerical and visual properties:
+
+**Step 1. Identify the support**
+
+Eliminate the inappropriate candidates:
+
+- integers only → discrete
+- strictly positive → Gamma / Log-normal candidates
+- bounded [0,1] → Beta
+- unbounded → Normal candidate
+
+**Step 2. Identify the process**
+
+Most importantly, map the variable to a mechanism:
+
+- counts of independent events → Poisson
+- counts with aggregation → Negative Binomial
+- repeated success/failure → Binomial
+- waiting times → Exponential / Gamma
+- multiplicative growth → Log-normal
+- additive effects → Normal
+
+**Step 3. Check shape visually**
+
+Use histogram and Q–Q:
+
+- symmetric → Normal plausible
+- right-skewed → Gamma / Log-normal
+- heavy tails → consider transformations or alternative families
+- many zeros → consider zero-inflation or count models
+
+**Step 4. Compare mean–variance relationship (for counts)**
+
+- Poisson: mean ≈ variance
+- Negative Binomial: variance > mean
+
+**Step 5. Consider transformation vs model**
+
+Transform your data to change the scale of the model, if required:
+
+- log-transform → tests whether Log-normal is appropriate
+- square-root → stabilises variance in counts
+
+**Step 6. Treat models as approximations**
+
+- no real dataset follows a distribution exactly,
+- the goal is compatibility, not exact match.
+
+::: callout-important
+## Do It Now!
+
+Select your favourite three conitnuous variables in the BCB7342 field trip set of data.
+
+For each one, identify: (1) whether it is discrete or continuous, (2) what biological process generates it, (3) which distribution from this chapter most plausibly describes it (use visualisations + summary statistics), and (4) what would make that distribution choice wrong (*e.g.*, overdispersion, bounded range, always positive). Share your choices with a partner and see if you agree.
+
+Write up your findings and include them in your Progress Portfolio.
+:::
+
+# Inference-Related Distributions
+
+Three continuous distributions arise primarily in hypothesis testing and confidence interval construction rather than as direct models of biological data-generating processes. You will encounter all three in later chapters, but a short introduction is useful here.
+
+**The Student *t*-distribution** arises when estimating the mean of a normally distributed population with an unknown variance from a small sample. It has heavier tails than the Normal, reflecting increased uncertainty from small samples. As sample size grows, the $t$-distribution converges to the Normal. We use it in [Chapter 7](07-t_tests.qmd) for one- and two-sample $t$-tests and in regression to test whether coefficients differ from zero.
+
+**The Chi-squared ($\chi^2$) distribution** is the sum of the squares of $\nu$ independent standard Normal variables. It arises in tests of categorical data ([Chapter 7](07-t_tests.qmd)), in comparing variances, and in model goodness-of-fit tests. It is always positive and right-skewed.
+
+**The *F*-distribution** is the ratio of two independent chi-squared variables divided by their degrees of freedom. It arises in ANOVA ([Chapter 8](08-anova.qmd)), where we compare a ratio of variances (mean squares) to test whether group means differ. It also appears in the overall $F$-test of regression models.
+
+None of these three distributions is typically used to model raw biological data; they are the theoretical distributions of test statistics under null hypotheses.
+
 # Sampling-Level Thinking
 
 ## Samples, Populations, and Sampling Variation
@@ -793,7 +985,7 @@ $$SE_{\bar{x}} = \frac{SD}{\sqrt{n}}$$
 
 As sample size $n$ increases, the standard error decreases proportionally to $1/\sqrt{n}$. So, doubling your sample size reduces the SE by a factor of $\sqrt{2} \approx 1.41$. This formalises the intuitive idea that larger samples produce more precise estimates. The SE is not a property of the raw data; it is a property of the estimation procedure.
 
-::: callout-important
+<!-- ::: callout-important
 ## Do It Now!
 
 You have a sample of 16 kelp stipe lengths (cm): `c(38, 41, 35, 44, 39, 42, 37, 40, 43, 36, 45, 38, 41, 39, 40, 42)`.
@@ -808,7 +1000,7 @@ sd_x <- sd(x)
 se_x <- sd_x / sqrt(length(x))
 cat("SD:", round(sd_x, 3), "  SE:", round(se_x, 3), "\n")
 ``` -->
-:::
+::: -->
 
 ## Confidence Intervals
 
@@ -842,77 +1034,6 @@ tibble(
 ```
 
 Read the estimate and its interval together: the mean locates the result while the CI conveys its precision.
-
-# Identifying Your Data's Distribution
-
-In practice, data will never follow any theoretical distribution exactly. The question is not "do my data follow distribution X?" but "which distribution is most compatible with the pattern of skewness and spread in my data?" The **Cullen and Frey graph** from the `fitdistrplus` package is a useful diagnostic: it plots the skewness and kurtosis of your data and overlays the regions characteristic of common distributions (@fig-dist-cullen).
-
-```{r fig-dist-cullen}
-#| message: false
-#| fig-cap: "Cullen and Frey graphs for four different data-generating mechanisms: (a) log-normal, (b) normal, (c) uniform, and (d) exponential. The square symbol marks the observed skewness–kurtosis combination. Its position relative to the named distribution regions guides initial model selection."
-#| fig-width: 8
-#| fig-height: 8
-#| code-fold: true
-
-library(fitdistrplus)
-
-old_par <- par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))
-
-# (a) Log-normal data
-set.seed(42)
-y_lognorm <- c(37.50, 46.79, 48.30, 46.04, 43.40, 39.25, 38.49, 49.51, 40.38,
-               36.98, 40.00, 38.49, 37.74, 47.92, 44.53, 44.91, 44.91, 40.00,
-               41.51, 47.92, 36.98, 43.40, 42.26, 41.89, 38.87, 43.02, 39.25,
-               40.38, 42.64, 36.98, 44.15, 44.91, 43.40, 49.81, 38.87, 40.00,
-               52.45, 53.13, 47.92, 52.45, 44.91, 29.54, 27.13, 35.60, 45.34,
-               43.37, 54.15, 42.77, 42.88, 44.26, 27.14, 39.31, 24.80, 16.62,
-               30.30, 36.39, 28.60, 28.53, 35.84, 31.10, 34.55, 52.65, 48.81,
-               43.42, 52.49, 38.00, 38.65, 34.54, 37.70, 38.11, 43.05, 29.95,
-               32.48, 24.63, 35.33, 41.34)
-descdist(y_lognorm, discrete = FALSE, boot = 100, print = FALSE)
-title("(a)", adj = 0)
-
-# (b) Normal data
-set.seed(123)
-y_norm <- rnorm(100, mean = 13, sd = 2)
-descdist(y_norm, discrete = FALSE, print = FALSE)
-title("(b)", adj = 0)
-
-# (c) Uniform data
-set.seed(123)
-y_unif <- runif(100)
-descdist(y_unif, discrete = FALSE, print = FALSE)
-title("(c)", adj = 0)
-
-# (d) Exponential data
-set.seed(123)
-y_exp <- rexp(100, rate = 0.7)
-descdist(y_exp, discrete = FALSE, print = FALSE)
-title("(d)", adj = 0)
-
-par(old_par)
-```
-
-The Cullen-Frey graph may or may not be useful. Traditionally, visualising the data with a histogram, empirical density, empirical CDF, and QQ plot together gives the most comprehensive picture (@fig-dist-diagnostics). The QQ plot is especially revealing, because if the data come from the reference distribution, the points should fall on the 45° diagonal line.
-
-```{r fig-dist-diagnostics}
-#| fig-cap: "Four-panel diagnostics for 200 normally distributed observations: histogram, kernel density estimate, empirical CDF, and Normal QQ plot. The close adherence to the 45° line in the QQ plot confirms approximate normality."
-#| fig-width: 6
-#| fig-height: 5
-#| code-fold: true
-
-set.seed(123)
-y <- rnorm(n = 200, mean = 13, sd = 2)
-old_par <- par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
-hist(y,          main = "Histogram",             xlab = "y")
-plot(density(y), main = "Kernel density",        xlab = "y")
-plot(ecdf(y),    main = "Empirical CDF",         xlab = "y")
-z <- (y - mean(y)) / sd(y)
-qqnorm(z, main = "Normal QQ plot"); abline(0, 1, col = "red")
-par(old_par)
-```
-
-The red 45° line marks where points should fall if the data are normal. Systematic departures from the line (such as S-curves indicating heavy or light tails, J-curves indicating skew) point toward alternative distributions.
 
 # Linking Distributions to Later Chapters
 
