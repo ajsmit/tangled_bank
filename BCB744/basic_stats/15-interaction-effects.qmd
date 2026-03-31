@@ -29,11 +29,14 @@ library(tidyverse)
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   what an interaction term means;
--   why main effects change meaning when an interaction is present;
--   how to specify interaction models in `lm()`;
+-   what an interaction term means mathematically and biologically;
+-   how to interpret the slope of one predictor as a function of another;
+-   when an interaction is justified and when it is premature;
+-   why main effects become conditional once an interaction is present;
+-   how to interpret interaction models using worked algebra and plots;
+-   how centring continuous predictors clarifies coefficient interpretation;
 -   how to compare nested models with and without an interaction;
--   how to interpret conditional effects graphically and verbally.
+-   how effect size and uncertainty matter alongside statistical significance.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -44,45 +47,42 @@ library(tidyverse)
 
 # Introduction
 
-Many ecological and biological processes are interactive. The effect of one variable often depends on the level of another. Nutrient supply may be more impactful at high temperature than at low temperature. The influence of distance may differ among bioregions. A treatment may affect males and females differently.
+Many ecological and biological processes are interactive. Nutrient supply may matter more at high temperature than at low temperature. The influence of distance may differ among bioregions. A treatment may affect males and females differently. These are situations where the effect of one variable is contingent on the state of another.
 
-These situations are handled in regression by including an **interaction term**. Interaction models are often where linear modelling becomes much more interesting biologically, but they are also where interpretation becomes more demanding. Once an interaction is present, the main effects can no longer be read in the same simple way as before.
+Linear regression handles these cases by including an **interaction term**. The idea is that one slope depends on another variable. Building this into a model requires care, because once an interaction is present, the main effects can no longer be read in isolation and the coefficient table becomes harder to interpret without accompanying plots.
 
-In this chapter, I build directly on the additive factor-plus-covariate model introduced in [Chapter 14](14-multiple-regression-and-model-specification.qmd). In older terminology, the additive model `y ~ group + x` is often called ANCOVA. Here I begin where that simple ANCOVA framing stops, which is when the slope of `x` may differ among groups and the model must therefore include `group * x`.
+In [Chapter 14](14-multiple-regression-and-model-specification.qmd) I developed the idea of additive models, and in this chapter we build upon that foundation. In that chapter, I fitted models of the form `y ~ group + x`, sometimes called ANCOVA, where the fitted lines for each group were constrained to be parallel. Here I ask what happens when parallel lines are not enough, such as when the slope of `x` may differ among groups, and when the biology demands it.
 
-# Key Concepts
+One clarification before we start. The term *effect modification* is sometimes used in epidemiology for exactly the situation when an interaction is a claim that one variable *modifies* the effect of another. Stating the effect like this is useful, but it might suggest that some causal implication is implicit in the biology, and that is not something that regression alone cannot establish. This would require clever experimental manipulation. In the work below, I imply that the models describe conditional associations. Whether those associations reflect true causal modification depends on the study design and domain knowledge, not on model output.
 
-The essential ideas are these.
+# Important Concepts
 
 -   **An interaction** means the effect of one predictor depends on another predictor.
 -   **Main effects become conditional** once an interaction term is present.
--   **Plots are indispensable** because coefficients alone rarely communicate interactions clearly.
+-   **Plots now become indispensable in model assessment** because coefficients alone rarely communicate interactions clearly.
 -   **Nested model comparisons** are useful for asking whether the interaction improves the model beyond the main effects alone.
 -   **Interactions should be biologically motivated**, not generated mechanically because software allows it.
+
+::: {.callout-note appearance="simple"}
+## Two Terms Worth Clarifying
+
+**Conditional** means that the value of one thing depends on the value of another. In an interaction model, the effect of $X_1$ is conditional on $X_2$: it is not a single fixed number but changes as $X_2$ changes. A main effect is likewise conditional because it describes the effect of a predictor at a specific value of the other predictor (usually zero or the reference level), not across all values simultaneously.
+
+**Nested models** are a sequence of models where each simpler model is a special case of the next. A distance-only model is nested within a distance + bioregion model, which is itself nested within a distance × bioregion model. Because the simpler model can be recovered from the more complex one by setting extra coefficients to zero, the two can be compared directly using a formal test such as the likelihood ratio test or the $F$-test in `anova()`.
+:::
 
 ::: callout-important
 ## Do It Now!
 
-Before reading further, look at the five bullet points in Key Concepts above and discuss with a partner which of the following biological scenarios are likely to involve an interaction, and which are probably additive.
+Before reading further, look at the five bullet points in Important Concepts above and discuss with a partner which of the following biological scenarios are likely to involve an interaction, and which are probably additive.
 
 1. Fish growth increases with food availability, and fish growth also increases with water temperature. There is no reason to think these effects depend on each other.
 2. A herbicide reduces plant biomass more strongly in drought conditions than in well-watered plots.
 3. The number of species on an island increases with island area, and also increases with proximity to the mainland.
 4. The survival of juvenile fish depends on predator density, but that relationship is stronger in degraded habitats than in intact ones.
 
-For each, write a brief justification (one sentence) and an R formula showing how you would code the model — additive (`+`) or with interaction (`*`).
+For each, write a brief justification (one sentence) and an R formula showing how you would code the model, *i.e.*, additive (`+`) or with interaction (`*`).
 :::
-
-# When Is an Interaction Appropriate?
-
-You should consider an interaction when the biology suggests that the effect of one predictor is contingent on another. Typical examples include:
-
--   temperature × nutrient supply;
--   treatment × sex;
--   distance × habitat type;
--   rainfall × soil type.
-
-If there is no sensible biological reason to expect one effect to change across the level of another, then an interaction term is often hard to justify.
 
 # The Core Equation
 
@@ -90,7 +90,7 @@ For two predictors, a linear model with interaction is:
 
 $$Y_i = \alpha + \beta_1 X_{1i} + \beta_2 X_{2i} + \beta_3 X_{1i}X_{2i} + \epsilon_i$$ {#eq-interaction}
 
-In @eq-interaction, the coefficient $\beta_3$ is the interaction term. It describes how the effect of one predictor changes as the other predictor changes; in other words, an interaction is a claim that one slope depends on another variable.
+The coefficient $\beta_3$ multiplies the product $X_1 X_2$. When $\beta_3 = 0$, the model collapses to the additive form of Chapter 14. When $\beta_3 \neq 0$, the effect of $X_1$ on $Y$ is not constant but it is conditional on $X_2$.
 
 In R, an interaction is specified with `*`:
 
@@ -108,17 +108,81 @@ lm(response ~ x1 + x2 + x1:x2, data = df)
 
 The `:` term is the interaction itself, while `*` includes both main effects and the interaction.
 
-# Why Main Effects Become Harder to Read
+The important consequence of @eq-interaction is that the slope of $X_1$ (which is the rate at which $Y$ changes as $X_1$ increases) is not a single number. It is:
 
-When an interaction is present, the main-effect coefficients are conditional.
+$$\frac{\partial Y}{\partial X_1} = \beta_1 + \beta_3 X_2$$
 
-For example, in a model with `dist * bio`:
+This is what an interaction means in practice. Every unit increase in $X_2$ changes the slope of $X_1$ by exactly $\beta_3$. If $\beta_3 > 0$, the effect of $X_1$ strengthens as $X_2$ increases but if $\beta_3 < 0$, the effect of $X_1$ weakens. If $\beta_3 = 0$, the slope of $X_1$ is $\beta_1$ everywhere, regardless of $X_2$ and the model reduces to the additive case.
 
--   the coefficient of `dist` is the slope of distance only for the reference bioregion;
--   the coefficients of the non-reference bioregions are differences in intercept relative to that reference;
--   the interaction coefficients describe how the slope of distance changes in the other bioregions relative to the reference bioregion.
+This also implies that:
 
-This is why interaction models should almost never be interpreted from the coefficient table alone. The fitted relationships must be plotted.
+$$\frac{\partial Y}{\partial X_2} = \beta_2 + \beta_3 X_1$$
+
+The interaction coefficient $\beta_3$ simultaneously describes how $X_2$ modifies the slope of $X_1$ and how $X_1$ modifies the slope of $X_2$. This is why you cannot interpret an interaction by looking at one predictor in isolation.
+
+# When Is an Interaction Appropriate?
+
+Interactions should follow from biology and should not simply be included in the model because the software allows it. So, before fitting a model with an interaction term, answer these questions.
+
+**Does the mechanism support effect modification?** The strongest justification for an interaction is a biological or ecological mechanism that predicts it. Photosynthetic rate depends on both light and CO₂, and the relationship between rate and light is steeper when CO₂ is not limiting. Here, that is a mechanistic prediction of an interaction. Without some supporting reasoning, an interaction term is just speculation.
+
+**Is there visual evidence of non-parallel fitted lines?** Plotting the response against one predictor, coloured or faceted by the second, may reveal whether the slopes differ. Parallel lines support an additive model but diverging or converging lines suggest an interaction. This assessment is not a formal step, but it is a necessary to gain insight into the presence of effect modification.
+
+**Does the scale of measurement matter?** Interactions can appear or disappear under transformation. A relationship that appears multiplicative on an arithmetic scale often becomes additive on a log scale. Before concluding that an interaction is real, consider whether it reflects the measurement scale rather than the biology. If a log transformation linearises both relationships and eliminates the interaction, the additive log-scale model may be the more parsimonious description.
+
+**Is the dataset large enough to support the interaction?** Every interaction term consumes degrees of freedom. A continuous × continuous interaction adds one parameter. A factor with $k$ levels interacting with a continuous predictor adds $k - 1$ parameters. In small datasets, interaction terms overfit readily and the estimated slopes for individual groups become unreliable. At minimum, ensure adequate observations across the full joint range of both predictors, not just in aggregate, but within each combination. If data cluster in one corner of the predictor space, the interaction estimate extrapolates everywhere else.
+
+::: {.callout-note appearance="simple"}
+## Degrees of Freedom
+
+A degree of freedom is consumed each time the model estimates a parameter from the data. A dataset with $n$ observations and $p$ estimated parameters (intercept plus all slopes and interaction terms) has $n - p$ residual degrees of freedom. This is the quantity left over to estimate the error variance and run hypothesis tests. Fewer residual degrees of freedom means less precise estimates and less powerful tests.
+
+In practice, count the parameters your model requires, subtract from $n$, and ask whether what remains is adequate. As a rough guide, aim for at least 10–20 observations per parameter. An interaction between a four-level factor and a continuous predictor adds three parameters; if your dataset has 40 rows, that interaction alone halves the residual degrees of freedom available for everything else.
+:::
+
+Additive models are simpler and more stable. The burden of justification falls on the interaction, not on the additive alternative.
+
+# Interpreting Conditional Coefficients
+
+When an interaction is present, the main-effect coefficients are conditional on the other predictor being at its reference value. This is, zero for continuous predictors and the reference level for factors (see [dummy-variable coding in Chapter 14](14-multiple-regression-and-model-specification.qmd#dummy-variable-coding)). Although the math makes sense to statisticians, it can produce biologically uninterpretable numbers, especially when zero is not a meaningful reference.
+
+For example, consider a model of mussel filtration rate (L h⁻¹) as a function of shell length (mm) and seawater temperature (°C), with their interaction included. The main effect of temperature is the slope of temperature on filtration rate when shell length equals zero. A mussel of zero length does not exist. The coefficient is mathematically well-defined but it describes the filtration performance of an animal that isn't there. Centring shell length on its mean (say, 47 mm, a real mussel of average size) shifts the reference to a biologically meaningful baseline, and the temperature coefficient then describes something an actual mussel does. The mechanics of centring (and the related idea of standardising to unit variance) are introduced in [Chapter 14](14-multiple-regression-and-model-specification.qmd#a-note-on-scaling-and-centring); here the motivation is reinforced by the presence of the interaction term.
+
+::: {.callout-note appearance="simple"}
+## Centring Continuous Predictors
+
+**Rule**: centre a continuous predictor when zero is not a meaningful or observable value in your study. After centring, the main effect of $X_1$ is its slope when $X_2$ is at its mean, and vice versa. The interaction coefficient and all fitted values are unchanged by centring.
+:::
+
+## A Worked Algebra Example
+
+A simple numeric illustration makes this concrete. Suppose we fit a model where `group` is a two-level factor (`A` and `B`, with `A` as the reference) and `x` is a continuous predictor. The factor is represented in the model matrix by a [dummy variable](14-multiple-regression-and-model-specification.qmd#dummy-variable-coding) $D_i$:
+
+$$Y_i = \alpha + \beta_1 x_i + \beta_2 D_i + \beta_3 x_i D_i + \epsilon_i$$
+
+where $D_i = 0$ for group A and $D_i = 1$ for group B.
+
+Substituting $D = 0$ gives the fitted line for group A:
+
+$$\hat{Y} = \alpha + \beta_1 x$$
+
+Substituting $D = 1$ gives the fitted line for group B:
+
+$$\hat{Y} = (\alpha + \beta_2) + (\beta_1 + \beta_3)\, x$$
+
+The slope of `x` in group A is $\beta_1$. The slope of `x` in group B is $\beta_1 + \beta_3$. The interaction coefficient $\beta_3$ is therefore not the slope in group B, but the *difference in slopes* between groups B and A. If the slopes were the same ($\beta_3 = 0$), the lines would be parallel and the model would reduce to the additive ANCOVA of Chapter 14.
+
+Now put in numbers. Suppose $\alpha = 2$, $\beta_1 = 0.5$, $\beta_2 = 3$, and $\beta_3 = 0.8$. Then:
+
+- Group A slope: $0.5$ per unit of `x`
+- Group B slope: $0.5 + 0.8 = 1.3$ per unit of `x`
+- At $x = 10$: Group A predicts $2 + 0.5(10) = 7$; Group B predicts $(2 + 3) + 1.3(10) = 18$
+
+The difference in predicted response between groups A and B at $x = 10$ is 11 units, not 3. The 3 units ($\beta_2$) is only the between-group difference at $x = 0$. Once the interaction is present, the gap between groups changes with `x`, and reading the coefficients without tracing through the algebra leads to the wrong conclusion.
+
+## The Role of the Reference Group
+
+In a factor × continuous interaction, the choice of reference level affects which coefficients appear in the table but not the fitted values or the model's predictions. If the reference group happens to have a near-zero slope, the main effect of `x` will appear small or non-significant even when most groups show substantial slopes. This is one more reason to plot. Changing the reference level and refitting the model is also informative, for example, if the conclusions about the biology depend on which group was chosen as reference, they are being drawn from the parameterisation rather than from the data.
 
 ::: callout-important
 ## Do It Now!
@@ -145,21 +209,13 @@ lm(y ~ temp * bio, data = df) |> summary()
 Check that the coefficient of `temp` matches your answer to question 2.
 :::
 
-::: {.callout-note appearance="simple"}
-## Centring Predictors
-
-If a continuous predictor has no meaningful zero, the main effects in an interaction model can be awkward to interpret. In such cases, centring the predictor often helps because it shifts the zero point to a more meaningful reference value, often the sample mean.
-:::
-
 # Example 1: Two Continuous Predictors with and without Centring
 
-Interactions do not only occur between a factor and a continuous predictor. They also arise when two continuous predictors work together, and this case gives one of the clearest demonstrations of why interaction models can become awkward to interpret if the predictors are left on their raw scales.
+Interactions do not only arise between a factor and a continuous predictor. They also occur when two continuous predictors work together, and this case gives one of the clearest demonstrations of why the reference-point problem matters.
 
-Suppose we want to model algal growth as a function of temperature and nutrient concentration, and we suspect that the effect of temperature depends on nutrient supply. That is a biologically plausible interaction: warming may matter more when nutrients are abundant than when they are scarce.
+I model algal growth as a function of temperature and nutrient concentration, expecting that the effect of temperature depends on nutrient supply. Warming may be more influential when nutrients are abundant than when they are scarce. This is a biologically plausible interaction with a mechanistic basis, *i.e.*, we know that photosynthetic response to temperature is partly limited by nutrient availability.
 
 ## Example Dataset
-
-To keep the logic transparent, we first create a small synthetic dataset in which both predictors are continuous and their interaction is genuinely present.
 
 ```{r code-centering-example}
 set.seed(14)
@@ -178,7 +234,7 @@ int_demo <- tibble(
 
 ## Do an Exploratory Data Analysis (EDA)
 
-Before fitting the interaction model, inspect the scale of the predictors and the overall response pattern.
+Before fitting the interaction model, I inspect the scale of the predictors and the overall response pattern.
 
 ```{r code-centering-summary}
 int_demo |>
@@ -218,7 +274,7 @@ int_demo |>
   theme_grey()
 ```
 
-The fitted lines in @fig-centering-eda are not parallel. As nutrient concentration increases, the fitted temperature-growth slope becomes steeper. That is exactly the visual signature of an interaction.
+The fitted lines in @fig-centering-eda are not parallel. As nutrient concentration increases, the temperature-growth slope becomes steeper. That fan shape is the visual signature of an interaction: the same unit increase in temperature produces a larger growth response when nutrients are abundant than when they are scarce.
 
 ::: callout-important
 ## Do It Now!
@@ -244,12 +300,12 @@ int_demo |>
 Answer:
 
 1. Are the fitted lines parallel or diverging? What does that tell you about the interaction?
-2. The same interaction is present regardless of which predictor you condition on. Why does that make sense mathematically? (Hint: the interaction term is $\beta_3 X_1 X_2$ — it is symmetric in $X_1$ and $X_2$.)
+2. The same interaction is present regardless of which predictor you condition on. Why does that make sense mathematically? (Hint: the interaction term $\beta_3 X_1 X_2$ is symmetric in $X_1$ and $X_2$.)
 :::
 
 ## State the Model Question
 
-The biological question is not merely whether temperature matters or whether nutrient concentration matters. It is whether the effect of temperature changes across the nutrient gradient.
+The biological question is not whether temperature matters or whether nutrient concentration matters. It is whether the effect of temperature changes across the nutrient gradient.
 
 For the interaction term, the hypothesis pair is:
 
@@ -258,9 +314,11 @@ $$H_{a}: \beta_{\text{temp:nutrient}} \ne 0$$
 
 If the interaction coefficient is zero, the slope of temperature does not depend on nutrient concentration. If it differs from zero, the temperature effect is conditional on nutrient supply.
 
+This framing might suggest that the appropriate model is `lm(growth ~ temp:nutrient, data = int_demo)`, which specifies the interaction term alone and drops the main effects. That model is almost always wrong. The `:` operator without main effects constrains both $\beta_1$ and $\beta_2$ to zero; it asserts that temperature has no direct effect on growth and neither does nutrient concentration, only their product matters. That claim is too strong and usually unjustified biologically. The **hierarchy principle** says that whenever an interaction is in the model, its constituent main effects must be in the model too, regardless of whether the primary question concerns them. This is what `*` enforces: `temp * nutrient` expands to `temp + nutrient + temp:nutrient`. The main effects are there not because they are the focal hypothesis but because the interaction term is only meaningful in their presence. Dropping them changes the interpretation of $\beta_3$ entirely.
+
 ## Fit the Uncentred and Centred Models
 
-We fit the same interaction twice: once on the raw predictor scales, and once after centring both predictors on their means.
+We fit the same interaction twice: once on raw predictor scales, and once after centring both predictors on their means.
 
 ```{r code-centering-models}
 mod_raw <- lm(growth ~ temp * nutrient, data = int_demo)
@@ -275,21 +333,13 @@ tibble(
 
 ## Interpret the Results
 
-The important result is that the interaction term is the same model statement in both fits, and its estimate is unchanged by centring apart from trivial rounding differences. What changes are the **main effects**.
+The interaction coefficient is identical in both models; so, centring does not change the interaction estimate. What centring changes are the main effects, and that is the important point.
 
-In the uncentred model:
+In the uncentred model, the temperature coefficient is the slope of temperature when nutrient concentration is zero. Nutrient ranges from 0.5 to 5 in this dataset: zero is outside the data range entirely. That coefficient describes an extrapolated, biologically unobservable condition, and interpreting it directly is misleading.
 
--   the temperature coefficient is the slope when nutrient concentration is zero;
--   the nutrient coefficient is the slope when temperature is zero.
+In the centred model, the temperature coefficient is the slope of temperature at the mean nutrient concentration, and the nutrient coefficient is the slope of nutrient at the mean temperature. Both describe something that actually occurs in the data, and the centring rule makes this possible.
 
-Those values are awkward here because neither zero nutrient nor zero temperature is a meaningful reference point for these data.
-
-In the centred model:
-
--   the temperature coefficient is the slope at the **mean** nutrient concentration;
--   the nutrient coefficient is the slope at the **mean** temperature.
-
-That makes the coefficients much easier to interpret biologically. The interaction is still there, and the fitted surface is still the same, but the reference point has moved to a scientifically sensible part of the predictor space.
+The fitted values are unchanged. Centring is a reparameterisation, not a different model. It moves the reference point from an arbitrary zero to the sample mean, making the main effects describe something scientifically interpretable rather than a mathematically convenient but biologically meaningless baseline.
 
 ::: callout-important
 ## Do It Now!
@@ -316,15 +366,17 @@ all.equal(fitted(mod_raw), fitted(mod_cent))
 
 ## Why is This Example Important?
 
-This is why centring helps in continuous × continuous interactions. It does not remove the interaction or change the fitted values. It changes the reference point so that the main effects describe something scientifically interpretable rather than a mathematically arbitrary zero point.
+Centring does not remove the interaction or change the fitted values. It changes the reference point so that the main effects describe something scientifically interpretable rather than a mathematically arbitrary zero. The same reasonong informs factor × continuous interactions, ANCOVA-style models, and more complex multiple-regression scenarios. Whenever an interaction is present, ask whether the zero point of each continuous predictor gives you main effects that carry biologically relatable meaning. If it does not, centring is the way to go.
 
-The lesson extends beyond this synthetic example. The same logic carries into factor × continuous interactions, ANCOVA-style models, and more complex multiple-regression settings. Whenever an interaction is present, you should ask whether the zero point of each continuous predictor gives the main effects a useful meaning. If it does not, centring is often the cleanest fix.
+## A Note on Scale Dependence
+
+Centring is not the only scale consideration worth making. Interactions can appear or disappear depending on whether the response is modelled on an arithmetic or logarithmic scale. If a multiplicative process generates the data (for example, growth rates often multiply rather than add) then a log transformation of the response may convert an apparent interaction into an additive relationship. Before concluding that an interaction is biologically real, ask if it reflects the measurement scale. So, a log-scale additive model and an arithmetic-scale interaction model sometimes describe the same underlying biology.
 
 # Example 2: Coastal Distance and Bioregional Context
 
 ## Example Dataset
 
-We now return to the same seaweed dataset used in Chapter 14, where distance and bioregion were first combined in an additive model. There the question was whether distance and bioregion both helped explain Sørensen dissimilarity. Here the question becomes more specific: does the relationship between Sørensen dissimilarity (`Y`) and distance along the coast (`dist`) differ among bioregions (`bio`)?
+I return to the seaweed dataset introduced in Chapter 14, where distance and bioregion were combined in an additive model. The additive model constrained the distance-dissimilarity slope to be the same across all bioregions, differing only in intercept. Here my question is more specific: does the relationship between Sørensen dissimilarity (`Y`) and coastal distance (`dist`) differ among bioregions (`bio`)?
 
 ```{r code-seaweed-int}
 sw <- read.csv(here::here("data", "BCB743", "seaweed", "spp_df2.csv"))
@@ -344,43 +396,17 @@ ggplot(sw, aes(x = dist, y = Y, colour = bio)) +
   geom_smooth(method = "lm", se = FALSE, linewidth = 0.9) +
   labs(x = "Distance along the coast (km)",
        y = "Sørensen dissimilarity",
-       colour = "Bioregion") +
-  theme_grey()
-```
-
-The fitted lines in @fig-seaweed-interaction are not parallel. That already suggests an interaction: the relationship between distance and dissimilarity appears to differ among bioregions. In other words, the additive assumption from Chapter 14 may be too simple.
-
-::: callout-important
-## Do It Now!
-
-Reproduce the EDA plot above and then answer these questions before fitting any model.
-
-```r
-sw <- read.csv(here::here("data", "BCB743", "seaweed", "spp_df2.csv"))
-sw$bio <- factor(sw$bio)
-
-ggplot(sw, aes(x = dist, y = Y, colour = bio)) +
-  geom_point(alpha = 0.6, size = 1.6) +
-  geom_smooth(method = "lm", se = FALSE, linewidth = 0.9) +
-  labs(x = "Distance along the coast (km)",
-       y = "Sørensen dissimilarity",
        colour = "Bioregion")
 ```
 
-From the plot:
-
-1. Which bioregion shows the steepest increase in dissimilarity with distance?
-2. Which bioregion appears to have the flattest (or even slightly negative) slope?
-3. If the additive model from Chapter 14 were correct, what would the lines in this plot look like?
-4. Based on this visual evidence alone, do you think the interaction is biologically meaningful or might it be noise?
-:::
+The fitted lines in @fig-seaweed-interaction are not parallel. The relationship between distance and dissimilarity appears steeper in some bioregions than in others. That visual evidence justifies the interaction model and I now see that the additive constraint I specified in Chapter 14 may be too simple.
 
 ## State the Hypotheses
 
-There are three increasingly specific questions here:
+Three increasingly specific questions inform this analysis:
 
-1. Is distance related to dissimilarity?
-2. Do the average levels of dissimilarity differ among bioregions?
+1. Is dissimilarity related to istance?
+2. Do average dissimilarity levels differ among bioregions?
 3. Does the effect of distance differ among bioregions?
 
 The third question is the interaction question. In that case the null hypothesis is:
@@ -388,7 +414,7 @@ The third question is the interaction question. In that case the null hypothesis
 $$H_{0}: \beta_{\text{interaction}} = 0$$
 $$H_{a}: \beta_{\text{interaction}} \ne 0$$
 
-for all interaction terms. Here $\beta_{\text{interaction}}$ refers to the interaction coefficient or set of coefficients that describe how the slope of distance changes among bioregions. If any of these differ from zero, the slope of distance is not the same in all bioregions.
+for all interaction terms. Here $\beta_{\text{interaction}}$ refers to the set of coefficients that describe how the slope of distance changes among bioregions. If any of these differ from zero, the distance-dissimilarity slope is not the same in all bioregions.
 
 ## Fit Nested Models
 
@@ -407,30 +433,20 @@ anova(mod_dist, mod_main, mod_int)
 summary(mod_int)
 ```
 
-The model comparison is the most useful result at this stage. Adding bioregion to the distance-only model improves fit strongly, and adding the interaction improves fit strongly again. This means the interaction changes the model materially.
+Adding bioregion to the distance-only model improves fit strongly. Adding the interaction improves fit again. The interaction changes the model materially.
 
 ## Interpret the Interaction
 
-The interaction model shows that the slope of distance differs among bioregions. In other words, distance does not have one universal effect on Sørensen dissimilarity across the coastline. The direction and steepness of the distance effect depend on which bioregion is being considered.
+Using the algebra from the earlier worked example, each bioregion's fitted slope is the sum of the reference slope ($\hat{\beta}_\text{dist}$) and that bioregion's interaction coefficient. The reference bioregion has slope $\hat{\beta}_\text{dist}$ alone; every other bioregion has a slope that deviates from this by the relevant interaction coefficient. The coefficient table gives the parameterisation and the plot gives the biological interpretation.
 
-This is best seen in the plotted lines rather than the raw coefficient table. Some bioregions show a steeper increase of dissimilarity with distance, while others show a shallower increase. The coefficient table provides the detailed parameterisation, but the plot provides the biologically useful interpretation.
+The adjusted $R^2$ of around 0.86 indicates that the model accounts for most of the variation in dissimilarity across the coastline.
 
-The overall interaction model also fits the data well, with an adjusted $R^2$ of about 0.86, and the model comparison provides very strong evidence that the interaction contributes importantly to explaining variation in the response ($p < 0.001$).
+**Effect size alongside significance.** The model comparison establishes that the interaction is statistically detectable ($p < 0.001$). The more biologically informative question is how different the slopes actually are. Extract the slope for each bioregion from the coefficient table by adding $\hat{\beta}_\text{dist}$ to each interaction coefficient, then compare them. If one bioregion shows a slope of 0.003 per kilometre and another shows 0.008 per kilometre, that two-fold difference may be substantial relative to the range of Sørensen dissimilarity (0 to 1), or it may be negligible depending on the spatial scale of the study. A significant interaction is not automatically an important one. Evaluate the magnitude of slope differences against what is biologically meaningful, not only against the null of zero difference.
 
 ::: callout-important
 ## Do It Now!
 
-Run the three nested models and use `anova()` to compare them. Then plot the fitted interaction model to see what the coefficients actually imply.
-
-```r
-mod_dist <- lm(Y ~ dist, data = sw)
-mod_main <- lm(Y ~ dist + bio, data = sw)
-mod_int  <- lm(Y ~ dist * bio, data = sw)
-
-anova(mod_dist, mod_main, mod_int)
-```
-
-Now plot the fitted lines from `mod_int` on top of the raw data:
+Run the three nested models and use `anova()` to compare them. Then plot the fitted interaction model to see what the coefficients actually imply. Now plot the fitted lines from `mod_int` on top of the raw data:
 
 ```r
 sw$fitted_int <- fitted(mod_int)
@@ -446,7 +462,18 @@ Questions:
 1. By how much does the residual sum of squares drop when you add the interaction to the main-effects model? Is the improvement statistically significant?
 2. From the plot, does the interaction look practically meaningful, or do the fitted lines for different bioregions appear nearly parallel despite the significant test?
 3. Looking at the `summary(mod_int)` coefficient table, identify one bioregion whose interaction coefficient is near zero. What does that imply about that bioregion's distance-dissimilarity slope relative to the reference?
+4. Extract the fitted slope for each bioregion by combining $\hat{\beta}_\text{dist}$ with the relevant interaction coefficient. How large is the biggest slope difference in absolute terms? Is that difference meaningful on the Sørensen scale?
 :::
+
+## Diagnostic Checks for Interaction Models
+
+Interaction models are more complex than additive ones and create additional opportunities for misfit. Three checks are worth doing alongside any interaction analysis.
+
+**Residuals by group.** Plot residuals against fitted values separately for each level of the grouping factor. If the residual spread differs substantially among groups, variance heterogeneity is present and may affect inference on the interaction coefficients. This does not invalidate the interaction, but it calls for caution in interpreting standard errors and $p$-values.
+
+**Leverage.** Observations that are extreme in both predictors simultaneously exert high leverage on interaction estimates. A single unusual observation can drive the entire estimated difference in slopes between groups. Check Cook's distance and hat values, particularly for bioregions or conditions that are sparsely sampled.
+
+**Data coverage across predictor combinations.** The interaction estimate is most reliable when observations cover the full joint range of both predictors. If one bioregion has few observations at large distances, or if one predictor varies only within a narrow range for certain factor levels, the interaction estimate in those combinations is extrapolation. Plot the joint distribution of predictors before interpreting edge-of-range behaviour.
 
 ## Reporting
 
@@ -459,17 +486,17 @@ A linear model containing the interaction between geographic distance and bioreg
 
 **Results**
 
-Sørensen dissimilarity increased with coastal distance, but the slope of that relationship differed among bioregions. A model containing the interaction between distance and bioregion fit the data substantially better than models with distance alone or with only additive main effects ($p < 0.001$ for the interaction comparison; adjusted $R^2 = 0.86$). The effect of distance on dissimilarity was therefore conditional on bioregion rather than uniform across the coastline.
+Sørensen dissimilarity increased with coastal distance, but the slope of that relationship differed among bioregions. A model containing the interaction between distance and bioregion fit the data substantially better than models with distance alone or with only additive main effects ($p < 0.001$ for the interaction comparison; adjusted $R^2 = 0.86$). The slopes ranged from [smallest] to [largest] per kilometre across the four bioregions, indicating that the distance effect is not uniform across the South African coastline.
 
 **Discussion**
 
-The biologically important point is that distance does not have one universal effect. In Discussion, the emphasis should therefore fall on regional differences in turnover rate, not only on the existence of an interaction term in the model table.
+The biologically important point is that distance does not have one universal effect on community turnover. Emphasis in the Discussion should fall on regional differences in turnover rate — their plausible ecological causes, and what they imply for managing distinct coastal zones — not merely on the existence of an interaction term in the model output.
 :::
 
 ::: callout-important
 ## Do It Now!
 
-Read through the list of common mistakes that follows. For each one, describe a concrete biological example where a researcher might make that mistake. You do not need to fit any models — this is a thinking exercise.
+Read through the list of common mistakes that follows. For each one, describe a concrete biological example where a researcher might make that mistake. You do not need to fit any models. This is a thinking exercise.
 
 | Common mistake | Concrete example of when this would happen |
 |---|---|
@@ -484,20 +511,19 @@ Then, using the `mod_int` model from Example 2, answer: is the interaction in th
 
 # Common Mistakes
 
-Common mistakes with interaction models include:
-
--   adding interactions without biological justification;
--   interpreting the main effects as if no interaction were present;
--   failing to plot the fitted interaction;
--   fitting many interaction terms in small datasets;
--   treating a statistically detectable interaction as important without considering its effect size and biological meaning.
+-   Adding interactions without biological justification — the most common path to overfitting.
+-   Interpreting main effects as if no interaction were present; in an interaction model, main effects are conditional on the reference value of the other predictor.
+-   Failing to plot the fitted interaction; the coefficient table communicates the parameterisation but not the biological pattern.
+-   Fitting many interaction terms simultaneously in small datasets; each term adds parameters, reduces degrees of freedom, and increases the risk that one interaction is significant by chance.
+-   Treating a statistically detectable interaction as biologically important without asking how large the slope differences actually are relative to meaningful variation in the response.
 
 # Summary
 
--   An interaction means that the effect of one predictor depends on another.
--   Once an interaction is present, the main effects must be interpreted conditionally.
--   Nested model comparisons are useful for asking whether the interaction improves fit.
--   Plots are essential because interaction models are hard to understand from coefficients alone.
--   Interactions should be motivated by biological reasoning and then interpreted in those same terms.
+-   An interaction means that the effect of one predictor depends on another. Operationally, the slope of $X_1$ is $\beta_1 + \beta_3 X_2$, not a constant — it changes linearly with $X_2$.
+-   Once an interaction is present, main effects must be interpreted conditionally. They describe the effect of one predictor at the reference value of the other, not its average effect across the data.
+-   Centring continuous predictors moves the reference to the sample mean and makes main effects interpretable at a scientifically meaningful baseline. The interaction coefficient and fitted values are unchanged.
+-   Nested model comparisons establish whether the interaction improves model fit, but statistical significance does not determine biological importance. Evaluate slope differences against the biological scale of the response.
+-   Interactions should be motivated by biological reasoning, checked against visual evidence of non-parallel fitted lines, and validated with attention to scale, sample size, and data coverage across predictor combinations.
+-   Diagnostic checks — residuals by group, leverage, joint data coverage — matter more in interaction models than in additive ones.
 
 In the next chapter, I remain in the multiple-regression setting but turn to three major threats to interpretation: collinearity, confounding, and measurement error.
