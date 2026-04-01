@@ -72,7 +72,7 @@ Model checking begins only after a model has been fitted, but the logic depends 
 
 **Independence** remains fundamental because residual dependence can make a model look better behaved than it really is. **Linearity** still matters unless a more flexible form has been justified. **Homoscedasticity** affects the reliability of standard errors and confidence intervals. And **approximate normality of residuals** supports the inferential use of $t$- and $F$-tests, even though mild deviations are common and usually unimportant.
 
-The practical aim is not to prove that a model is perfect. It is to decide whether the fitted model is adequate for the scientific question being asked — good enough that the inferences it produces can be defended.
+The practical aim to decide whether the fitted model is adequate for the scientific question being asked, and that it is good enough that the inferences it produces can be defended.
 
 # R Functions
 
@@ -85,7 +85,7 @@ The main functions used in this chapter are:
 
 # A Worked Diagnostic Example
 
-We continue with the seaweed example from the previous chapters and fit the selected multiple regression model again.
+I continue with the seaweed example from the previous chapters and fit the selected multiple regression model again.
 
 ```{r code-model-eval-data}
 sw <- read.csv(here::here("data", "BCB743", "seaweed", "spp_df2.csv"))
@@ -96,48 +96,51 @@ mod_eval <- lm(Y ~ augMean + febSD + augSD, data = sw_ectz)
 summary(mod_eval)
 ```
 
-The structure of what follows mirrors the conceptual split above. Sections 5.1 through 5.3 address model checking — residual structure, assumption limits, and influence. Sections 5.4 through 5.6 address model evaluation — model comparison and generalisation.
+The structure of what follows mirrors the split above. Sections 5.1 through 5.3 address model checking (residual structure, assumption limits, and influence). Sections 5.4 through 5.6 address model evaluation, in other words, model comparison and generalisation.
 
-## 5.1 Residual Diagnostics
+## Residual Diagnostics
 
-Residual plots are the natural first step in model checking. They reveal whether systematic structure remains after fitting and whether the distributional assumptions are broadly satisfied.
+Residual plots are the first step in model checking. They reveal whether systematic structure remains after fitting and whether the distributional assumptions are broadly satisfied.
 
 ```{r fig-model-diagnostics}
 #| echo: false
-#| fig-width: 5
-#| fig-height: 5
+#| fig-cap: "Standard diagnostic panels for the selected three-predictor seaweed model. Clockwise from top left: residuals versus fitted values (linearity and constant variance), normal Q-Q plot (residual normality), residuals versus leverage with Cook's distance contours (influential observations), and scale-location plot (homoscedasticity)."
+#| fig-width: 6.5
+#| fig-height: 5.25
 
 par(mfrow = c(2, 2))
 plot(mod_eval)
 par(mfrow = c(1, 1))
 ```
 
-These four standard plots allow assessment of several things simultaneously:
+@fig-model-diagnostics shows the four standard diagnostic panels. These allow assessment of several things simultaneously:
 
 - **Residuals vs fitted values** for curvature or systematically changing variance;
 - **Normal Q-Q plot** for approximate normality of residuals;
 - **Scale-location plot** for heteroscedasticity (non-constant spread);
 - **Residuals vs leverage** for observations that may be disproportionately influential.
 
-No diagnostic plot should be read mechanically. The question is whether the pattern is severe enough to undermine the scientific use of the model. In this example the plots suggest that the model is broadly adequate — residuals are roughly centred around zero with no strong curvature, the Q-Q plot shows only mild tail deviation, and the leverage panel does not flag any single observation as severely influential.
+No diagnostic plot should be thinking there will be clear-cut signs of danger. The question is whether the pattern is severe enough to undermine the scientific use of the model. In this example the plots suggest that the model is broadly adequate: residuals are roughly centred around zero with no strong curvature, the Q-Q plot shows only mild tail deviation, and the leverage panel does not flag any single observation as severely influential.
 
-A **failure pattern** would look quite different: a strong funnel shape in the residuals-vs-fitted panel indicates heteroscedasticity; systematic curvature indicates that a predictor needs a nonlinear term or transformation; a small cluster of points with Cook's distance substantially above the rest indicates that the fitted coefficients are being driven by a few observations rather than by the bulk of the data. Students should keep these failure signatures in mind when reading any residual plot.
+A **failure pattern** would look quite different. For example, a strong funnel shape in the residuals-vs-fitted panel indicates heteroscedasticity; systematic curvature indicates that a predictor needs a nonlinear term or transformation; a small cluster of points with Cook's distance substantially above the rest indicates that the fitted coefficients are being driven by a few observations rather than by the bulk of the data. You should keep these visual failure signatures in mind when reading any residual plot.
 
-## 5.2 Assumption Checks and Their Limits
+## Assumption Checks and Their Limits
 
 Formal tests for normality or heteroscedasticity can be useful supplementary tools, but they should not replace residual plots and biological judgement.
 
-The practical points are these. Tiny deviations from normality are usually unimportant — regression inference is robust to mild non-normality, especially in larger samples. Large datasets make this worse in the opposite direction: even trivial deviations from the ideal distribution will produce a highly significant formal test result, even when the deviation has no practical consequence for inference. Visual residual structure is usually more informative than a single assumption test precisely because a plot conveys the pattern and its magnitude simultaneously.
+The practical points are that tiny deviations from normality are usually unimportant since regression inference is robust to mild non-normality, especially in larger samples. Large datasets make this worse in the opposite direction, because even trivial deviations from the ideal distribution will produce a highly significant formal test result, even when the deviation has no practical consequence for inference. Visual residual structure is usually more informative than a single assumption test because a plot conveys the pattern *and* its magnitude simultaneously.
 
-The real question is whether the model is adequate for the inferential goal, not whether it is mathematically perfect.
+So, the question is actually whether the model is adequate for the inferential goal, not whether it is mathematically perfect.
 
-There is one further limitation worth stating explicitly. Residual diagnostics cannot reveal problems that were introduced at the predictor level. A model with highly collinear predictors will typically produce residuals that look perfectly well-behaved — the collinearity is hidden in the instability of the individual coefficients, not in the residual structure. Similarly, measurement error in a predictor attenuates the estimated slope but leaves the residuals looking reasonable. Model checking must therefore be interpreted alongside the assessments in [Chapter 16](16-collinearity-confounding-measurement-error.qmd). Clean diagnostics indicate that the model is adequate for the data it was given; they do not guarantee that the data were right for the question.
+There is one further limitation worth mentioning outright. Residual diagnostics cannot reveal problems that were introduced at the predictor level. So, a model with highly collinear predictors will typically produce residuals that look perfectly well-behaved, but the collinearity is hidden in the instability of the individual coefficients, not in the residual structure. Similarly, measurement error in a predictor attenuates the estimated slope but leaves the residuals looking reasonable. Model checking must therefore be interpreted alongside the assessments in [Chapter 16](16-collinearity-confounding-measurement-error.qmd).
 
-## 5.3 Influence and Leverage
+In the end, clean diagnostics indicate that the model is adequate for the data it was given but they do not guarantee that the data were right for the question.
 
-Not all unusual observations matter equally.
+## Influence and Leverage
 
-A point with a large **residual** is poorly fitted — the model does not predict it well. A point with high **leverage** occupies an extreme position in predictor space — it has an unusual combination of predictor values. A point with high **influence** materially changes the fitted coefficients when it is included or excluded.
+Not all unusual observations should be equally concerning.
+
+A data point with a large **residual** is poorly fitted, so the model does not predict it well. A point with high **leverage** occupies an extreme position in predictor space because it has an unusual combination of predictor values. A point with high **influence** materially changes the fitted coefficients when it is included or excluded.
 
 Cook's distance is one commonly used summary of influence.
 
@@ -146,15 +149,15 @@ cook_summary <- summary(cooks.distance(mod_eval))
 cook_summary
 ```
 
-An influential point should not be deleted automatically. It may reflect a data entry error, a measurement problem, a biologically informative extreme case, or a model that is too simple for the pattern in the data. The right response depends on which of these it is, which requires investigation rather than mechanical trimming.
+An influential point should not just be deleted automatically. It may reflect a data entry error, a measurement problem, a biologically informative extreme case, or a model that is too simple for the pattern in the data. The right response depends on which of these it is, which requires investigation rather than mechanical trimming.
 
-## 5.4 Model Comparison
+## Model Comparison
 
-Biological analysis often involves several plausible models. Model comparison should therefore be framed as comparing **competing explanations**, not as a numerical optimisation problem.
+Biological analysis often involves several plausible models. Model comparison should therefore be used for comparing **competing explanations** and not as a numerical optimisation problem.
 
-**AIC (Akaike Information Criterion)** compares models based on their in-sample fit penalised for complexity: models with more parameters are penalised because they explain the present data at the cost of fitting more noise. A lower AIC is preferred, but the scale is relative — only differences between models matter, not the raw value.
+**AIC (Akaike Information Criterion)** compares models based on their in-sample fit penalised for complexity. In this framework, models with more parameters are penalised because they explain the present data at the cost of fitting more noise. A lower AIC is preferred, but the scale is relative; only differences between models should be concerned with, not the raw value.
 
-We compare three models from the seaweed example:
+I compare three models from the seaweed example:
 
 - a null model (intercept only, no predictors);
 - the selected three-predictor model;
@@ -167,23 +170,23 @@ full_mod <- lm(Y ~ augMean + febRange + febSD + augSD + annMean, data = sw_ectz)
 AIC(null_mod, mod_eval, full_mod)
 ```
 
-The selected model is far better than the null model — the predictors explain substantial variation in Sørensen dissimilarity. Its AIC is competitive with the larger model while remaining simpler. That is an important general lesson: a more complex model is not automatically a better scientific model, especially when the complexity carries collinear predictors whose coefficients cannot be cleanly interpreted.
+The selected model is far better than the null model, so the predictors explain substantial variation in Sørensen dissimilarity. Its AIC is competitive with the larger model while remaining simpler. The important general lesson is that a more complex model is not automatically a better scientific model, especially when its complexity carries collinear predictors whose coefficients cannot be cleanly interpreted.
 
-## 5.5 Overfitting and Generalisation
+## Overfitting and Generalisation
 
-A model can fit the current data very well while performing poorly on new data. This is **overfitting** — the model has learned specific features of this dataset, including its noise, that do not generalise.
+A model can fit the current data very well while performing poorly on new data. This is **overfitting**, *i.e.*, the model has "learned" specific features of this dataset, including its noise, that do not generalise.
 
-Overfitting is especially likely when the sample size is modest relative to the number of predictors, when interaction terms are added freely, or when model choice is heavily data-driven rather than theory-guided. This is one reason why the stepwise selection approaches that dominated earlier statistical practice are now viewed with scepticism: they optimise in-sample fit through a process that naturally finds the noise.
+Overfitting is especially likely when the sample size is modest relative to the number of predictors, when interaction terms are added freely, or when model choice is heavily data-driven rather than theory-guided. This is one reason why the stepwise selection approaches that dominated earlier statistical practice are now viewed with scepticism. That is, they optimise in-sample fit through a process that naturally finds the noise.
 
-The key distinction is between **in-sample fit** (how well the model describes the data used to estimate it) and **generalisation** (how well it would perform on genuinely new data). These can diverge substantially.
+The main distinction is between **in-sample fit** (how well the model describes the data used to estimate it) and **generalisation** (how well it would perform on genuinely new data). These can diverge substantially. Explanation and prediction have different requirements regarding model checking.
 
-## 5.6 Cross-Validation
+## Cross-Validation
 
 Cross-validation assesses predictive performance on held-out data, directly measuring generalisation rather than inferring it from in-sample penalties.
 
-The approach is straightforward: divide the data into parts, fit the model on all-but-one part, test it on the held-out part, and repeat. The prediction error averaged across all held-out portions is a direct estimate of how well the model performs on new data.
+The approach involves dividing the data into parts, fitting the model on all-but-one part, testing it on the held-out part, and repeating the process. The prediction error averaged across all held-out portions is a direct estimate of how well the model performs on new data.
 
-**AIC and cross-validation answer different questions.** AIC compares models on in-sample fit penalised for complexity: it is a model selection tool for the current dataset. Cross-validation estimates how well a fitted model would perform on data it has not seen: it is a generalisation tool. Both are useful, but they are not interchangeable. A model with the lowest AIC is not necessarily the best predictor on new data, and a model that cross-validates best may not have the most interpretable coefficients.
+**AIC and cross-validation answer different questions.** AIC compares models on in-sample fit penalised for complexity, so it is a model selection tool for the current dataset. Cross-validation estimates how well a fitted model would perform on data it has not seen, making it a generalisation tool. They are not interchangeable. A model with the lowest AIC is not necessarily the best predictor on new data, and a model that cross-validates best may not have the most interpretable coefficients.
 
 ```{r code-cross-validation}
 set.seed(74416)
@@ -242,13 +245,13 @@ The cross-validation results in @fig-cross-validation show that the larger model
 
 Neither AIC nor cross-validation resolves this trade-off automatically. AIC says the models are competitive; cross-validation says the larger model predicts fractionally better. The scientific question remains the arbiter.
 
-## 5.7 What the Diagnostics Tell Us
+## What the Diagnostics Tell Us
 
 The model is adequate in the sense that no major assumption violation is evident and no single observation dominates the fitted result. The selected three-predictor model explains substantially more than the null and performs comparably to the five-predictor alternative on both in-sample and out-of-sample criteria.
 
-What the diagnostics do not tell us is whether the coefficients carry clean biological interpretations. The predictor selection steps in Chapter 14 already identified strong collinearity among the candidate climate variables, and the selected model still contains predictors that partly track the same climatic gradient. That collinearity does not appear in the residual plots — residuals are well-behaved regardless. This is exactly the point made in Section 5.2: clean diagnostics do not guarantee interpretable coefficients.
+What the diagnostics do not tell us is whether the coefficients carry clean biological interpretations. The predictor selection steps in Chapter 14 already identified strong collinearity among the candidate climate variables, and the selected model still contains predictors that partly track the same climatic gradient. That collinearity does not appear in the residual plots; they are well-behaved regardless. This is the point made in Section 5.2, where I concluded that clean diagnostics do not guarantee interpretable coefficients.
 
-The biological conclusion is that Sørensen dissimilarity in the East Coast Transition Zone is systematically related to the selected climate predictors. The model is adequate for describing that relationship. Whether the individual predictor effects represent distinct biological mechanisms — rather than overlapping signals from a shared climatic gradient — cannot be resolved by diagnostics alone.
+The biological conclusion is that Sørensen dissimilarity in the East Coast Transition Zone is systematically related to the selected climate predictors. The model is adequate for describing that relationship. Whether the individual predictor effects represent distinct biological mechanisms (rather than overlapping signals from a shared climatic gradient) cannot be resolved by diagnostics alone.
 
 # A Practical Workflow
 
@@ -259,7 +262,7 @@ After fitting a regression model:
 3.  check whether the residual structure suggests a missing predictor or a mis-specified functional form;
 4.  compare only biologically sensible candidate models using AIC or a formal test, not data-driven searches;
 5.  use cross-validation if generalisation and predictive performance are part of the scientific question;
-6.  balance fit, complexity, and interpretability — the best-fitting model is not always the most useful one;
+6.  balance fit, complexity, and interpretability, so the best-fitting model is not always the most useful one;
 7.  report limitations clearly, including what the diagnostics cannot reveal.
 
 # Reporting
@@ -279,13 +282,13 @@ Diagnostic evaluation of the selected multiple regression revealed no major depa
 
 **Discussion**
 
-These results suggest that the selected model provides an adequate statistical description of the data and that its biological interpretation is not driven by obvious assumption violations or isolated influential observations. The comparison with the larger candidate model reinforces a central modelling principle: additional complexity is justified only when it yields a clearer or substantially better explanation, not simply because it reduces AIC. Adequacy of model diagnostics does not, however, guarantee correct interpretation if predictors are poorly measured, collinear, or confounded with unmeasured variables — limitations that diagnostics alone cannot reveal.
+These results suggest that the selected model provides an adequate statistical description of the data and that its biological interpretation is not driven by obvious assumption violations or isolated influential observations. The comparison with the larger candidate model reinforces a central modelling principle: additional complexity is justified only when it yields a clearer or substantially better explanation, not simply because it reduces AIC. Adequacy of model diagnostics does not, however, guarantee correct interpretation if predictors are poorly measured, collinear, or confounded with unmeasured variables; these are limitations that diagnostics alone cannot reveal.
 :::
 
 # Summary
 
 - Model checking and model evaluation are conceptually distinct tasks. Checking asks whether the model is adequate for the data; evaluation compares competing models and assesses generalisation.
-- Residual diagnostics are the primary checking tool. Look for curvature, heteroscedasticity, and influential observations — not just for the absence of obvious problems.
+- Residual diagnostics are the primary checking tool. Look for curvature, heteroscedasticity, and influential observations, not just for the absence of obvious problems.
 - AIC compares models on in-sample fit penalised for complexity. Cross-validation estimates predictive performance on unseen data. They are complementary, not interchangeable.
 - Clean diagnostics do not imply correct interpretation. Collinearity and measurement error, introduced in Chapter 16, can be invisible in residual plots while still distorting coefficient estimates.
 - Model comparison should weigh competing biological explanations, not just minimise a criterion. The best-fitting model is not always the most scientifically informative one.
