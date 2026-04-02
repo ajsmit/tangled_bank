@@ -9,11 +9,13 @@ reference-location: margin
 ::: {.callout-note appearance="simple"}
 ## In This Chapter
 
--   What pseudoreplication is
--   Why pseudoreplication invalidates inference
--   Common forms of pseudoreplication
--   How to identify the true experimental unit
+-   What pseudoreplication is and why it matters, in both experiments and observational surveys
+-   The experimental or observational unit: what it is, how to identify it, and why it governs inference
+-   Why units of study must cover the full domain of intended inference
+-   The types of pseudoreplication and how to recognise them
+-   How pseudoreplication distorts statistical inference
 -   How better design prevents false replication
+-   When mixed-effects models are required
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -24,20 +26,24 @@ reference-location: margin
 
 # Introduction
 
-In the design of ecological experiments, the integrity of our conclusions hinges on the statistical validity of our tests. A foundational concept in this regard is replication—the repetition of an experiment on independent units. However, a common and critical error known as **pseudoreplication** can undermine our statistical inferences and lead to spurious conclusions.
+I asked in Chapter 17 whether your model fits the data. Now I ask a prior question, whether the data structure allows the model's assumptions to hold. Independence of observations is central to every test covered in this course, including t-tests, ANOVA, and regression. When observations are not independent, the assumption is violated before the model is fitted, and no amount of diagnostic checking will rescue the inference. The violation originates in the study design, not the analysis.
 
-Here I address the concept of pseudoreplication. I reference the seminal paper by Hurlbert -@Hurlbert1984, which brought this issue to the forefront of ecological science. A copy of the paper is available for download here:
+Pseudoreplication is the most common form of this failure in ecological research. It occurs when multiple measurements from a single unit of study are treated as independent replicates of a treatment or condition. Hurlbert [-@Hurlbert1984] framed the problem in terms of manipulative experiments, but the error appears just as often in observational surveys where no manipulation takes place. Whenever subsamples drawn from one site, one organism, or one time period are counted as independent representatives of a broader group or condition, the same failure is in play. The problem has not gone away.
 
 [**Hurlbert, S. H. (1984). Pseudoreplication and the design of ecological field experiments. *Ecological Monographs*, 54(2), 187–211.**](../../docs/Hurlbert - Pseudoreplication (1984).pdf)
 
 # Key Concepts
 
 -   **Pseudoreplication:** A fundamental error in experimental design where samples or measurements that are not statistically independent are treated as if they are independent replicates.
--   **Experimental Unit:** The smallest entity to which a treatment can be independently applied. Correctly identifying this unit is crucial to avoid pseudoreplication.
--   **Invalid Error Estimation:** Pseudoreplication uses the variation *among subsamples* (which is typically low) as a proxy for the variation *among true replicates* (which is typically higher), leading to an underestimate of the true experimental error.
--   **Inflated Type I Error:** By underestimating the error term, pseudoreplication makes it much more likely to find a "statistically significant" result by chance, leading to false positive conclusions.
--   **Common Forms:** Includes **simple pseudoreplication** (subsampling within one unit), **temporal pseudoreplication** (repeated measures over time on one unit), and **spatial pseudoreplication** (segregated treatments).
+-   **Experimental / Observational Unit:** In a manipulative experiment, the experimental unit is the smallest entity to which a treatment can be independently applied. In an observational study, the equivalent is the observational unit, *i.e.*, the entity independently selected to represent a condition or group. Correctly identifying this unit is essential regardless of whether we have an experimental study or an observational one.
+-   **Invalid Error Estimation:** Pseudoreplication uses the variation *among subsamples* (typically small, because subsamples share an environment and a treatment application) as a proxy for the variation *among true replicates* (typically larger), leading to an underestimate of the true experimental error.
+-   **Inflated Type I Error:** By underestimating the error term, pseudoreplication makes it far more likely to find a statistically significant result by chance (a false positive).
+-   **Subsample vs Replicate:** A subsample provides additional description of one experimental unit; a replicate provides an independent estimate of the treatment effect.
+-   **Domain of Inference:** The population or conditions over which a statistical conclusion is intended to generalise. Replicates must be distributed across this domain, so a sample drawn from a restricted subset cannot support broader inference.
 
+::: {.callout-note appearance="simple"}
+**The central question is,** what is the unit (experimental or observational) that was independently assigned to, or selected to represent, a treatment or condition? Every design decision and every analysis follows from the answer.
+:::
 
 # What Is Pseudoreplication?
 
@@ -45,106 +51,152 @@ Hurlbert defines pseudoreplication as...
 
 > "...the use of inferential statistics to test for treatment effects with data from experiments where either treatments are not replicated (though samples may be) or replicates are not statistically independent" [@Hurlbert1984].
 
-So, pseudoreplication occurs when we treat multiple samples from the same experimental unit as if they are independent replicates. For example, taking ten water samples from a single pond that has been treated with a fertilizer does not give us ten replicates of the fertilization effect. It gives us ten *subsamples* from one replicate --- there is only one pond, so we have one replicate. A statistical test that treats these subsamples as independent replicates commits the error of pseudoreplication.
+Pseudoreplication occurs when multiple samples from the same unit of study are treated as though they are independent observations of a treatment or condition. This applies equally to manipulative experiments and to observational surveys. If you take ten sediment cores from a single estuary that receives high agricultural runoff, you do not have ten independent observations of the runoff effect. You have ten subsamples from one estuary. There is one estuary, and therefore one unit of study. Whether that estuary was assigned a treatment by you or simply selected because it represented a particular condition makes no difference to this logic: a statistical test that treats the cores as independent replicates commits pseudoreplication either way.
+
+# The Experimental Unit
+
+## What It Is
+
+Three kinds of units appear in any ecological study, and they are often conflated. The **unit of study** is the entity that represents an independent observation of the condition or group being compared. These may be an estuary, a plot, a tank, an individual organism. In a manipulative experiment, this is called the **experimental unit**, so the entity to which a treatment is independently applied. In an observational survey (where you measure rather than manipulate), the equivalent is the **observational unit**, *i.e.*, the entity independently selected to represent a category, condition, or location. The **sampling unit** is what is drawn from within each unit of study for measurement: organisms, cores, or quadrats within an estuary or plot. The **observation unit** is the thing actually measured, which is often the same as the sampling unit but sometimes it can be a sub-component of it (such as a gill tissue sample from a fish or a leaf from a plant). Pseudoreplication arises when sampling units are analysed as though they were units of study.
+
+Not all ecological research involves experiments. If you are comparing fish assemblages across estuaries affected by different levels of agricultural runoff, you are not assigning runoff levels to estuaries. You are selecting estuaries that already differ in that regard. But the logic of replication is identical either way, and the conclusion is the same: **the estuary is the replicate, not the fish**.
+
+Each estuary is an independently selected unit representing a particular runoff condition. The fish you sample within it are subsamples of that estuary. They tell you about fish in that estuary; they do not constitute independent observations of the runoff effect. If you have five high-runoff estuaries and five low-runoff estuaries, and you sample 30 fish from each, your effective sample size for testing the runoff effect is five per group, not 150. The 30 fish within each estuary replicate nothing except that estuary. This holds whether the runoff difference arose from your experimental manipulation or from a pre-existing gradient you chose to exploit in a sampling campaign.
+
+::: {.callout-important appearance="simple"}
+In both manipulative experiments and observational sampling campaigns, the replicate is the independently selected or assigned unit of study, not the individual organisms, cores, or measurements collected within it. Additional sampling within a unit increases your description of that unit; it does not increase your replication of the condition or treatment it represents.
+:::
+
+Whether your study is experimental or observational affects how causation can be inferred, and this does not change what constitutes valid replication.
+
+The distinction between unit of study and sampling unit is critical because units of study are independent of one another in a way that sampling units are not. Two estuaries assigned to different treatments, or selected because they represent different conditions, could in principle have been in opposite groups. One organism within an estuary could not. An organism shares that estuary's salinity regime, turbidity, tidal signature, and history with every other organism sampled there. It is not independent.
+
+## How to Identify It
+
+Two questions reliably locate the unit of study.
+
+First: could this unit have been in a different group, or could a different unit have been selected in its place, without altering the status of any other unit? If yes, it is a candidate for the unit of study. In an experiment, one estuary could have been the control rather than the treated unit. In an observational survey, a different estuary could have been selected to represent high-runoff conditions. An individual fish within an estuary could not have been classified differently from its neighbours. It belongs to that estuary's condition by virtue of being there.
+
+Second: if you know the response of one unit, does that tell you anything about the response of another? If yes, the two units are not independent, and at most one of them contributes an independent data point. Fish from the same estuary share water temperature, food supply, predator assemblage, and pollution history. Their measurements are correlated. Weekly chlorophyll-*a* readings from the same embayment are correlated across time. Quadrats from adjacent halves of the same field share underlying spatial gradients. In each case, the correlation structure reveals that the unit of study sits at a higher level than the individual measurement.
+
+## The Domain of Inference
+
+Identifying the correct unit of study is necessary but not sufficient. Your units must also be distributed across the full domain over which inference is intended to reach. This requirement is separate from independence, but equally binding.
+
+Suppose you want to make a claim about rocky intertidal communities along the South African coastline. Ten plots at a single site near Betty's Bay, however carefully replicated and independently treated, support inference only about communities at that site, or sites very similar to it in exposure, substratum, and thermal regime. They cannot ground a claim about Hermanus, Tsitsikamma, Port Nolloth, or Sodwana Bay. Your experimental units exist; they are independent; but they do not span the domain.
+
+The same applies in time. A study conducted over a single summer cannot support inference about summer conditions in general, because that particular summer may have been anomalously warm, calm, or productive. Replication across years is what converts a one-season snapshot into a statement about the season. One year's summer is a subsample of "summer", not a replicate of it.
+
+The principle extends to any axis of variation that defines the target population. If your inference is intended to reach across species, your units must include representative species. If it is intended to reach across habitats, your units must span habitat types. A study whose units cluster in one corner of the domain can describe that corner accurately and still fail to support the broader claim being made.
+
+No study covers its domain completely, and extrapolation beyond the sampled range is sometimes defensible if the biology justifies it. Your role is to be explicit about the domain actually sampled, to distinguish it from the domain over which your conclusions are stated, and to flag the gap. An transparent Discussion section names this limitation.
+
+# Types of Pseudoreplication
+
+Hurlbert distinguishes several forms, of which three recur most often in ecological practice.
+
+**Simple pseudoreplication** arises when only one experimental unit per treatment exists but multiple subsamples are drawn from it. Ten water samples from a single fertilised pond are ten subsamples, not ten replicates. There is one pond. There us one treatment application. Therefore, there is only one replicate. Period.
+
+**Temporal pseudoreplication** arises when repeated measurements from the same unit across time are treated as independent replicates. Measuring a plant's photosynthetic rate every hour for a day produces 24 correlated observations of one plant, not 24 independent replicates of the treatment applied to that plant.
+
+**Interspersion pseudoreplication** arises when two treatments occupy spatially contiguous, non-interspersed areas (one half of a field sprayed, the other half unsprayed) so that any spatial gradient is confounded with the treatment. The two "conditions" are not independent; they simply differ in position and treatment.
 
 # Why Is It a Problem?
 
-The main issue with pseudoreplication is that it leads to an invalid estimation of the true experimental error. The variation among subsamples within a single experimental unit is almost always less than the variation among the experimental units themselves. By using this smaller, inappropriate variance as the error term in a statistical test (like a t-test or ANOVA), we artificially inflate our statistical power and dramatically increase the probability of a **Type I error** --- that is, falsely concluding that a treatment effect exists when it does not.
+Variation among subsamples within a single unit of study is almost always smaller than variation among independent units, because subsamples share the same environment, history, and treatment application. When this within-unit variation is used as the error term in a *t*-test or ANOVA, the denominator of the test statistic is too small. Standard errors shrink, test statistics inflate, and the nominal $\alpha$ level no longer controls Type I error at its stated rate. The result is a false positive, so a conclusion of a significant treatment effect that reflects within-unit subsample variation, not a real treatment response.
 
-Hurlbert argues that this is not a minor statistical fail; it is a fundamental flaw in experimental design that invalidates the conclusions drawn. He found that a large percentage of published ecological studies at the time were guilty of pseudoreplication and it placed in doubt the findings of a large proportion of experimental studies. I see this problem continuing today, even among seasoned academics.
+Hurlbert argued, and nothing since has contradicted him, that it is a **fundamental design failure that invalidates inference**, and so a *p*-value calculated from pseudoreplicated data does not mean what you think it means. Unfortunately, this failure continues to be perpetuated even by seasoned biologists.
 
-# Simple Examples
+# Worked Examples
 
-Each example identifies (i) the experimental unit, (ii) what is incorrectly treated as a replicate, and (iii) how this mismatch distorts the estimate of experimental error and the resulting inference.
+The following examples follow the same structure. They identify the experimental unit, show how the incorrect design substitutes subsamples for replicates, and describe what a valid design would require. In each case, the error arises because subsamples are treated as independent replicates of a treatment applied at a higher level.
 
-Hurlbert provides several clear examples to illustrate the concept.
+## Example 1: Comparing Two Ponds
 
-# Example 1: Comparing Two Ponds
+### Incorrect Design (Simple Pseudoreplication)
 
-## Incorrect Design (Simple Pseudoreplication)
+Suppose you want to test whether a new fish food increases fish growth. Two ponds are available. You add the new food to Pond A and use Pond B as the control. After three months, you sample 50 fish from each pond and run a t-test on their weights.
 
-Imagine you want to test if a new fish food increases fish growth. You have two ponds. You add the new food to Pond A and use Pond B as a control. After three months, you sample 50 fish from each pond and run a t-test on their weights.
+### The Flaw
 
-## The Flaw
+You have treated the 50 fish as independent replicates, but your experimental unit is the pond. All fish within a pond share the same environment and the same treatment. They do not provide independent information about the treatment effect. Your test therefore uses within-pond variation as if it were between-replicate variation, which underestimates the error term and inflates the test statistic. The result cannot distinguish a treatment effect from inherent differences between the two ponds.
 
-The analysis treats the 50 fish as independent replicates, but the experimental unit is the pond. All fish within a pond share the same environment and treatment, so they do not provide independent information about the treatment effect. The test therefore uses within-pond variation as if it were between-replicate variation, which underestimates the error term and inflates the test statistic. The result cannot distinguish a treatment effect from inherent differences between the two ponds.
+### Correct Design
 
-## Correct Design
+You need multiple ponds for each treatment: say, five ponds receiving the new food and five control ponds. Fish sampled within each pond estimate mean growth for that pond. The pond mean, not the individual fish, is your unit of analysis (*n* = 5 per group).
 
-To properly test the hypothesis, you would need multiple ponds for each treatment (*e.g.*, five ponds with the new food and five control ponds). You would then sample fish from each of the ten ponds and use the *mean weight per pond* as your data points for the t-test (n=5 for each group).
-
-## Reporting
+### Reporting
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
 
 **Methods**
 
-Fish growth was compared between a treatment and control using replicate ponds as the experimental units. Multiple fish were sampled within each pond to estimate mean growth, but the pond rather than the individual fish was treated as the replicate in the analysis.
+Fish growth was compared between treatment and control using replicate ponds as the experimental units. Multiple fish were sampled within each pond to estimate mean growth per pond, but the pond rather than the individual fish was the replicate in the analysis.
 
 **Results**
 
-Mean fish growth differed between treatment and control ponds only to the extent supported by variation among ponds. The analysis therefore assessed the treatment effect against the correct error term rather than against variation among subsampled fish within a pond.
+Mean fish growth differed between treatment and control ponds only to the extent supported by variation among ponds. The analysis therefore assessed the treatment effect against the correct error term.
 
 **Discussion**
 
-This distinction is critical because treating individual fish as replicates would have overstated the effective sample size and inflated confidence in the treatment effect. The design and analysis must therefore match the scale at which the treatment was applied.
+Treating individual fish as replicates would have overstated the effective sample size and inflated confidence in the treatment effect. The design and analysis must match the scale at which the treatment was applied.
 :::
 
-# Example 2: Interspersion
+## Example 2: Interspersion
 
-## Incorrect Design (Segregated Treatments)
+### Incorrect Design (Segregated Treatments)
 
-You want to test the effect of an insecticide on an insect population in a field. You divide the field in half, spray one half (Treatment), and leave the other half unsprayed (Control). You then take 20 sweep net samples from each half.
+Suppose you want to test whether an insecticide reduces an insect population in a field. You divide the field in half, spray one half (Treatment), and leave the other unsprayed (Control). You then take 20 sweep-net samples from each half.
 
-## The Flaw
+### The Flaw
 
-The analysis treats the 20 samples within each half of the field as independent replicates, but the experimental unit is the field plot at the scale of treatment application. Because treatments are spatially segregated, any underlying environmental gradient is confounded with the treatment. The test therefore attributes spatial variation to the treatment effect, which biases the estimate of experimental error and leads to unreliable inference.
+You have treated the 20 samples within each half as independent replicates, but your experimental unit is the field plot at the scale of treatment application. Because the two conditions occupy contiguous, non-interspersed halves, any underlying environmental gradient (soil type, drainage, prevailing wind) is confounded with the treatment. Your test attributes spatial variation to the treatment effect, which biases the error estimate and makes inference unreliable.
 
-## Correct Design
+### Correct Design
 
-You should divide the field into a grid of smaller plots and randomly assign the insecticide or control treatment to each plot in an interspersed manner. Each plot is now an independent experimental unit.
+Divide the field into a grid of smaller plots and randomly assign treatment and control in an interspersed pattern. Each plot becomes an independent experimental unit. Sweep-net samples within each plot characterise local abundance; the plot is your replicate.
 
-## Reporting
+### Reporting
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
 
 **Methods**
 
-Insect abundance was assessed in replicate field plots to which treatment and control conditions were randomly assigned in an interspersed design. Sweep-net samples taken within each plot were used to characterise local abundance, but the plot was treated as the experimental unit in the analysis.
+Insect abundance was assessed in replicate field plots to which treatment and control conditions were randomly assigned in an interspersed design. Sweep-net samples within each plot were used to characterise local abundance, but the plot was the experimental unit in the analysis.
 
 **Results**
 
-Differences in insect abundance between treatment and control were evaluated among replicate plots, thereby separating treatment effects from background spatial heterogeneity within the field.
+Differences in insect abundance between treatment and control were evaluated among replicate plots, separating the treatment effect from background spatial heterogeneity.
 
 **Discussion**
 
-This design avoids conflating treatment with spatial position. Had one half of the field been treated and the other half used as a control, any underlying environmental gradient could have been mistaken for an insecticide effect.
+Had one half of the field been treated and the other used as control, any underlying environmental gradient could have been mistaken for an insecticide effect. Interspersion prevents this confounding.
 :::
 
-# Example 3: Seasonal Sampling (Temporal Pseudoreplication)
+## Example 3: Temporal Structure
 
-## Incorrect Design (Temporal Pseudoreplication)
+### Incorrect Design (Temporal Pseudoreplication)
 
-You want to test whether a nutrient addition increases algal biomass in a lake. You apply the treatment to a single lake and measure chlorophyll-a concentration monthly over one year. You then compare the 12 monthly measurements after treatment to 12 monthly measurements from the previous year (control period) using a t-test.
+Suppose you want to test whether a nutrient addition increases algal biomass in a lake. You apply the treatment to one lake, measure chlorophyll-*a* concentration monthly over one year, and compare the 12 post-treatment measurements to 12 measurements from the preceding year (the control period) using a t-test.
 
-## The Flaw
+### The Flaw
 
-The analysis treats each monthly observation as an independent replicate of the treatment effect. However, all measurements come from the same lake, so the experimental unit is the lake, not the month. The observations are temporally autocorrelated: conditions in one month influence the next. As a result, the test uses within-lake temporal variation as if it were between-replicate variation, which underestimates the true error term and inflates the probability of detecting a treatment effect.
+You have treated each monthly observation as an independent replicate of the treatment effect, but all measurements come from one lake. Your experimental unit is the lake, not the month. Monthly observations within a lake are temporally autocorrelated: conditions in one month influence the next. They do not provide independent information about the treatment. Your test uses within-lake temporal variation as the error term, which underestimates the variance relevant for testing the treatment effect.
 
-## Correct Design
+### Correct Design
 
-To test the hypothesis, you need multiple independent lakes assigned to treatment and control conditions. Each lake is an experimental unit. You may still sample each lake repeatedly over time, but the analysis must account for this structure—for example, by using the mean response per lake or by fitting a model that includes lake as a grouping factor and time as a repeated measure.
+You need multiple independent lakes, assigned to treatment and control. Repeated measurements within each lake across time remain legitimate for describing within-lake dynamics, but the lake mean (or a model that uses lake as a grouping factor) must be the basis of inference. The month is a subsample; the lake is the replicate.
 
-## Reporting
+### Reporting
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
 
 **Methods**
 
-The effect of nutrient addition on algal biomass was evaluated using replicate treatment and control lakes. Repeated measurements through time were collected within each lake, but the analysis explicitly recognised lake as the experimental unit and treated time as repeated sampling within units.
+The effect of nutrient addition on algal biomass was evaluated using replicate treatment and control lakes. Chlorophyll-*a* was measured repeatedly through time within each lake, but the analysis treated lake as the experimental unit and time as repeated sampling within units.
 
 **Results**
 
@@ -152,52 +204,57 @@ Algal biomass differed between treatment and control only insofar as the replica
 
 **Discussion**
 
-This approach prevents temporal pseudoreplication. Repeated monthly observations can improve description of within-lake dynamics, but they do not create additional independent replicates of a treatment applied to a single lake.
+Repeated monthly observations improve description of within-lake dynamics but do not create additional independent replicates of a treatment applied to a single lake.
 :::
 
-Example 3 examines a before–after comparison within a single unit, where repeated measurements through time are treated as independent replicates. Example 4 examines a comparison between categories (seasons) where the categories themselves are not replicated. In both cases, the analysis substitutes within-unit temporal variation for true replication, but the source of the error differs: in Example 3, the issue is repeated measures on one unit; in Example 4, the issue is the absence of replication of the seasonal contrast.
+## Example 4: Seasonal Comparison
 
-# Example 4: Comparing Seasons (Season as Treatment)
+### Incorrect Design (Seasonal Pseudoreplication)
 
-## Incorrect Design (Seasonal Pseudoreplication)
+Example 3 examined a before-after comparison within a single unit, where repeated measurements in time are treated as independent replicates. This example examines a related but distinct failure: comparison between categories where the categories themselves are not replicated. Suppose you want to test whether algal biomass differs between summer and winter. You sample chlorophyll-*a* weekly from a single coastal bay over one year and compare all summer observations (December--February) to all winter observations (June--August) using a t-test.
 
-You want to test whether algal biomass differs between summer and winter. You sample chlorophyll-a weekly from a single coastal bay over one year and compare all summer observations (*e.g.*, December–February) to all winter observations (*e.g.*, June–August) using a t-test.
+### The Flaw
 
-## The Flaw
+You have treated each weekly observation as an independent replicate of the seasonal effect, but all observations come from one bay in one year. "Season" is not replicated: there is one summer and one winter. The observations are temporally autocorrelated, and any between-season difference is confounded with other between-period variation in this particular bay and year. Your test uses within-season temporal variation as if it were between-replicate variation, underestimating the error term and inflating the apparent strength of the seasonal effect.
 
-The analysis treats each weekly observation as an independent replicate of the seasonal effect, but the experimental unit is the bay-year, not the individual weeks. All observations come from the same system and are structured in time, so they are correlated. In addition, “season” is not replicated: there is only one summer and one winter in that year. The test therefore uses within-season temporal variation as if it were between-replicate variation. This underestimates the error term and inflates the apparent strength of the seasonal effect.
+### Correct Design
 
-## Correct Design
+To test for seasonal differences, you need to replicate the seasonal contrast across independent units: multiple bays sampled within each season, or the comparison repeated across multiple years with year treated as a replicate. Weekly samples within each unit remain repeated observations, not replicates.
 
-To test for seasonal differences, you need replication of the seasonal contrast across independent units. This could involve sampling multiple coastal bays within each season, or repeating the seasonal comparison across multiple years and treating year as a replicate. The analysis must then reflect the structure of the data, for example by including bay or year as a grouping factor and modelling repeated observations within each unit.
-
-## Reporting
+### Reporting
 
 ::: {.callout-note appearance="simple"}
 ## Write-Up
 
 **Methods**
 
-Seasonal differences in algal biomass were assessed across replicated bay or year units so that season could be evaluated against independent replication rather than against repeated observations from a single time series. Weekly samples within each unit were treated as repeated observations rather than as independent replicates.
+Seasonal differences in algal biomass were assessed across replicated bay or year units so that the seasonal contrast was evaluated against independent replication rather than against repeated observations within a single annual time series. Weekly samples within each unit were treated as repeated observations rather than independent replicates.
 
 **Results**
 
-Across the replicated bay or year units, summer algal biomass was higher than winter biomass only insofar as that difference was consistent among independent units. The seasonal contrast was therefore judged against among-unit variation, not against week-to-week fluctuation within a single annual record.
+Summer algal biomass was higher than winter biomass only insofar as this difference was consistent among independent units. The seasonal contrast was judged against among-unit variation, not against week-to-week fluctuation within one annual record.
 
 **Discussion**
 
-Without such replication, an apparent seasonal difference could simply reflect the idiosyncrasies of one bay or one year. The lesson is that repeated sampling within a system refines description, but does not by itself justify inferential comparison among treatment or seasonal categories.
+Without replication of the seasonal contrast, an apparent seasonal difference could reflect the idiosyncrasies of one bay or one year. Repeated sampling within a system refines description; it does not by itself justify inferential comparison among categories.
 :::
 
-# Types of Pseudoreplication
+# Interpreting the Problem
 
-Hurlbert categorises pseudoreplication into several types, but two are most common:
+When pseudoreplication occurs, the effective sample size is inflated. If you sample 50 fish from one pond and report *n* = 50, you are claiming far more independent information about the treatment than your design provides. The actual inferential leverage is one pond, and a single pond cannot distinguish a treatment effect from inherent differences between ponds.
 
-1.  **Simple Pseudoreplication:** This occurs when there is only one experimental unit (a spatial aspect of the study) per treatment, but multiple subsamples are taken from each. The pond example above is a classic case.
-2.  **Temporal Pseudoreplication:** This occurs when samples taken sequentially over time from the same experimental unit are treated as independent replicates. For example, measuring the photosynthetic rate of a single plant every hour after a treatment and treating each measurement as a separate replicate in a statistical test. The measurements are not independent because they come from the same plant.
+The consequence for the model is equally direct. The error term (the denominator of the F-statistic or t-statistic) is built from within-unit subsample variation rather than from variation among independent replicates. Subsample variation is almost always smaller, because subsamples share an environment, a history, and the same treatment application. Standard errors are therefore too small, test statistics are too large, and p-values are too optimistic. Inference is miscalibrated at every level: the point estimate of the effect may be reasonable, but the uncertainty attached to it is not.
 
-# Conclusion
+This is also why pseudoreplication does not show up clearly in standard residual diagnostics. Residuals from a pseudoreplicated model can look well-behaved: normally distributed, homoscedastic, free of obvious patterns. That is because the within-unit variation being modelled is genuinely modest and internally consistent. The problem is structural, not distributional. It lives in the design, not in the fitted model. Chapter 17's tools are necessary but not sufficient: a model can pass every diagnostic check and still be built on a pseudoreplicated foundation.
 
-Understanding pseudoreplication is essential for any biologist conducting field or lab experiments. It forces us to think critically about what constitutes a true, independent replicate. The solution is always to ensure that your experimental units are independent and that you have multiple, independent units for each treatment level being tested. As Hurlbert famously stated, "The question of what is the experimental unit... is the most important one that an experimenter has to answer."
+# Summary
+
+Two requirements govern valid inference. First, your units of study must be independent: each unit must have received its treatment independently of every other unit, and the response of one unit must not be predictable from the response of another. Second, your units must span the domain over which inference is claimed: conclusions drawn from a geographically restricted sample cannot reach a broader coastline; conclusions drawn from a single year cannot reach across seasons in general. Pseudoreplication violates the first requirement. A sample that fails to cover its intended domain violates the second. Both failures produce conclusions that exceed what the data support.
+
+Pseudoreplication cannot be corrected in the analysis once the data have been collected. The solution is correct design before data collection: identify the unit of study, ensure the treatment is independently applied to multiple units per treatment level, intersperse or randomise units to prevent confounding with spatial or temporal gradients, and distribute those units across the full domain of intended inference.
+
+When repeated measurements or grouped data cannot be avoided, because the system permits only a small number of independent units or because temporal structure is intrinsic to the question, models that explicitly represent this nesting are required. Mixed-effects models provide the framework for analysing data in which observations are nested within higher-level units. Chapter 19 addresses these models directly.
+
+As Hurlbert stated, "The question of what is the experimental unit... is the most important one that an experimenter has to answer." It remains so.
 
 ***
