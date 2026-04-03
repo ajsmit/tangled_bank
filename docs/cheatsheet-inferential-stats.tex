@@ -1,0 +1,675 @@
+%% =============================================================================
+%% Inferential Statistics Cheat Sheet
+%% BCB744 — Quantitative Biology
+%% Chapters 1--26
+%% =============================================================================
+\documentclass[9pt,landscape]{article}
+
+\usepackage[a3paper,top=10mm,bottom=10mm,left=10mm,right=10mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[osf]{ebgaramond}
+\usepackage[sfdefault,scaled=0.95]{inter}
+\usepackage[scaled=0.88]{FiraMono}
+\usepackage{sfmath}
+\usepackage[protrusion=true,expansion=true,tracking=true]{microtype}
+\usepackage[table]{xcolor}
+\usepackage{pagecolor}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{textcomp}
+\usepackage{xstring}
+\usepackage[most]{tcolorbox}
+
+\definecolor{MyBackground}{HTML}{FFFDF0}
+\definecolor{headbg}{RGB}{28,40,52}
+\definecolor{headfg}{RGB}{255,255,255}
+\definecolor{groupbg}{RGB}{230,220,200}
+\definecolor{diagbg}{RGB}{255,250,230}
+\definecolor{flowbg}{RGB}{235,245,240}
+\definecolor{warnbg}{RGB}{252,236,233}
+\definecolor{reportbg}{RGB}{233,242,250}
+\definecolor{rulelight}{RGB}{180,188,198}
+\definecolor{codeblue}{RGB}{0,80,160}
+\definecolor{warnred}{RGB}{180,40,30}
+\definecolor{notegrey}{RGB}{95,95,105}
+
+\newcommand{\Rc}[1]{{\ttfamily\footnotesize\color{codeblue}#1}}
+\newcommand{\Note}[1]{{\scriptsize\itshape\color{notegrey}#1}}
+\newcommand{\CueIcon}[1]{%
+  \IfStrEqCase{#1}{%
+    {G}{$\mu$}%
+    {Rk}{$\diamond$}%
+    {Asc}{$\leftrightarrow$}%
+    {Bin}{\texttt{0/1}}%
+    {Cnt}{\#}%
+    {Grp}{$\bullet\!\bullet$}%
+    {Sm}{$\sim$}%
+    {NL}{$f(x)$}%
+    {Q}{$Q$}%
+    {Pred}{$\hat{y}$}%
+    {Any}{$\Delta$}%
+  }[\textbf{?}]%
+}
+\newcommand{\Cue}[1]{\shortstack[c]{\CueIcon{#1}\\[-1pt]\scriptsize\textbf{#1}}}
+\newlength{\tableblockwidth}
+\setlength{\tableblockwidth}{370mm}
+\newlength{\tableoffset}
+\setlength{\tableoffset}{15mm}
+\newlength{\headerleftwidth}
+\setlength{\headerleftwidth}{200mm}
+\newlength{\headergap}
+\setlength{\headergap}{20mm}
+\newlength{\headerrightwidth}
+\setlength{\headerrightwidth}{150mm}
+\newtcolorbox{decisionbox}{
+  enhanced,
+  boxrule=1pt,
+  arc=2mm,
+  colback=groupbg,
+  colframe=headbg,
+  title=\textbf{QUICK DECISION FLOW},
+  fonttitle=\sffamily\bfseries\small,
+  left=4mm,right=4mm,top=2mm,bottom=2mm
+}
+\newtcolorbox{infopanelbox}[2]{
+  enhanced,
+  width=\linewidth,
+  boxrule=1pt,
+  arc=2mm,
+  colback=#1,
+  colframe=headbg,
+  colbacktitle=headbg,
+  left=3mm,right=3mm,top=2mm,bottom=2mm,
+  title={#2},
+  fonttitle=\sffamily\bfseries\small,
+  coltitle=headfg
+}
+\newtcolorbox{warnpanelbox}[1]{
+  enhanced,
+  width=\linewidth,
+  boxrule=1pt,
+  arc=2mm,
+  colback=MyBackground,
+  colframe=warnred,
+  colbacktitle=warnred,
+  coltitle=headfg,
+  coltext=warnred,
+  left=3mm,right=3mm,top=2mm,bottom=2mm,
+  title={#1},
+  fonttitle=\sffamily\bfseries\small
+}
+
+\setlength{\LTpre}{0pt}
+\setlength{\LTpost}{0pt}
+\setlength{\extrarowheight}{1pt}
+\renewcommand{\arraystretch}{1.24}
+\frenchspacing
+\pagecolor{MyBackground}
+\pagestyle{empty}
+
+\begin{document}
+
+\noindent\hspace*{\tableoffset}%
+\begin{minipage}{\tableblockwidth}
+\begin{minipage}[t]{\headerleftwidth}
+  \vspace{0pt}
+  \raggedright
+  {\Huge\sffamily\bfseries\color{headbg} Inferential Statistics Cheat Sheet}\\
+  {\large\itshape BCB744 --- Biostatistics Version 3 (3 April 2026)}\\
+  {\small Professor A.J. Smit}\\
+  {\small Chapters 1--5 and 26 establish foundations, workflow, and interpretation; the sheet below covers the inferential, diagnostic, and model-based procedures introduced across Chapters 6--25.}
+\end{minipage}
+\hspace*{\headergap}%
+\begin{minipage}[t]{\headerrightwidth}
+  \vspace*{-2.5mm}
+  \begin{decisionbox}
+    \small\sffamily
+    \textbf{1. Response?} Continuous \(\rightarrow\) Gaussian methods; binary or proportion \(\rightarrow\) binomial GLM; count \(\rightarrow\) Poisson or quasi-Poisson.\\
+    \textbf{2. Independent?} No \(\rightarrow\) paired procedure or mixed/grouped model.\\
+    \textbf{3. Linear enough?} No \(\rightarrow\) polynomial, GAM, nonlinear, or quantile model as appropriate.
+  \end{decisionbox}
+\end{minipage}
+\end{minipage}
+
+\vspace{8pt}
+
+{\sffamily\small
+\begin{longtable}{>{\raggedright\arraybackslash}p{9mm} >{\centering\arraybackslash}p{14mm} >{\raggedright\arraybackslash}p{31mm} >{\raggedright\arraybackslash}p{49mm} >{\raggedright\arraybackslash}p{57mm} >{\raggedright\arraybackslash}p{68mm} >{\raggedright\arraybackslash}p{113mm}}
+\rowcolor{headbg}
+\color{headfg}\textbf{Ch.} &
+\color{headfg}\textbf{Cue} &
+\color{headfg}\textbf{Method} &
+\color{headfg}\textbf{Use When} &
+\color{headfg}\textbf{Null / Model Target} &
+\color{headfg}\textbf{Main R Function(s)} &
+\color{headfg}\textbf{Notes, Assumptions, or Follow-up} \\
+\endfirsthead
+
+\rowcolor{headbg}
+\color{headfg}\textbf{Ch.} &
+\color{headfg}\textbf{Cue} &
+\color{headfg}\textbf{Method} &
+\color{headfg}\textbf{Use When} &
+\color{headfg}\textbf{Null / Model Target} &
+\color{headfg}\textbf{Main R Function(s)} &
+\color{headfg}\textbf{Notes, Assumptions, or Follow-up} \\
+\endhead
+
+\midrule
+\multicolumn{7}{r}{\scriptsize Continued on next page} \\
+\endfoot
+
+\bottomrule
+\endlastfoot
+
+\rowcolor{headbg}\multicolumn{7}{l}{\color{headfg}\textbf{TESTING DIFFERENCES AND BASIC CHECKS}} \\
+\rowcolor{groupbg}\multicolumn{7}{l}{\textbf{Diagnostics and assumption checks}} \\
+\rowcolor{diagbg}6 & \Cue{G} &
+Shapiro--Wilk normality test &
+One sample, paired differences, or within-group values need a formal normality check before a Gaussian mean-based test. &
+$H_0$: the checked values are compatible with a normal distribution. &
+\Rc{shapiro.test(x)} &
+Check values on the analysis scale. Read with histograms and Q--Q plots, not alone. \\
+
+\rowcolor{diagbg}6 & \Cue{G} &
+Levene's test for equal variance &
+Two or more groups are being compared and homogeneity of spread needs checking. &
+$H_0$: group variances are equal. &
+\Rc{car::leveneTest(y \textasciitilde{} g, data = df)} &
+Preferred over Bartlett when normality is doubtful. Most relevant before Student's \textit{t}-test and classical ANOVA. \\
+
+\rowcolor{diagbg}6 & \Cue{G} &
+Bartlett's test &
+Several groups are compared and a normal-theory variance test is acceptable. &
+$H_0$: group variances are equal. &
+\Rc{bartlett.test(y \textasciitilde{} g, data = df)} &
+More sensitive to non-normality than Levene. Use only when normality is already plausible. \\
+
+\rowcolor{flowbg}6 & \Cue{G} &
+Transformation of the response &
+Assumptions fail on the raw scale but a transformed scale may stabilise spread or reduce skew. &
+No null; the aim is a more defensible analysis scale. &
+\Rc{mutate(log\_y = log(y))}\newline
+\Rc{mutate(sqrt\_y = sqrt(y))} &
+Transform before the final Gaussian analysis, then re-check assumptions. \\
+
+\rowcolor{groupbg}\multicolumn{7}{l}{\textbf{Mean comparisons: \textit{t}-tests and rank analogues}} \\
+7 & \Cue{G} &
+One-sample \textit{t}-test &
+One continuous sample is compared with a biologically meaningful reference mean. &
+$H_0$: $\mu = \mu_0$. &
+\Rc{t.test(x, mu = m0)} &
+Directional alternatives use \Rc{alternative = "less"} or \Rc{"greater"}. \\
+
+7 & \Cue{G} &
+Two-sample Welch \textit{t}-test &
+Two independent groups are compared and equal variances should not be assumed. &
+$H_0$: $\mu_1 = \mu_2$. &
+\Rc{t.test(y \textasciitilde{} g, data = df)} &
+Usually the default. Assumes independence and approximate within-group normality. \\
+
+7 & \Cue{G} &
+Two-sample Student \textit{t}-test &
+Two independent groups are compared and equal variances are defensible. &
+$H_0$: $\mu_1 = \mu_2$. &
+\Rc{t.test(y \textasciitilde{} g, data = df,}\newline
+\Rc{\ \ var.equal = TRUE)} &
+Use only when group spreads are sufficiently similar. \\
+
+7 & \Cue{G} &
+Paired \textit{t}-test &
+Two linked measurements are compared within the same sampling units. &
+$H_0$: mean paired difference $= 0$. &
+\Rc{t.test(x, y, paired = TRUE)} &
+Assumptions apply to within-pair differences, not the raw before/after values. \\
+
+7 & \Cue{Rk} &
+Wilcoxon signed-rank test &
+One-sample or paired problem when a rank-based alternative is more defensible. &
+$H_0$: the location shift is 0. &
+\Rc{wilcox.test(x, mu = m0)}\newline
+\Rc{wilcox.test(x, y, paired = TRUE)} &
+Use for one-sample and paired designs. Still requires the correct design logic. \\
+
+7 & \Cue{Rk} &
+Wilcoxon rank-sum / Mann--Whitney test &
+Two independent groups are compared without relying on Gaussian assumptions. &
+$H_0$: the two groups come from the same distributional location. &
+\Rc{wilcox.test(y \textasciitilde{} g, data = df)} &
+Rank-based alternative to the two-sample \textit{t}-test. \\
+
+\rowcolor{groupbg}\multicolumn{7}{l}{\textbf{ANOVA family and rank-based group comparisons}} \\
+8 & \Cue{G} &
+One-way ANOVA &
+One continuous response is compared across more than two independent groups. &
+$H_0$: \(\mu_1 = \mu_2 = \cdots = \mu_k\). &
+\Rc{aov(y \textasciitilde{} g, data = df)} &
+Check residual normality and equal variance. This is the multi-group mean-comparison model. \\
+
+8 & \Cue{G} &
+Factorial / two-way ANOVA &
+Two or more categorical predictors are fitted together without continuous covariates. &
+$H_0$: no main effects and, if included, no interaction effect. &
+\Rc{aov(y \textasciitilde{} A * B, data = df)} &
+Use \Rc{A + B} for additive structure and \Rc{A * B} when the interaction is part of the question. \\
+
+8,14 & \Cue{G} &
+ANCOVA as a linear model &
+One continuous response is modelled using both categorical and continuous predictors. &
+Model target: adjusted group differences plus covariate slope(s). &
+\Rc{lm(y \textasciitilde{} group + x, data = df)} &
+ANCOVA is a standard linear model with one factor and one or more covariates. \\
+
+8 & \Cue{G} &
+Tukey's HSD post hoc comparison &
+One-way ANOVA is significant and pairwise mean differences among groups are needed. &
+$H_0$: each pairwise group mean difference $= 0$. &
+\Rc{TukeyHSD(fit)} &
+Use after a fitted \Rc{aov()} object. Controls family-wise error for all pairwise comparisons. \\
+
+8 & \Cue{Rk} &
+Kruskal--Wallis test &
+More than two independent groups are compared with a rank-based omnibus test. &
+$H_0$: groups have the same distributional location. &
+\Rc{kruskal.test(y \textasciitilde{} g, data = df)} &
+Rank-based alternative to one-way ANOVA. \\
+
+8 & \Cue{Rk} &
+Pairwise Wilcoxon comparisons &
+Kruskal--Wallis or multi-group rank comparisons require pairwise follow-up. &
+$H_0$: each pair of groups has the same location. &
+\Rc{pairwise.wilcox.test(y, g,}\newline
+\Rc{\ \ p.adjust.method = "BH")} &
+Used as a follow-up rather than as the primary omnibus test. \\
+
+\rowcolor{headbg}\multicolumn{7}{l}{\color{headfg}\textbf{CONTINUOUS MODELING}} \\
+\rowcolor{groupbg}\multicolumn{7}{l}{\textbf{Association and correlation}} \\
+9 & \Cue{Asc} &
+Pearson correlation &
+Two continuous variables are paired and a linear association is of interest without fitting a response model. &
+$H_0$: $\rho = 0$. &
+\Rc{cor.test(x, y, method = "pearson")} &
+Appropriate for approximately linear continuous relationships. \\
+
+9 & \Cue{Asc} &
+Spearman rank correlation &
+Two paired variables show a monotonic but not necessarily linear association, or ranks are more appropriate. &
+$H_0$: $\rho_s = 0$. &
+\Rc{cor.test(x, y, method = "spearman")} &
+Works for ordinal or non-Gaussian paired data. \\
+
+9 & \Cue{Asc} &
+Kendall's $\tau$ &
+Two paired variables are associated, often with small samples or many ties. &
+$H_0$: $\tau = 0$. &
+\Rc{cor.test(x, y, method = "kendall")} &
+Often more conservative than Spearman. \\
+
+\rowcolor{groupbg}\multicolumn{7}{l}{\textbf{Gaussian regression: mean structure}} \\
+\rowcolor{diagbg}11 & \Cue{G} &
+Residual diagnostics for fitted Gaussian models &
+A regression model has been fitted and the adequacy of mean and variance structure must be checked. &
+No null; the aim is to inspect residual structure. &
+\Rc{plot(mod, which = 1)}\newline
+\Rc{plot(mod, which = 2)} &
+Residual-vs-fitted checks mean structure and spread. Q--Q checks residual normality. Independence comes from design. \\
+
+12 & \Cue{G} &
+Simple linear regression &
+One continuous response is modelled as a linear function of one continuous predictor. &
+Model target: mean response changes linearly with the predictor. &
+\Rc{lm(y \textasciitilde{} x, data = df)} &
+Inference on slopes uses the fitted linear model, not a correlation test in disguise. \\
+
+\rowcolor{flowbg}12 & \Cue{G} &
+Confidence and prediction intervals &
+A fitted linear model is used for mean-response uncertainty or individual-response prediction. &
+No null; the aim is interval estimation. &
+\Rc{predict(mod, newdata = nd,}\newline
+\Rc{\ \ interval = "confidence")}\newline
+\Rc{predict(mod, newdata = nd,}\newline
+\Rc{\ \ interval = "prediction")} &
+Confidence intervals describe the mean line; prediction intervals describe future observations and are wider. \\
+
+\rowcolor{diagbg}12,13 & \Cue{G} &
+Breusch--Pagan test &
+Heteroscedasticity in a fitted linear model needs a formal supporting check. &
+$H_0$: residual variance is constant. &
+\Rc{lmtest::bptest(mod)} &
+Use as supporting evidence after reading residual plots. \\
+
+\rowcolor{diagbg}12,17 & \Cue{G} &
+Influence diagnostics &
+Single observations may be driving the fitted model disproportionately. &
+No single null; the aim is to identify leverage and influence. &
+\Rc{cooks.distance(mod)}\newline
+\Rc{dffits(mod)}\newline
+\Rc{plot(mod, which = 5)} &
+Inspect Cook's distance, DFFITS, leverage, and residual-vs-leverage plots before acting on a point. \\
+
+13 & \Cue{G} &
+Polynomial regression &
+A linear model is too rigid but the problem can still be handled within the \Rc{lm()} framework. &
+Model target: mean structure includes curvature. &
+\Rc{lm(y \textasciitilde{} x + I(x\^{}2), data = df)}\newline
+\Rc{lm(y \textasciitilde{} poly(x, degree = k), data = df)} &
+Still linear in the coefficients. Compare nested degrees by \Rc{anova()} or \Rc{AIC()}. \\
+
+14 & \Cue{G} &
+Multiple regression &
+One continuous response depends on several predictors fitted simultaneously. &
+Model target: partial effects after adjusting for the other predictors. &
+\Rc{lm(y \textasciitilde{} x1 + x2 + x3, data = df)} &
+Interpret coefficients conditionally. Model specification matters as much as fit. \\
+
+14,15 & \Cue{G} &
+Interaction model &
+The effect of one predictor may depend on another predictor. &
+$H_0$: the interaction coefficient $= 0$. &
+\Rc{lm(y \textasciitilde{} x1 * x2, data = df)} &
+Use \Rc{*} to include both main effects and the interaction. Respect hierarchy. \\
+
+\shortstack[l]{14,15,\\17} & \Cue{G} &
+Nested model comparison for Gaussian linear models &
+A simpler and a more complex \Rc{lm()} model are nested and need formal comparison. &
+$H_0$: added term(s) do not reduce residual variance beyond chance. &
+\Rc{anova(mod\_small, mod\_large,}\newline
+\Rc{\ \ test = "F")} &
+Appropriate when one model is a special case of the other. \\
+
+\rowcolor{headbg}\multicolumn{7}{l}{\color{headfg}\textbf{MODEL SELECTION AND MODERN WORKFLOWS}} \\
+\rowcolor{flowbg}\shortstack[l]{14,17,\\24} & \Cue{Any} &
+Akaike Information Criterion &
+Several biologically plausible models need relative comparison without a single null hypothesis. &
+Lower AIC indicates better trade-off between fit and complexity. &
+\Rc{AIC(mod1, mod2, mod3)} &
+Useful for non-nested and nested candidate models. Compare only models fitted to the same rows, response data, and response scale. \\
+
+\rowcolor{diagbg}16 & \Cue{G} &
+Variance Inflation Factor (VIF) &
+Predictors in a multiple regression may be collinear. &
+No null; the aim is to quantify variance inflation from shared predictor information. &
+\Rc{car::vif(mod)} &
+Large VIFs indicate unstable coefficient interpretation. Use alongside correlation matrices and scatterplots. \\
+
+\rowcolor{groupbg}\multicolumn{7}{l}{\textbf{Dependence and grouped structure}} \\
+\rowcolor{flowbg}18 & \Cue{Grp} &
+Design check for pseudoreplication &
+Measurements may have been treated as independent when the design does not support that assumption. &
+No formal residual null; the target is correct unit-of-analysis logic. &
+\Rc{No single function} &
+This is a design problem, not a residual issue. Mixed models handle structured dependence, but they do not rescue true pseudoreplication. \\
+
+19 & \Cue{Grp} &
+Linear mixed model &
+Gaussian response with grouped, repeated, or clustered observations. &
+Model target: fixed effects plus random-group variation. &
+\Rc{lme4::lmer(y \textasciitilde{} x + (1 | group),}\newline
+\Rc{\ \ data = df)} &
+Use when dependence is structured by design, for example shared sites, individuals, years, or plots. This is not a repair for \(n=1\) pseudoreplication. \\
+
+19 & \Cue{Grp} &
+Generalised linear mixed model &
+Non-Gaussian response with grouped, repeated, or clustered observations. &
+Model target: non-Gaussian mean structure plus random effects. &
+\Rc{lme4::glmer(y \textasciitilde{} x + (1 | group),}\newline
+\Rc{\ \ family = ..., data = df)} &
+Extends mixed-model logic to binomial or count responses. \\
+
+\rowcolor{diagbg}19 & \Cue{Grp} &
+Intra-class correlation (ICC) &
+Variance partitioning is needed after fitting a mixed model. &
+No null; the target is the proportion of variance attributable to groups. &
+\Rc{VarCorr(mod)}, then compute ICC &
+Used to summarise the strength of dependence at the grouping level. \\
+
+\rowcolor{groupbg}\multicolumn{7}{l}{\textbf{Generalised linear models and proportion/count responses}} \\
+20 & \Cue{Bin} &
+One-sample proportion test &
+A single observed proportion is compared with a null expectation. &
+$H_0$: $p = p_0$. &
+\Rc{prop.test(x = s, n = n, p = p0)} &
+Presented as a bridge to binomial GLMs when predictors are absent. \\
+
+20 & \Cue{Bin} &
+Two-sample proportion test &
+Two binomial proportions are compared without additional predictors. &
+$H_0$: $p_1 = p_2$. &
+\Rc{prop.test(x = c(s1, s2), n = c(n1, n2))}\newline
+\Rc{prop.test(matrix\_counts)} &
+Useful for simple comparisons; move to a binomial GLM when predictors enter. \\
+
+20 & \Cue{Bin} &
+Logistic regression (Bernoulli response) &
+Binary presence/absence or success/failure response with predictors. &
+Model target: \(\mathrm{logit}\{P(y=1)\} = \beta_0 + \beta_1x + \cdots\). &
+\Rc{glm(y \textasciitilde{} x1 + x2,}\newline
+\Rc{\ \ family = binomial, data = df)} &
+Use \Rc{type = "response"} in \Rc{predict()} to recover fitted probabilities. \\
+
+20 & \Cue{Bin} &
+Binomial GLM for grouped counts &
+Successes and failures are aggregated for each row. &
+Model target: \(\mathrm{logit}(p) = \beta_0 + \beta_1x + \cdots\). &
+\Rc{glm(cbind(success, failure) \textasciitilde{} x,}\newline
+\Rc{\ \ family = binomial, data = df)} &
+Same link and interpretation as logistic regression, but with grouped trials. \\
+
+20 & \Cue{Cnt} &
+Poisson regression &
+Count response with mean approximately equal to the variance. &
+Model target: \(\log\{E[y]\} = \beta_0 + \beta_1x + \cdots\). &
+\Rc{glm(count \textasciitilde{} x,}\newline
+\Rc{\ \ family = poisson, data = df)} &
+Check for overdispersion before trusting Poisson standard errors. \\
+
+20 & \Cue{Cnt} &
+Quasi-Poisson regression &
+Count response shows overdispersion relative to Poisson. &
+Model target: \(\log\{E[y]\} = \beta_0 + \beta_1x + \cdots\), with overdispersed variance. &
+\Rc{glm(count \textasciitilde{} x,}\newline
+\Rc{\ \ family = quasipoisson, data = df)} &
+Retains the log-link mean model but adjusts the variance. \\
+
+\rowcolor{groupbg}\multicolumn{7}{l}{\textbf{Flexible and nonlinear regression}} \\
+21 & \Cue{Sm} &
+Gaussian GAM &
+Relationship is smooth and nonlinear, but a fixed polynomial form is not appropriate. &
+Model target: smooth mean function estimated from the data. &
+\Rc{mgcv::gam(y \textasciitilde{} s(x),}\newline
+\Rc{\ \ data = df, method = "REML")} &
+Use \Rc{mgcv::gam()} or load \Rc{library(mgcv)}. Use cyclic bases such as \Rc{bs = "cc"} for seasonal smooths. \\
+
+22 & \Cue{NL} &
+Nonlinear least-squares regression &
+Mean structure follows a named nonlinear function with interpretable parameters. &
+Model target: explicit nonlinear response curve, for example Michaelis--Menten. &
+\Rc{nls(y \textasciitilde{} f(x, pars),}\newline
+\Rc{\ \ start = list(...), data = df)} &
+Requires sensible starting values and convergence checking. \\
+
+\rowcolor{flowbg}22 & \Cue{NL} &
+Linear-vs-nonlinear model comparison &
+A nonlinear model is compared with a simpler linear alternative. &
+Relative support for alternative mean structures. &
+\Rc{anova(lm\_mod, nls\_mod)}\newline
+\Rc{AIC(lm\_mod, nls\_mod)} &
+Interpret with care because \Rc{nls()} and \Rc{lm()} may reflect different biological questions. \\
+
+23 & \Cue{Q} &
+Quantile regression &
+Predictor effects may differ across the response distribution rather than only at the mean. &
+Model target: conditional quantile(s), not conditional mean alone. &
+\Rc{quantreg::rq(y \textasciitilde{} x,}\newline
+\Rc{\ \ tau = 0.5, data = df)} &
+Typical choices are \Rc{tau = 0.1}, \Rc{0.5}, and \Rc{0.9}. \\
+
+23 & \Cue{Q} &
+Quantile-slope comparison &
+Quantile regressions have been fitted at several \(\tau\) values and slope differences need testing. &
+$H_0$: slopes do not differ across the fitted quantiles. &
+\Rc{anova(rq\_fit\_multi\_tau)} &
+Useful when upper, median, and lower response boundaries behave differently. \\
+
+\rowcolor{groupbg}\multicolumn{7}{l}{\textbf{Prediction, evaluation, and regularisation}} \\
+\rowcolor{flowbg}17,24 & \Cue{Pred} &
+Hold-out RMSE &
+Prediction quality is assessed on data not used for fitting. &
+No null; lower RMSE indicates better predictive performance. &
+\Rc{pred <- predict(mod, newdata = test)}\newline
+\Rc{sqrt(mean((obs - pred)\^{}2))} &
+Prediction and explanation are different goals; a more interpretable model need not minimise prediction error. \\
+
+\rowcolor{flowbg}17 & \Cue{Pred} &
+K-fold cross-validation for Gaussian models &
+Generalisation error is estimated by repeated train/test splits across folds. &
+No null; compare average out-of-fold RMSE across candidate models. &
+fit with \Rc{lm()} inside each fold,\newline
+use \Rc{predict()}, then summarise RMSE &
+Implemented manually in the chapter rather than through a single package wrapper. \\
+
+25 & \Cue{Pred} &
+Ridge regression &
+Many correlated predictors are present and coefficient shrinkage is acceptable. &
+Model target: stable prediction with \(L_2\) penalty. &
+\Rc{glmnet::cv.glmnet(X, y, alpha = 0)} &
+Shrinks coefficients toward zero but typically keeps all of them non-zero. \\
+
+25 & \Cue{Pred} &
+Lasso regression &
+Prediction and variable selection are both of interest. &
+Model target: sparse regression with \(L_1\) penalty. &
+\Rc{glmnet::cv.glmnet(X, y, alpha = 1)} &
+Can set some coefficients exactly to zero. \\
+
+25 & \Cue{Pred} &
+Elastic net &
+Predictors are correlated and a compromise between ridge and lasso is needed. &
+Model target: mixed \(L_1/L_2\) penalty. &
+\Rc{glmnet::cv.glmnet(X, y,}\newline
+\Rc{\ \ alpha = 0.5)} &
+Choose \Rc{alpha} between 0 and 1. Particularly useful when predictors cluster strongly. \\
+
+\end{longtable}
+}
+
+\vspace{4pt}
+\noindent\hspace*{\tableoffset}%
+\begin{minipage}{\tableblockwidth}
+\rule{\tableblockwidth}{0.5pt}
+\end{minipage}
+\vspace{3pt}
+
+\noindent\hspace*{\tableoffset}%
+\begin{minipage}{\tableblockwidth}
+\begin{multicols}{3}
+\footnotesize
+
+\noindent\textbf{Design first.} Choose the method from the data structure and not from the software options. The same response variable may require a \textit{t}-test, ANOVA, regression, mixed model, or GLM depending on independence, grouping, pairing, and whether predictors are categorical or continuous.
+
+\medskip
+\noindent\textbf{Response scale.} Gaussian methods such as \Rc{t.test()}, \Rc{aov()}, and \Rc{lm()} assume that the analysis is defensible on the chosen response scale. For \Rc{aov()} and \Rc{lm()}, this is checked mainly through residuals. For \Rc{t.test()}, checks apply to the relevant raw values or paired differences. If the assumptions fail, transform the response or move to a method better matched to the data.
+
+\medskip
+\noindent\textbf{Model hierarchy.} When an interaction is included, keep its main effects. When grouped structure is present, fit the grouping rather than pretending the rows are independent.
+
+\medskip
+\noindent\textbf{Model comparison.} Use nested \Rc{anova(..., test = "F")} when one model is a special case of another. Use \Rc{AIC()} for broader candidate-model comparison, but not across different response scales such as \(y\) versus \(\log(y)\) or across models fitted to different numbers of observations after NA-driven row loss. Use hold-out or cross-validated RMSE when prediction is the objective.
+
+\noindent\textbf{Cue legend.} \Cue{G} Gaussian continuous; \Cue{Rk} rank-based; \Cue{Asc} association; \Cue{Bin} binary or proportion; \Cue{Cnt} count; \Cue{Grp} grouped or repeated; \Cue{Sm} smooth model; \Cue{NL} nonlinear; \Cue{Q} quantile; \Cue{Pred} predictive workflow; \Cue{Any} model-comparison workflow.
+
+\medskip
+\noindent\textbf{Icons.} Icons are mnemonics: \CueIcon{G} mean-based Gaussian, \CueIcon{Rk} rank order, \CueIcon{Asc} paired association, \CueIcon{Bin} binary response, \CueIcon{Cnt} counts, \CueIcon{Grp} clustered observations, \CueIcon{Sm} smooth function, \CueIcon{NL} explicit nonlinear form, \CueIcon{Q} quantiles, \CueIcon{Pred} prediction, \CueIcon{Any} model comparison.
+
+\medskip
+\noindent\textbf{Row tinting.} Cream rows mark diagnostics or assumption checks. Green rows mark workflow, comparison, or prediction entries rather than primary fitted procedures.
+
+\medskip
+\noindent\textbf{Abbreviations.} GLM = generalised linear model; GAM = generalised additive model; ICC = intra-class correlation; RMSE = root mean squared error; VIF = variance inflation factor.
+
+\medskip
+\noindent\textbf{Packages beyond base R used in the course.}
+\begin{itemize}[leftmargin=*, itemsep=1pt, topsep=2pt]
+\item \Rc{car} for \Rc{leveneTest()} and \Rc{vif()}
+\item \Rc{lmtest} for \Rc{bptest()}
+\item \Rc{lme4} for \Rc{lmer()} and \Rc{glmer()}
+\item \Rc{mgcv} for \Rc{gam()}
+\item \Rc{quantreg} for \Rc{rq()}
+\item \Rc{glmnet} for ridge, lasso, and elastic net
+\end{itemize}
+
+\medskip
+\noindent\textbf{Not every chapter adds a new test.} Chapters 1--5, 10, 18, 24, and 26 mainly refine framing, design logic, model choice, interpretation, prediction, and workflow rather than introducing a brand-new inferential procedure.
+
+\medskip
+\noindent\textbf{Course synthesis companion.} The chapter summary is in \Rc{cheatsheet-course-synthesis.pdf}, leaving this sheet procedural and faster to scan.
+
+\end{multicols}
+\end{minipage}
+
+\vspace{5pt}
+\noindent\hspace*{\tableoffset}%
+\begin{minipage}{\tableblockwidth}
+\rule{\tableblockwidth}{0.5pt}
+\end{minipage}
+\vspace{4pt}
+
+\noindent\hspace*{\tableoffset}%
+\begin{minipage}{\tableblockwidth}
+\noindent{\large\bfseries Safer Use Checks}
+
+\vspace{3pt}
+
+\begin{tcbraster}[
+  raster columns=3,
+  raster equal height=rows,
+  raster column skip=4mm,
+  raster left skip=0pt,
+  raster right skip=0pt
+]
+\begin{infopanelbox}{diagbg}{Sampling-Unit Check}
+\begin{itemize}[leftmargin=*, itemsep=2pt, topsep=2pt]
+\item The sampling unit is the smallest independently sampled biological or experimental replicate to which inference is intended to apply.
+\item One-sample procedures: one value per independent sampling unit.
+\item Two-sample procedures: one row per independent sampling unit, and no sampling unit appears in both groups.
+\item Paired procedures: the sampling unit is the matched pair; analyse within-pair differences, not raw columns as independent samples.
+\item ANOVA and ANCOVA: groups must contain independent sampling units unless grouping is modelled explicitly.
+\item Correlation: both variables are measured on the same sampling units; neither variable is a replicated treatment label in disguise.
+\item Regression: repeated rows from the same site, tank, plot, year, or individual are not independent sampling units.
+\item Mixed and grouped models: use when rows are clustered within higher-level sampling units. They partition variance and dependence; they do not create new independent replicates.
+\end{itemize}
+\end{infopanelbox}
+\begin{warnpanelbox}{Common Misuse Warnings}
+\begin{itemize}[leftmargin=*, itemsep=2pt, topsep=2pt]
+\item Do not choose a test from the software menu before identifying the sampling unit and dependence structure.
+\item Do not treat technical replicates, subsamples, or repeated measures as biological replicates.
+\item Do not use Student's two-sample \textit{t}-test by default; Welch is usually the safer default.
+\item Do not read a significant omnibus ANOVA as evidence that every pair of groups differs.
+\item Do not read a correlation coefficient as a causal effect or as a substitute for a regression with a defined response.
+\item Do not use residual normality tests to rescue a misspecified mean structure; fix the model first.
+\item Do not drop main effects when an interaction is retained.
+\item Do not interpret collinear coefficients as stable biological effects without checking VIFs, plots, and study design.
+\item Do not use AIC across different response datasets or silently different missing-data subsets.
+\item Do not treat lower predictive error as proof of better biological explanation.
+\end{itemize}
+\end{warnpanelbox}
+\begin{infopanelbox}{reportbg}{Minimum Reporting Checklist}
+\begin{itemize}[leftmargin=*, itemsep=2pt, topsep=2pt]
+\item \textit{t}-tests and ANOVA: group summaries, effect direction, test statistic, degrees of freedom, \(p\)-value, and interval where relevant.
+\item Rank tests: sample summaries, test statistic, \(p\)-value, and a clear statement that inference is rank-based.
+\item Correlation: coefficient type, coefficient estimate, sample size, confidence interval if available, and \(p\)-value.
+\item Linear models: formula, coefficients, standard errors, test statistics, \(p\)-values, uncertainty intervals, and residual-diagnostic conclusion.
+\item Mixed models: fixed-effect estimates, random-effect structure, variance components or ICC, and the grouping variable.
+\item GLMs: family and link, coefficients on the model scale, transformed interpretation where needed, and any dispersion check.
+\item GAMs and nonlinear models: fitted form, smoothing or parameter details, uncertainty summary, and graphical diagnostic conclusion.
+\item Predictive comparisons: data split or resampling scheme, performance metric, and whether the goal is explanation or prediction.
+\end{itemize}
+\end{infopanelbox}
+\end{tcbraster}
+\end{minipage}
+
+\end{document}

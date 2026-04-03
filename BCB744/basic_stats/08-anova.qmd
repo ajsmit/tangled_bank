@@ -79,7 +79,7 @@ As a reminder of what *t*-tests are about, use your BCB742 Bokbaai data, and dev
 
 ANOVA extends the comparison-of-means idea from [Chapter 7](07-t_tests.qmd) to more than two groups. The question changes from "do these two means differ?" to "do these group means all come from the same population mean?" The response variable is still continuous and the predictor still categorical, but now we have more than two groups.
 
-Although ANOVA is also a linear model with categorical predictors, this chapter keeps the discussion at the grouped-data level. The later regression chapters, especially [Chapter 11](11-residuals-and-model-based-diagnostics.qmd), [Chapter 12](12-simple-linear-regression.qmd), and [Chapter 14](14-multiple-regression-and-model-specification.qmd), make the linear-model connection explicit.
+Although ANOVA is also a linear model with categorical predictors, this chapter begins with grouped-data displays because they are intuitive and useful for exploratory analyses. Formally, however, the assumptions of ANOVA belong to the model errors and are therefore checked most directly through residuals from the fitted ANOVA model. The later regression chapters, especially [Chapter 11](11-residuals-and-model-based-diagnostics.qmd), [Chapter 12](12-simple-linear-regression.qmd), and [Chapter 14](14-multiple-regression-and-model-specification.qmd), make that linear-model connection clear.
 
 # Why Not Do Multiple *t*-Tests?
 
@@ -238,7 +238,7 @@ Boxplots with jitter are the first EDA tool to use here. Look for:
 - outliers that dominate one group;
 - shapes that suggest strong skewness.
 
-Later regression chapters revisit these same issues through residuals. In this chapter the checks remain at the grouped raw-data level.
+These grouped plots are exploratory checks, not the final diagnostic step. In ANOVA itself, the assumptions are about the residual variation left after fitting the group means. I use the grouped plots here because they make the data structure easy to see, but the full residual-based analysis is developed explicitly in [Chapter 11](11-residuals-and-model-based-diagnostics.qmd).
 
 ::: {.callout-note appearance="simple"}
 ## About Homogeneity Tests
@@ -255,6 +255,8 @@ The main functions used in this chapter are:
 - `TukeyHSD()` for post hoc pairwise comparisons;
 - `oneway.test()` for Welch's one-way ANOVA;
 - `kruskal.test()` for the Kruskal-Wallis rank-sum test.
+
+A further practical point is worth stating now, even though I explain it properly only later. Once an ANOVA model has been fitted, the assumptions are checked most directly on the residuals from that model. In this chapter I still use grouped plots and summaries as the first pass because they are easy to read, but I also show the residual diagnostics briefly so that the workflow is already in place. [Chapter 11](11-residuals-and-model-based-diagnostics.qmd) returns to this carefully and explains why residuals become the main object of diagnosis.
 
 # Example 1: Chick Masses Under Four Diets
 
@@ -330,6 +332,25 @@ chicks_aov1 <- aov(weight ~ Diet, data = chicks_day21)
 summary(chicks_aov1)
 ```
 
+## Brief Residual Check
+
+Before interpreting the ANOVA table, I take a quick look at the fitted residuals (@fig-chicks-aov1-diagnostics). The residual-versus-fitted panel checks whether the spread is broadly stable across the fitted group means, and the Q-Q plot checks whether the residual distribution is close enough to normal for the usual ANOVA inference.
+
+I do not develop these plots fully here because the full thinking behind residual tests belongs to [Chapter 11](11-residuals-and-model-based-diagnostics.qmd). For now, the point is simply that ANOVA assumptions are checked on the fitted model as well as through grouped exploratory displays.
+
+```{r fig-chicks-aov1-diagnostics}
+#| fig-cap: "Brief residual diagnostics for the chick-mass ANOVA. The left panel shows residuals versus fitted values and the right panel shows a normal Q-Q plot of the residuals."
+#| fig-width: 6
+#| fig-height: 3.2
+#| code-fold: true
+par(mfrow = c(1, 2))
+plot(chicks_aov1, which = 1)
+plot(chicks_aov1, which = 2)
+par(mfrow = c(1, 1))
+```
+
+For this example, the residuals do not show an alarming departure from the model assumptions. The grouped summaries and the residual diagnostics therefore tell the same broad story: a classical one-way ANOVA is reasonable here.
+
 ::: {#self-assessment-task-8-2 .callout-important}
 ## Self-Assessment Task 8-2
 
@@ -342,7 +363,7 @@ b.  Devise a graphical display of this outcome. **(/4)**
 
 a.  **Interpretation of ANOVA Output**
     - [x] (x 2) The one-way ANOVA tests the null hypothesis that all four diet groups have the same mean chicken mass at Day 21. The output shows an *F*-statistic of 4.655 and a *p*-value of \< 0.05. Since this *p*-value is less than the conventional 0.05 threshold, we reject the null hypothesis, conclude that there is evidence of a statistically significant difference in mean chicken mass between at least two of the diet groups.
-    - Note that before accepting the ANOVA results, we should check the assumptions of normality, homogeneity of variance. The ANOVA assumes that the data are normally distributed and that the variances across groups are equal. If these assumptions are violated and the results may not be valid.
+    - Before accepting the ANOVA result, I should check whether the grouped summaries and the residual diagnostics support approximate normality and similar variance. If those assumptions fail badly, the usual ANOVA result may not be reliable.
     - Assuming the assumptions are met, note that the ANOVA alone does not identify which specific diets differ. To determine that, a *post hoc* comparison --- such as Tukey’s HSD test --- is needed. Without such pairwise analysis, we cannot yet say which diets are different from one another. A graph may help visualise these differences.
 b.  **Graphical Display**
     - [x] (x 4) A suitable figure would be a boxplot of chicken weight at Day 21, stratified by Diet. This graph shows the distribution, central tendency, and spread for each diet group, makes it easy to infer where potential differences may lie. I have created two options: A) showing also the mean ± CI and B) showing the raw data points.
