@@ -8,7 +8,9 @@ params:
   hide_answers: true
 ---
 
+::: {.content-visible when-format="html"}
 ![PhD Comics on data visualisation.](/images/PhD_comics4.JPG){fig-align="center" width="250"}
+:::
 
 ```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
@@ -51,9 +53,9 @@ library(ggthemes)
 
 # Introduction
 
-Figures are not there to look pretty. In exploratory data analysis, figures are part of the analysis itself. A good figure lets you see shape, spread, clustering, outliers, and relationships that a table of means cannot show.
+Figures are not there to look pretty, although they can. In exploratory data analysis, figures are part of the analysis itself. A good figure lets you see shape, spread, clustering, outliers, and relationships that a table of summary statistics cannot show.
 
-In the work below, I will extend the summaries in [Chapter 2](02-summarise-and-describe.qmd) by turning them into graphical evidence. The main task is to match the plot to the question. Some plots show the distribution of one variable, some compare groups, and some reveal relationships between variables.
+In the work below, I will extend the summaries in [Chapter 2](02-summarise-and-describe.qmd) by turning them into graphical supporitng evidence. The main task is to match the plot to the question. Some plots show the distribution of one variable, some compare groups, and others reveal relationships between variables.
 
 The examples here will help you recognise which figure answers which descriptive question, rather than to exhaust every possible `ggplot2` option. For broader coverage and additional figure types, consult the following sources:
 
@@ -66,7 +68,7 @@ The examples here will help you recognise which figure answers which descriptive
 
 # Key Concepts
 
-These ideas guide the figure types you will encounter below:
+These decision steps guide the figure types you will encounter below:
 
 - **Graphical EDA:** Plots are an essential part of the data exploration and assist in communicating our findings.
 - **`ggplot2`:** A versatile R package for building statistical graphics.
@@ -76,18 +78,18 @@ These ideas guide the figure types you will encounter below:
 
 # Choosing the Right Plot
 
-Choose the plot from the question you are asking:
+Choose the plot from the question you are asking. So, if you want to:
 
-- If you want to know how a single variable is distributed, start with a **histogram** or **density plot**.
-- If you want to compare groups, use a **box plot** or **violin plot**. Use a **bar graph** only when the quantity of interest is a count or proportion, or when you deliberately want to show a summary such as a mean with error bars.
-- If you want to examine the relationship between two variables, use a **scatter plot**. If one axis is ordered in time or sequence, a **line graph** may be better.
+- know how a single variable is distributed, start with a **histogram** or **density plot**.
+- compare groups, use a **box plot** or **violin plot**. Use a **bar graph** only when the quantity of interest is a count or proportion, or when you deliberately want to show a summary such as a mean with error bars.
+- examine the relationship between two variables, use a **scatter plot**. If one axis is ordered in time or sequence, a **line graph** may be better.
 
-Summary statistics remain important, but they are not enough on their own. Two datasets can share the same mean, standard deviation, and correlation while having completely different structure.
+Summary statistics remain important, but they are not enough on their own because two datasets can share the same mean, standard deviation, and correlation while having completely different structure. 
 
-`r if (params$hide_answers) ":::"` callout-important
+::: callout-important
 ## Do It Now!
 
-```{r code-library-datasaurus}
+<!-- ```{r code-library-datasaurus}
 #| eval: false
 #| echo: false
 library(datasauRus)
@@ -100,11 +102,11 @@ datasaurus_dozen |>
   dplyr::filter(dataset == "circle") |> 
   dplyr::select(-dataset) |> 
   write_csv(here::here("data", "BCB744", "random_not_either.csv"))
-```
+``` -->
 
-Retrieve the `random_not.csv` and `random_not_either.csv` data files provided for this exercise and calculate the mean and standard deviation of the variables in each file.
+Retrieve the `random_not.csv` and `random_not_either.csv` data files I made for this exercise and calculate the mean and standard deviation of the variables in each file. Then make scatter plots of the two datasets side by side and compare them. The contrast is obvious. What do you see? What do you conclude?
 
-```{r code-xy-read-csv-here-here}
+<!-- ```{r code-xy-read-csv-here-here}
 #| include: false
 xy_dino <- read_csv(here::here("data", "BCB744", "random_not.csv"))
 xy_circle <- read_csv(here::here("data", "BCB744", "random_not_either.csv"))
@@ -120,11 +122,9 @@ xy_circle |>
             sd_x = sd(x),
             mean_y = mean(y),
             sd_y = sd(y))
-```
+``` -->
 
-Then make scatter plots of the two datasets side by side and compare them. The contrast is obvious in @fig-plot-x-xy-x. What do you see?
-
-```{r fig-plot-x-xy-x}
+<!-- ```{r fig-plot-x-xy-x}
 #| fig-cap: "Scatter plots of two datasets with the same means and standard deviations."
 #| echo: false
 #| code-fold: true
@@ -139,20 +139,18 @@ p2 <- ggplot(xy_circle, aes(x = x, y = y)) +
   labs(title = "random_not_either.csv", x = "x", y = "y")
 
 ggpubr::ggarrange(p1, p2, ncol = 2)
-```
-
-What do you conclude?
-`r if (params$hide_answers) ":::"`
+``` -->
 
 The point of the exercise is that a figure can expose structure that summary statistics conceal.
+:::
 
 # Visualising Distributions
 
-We begin with plots that describe the shape of a single variable. These plots answer questions about skewness, spread, outliers, and possible multimodality.
+We begin with plots that describe the shape of a single variable. These plots answer questions about skewness, spread, outliers, and possible multi-modal distribution.
 
 ## Histograms {#sec-histograms}
 
-Histograms display the distribution of a continuous variable by dividing the data into bins and counting how many observations fall within each bin. They are usually the first plot to make when you want to inspect the shape of a distribution.
+Histograms display the distribution of a continuous variable by dividing the data into bins and counting how many observations fall within each bin. They should be the first plot to make when you want to inspect the shape of a distribution.
 
 We have a choice of **absolute** frequency histograms, where the bar heights are counts, and **relative** frequency histograms, where the heights are proportions. Relative frequency is useful when comparing samples of different sizes. The **empirical cumulative distribution function** (ECDF) is another distribution plot that shows the cumulative proportion of observations below each value. The Old Faithful data illustrate these alternatives in @fig-histo1.
 
@@ -201,7 +199,7 @@ ggarrange(hist1, hist2, hist3, hist4, ncol = 2, nrow = 2, labels = "AUTO")
 Using with the `cut()` function, recreate @fig-histo1 A-C manually.
 `r if (params$hide_answers) ":::"`
 
-What if the same continuous variable is measured in several groups? The `iris` dataset gives a simple grouped example. These are size measurements for 50 flowers from each of three species of *Iris*. The grouped histograms in @fig-histo2 let us compare the distributions directly.
+What if the same continuous variable is measured in several groups? The `iris` dataset gives a grouped example. These are size measurements for 50 flowers from each of three species of *Iris*. The grouped histograms in @fig-histo2 let us compare the distributions directly.
 
 ```{r fig-histo2}
 #| fig-cap: "Grouped histograms for the four *Iris* variables."
@@ -873,3 +871,7 @@ The same zonal SST structure can also be compressed into the horizon display in 
 Figures extend statistical summaries by showing what the summaries hide. The main task is to match the plot to the question: distributions with histograms or density plots, group comparisons with box or violin plots, relationships with scatter plots or line graphs, and more complex structures with heatmaps or related displays.
 
 The list in this chapter is not exhaustive, but it covers the main decisions you will make during EDA. For more examples and implementation detail, return to the resources listed in the introduction.
+
+
+
+

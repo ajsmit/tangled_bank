@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS = ROOT / "pdf" / "scripts"
+
+
+def run(cmd: list[str]) -> int:
+    return subprocess.call(cmd, cwd=ROOT)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Standalone BCB744 PDF pipeline helper.")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    build = sub.add_parser("build", help="Build one chapter or all chapters.")
+    build.add_argument("target", help="'all', a slug, or a source path")
+
+    sub.add_parser("watch", help="Watch and rebuild PDFs on source changes.")
+    sub.add_parser("clean", help="Remove standalone PDF build artefacts.")
+
+    args = parser.parse_args()
+
+    if args.command == "build":
+        return run([sys.executable, str(SCRIPTS / "render_pdf.py"), args.target])
+    if args.command == "watch":
+        return run([sys.executable, str(SCRIPTS / "watch_pdf.py")])
+    if args.command == "clean":
+        return run([sys.executable, str(SCRIPTS / "clean_pdf.py")])
+
+    parser.error("Unknown command")
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
