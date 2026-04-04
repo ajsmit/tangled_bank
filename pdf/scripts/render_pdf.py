@@ -152,10 +152,28 @@ def postprocess_tex(tex_path: Path) -> None:
         text,
     )
 
+    def resize_figure_block(match: re.Match[str]) -> str:
+        block = match.group(0)
+        lowered = block.lower()
+        panelled = (
+            "panel" in lowered
+            or "panels" in lowered
+            or "side by side" in lowered
+            or "clockwise from top left" in lowered
+        )
+        target = "0.8\\\\textwidth" if panelled else "0.5\\\\textwidth"
+        return re.sub(
+            r"\\includegraphics\[[^\]]*\]\{",
+            rf"\\includegraphics[width={target},keepaspectratio]{{",
+            block,
+            count=1,
+        )
+
     text = re.sub(
-        r"\\includegraphics\[[^\]]*\]\{",
-        r"\\includegraphics[width=0.8\\textwidth,keepaspectratio]{",
+        r"\\begin\{figure\}.*?\\end\{figure\}",
+        resize_figure_block,
         text,
+        flags=re.DOTALL,
     )
 
     tex_path.write_text(text, encoding="utf-8")
@@ -293,10 +311,21 @@ def compile_pdf(tex_path: Path, slug: str, quiet: bool = False) -> Path:
     return pdf_path
 
 
+def publish_pdf(chapter: dict, pdf_path: Path) -> None:
+    source = chapter["source"]
+    if not source.startswith("BCB744/basic_stats/"):
+        return
+    site_dir = REPO_ROOT / "_site" / "BCB744" / "basic_stats"
+    site_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(pdf_path, site_dir / pdf_path.name)
+
+
 def build_one(chapter: dict, quiet: bool = False) -> Path:
     slug = chapter["slug"]
     tex_path = render_tex(chapter["source"], slug, quiet=quiet)
-    return compile_pdf(tex_path, slug, quiet=quiet)
+    pdf_path = compile_pdf(tex_path, slug, quiet=quiet)
+    publish_pdf(chapter, pdf_path)
+    return pdf_path
 
 
 def main() -> None:

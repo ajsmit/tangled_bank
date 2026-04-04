@@ -47,28 +47,37 @@ local function markdown_inlines(text)
   return {pandoc.Str(text)}
 end
 
-local function cap_image_width(el)
-  local width = el.attributes["width"]
-  if not width or width == "" then
-    el.attributes["width"] = "80%"
-    return el
-  end
-
-  local pct = width:match("^(%d+%.?%d*)%%$")
-  if pct and tonumber(pct) and tonumber(pct) > 80 then
-    el.attributes["width"] = "80%"
-    return el
-  end
-
-  return el
-end
-
 local function stringify_caption(el)
   local source = el.caption and el.caption.long
   if source and #source > 0 then
     return pandoc.utils.stringify(source):lower()
   end
   return pandoc.utils.stringify(el):lower()
+end
+
+local function is_panelled_image(el)
+  local text = stringify_caption(el)
+  return text:match("panel")
+    or text:match("panels")
+    or text:match("side by side")
+    or text:match("clockwise from top left")
+end
+
+local function cap_image_width(el)
+  local target = is_panelled_image(el) and 80 or 50
+  local width = el.attributes["width"]
+  if not width or width == "" then
+    el.attributes["width"] = string.format("%d%%", target)
+    return el
+  end
+
+  local pct = width:match("^(%d+%.?%d*)%%$")
+  if pct and tonumber(pct) and tonumber(pct) > target then
+    el.attributes["width"] = string.format("%d%%", target)
+    return el
+  end
+
+  return el
 end
 
 local function is_decorative_image(el)
