@@ -5,7 +5,7 @@ date: last-modified
 date-format: "YYYY/MM/DD"
 reference-location: margin
 params:
-  hide_answers: false
+  hide_answers: true
 ---
 
 ![PhD Comics on data visualisation.](/images/PhD_comics4.JPG){fig-align="center" width="250"}
@@ -45,7 +45,7 @@ library(ggthemes)
 ::: {.callout-important appearance="simple"}
 ## Tasks to Complete in This Chapter
 
--   [Self-Assessment Task 3-1](#self-assessment-task-3-1) **(/30)**
+-   Self-Assessment Task 3-1 **(/30)**
 -   [Self-Assessment instructions and full task overview](../tasks/BCB744_Biostats_Self-Assessment.qmd)
 :::
 
@@ -105,8 +105,7 @@ datasaurus_dozen |>
 Retrieve the `random_not.csv` and `random_not_either.csv` data files provided for this exercise and calculate the mean and standard deviation of the variables in each file.
 
 ```{r code-xy-read-csv-here-here}
-#| eval: false
-#| echo: false
+#| include: false
 xy_dino <- read_csv(here::here("data", "BCB744", "random_not.csv"))
 xy_circle <- read_csv(here::here("data", "BCB744", "random_not_either.csv"))
 
@@ -127,7 +126,6 @@ Then make scatter plots of the two datasets side by side and compare them. The c
 
 ```{r fig-plot-x-xy-x}
 #| fig-cap: "Scatter plots of two datasets with the same means and standard deviations."
-#| eval: false
 #| echo: false
 #| code-fold: true
 p1 <- ggplot(xy_dino, aes(x = x, y = y)) +
@@ -428,10 +426,9 @@ A tidy workflow selects numeric columns, pivots to long form, and summarises acr
 
 ```{r sat-3-1-a}
 #| tbl-cap: "Descriptive summary statistics for the numeric variables in the palmerpenguins dataset, assembled using a tidy workflow."
-library(kableExtra)
 library(palmerpenguins)
 
-penguins |>
+penguins_summary <- penguins |>
   select(where(is.numeric)) |>
   pivot_longer(everything(), names_to = "variable", values_to = "value") |>
   group_by(variable) |>
@@ -445,9 +442,17 @@ penguins |>
     range   = round(max - min, 2),
     skew    = round(e1071::skewness(value, na.rm = TRUE), 2),
     kurtosis = round(e1071::kurtosis(value, na.rm = TRUE), 2)
-  ) |>
-  kable("html", align = "lrrrrrrrrr") |>
-  kable_styling("striped", full_width = FALSE)
+  )
+
+if (knitr::is_html_output()) {
+  library(kableExtra)
+  penguins_summary |>
+    knitr::kable("html", align = "lrrrrrrrrr") |>
+    kable_styling("striped", full_width = FALSE)
+} else {
+  penguins_summary |>
+    knitr::kable(align = "lrrrrrrrrr")
+}
 ```
 
 ---
@@ -506,16 +511,24 @@ Summary statistics per species provide numerical support for the visual patterns
 ```{r sat-3-1-c-table}
 #| tbl-cap: "Mean (± SD) of four morphological traits for each penguin species. Values are rounded to one decimal place."
 
-penguins |>
+penguins_by_species <- penguins |>
   group_by(species) |>
   summarise(across(
     c(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g),
     list(mean = \(x) round(mean(x, na.rm = TRUE), 1),
          sd   = \(x) round(sd(x,   na.rm = TRUE), 1)),
     .names = "{.col}_{.fn}"
-  )) |>
-  kable("html") |>
-  kable_styling("striped", full_width = FALSE)
+  ))
+
+if (knitr::is_html_output()) {
+  library(kableExtra)
+  penguins_by_species |>
+    knitr::kable("html") |>
+    kable_styling("striped", full_width = FALSE)
+} else {
+  penguins_by_species |>
+    knitr::kable()
+}
 ```
 
 ```{r sat-3-1-c-scatter}

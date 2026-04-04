@@ -101,6 +101,21 @@ nrow(life_dat)
 
 The working dataset contains `r scales::comma(nrow(life_dat))` complete observations on life expectancy and schooling.
 
+I now fit the initial simple linear regression:
+
+$$
+\text{Life expectancy}_i = \beta_0 + \beta_1 \text{Schooling}_i + \varepsilon_i
+$$
+
+In this model, $\beta_1$ is the expected change in life expectancy associated with a one-unit increase in schooling.
+
+```{r}
+#| label: fit-full
+
+mod_school_full <- lm(life_expectancy ~ Schooling, data = life_dat)
+summary(mod_school_full)
+```
+
 **4. Diagnostics for the Initial Model**
 
 Regression assumptions should be checked graphically. I therefore inspect residuals versus fitted values, the normal Q-Q plot, the scale-location plot, and residuals versus leverage in @fig-full-diag.
@@ -162,6 +177,9 @@ schooling_zero <- life_dat |>
 
 schooling_zero_counts <- schooling_zero |>
   count(Country, name = "Zero-schooling years")
+
+zero_countries <- schooling_zero_counts |>
+  pull(Country)
 ```
 
 @tbl-zero-schooling lists the countries represented by one or more rows where schooling is coded as zero.
@@ -188,21 +206,6 @@ schooling_zero |>
 Because several of these zero-schooling values are unlikely to be literal population-level measurements, I first fit the model with all complete cases and then refit it after excluding these countries.
 
 **6. Initial Model: All Complete Cases**
-
-I now fit the simple linear regression:
-
-$$
-\text{Life expectancy}_i = \beta_0 + \beta_1 \text{Schooling}_i + \varepsilon_i
-$$
-
-In this model, $\beta_1$ is the expected change in life expectancy associated with a one-unit increase in schooling.
-
-```{r}
-#| label: fit-full
-
-mod_school_full <- lm(life_expectancy ~ Schooling, data = life_dat)
-summary(mod_school_full)
-```
 
 The fitted relationship is shown in @fig-full-fit.
 

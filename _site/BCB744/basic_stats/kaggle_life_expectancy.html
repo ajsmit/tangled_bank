@@ -897,7 +897,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/assessments/BCB744_BioStats_Example_1.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">BCB744 BioStats 2025 Example 1</span></a>
+ <span class="menu-text">BCB744 Biostatistics Example 1</span></a>
   </div>
 </li>
       </ul>
@@ -931,7 +931,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026/03/29</p>
+      <p class="date">2026/04/04</p>
     </div>
   </div>
   
@@ -1040,39 +1040,68 @@ window.Quarto = {
 </div>
 </div>
 <p>The working dataset contains 2,768 complete observations on life expectancy and schooling.</p>
+<p>I now fit the initial simple linear regression:</p>
+<p><span class="math display">\[
+\text{Life expectancy}_i = \beta_0 + \beta_1 \text{Schooling}_i + \varepsilon_i
+\]</span></p>
+<p>In this model, <span class="math inline">\(\beta_1\)</span> is the expected change in life expectancy associated with a one-unit increase in schooling.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>mod_school_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(life_expectancy <span class="sc">~</span> Schooling, <span class="at">data =</span> life_dat)</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="fu">summary</span>(mod_school_full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = life_expectancy ~ Schooling, data = life_dat)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-25.8986  -2.8210   0.6186   3.8186  30.4911 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept) 44.10889    0.43676     101   &lt;2e-16 ***
+Schooling    2.10345    0.03506      60   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 6.172 on 2766 degrees of freedom
+Multiple R-squared:  0.5655,    Adjusted R-squared:  0.5653 
+F-statistic:  3599 on 1 and 2766 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
 <p><strong>4. Diagnostics for the Initial Model</strong></p>
 <p>Regression assumptions should be checked graphically. I therefore inspect residuals versus fitted values, the normal Q-Q plot, the scale-location plot, and residuals versus leverage in <a href="#fig-full-diag" class="quarto-xref">Figure&nbsp;1</a>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>full_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(mod_school_full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>full_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(mod_school_full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>p_full_1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb4-3"><a href="#cb4-3"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
-<span id="cb4-4"><a href="#cb4-4"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Fitted values"</span>, <span class="at">y =</span> <span class="st">"Residuals"</span>, <span class="at">title =</span> <span class="st">"Residuals vs Fitted"</span>)</span>
-<span id="cb4-5"><a href="#cb4-5"></a></span>
-<span id="cb4-6"><a href="#cb4-6"></a>p_full_2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">sample =</span> .std.resid)) <span class="sc">+</span></span>
-<span id="cb4-7"><a href="#cb4-7"></a>  <span class="fu">stat_qq</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb4-8"><a href="#cb4-8"></a>  <span class="fu">stat_qq_line</span>(<span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
-<span id="cb4-9"><a href="#cb4-9"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Normal Q-Q"</span>, <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>, <span class="at">y =</span> <span class="st">"Standardised residuals"</span>)</span>
-<span id="cb4-10"><a href="#cb4-10"></a></span>
-<span id="cb4-11"><a href="#cb4-11"></a>p_full_3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(.std.resid)))) <span class="sc">+</span></span>
-<span id="cb4-12"><a href="#cb4-12"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb4-13"><a href="#cb4-13"></a>  <span class="fu">labs</span>(</span>
-<span id="cb4-14"><a href="#cb4-14"></a>    <span class="at">x =</span> <span class="st">"Fitted values"</span>,</span>
-<span id="cb4-15"><a href="#cb4-15"></a>    <span class="at">y =</span> <span class="st">"Sqrt(|Standardised residuals|)"</span>,</span>
-<span id="cb4-16"><a href="#cb4-16"></a>    <span class="at">title =</span> <span class="st">"Scale-Location"</span></span>
-<span id="cb4-17"><a href="#cb4-17"></a>  )</span>
-<span id="cb4-18"><a href="#cb4-18"></a></span>
-<span id="cb4-19"><a href="#cb4-19"></a>p_full_4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .hat, <span class="at">y =</span> .std.resid)) <span class="sc">+</span></span>
-<span id="cb4-20"><a href="#cb4-20"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb4-21"><a href="#cb4-21"></a>  <span class="fu">labs</span>(</span>
-<span id="cb4-22"><a href="#cb4-22"></a>    <span class="at">x =</span> <span class="st">"Leverage"</span>,</span>
-<span id="cb4-23"><a href="#cb4-23"></a>    <span class="at">y =</span> <span class="st">"Standardised residuals"</span>,</span>
-<span id="cb4-24"><a href="#cb4-24"></a>    <span class="at">title =</span> <span class="st">"Residuals vs Leverage"</span></span>
-<span id="cb4-25"><a href="#cb4-25"></a>  )</span>
-<span id="cb4-26"><a href="#cb4-26"></a></span>
-<span id="cb4-27"><a href="#cb4-27"></a>(p_full_1 <span class="sc">+</span> p_full_2) <span class="sc">/</span> (p_full_3 <span class="sc">+</span> p_full_4)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>p_full_1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Fitted values"</span>, <span class="at">y =</span> <span class="st">"Residuals"</span>, <span class="at">title =</span> <span class="st">"Residuals vs Fitted"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5"></a></span>
+<span id="cb6-6"><a href="#cb6-6"></a>p_full_2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">sample =</span> .std.resid)) <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a>  <span class="fu">stat_qq</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a>  <span class="fu">stat_qq_line</span>(<span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Normal Q-Q"</span>, <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>, <span class="at">y =</span> <span class="st">"Standardised residuals"</span>)</span>
+<span id="cb6-10"><a href="#cb6-10"></a></span>
+<span id="cb6-11"><a href="#cb6-11"></a>p_full_3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(.std.resid)))) <span class="sc">+</span></span>
+<span id="cb6-12"><a href="#cb6-12"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb6-13"><a href="#cb6-13"></a>  <span class="fu">labs</span>(</span>
+<span id="cb6-14"><a href="#cb6-14"></a>    <span class="at">x =</span> <span class="st">"Fitted values"</span>,</span>
+<span id="cb6-15"><a href="#cb6-15"></a>    <span class="at">y =</span> <span class="st">"Sqrt(|Standardised residuals|)"</span>,</span>
+<span id="cb6-16"><a href="#cb6-16"></a>    <span class="at">title =</span> <span class="st">"Scale-Location"</span></span>
+<span id="cb6-17"><a href="#cb6-17"></a>  )</span>
+<span id="cb6-18"><a href="#cb6-18"></a></span>
+<span id="cb6-19"><a href="#cb6-19"></a>p_full_4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .hat, <span class="at">y =</span> .std.resid)) <span class="sc">+</span></span>
+<span id="cb6-20"><a href="#cb6-20"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb6-21"><a href="#cb6-21"></a>  <span class="fu">labs</span>(</span>
+<span id="cb6-22"><a href="#cb6-22"></a>    <span class="at">x =</span> <span class="st">"Leverage"</span>,</span>
+<span id="cb6-23"><a href="#cb6-23"></a>    <span class="at">y =</span> <span class="st">"Standardised residuals"</span>,</span>
+<span id="cb6-24"><a href="#cb6-24"></a>    <span class="at">title =</span> <span class="st">"Residuals vs Leverage"</span></span>
+<span id="cb6-25"><a href="#cb6-25"></a>  )</span>
+<span id="cb6-26"><a href="#cb6-26"></a></span>
+<span id="cb6-27"><a href="#cb6-27"></a>(p_full_1 <span class="sc">+</span> p_full_2) <span class="sc">/</span> (p_full_3 <span class="sc">+</span> p_full_4)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-full-diag" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-full-diag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1088,13 +1117,16 @@ Figure&nbsp;1: Diagnostic plots for the simple linear regression of life expecta
 <p><strong>5. Countries With Zero Schooling</strong></p>
 <p>Before fitting the model, I inspect the cases where schooling is recorded as zero. A zero value here is biologically and socially unusual for several countries in the dataset, so it is worth checking whether these cases should be treated with caution.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>schooling_zero <span class="ot">&lt;-</span> life_dat <span class="sc">|&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">filter</span>(Schooling <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a>  <span class="fu">distinct</span>(Country, Year, Schooling) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a>  <span class="fu">arrange</span>(Country, Year)</span>
-<span id="cb5-5"><a href="#cb5-5"></a></span>
-<span id="cb5-6"><a href="#cb5-6"></a>schooling_zero_counts <span class="ot">&lt;-</span> schooling_zero <span class="sc">|&gt;</span></span>
-<span id="cb5-7"><a href="#cb5-7"></a>  <span class="fu">count</span>(Country, <span class="at">name =</span> <span class="st">"Zero-schooling years"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>schooling_zero <span class="ot">&lt;-</span> life_dat <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="fu">filter</span>(Schooling <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="fu">distinct</span>(Country, Year, Schooling) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="fu">arrange</span>(Country, Year)</span>
+<span id="cb7-5"><a href="#cb7-5"></a></span>
+<span id="cb7-6"><a href="#cb7-6"></a>schooling_zero_counts <span class="ot">&lt;-</span> schooling_zero <span class="sc">|&gt;</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a>  <span class="fu">count</span>(Country, <span class="at">name =</span> <span class="st">"Zero-schooling years"</span>)</span>
+<span id="cb7-8"><a href="#cb7-8"></a></span>
+<span id="cb7-9"><a href="#cb7-9"></a>zero_countries <span class="ot">&lt;-</span> schooling_zero_counts <span class="sc">|&gt;</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a>  <span class="fu">pull</span>(Country)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><a href="#tbl-zero-schooling" class="quarto-xref">Table&nbsp;1</a> lists the countries represented by one or more rows where schooling is coded as zero.</p>
 <div class="cell">
@@ -1103,23 +1135,23 @@ Figure&nbsp;1: Diagnostic plots for the simple linear regression of life expecta
 Table&nbsp;1: Countries with one or more observations in which schooling is coded as zero.
 </figcaption><div aria-describedby="tbl-zero-schooling-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<div id="jospfioock" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#jospfioock table {
+<div id="stvrrjaipd" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#stvrrjaipd table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#jospfioock thead, #jospfioock tbody, #jospfioock tfoot, #jospfioock tr, #jospfioock td, #jospfioock th {
+#stvrrjaipd thead, #stvrrjaipd tbody, #stvrrjaipd tfoot, #stvrrjaipd tr, #stvrrjaipd td, #stvrrjaipd th {
   border-style: none;
 }
 
-#jospfioock p {
+#stvrrjaipd p {
   margin: 0;
   padding: 0;
 }
 
-#jospfioock .gt_table {
+#stvrrjaipd .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1145,12 +1177,12 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-left-color: #D3D3D3;
 }
 
-#jospfioock .gt_caption {
+#stvrrjaipd .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#jospfioock .gt_title {
+#stvrrjaipd .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1162,7 +1194,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-bottom-width: 0;
 }
 
-#jospfioock .gt_subtitle {
+#stvrrjaipd .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1174,7 +1206,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-top-width: 0;
 }
 
-#jospfioock .gt_heading {
+#stvrrjaipd .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1186,13 +1218,13 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-right-color: #D3D3D3;
 }
 
-#jospfioock .gt_bottom_border {
+#stvrrjaipd .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#jospfioock .gt_col_headings {
+#stvrrjaipd .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1207,7 +1239,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-right-color: #D3D3D3;
 }
 
-#jospfioock .gt_col_heading {
+#stvrrjaipd .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1227,7 +1259,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   overflow-x: hidden;
 }
 
-#jospfioock .gt_column_spanner_outer {
+#stvrrjaipd .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1239,15 +1271,15 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   padding-right: 4px;
 }
 
-#jospfioock .gt_column_spanner_outer:first-child {
+#stvrrjaipd .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#jospfioock .gt_column_spanner_outer:last-child {
+#stvrrjaipd .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#jospfioock .gt_column_spanner {
+#stvrrjaipd .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1259,11 +1291,11 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   width: 100%;
 }
 
-#jospfioock .gt_spanner_row {
+#stvrrjaipd .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#jospfioock .gt_group_heading {
+#stvrrjaipd .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1289,7 +1321,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   text-align: left;
 }
 
-#jospfioock .gt_empty_group_heading {
+#stvrrjaipd .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1304,15 +1336,15 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   vertical-align: middle;
 }
 
-#jospfioock .gt_from_md > :first-child {
+#stvrrjaipd .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#jospfioock .gt_from_md > :last-child {
+#stvrrjaipd .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#jospfioock .gt_row {
+#stvrrjaipd .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1331,7 +1363,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   overflow-x: hidden;
 }
 
-#jospfioock .gt_stub {
+#stvrrjaipd .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1344,7 +1376,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   padding-right: 5px;
 }
 
-#jospfioock .gt_stub_row_group {
+#stvrrjaipd .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1358,15 +1390,15 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   vertical-align: top;
 }
 
-#jospfioock .gt_row_group_first td {
+#stvrrjaipd .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#jospfioock .gt_row_group_first th {
+#stvrrjaipd .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#jospfioock .gt_summary_row {
+#stvrrjaipd .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1376,16 +1408,16 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   padding-right: 5px;
 }
 
-#jospfioock .gt_first_summary_row {
+#stvrrjaipd .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#jospfioock .gt_first_summary_row.thick {
+#stvrrjaipd .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#jospfioock .gt_last_summary_row {
+#stvrrjaipd .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1395,7 +1427,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-bottom-color: #D3D3D3;
 }
 
-#jospfioock .gt_grand_summary_row {
+#stvrrjaipd .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1405,7 +1437,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   padding-right: 5px;
 }
 
-#jospfioock .gt_first_grand_summary_row {
+#stvrrjaipd .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1415,7 +1447,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-top-color: #D3D3D3;
 }
 
-#jospfioock .gt_last_grand_summary_row_top {
+#stvrrjaipd .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1425,11 +1457,11 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-bottom-color: #D3D3D3;
 }
 
-#jospfioock .gt_striped {
+#stvrrjaipd .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#jospfioock .gt_table_body {
+#stvrrjaipd .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1438,7 +1470,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-bottom-color: #D3D3D3;
 }
 
-#jospfioock .gt_footnotes {
+#stvrrjaipd .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1452,7 +1484,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-right-color: #D3D3D3;
 }
 
-#jospfioock .gt_footnote {
+#stvrrjaipd .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1461,7 +1493,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   padding-right: 5px;
 }
 
-#jospfioock .gt_sourcenotes {
+#stvrrjaipd .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1475,7 +1507,7 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   border-right-color: #D3D3D3;
 }
 
-#jospfioock .gt_sourcenote {
+#stvrrjaipd .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1483,72 +1515,72 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
   padding-right: 5px;
 }
 
-#jospfioock .gt_left {
+#stvrrjaipd .gt_left {
   text-align: left;
 }
 
-#jospfioock .gt_center {
+#stvrrjaipd .gt_center {
   text-align: center;
 }
 
-#jospfioock .gt_right {
+#stvrrjaipd .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#jospfioock .gt_font_normal {
+#stvrrjaipd .gt_font_normal {
   font-weight: normal;
 }
 
-#jospfioock .gt_font_bold {
+#stvrrjaipd .gt_font_bold {
   font-weight: bold;
 }
 
-#jospfioock .gt_font_italic {
+#stvrrjaipd .gt_font_italic {
   font-style: italic;
 }
 
-#jospfioock .gt_super {
+#stvrrjaipd .gt_super {
   font-size: 65%;
 }
 
-#jospfioock .gt_footnote_marks {
+#stvrrjaipd .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#jospfioock .gt_asterisk {
+#stvrrjaipd .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#jospfioock .gt_indent_1 {
+#stvrrjaipd .gt_indent_1 {
   text-indent: 5px;
 }
 
-#jospfioock .gt_indent_2 {
+#stvrrjaipd .gt_indent_2 {
   text-indent: 10px;
 }
 
-#jospfioock .gt_indent_3 {
+#stvrrjaipd .gt_indent_3 {
   text-indent: 15px;
 }
 
-#jospfioock .gt_indent_4 {
+#stvrrjaipd .gt_indent_4 {
   text-indent: 20px;
 }
 
-#jospfioock .gt_indent_5 {
+#stvrrjaipd .gt_indent_5 {
   text-indent: 25px;
 }
 
-#jospfioock .katex-display {
+#stvrrjaipd .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#jospfioock div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#stvrrjaipd div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1600,30 +1632,30 @@ Table&nbsp;1: Countries with one or more observations in which schooling is code
 </div>
 <p>The detailed country-year rows are shown in <a href="#tbl-zero-schooling-years" class="quarto-xref">Table&nbsp;2</a>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>schooling_zero <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a>  <span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>schooling_zero <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div id="tbl-zero-schooling-years" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-zero-schooling-years-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: Country-year observations in which schooling is coded as zero.
 </figcaption><div aria-describedby="tbl-zero-schooling-years-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<div id="rskavzfpap" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#rskavzfpap table {
+<div id="aqroijfhhh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#aqroijfhhh table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#rskavzfpap thead, #rskavzfpap tbody, #rskavzfpap tfoot, #rskavzfpap tr, #rskavzfpap td, #rskavzfpap th {
+#aqroijfhhh thead, #aqroijfhhh tbody, #aqroijfhhh tfoot, #aqroijfhhh tr, #aqroijfhhh td, #aqroijfhhh th {
   border-style: none;
 }
 
-#rskavzfpap p {
+#aqroijfhhh p {
   margin: 0;
   padding: 0;
 }
 
-#rskavzfpap .gt_table {
+#aqroijfhhh .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1649,12 +1681,12 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-left-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_caption {
+#aqroijfhhh .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#rskavzfpap .gt_title {
+#aqroijfhhh .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1666,7 +1698,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-bottom-width: 0;
 }
 
-#rskavzfpap .gt_subtitle {
+#aqroijfhhh .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1678,7 +1710,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-top-width: 0;
 }
 
-#rskavzfpap .gt_heading {
+#aqroijfhhh .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1690,13 +1722,13 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-right-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_bottom_border {
+#aqroijfhhh .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_col_headings {
+#aqroijfhhh .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1711,7 +1743,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-right-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_col_heading {
+#aqroijfhhh .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1731,7 +1763,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   overflow-x: hidden;
 }
 
-#rskavzfpap .gt_column_spanner_outer {
+#aqroijfhhh .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1743,15 +1775,15 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   padding-right: 4px;
 }
 
-#rskavzfpap .gt_column_spanner_outer:first-child {
+#aqroijfhhh .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#rskavzfpap .gt_column_spanner_outer:last-child {
+#aqroijfhhh .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#rskavzfpap .gt_column_spanner {
+#aqroijfhhh .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1763,11 +1795,11 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   width: 100%;
 }
 
-#rskavzfpap .gt_spanner_row {
+#aqroijfhhh .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#rskavzfpap .gt_group_heading {
+#aqroijfhhh .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1793,7 +1825,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   text-align: left;
 }
 
-#rskavzfpap .gt_empty_group_heading {
+#aqroijfhhh .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1808,15 +1840,15 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   vertical-align: middle;
 }
 
-#rskavzfpap .gt_from_md > :first-child {
+#aqroijfhhh .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#rskavzfpap .gt_from_md > :last-child {
+#aqroijfhhh .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#rskavzfpap .gt_row {
+#aqroijfhhh .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1835,7 +1867,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   overflow-x: hidden;
 }
 
-#rskavzfpap .gt_stub {
+#aqroijfhhh .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1848,7 +1880,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   padding-right: 5px;
 }
 
-#rskavzfpap .gt_stub_row_group {
+#aqroijfhhh .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1862,15 +1894,15 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   vertical-align: top;
 }
 
-#rskavzfpap .gt_row_group_first td {
+#aqroijfhhh .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#rskavzfpap .gt_row_group_first th {
+#aqroijfhhh .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#rskavzfpap .gt_summary_row {
+#aqroijfhhh .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1880,16 +1912,16 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   padding-right: 5px;
 }
 
-#rskavzfpap .gt_first_summary_row {
+#aqroijfhhh .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_first_summary_row.thick {
+#aqroijfhhh .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#rskavzfpap .gt_last_summary_row {
+#aqroijfhhh .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1899,7 +1931,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-bottom-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_grand_summary_row {
+#aqroijfhhh .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1909,7 +1941,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   padding-right: 5px;
 }
 
-#rskavzfpap .gt_first_grand_summary_row {
+#aqroijfhhh .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1919,7 +1951,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-top-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_last_grand_summary_row_top {
+#aqroijfhhh .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1929,11 +1961,11 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-bottom-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_striped {
+#aqroijfhhh .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#rskavzfpap .gt_table_body {
+#aqroijfhhh .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1942,7 +1974,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-bottom-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_footnotes {
+#aqroijfhhh .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1956,7 +1988,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-right-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_footnote {
+#aqroijfhhh .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1965,7 +1997,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   padding-right: 5px;
 }
 
-#rskavzfpap .gt_sourcenotes {
+#aqroijfhhh .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1979,7 +2011,7 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   border-right-color: #D3D3D3;
 }
 
-#rskavzfpap .gt_sourcenote {
+#aqroijfhhh .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1987,72 +2019,72 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
   padding-right: 5px;
 }
 
-#rskavzfpap .gt_left {
+#aqroijfhhh .gt_left {
   text-align: left;
 }
 
-#rskavzfpap .gt_center {
+#aqroijfhhh .gt_center {
   text-align: center;
 }
 
-#rskavzfpap .gt_right {
+#aqroijfhhh .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#rskavzfpap .gt_font_normal {
+#aqroijfhhh .gt_font_normal {
   font-weight: normal;
 }
 
-#rskavzfpap .gt_font_bold {
+#aqroijfhhh .gt_font_bold {
   font-weight: bold;
 }
 
-#rskavzfpap .gt_font_italic {
+#aqroijfhhh .gt_font_italic {
   font-style: italic;
 }
 
-#rskavzfpap .gt_super {
+#aqroijfhhh .gt_super {
   font-size: 65%;
 }
 
-#rskavzfpap .gt_footnote_marks {
+#aqroijfhhh .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#rskavzfpap .gt_asterisk {
+#aqroijfhhh .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#rskavzfpap .gt_indent_1 {
+#aqroijfhhh .gt_indent_1 {
   text-indent: 5px;
 }
 
-#rskavzfpap .gt_indent_2 {
+#aqroijfhhh .gt_indent_2 {
   text-indent: 10px;
 }
 
-#rskavzfpap .gt_indent_3 {
+#aqroijfhhh .gt_indent_3 {
   text-indent: 15px;
 }
 
-#rskavzfpap .gt_indent_4 {
+#aqroijfhhh .gt_indent_4 {
   text-indent: 20px;
 }
 
-#rskavzfpap .gt_indent_5 {
+#aqroijfhhh .gt_indent_5 {
   text-indent: 25px;
 }
 
-#rskavzfpap .katex-display {
+#aqroijfhhh .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#rskavzfpap div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#aqroijfhhh div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -2203,35 +2235,6 @@ Table&nbsp;2: Country-year observations in which schooling is coded as zero.
 </div>
 <p>Because several of these zero-schooling values are unlikely to be literal population-level measurements, I first fit the model with all complete cases and then refit it after excluding these countries.</p>
 <p><strong>6. Initial Model: All Complete Cases</strong></p>
-<p>I now fit the simple linear regression:</p>
-<p><span class="math display">\[
-\text{Life expectancy}_i = \beta_0 + \beta_1 \text{Schooling}_i + \varepsilon_i
-\]</span></p>
-<p>In this model, <span class="math inline">\(\beta_1\)</span> is the expected change in life expectancy associated with a one-unit increase in schooling.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>mod_school_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(life_expectancy <span class="sc">~</span> Schooling, <span class="at">data =</span> life_dat)</span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">summary</span>(mod_school_full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Call:
-lm(formula = life_expectancy ~ Schooling, data = life_dat)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--25.8986  -2.8210   0.6186   3.8186  30.4911 
-
-Coefficients:
-            Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept) 44.10889    0.43676     101   &lt;2e-16 ***
-Schooling    2.10345    0.03506      60   &lt;2e-16 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 6.172 on 2766 degrees of freedom
-Multiple R-squared:  0.5655,    Adjusted R-squared:  0.5653 
-F-statistic:  3599 on 1 and 2766 DF,  p-value: &lt; 2.2e-16</code></pre>
-</div>
-</div>
 <p>The fitted relationship is shown in <a href="#fig-full-fit" class="quarto-xref">Figure&nbsp;2</a>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">ggplot</span>(life_dat, <span class="fu">aes</span>(<span class="at">x =</span> Schooling, <span class="at">y =</span> life_expectancy)) <span class="sc">+</span></span>
@@ -2392,23 +2395,23 @@ Figure&nbsp;4: Diagnostic plots for the simple linear regression of life expecta
 Table&nbsp;3: Comparison of the simple linear regression fitted before and after removing countries with zero-schooling observations.
 </figcaption><div aria-describedby="tbl-model-compare-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<div id="zifhnnmemn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#zifhnnmemn table {
+<div id="vyyhxvjimd" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#vyyhxvjimd table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#zifhnnmemn thead, #zifhnnmemn tbody, #zifhnnmemn tfoot, #zifhnnmemn tr, #zifhnnmemn td, #zifhnnmemn th {
+#vyyhxvjimd thead, #vyyhxvjimd tbody, #vyyhxvjimd tfoot, #vyyhxvjimd tr, #vyyhxvjimd td, #vyyhxvjimd th {
   border-style: none;
 }
 
-#zifhnnmemn p {
+#vyyhxvjimd p {
   margin: 0;
   padding: 0;
 }
 
-#zifhnnmemn .gt_table {
+#vyyhxvjimd .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -2434,12 +2437,12 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-left-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_caption {
+#vyyhxvjimd .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#zifhnnmemn .gt_title {
+#vyyhxvjimd .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -2451,7 +2454,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-bottom-width: 0;
 }
 
-#zifhnnmemn .gt_subtitle {
+#vyyhxvjimd .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -2463,7 +2466,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-top-width: 0;
 }
 
-#zifhnnmemn .gt_heading {
+#vyyhxvjimd .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -2475,13 +2478,13 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-right-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_bottom_border {
+#vyyhxvjimd .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_col_headings {
+#vyyhxvjimd .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -2496,7 +2499,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-right-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_col_heading {
+#vyyhxvjimd .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2516,7 +2519,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   overflow-x: hidden;
 }
 
-#zifhnnmemn .gt_column_spanner_outer {
+#vyyhxvjimd .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2528,15 +2531,15 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   padding-right: 4px;
 }
 
-#zifhnnmemn .gt_column_spanner_outer:first-child {
+#vyyhxvjimd .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#zifhnnmemn .gt_column_spanner_outer:last-child {
+#vyyhxvjimd .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#zifhnnmemn .gt_column_spanner {
+#vyyhxvjimd .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -2548,11 +2551,11 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   width: 100%;
 }
 
-#zifhnnmemn .gt_spanner_row {
+#vyyhxvjimd .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#zifhnnmemn .gt_group_heading {
+#vyyhxvjimd .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2578,7 +2581,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   text-align: left;
 }
 
-#zifhnnmemn .gt_empty_group_heading {
+#vyyhxvjimd .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -2593,15 +2596,15 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   vertical-align: middle;
 }
 
-#zifhnnmemn .gt_from_md > :first-child {
+#vyyhxvjimd .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#zifhnnmemn .gt_from_md > :last-child {
+#vyyhxvjimd .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#zifhnnmemn .gt_row {
+#vyyhxvjimd .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2620,7 +2623,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   overflow-x: hidden;
 }
 
-#zifhnnmemn .gt_stub {
+#vyyhxvjimd .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2633,7 +2636,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   padding-right: 5px;
 }
 
-#zifhnnmemn .gt_stub_row_group {
+#vyyhxvjimd .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2647,15 +2650,15 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   vertical-align: top;
 }
 
-#zifhnnmemn .gt_row_group_first td {
+#vyyhxvjimd .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#zifhnnmemn .gt_row_group_first th {
+#vyyhxvjimd .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#zifhnnmemn .gt_summary_row {
+#vyyhxvjimd .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2665,16 +2668,16 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   padding-right: 5px;
 }
 
-#zifhnnmemn .gt_first_summary_row {
+#vyyhxvjimd .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_first_summary_row.thick {
+#vyyhxvjimd .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#zifhnnmemn .gt_last_summary_row {
+#vyyhxvjimd .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2684,7 +2687,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-bottom-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_grand_summary_row {
+#vyyhxvjimd .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2694,7 +2697,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   padding-right: 5px;
 }
 
-#zifhnnmemn .gt_first_grand_summary_row {
+#vyyhxvjimd .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2704,7 +2707,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-top-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_last_grand_summary_row_top {
+#vyyhxvjimd .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2714,11 +2717,11 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-bottom-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_striped {
+#vyyhxvjimd .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#zifhnnmemn .gt_table_body {
+#vyyhxvjimd .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -2727,7 +2730,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-bottom-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_footnotes {
+#vyyhxvjimd .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2741,7 +2744,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-right-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_footnote {
+#vyyhxvjimd .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -2750,7 +2753,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   padding-right: 5px;
 }
 
-#zifhnnmemn .gt_sourcenotes {
+#vyyhxvjimd .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2764,7 +2767,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   border-right-color: #D3D3D3;
 }
 
-#zifhnnmemn .gt_sourcenote {
+#vyyhxvjimd .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -2772,72 +2775,72 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
   padding-right: 5px;
 }
 
-#zifhnnmemn .gt_left {
+#vyyhxvjimd .gt_left {
   text-align: left;
 }
 
-#zifhnnmemn .gt_center {
+#vyyhxvjimd .gt_center {
   text-align: center;
 }
 
-#zifhnnmemn .gt_right {
+#vyyhxvjimd .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#zifhnnmemn .gt_font_normal {
+#vyyhxvjimd .gt_font_normal {
   font-weight: normal;
 }
 
-#zifhnnmemn .gt_font_bold {
+#vyyhxvjimd .gt_font_bold {
   font-weight: bold;
 }
 
-#zifhnnmemn .gt_font_italic {
+#vyyhxvjimd .gt_font_italic {
   font-style: italic;
 }
 
-#zifhnnmemn .gt_super {
+#vyyhxvjimd .gt_super {
   font-size: 65%;
 }
 
-#zifhnnmemn .gt_footnote_marks {
+#vyyhxvjimd .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#zifhnnmemn .gt_asterisk {
+#vyyhxvjimd .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#zifhnnmemn .gt_indent_1 {
+#vyyhxvjimd .gt_indent_1 {
   text-indent: 5px;
 }
 
-#zifhnnmemn .gt_indent_2 {
+#vyyhxvjimd .gt_indent_2 {
   text-indent: 10px;
 }
 
-#zifhnnmemn .gt_indent_3 {
+#vyyhxvjimd .gt_indent_3 {
   text-indent: 15px;
 }
 
-#zifhnnmemn .gt_indent_4 {
+#vyyhxvjimd .gt_indent_4 {
   text-indent: 20px;
 }
 
-#zifhnnmemn .gt_indent_5 {
+#vyyhxvjimd .gt_indent_5 {
   text-indent: 25px;
 }
 
-#zifhnnmemn .katex-display {
+#vyyhxvjimd .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#zifhnnmemn div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#vyyhxvjimd div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -2897,7 +2900,7 @@ Table&nbsp;3: Comparison of the simple linear regression fitted before and after
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2026,
   author = {Smit, A. J. and J. Smit, A.},
   title = {Life {Expectancy} and {Schooling}},
-  date = {2026-03-29},
+  date = {2026-04-04},
   url = {https://tangledbank.netlify.app/BCB744/basic_stats/kaggle_life_expectancy.html},
   langid = {en}
 }
@@ -3510,275 +3513,278 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb18-105"><a href="#cb18-105"></a></span>
 <span id="cb18-106"><a href="#cb18-106"></a>The working dataset contains <span class="in">`r scales::comma(nrow(life_dat))`</span> complete observations on life expectancy and schooling.</span>
 <span id="cb18-107"><a href="#cb18-107"></a></span>
-<span id="cb18-108"><a href="#cb18-108"></a>**4. Diagnostics for the Initial Model**</span>
+<span id="cb18-108"><a href="#cb18-108"></a>I now fit the initial simple linear regression:</span>
 <span id="cb18-109"><a href="#cb18-109"></a></span>
-<span id="cb18-110"><a href="#cb18-110"></a>Regression assumptions should be checked graphically. I therefore inspect residuals versus fitted values, the normal Q-Q plot, the scale-location plot, and residuals versus leverage in @fig-full-diag.</span>
-<span id="cb18-111"><a href="#cb18-111"></a></span>
-<span id="cb18-114"><a href="#cb18-114"></a><span class="in">```{r}</span></span>
-<span id="cb18-115"><a href="#cb18-115"></a><span class="co">#| label: full-augment</span></span>
-<span id="cb18-116"><a href="#cb18-116"></a></span>
-<span id="cb18-117"><a href="#cb18-117"></a>full_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(mod_school_full)</span>
-<span id="cb18-118"><a href="#cb18-118"></a><span class="in">```</span></span>
-<span id="cb18-119"><a href="#cb18-119"></a></span>
-<span id="cb18-122"><a href="#cb18-122"></a><span class="in">```{r}</span></span>
-<span id="cb18-123"><a href="#cb18-123"></a><span class="co">#| label: fig-full-diag</span></span>
-<span id="cb18-124"><a href="#cb18-124"></a><span class="co">#| fig-cap: "Diagnostic plots for the simple linear regression of life expectancy on schooling using all complete cases."</span></span>
-<span id="cb18-125"><a href="#cb18-125"></a><span class="co">#| fig-width: 8</span></span>
-<span id="cb18-126"><a href="#cb18-126"></a><span class="co">#| fig-height: 7</span></span>
-<span id="cb18-127"><a href="#cb18-127"></a></span>
-<span id="cb18-128"><a href="#cb18-128"></a>p_full_1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
-<span id="cb18-129"><a href="#cb18-129"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb18-130"><a href="#cb18-130"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
-<span id="cb18-131"><a href="#cb18-131"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Fitted values"</span>, <span class="at">y =</span> <span class="st">"Residuals"</span>, <span class="at">title =</span> <span class="st">"Residuals vs Fitted"</span>)</span>
-<span id="cb18-132"><a href="#cb18-132"></a></span>
-<span id="cb18-133"><a href="#cb18-133"></a>p_full_2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">sample =</span> .std.resid)) <span class="sc">+</span></span>
-<span id="cb18-134"><a href="#cb18-134"></a>  <span class="fu">stat_qq</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb18-135"><a href="#cb18-135"></a>  <span class="fu">stat_qq_line</span>(<span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
-<span id="cb18-136"><a href="#cb18-136"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Normal Q-Q"</span>, <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>, <span class="at">y =</span> <span class="st">"Standardised residuals"</span>)</span>
-<span id="cb18-137"><a href="#cb18-137"></a></span>
-<span id="cb18-138"><a href="#cb18-138"></a>p_full_3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(.std.resid)))) <span class="sc">+</span></span>
-<span id="cb18-139"><a href="#cb18-139"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb18-140"><a href="#cb18-140"></a>  <span class="fu">labs</span>(</span>
-<span id="cb18-141"><a href="#cb18-141"></a>    <span class="at">x =</span> <span class="st">"Fitted values"</span>,</span>
-<span id="cb18-142"><a href="#cb18-142"></a>    <span class="at">y =</span> <span class="st">"Sqrt(|Standardised residuals|)"</span>,</span>
-<span id="cb18-143"><a href="#cb18-143"></a>    <span class="at">title =</span> <span class="st">"Scale-Location"</span></span>
-<span id="cb18-144"><a href="#cb18-144"></a>  )</span>
-<span id="cb18-145"><a href="#cb18-145"></a></span>
-<span id="cb18-146"><a href="#cb18-146"></a>p_full_4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .hat, <span class="at">y =</span> .std.resid)) <span class="sc">+</span></span>
-<span id="cb18-147"><a href="#cb18-147"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb18-148"><a href="#cb18-148"></a>  <span class="fu">labs</span>(</span>
-<span id="cb18-149"><a href="#cb18-149"></a>    <span class="at">x =</span> <span class="st">"Leverage"</span>,</span>
-<span id="cb18-150"><a href="#cb18-150"></a>    <span class="at">y =</span> <span class="st">"Standardised residuals"</span>,</span>
-<span id="cb18-151"><a href="#cb18-151"></a>    <span class="at">title =</span> <span class="st">"Residuals vs Leverage"</span></span>
-<span id="cb18-152"><a href="#cb18-152"></a>  )</span>
-<span id="cb18-153"><a href="#cb18-153"></a></span>
-<span id="cb18-154"><a href="#cb18-154"></a>(p_full_1 <span class="sc">+</span> p_full_2) <span class="sc">/</span> (p_full_3 <span class="sc">+</span> p_full_4)</span>
-<span id="cb18-155"><a href="#cb18-155"></a><span class="in">```</span></span>
-<span id="cb18-156"><a href="#cb18-156"></a></span>
-<span id="cb18-157"><a href="#cb18-157"></a>The initial diagnostics in @fig-full-diag suggest that the model captures the broad trend reasonably well, but there is evidence that the extreme low-schooling observations deserve scrutiny. The residual plots are not catastrophic, but the zero-schooling countries create a left-edge concentration that may be exerting unnecessary influence on the fitted line.</span>
-<span id="cb18-158"><a href="#cb18-158"></a></span>
-<span id="cb18-159"><a href="#cb18-159"></a>**5. Countries With Zero Schooling**</span>
-<span id="cb18-160"><a href="#cb18-160"></a></span>
-<span id="cb18-161"><a href="#cb18-161"></a>Before fitting the model, I inspect the cases where schooling is recorded as zero. A zero value here is biologically and socially unusual for several countries in the dataset, so it is worth checking whether these cases should be treated with caution.</span>
+<span id="cb18-110"><a href="#cb18-110"></a>$$</span>
+<span id="cb18-111"><a href="#cb18-111"></a>\text{Life expectancy}_i = \beta_0 + \beta_1 \text{Schooling}_i + \varepsilon_i</span>
+<span id="cb18-112"><a href="#cb18-112"></a>$$</span>
+<span id="cb18-113"><a href="#cb18-113"></a></span>
+<span id="cb18-114"><a href="#cb18-114"></a>In this model, $\beta_1$ is the expected change in life expectancy associated with a one-unit increase in schooling.</span>
+<span id="cb18-115"><a href="#cb18-115"></a></span>
+<span id="cb18-118"><a href="#cb18-118"></a><span class="in">```{r}</span></span>
+<span id="cb18-119"><a href="#cb18-119"></a><span class="co">#| label: fit-full</span></span>
+<span id="cb18-120"><a href="#cb18-120"></a></span>
+<span id="cb18-121"><a href="#cb18-121"></a>mod_school_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(life_expectancy <span class="sc">~</span> Schooling, <span class="at">data =</span> life_dat)</span>
+<span id="cb18-122"><a href="#cb18-122"></a><span class="fu">summary</span>(mod_school_full)</span>
+<span id="cb18-123"><a href="#cb18-123"></a><span class="in">```</span></span>
+<span id="cb18-124"><a href="#cb18-124"></a></span>
+<span id="cb18-125"><a href="#cb18-125"></a>**4. Diagnostics for the Initial Model**</span>
+<span id="cb18-126"><a href="#cb18-126"></a></span>
+<span id="cb18-127"><a href="#cb18-127"></a>Regression assumptions should be checked graphically. I therefore inspect residuals versus fitted values, the normal Q-Q plot, the scale-location plot, and residuals versus leverage in @fig-full-diag.</span>
+<span id="cb18-128"><a href="#cb18-128"></a></span>
+<span id="cb18-131"><a href="#cb18-131"></a><span class="in">```{r}</span></span>
+<span id="cb18-132"><a href="#cb18-132"></a><span class="co">#| label: full-augment</span></span>
+<span id="cb18-133"><a href="#cb18-133"></a></span>
+<span id="cb18-134"><a href="#cb18-134"></a>full_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(mod_school_full)</span>
+<span id="cb18-135"><a href="#cb18-135"></a><span class="in">```</span></span>
+<span id="cb18-136"><a href="#cb18-136"></a></span>
+<span id="cb18-139"><a href="#cb18-139"></a><span class="in">```{r}</span></span>
+<span id="cb18-140"><a href="#cb18-140"></a><span class="co">#| label: fig-full-diag</span></span>
+<span id="cb18-141"><a href="#cb18-141"></a><span class="co">#| fig-cap: "Diagnostic plots for the simple linear regression of life expectancy on schooling using all complete cases."</span></span>
+<span id="cb18-142"><a href="#cb18-142"></a><span class="co">#| fig-width: 8</span></span>
+<span id="cb18-143"><a href="#cb18-143"></a><span class="co">#| fig-height: 7</span></span>
+<span id="cb18-144"><a href="#cb18-144"></a></span>
+<span id="cb18-145"><a href="#cb18-145"></a>p_full_1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
+<span id="cb18-146"><a href="#cb18-146"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb18-147"><a href="#cb18-147"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb18-148"><a href="#cb18-148"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Fitted values"</span>, <span class="at">y =</span> <span class="st">"Residuals"</span>, <span class="at">title =</span> <span class="st">"Residuals vs Fitted"</span>)</span>
+<span id="cb18-149"><a href="#cb18-149"></a></span>
+<span id="cb18-150"><a href="#cb18-150"></a>p_full_2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">sample =</span> .std.resid)) <span class="sc">+</span></span>
+<span id="cb18-151"><a href="#cb18-151"></a>  <span class="fu">stat_qq</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb18-152"><a href="#cb18-152"></a>  <span class="fu">stat_qq_line</span>(<span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb18-153"><a href="#cb18-153"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Normal Q-Q"</span>, <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>, <span class="at">y =</span> <span class="st">"Standardised residuals"</span>)</span>
+<span id="cb18-154"><a href="#cb18-154"></a></span>
+<span id="cb18-155"><a href="#cb18-155"></a>p_full_3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(.std.resid)))) <span class="sc">+</span></span>
+<span id="cb18-156"><a href="#cb18-156"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb18-157"><a href="#cb18-157"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-158"><a href="#cb18-158"></a>    <span class="at">x =</span> <span class="st">"Fitted values"</span>,</span>
+<span id="cb18-159"><a href="#cb18-159"></a>    <span class="at">y =</span> <span class="st">"Sqrt(|Standardised residuals|)"</span>,</span>
+<span id="cb18-160"><a href="#cb18-160"></a>    <span class="at">title =</span> <span class="st">"Scale-Location"</span></span>
+<span id="cb18-161"><a href="#cb18-161"></a>  )</span>
 <span id="cb18-162"><a href="#cb18-162"></a></span>
-<span id="cb18-165"><a href="#cb18-165"></a><span class="in">```{r}</span></span>
-<span id="cb18-166"><a href="#cb18-166"></a><span class="co">#| label: zero-schooling-data</span></span>
-<span id="cb18-167"><a href="#cb18-167"></a></span>
-<span id="cb18-168"><a href="#cb18-168"></a>schooling_zero <span class="ot">&lt;-</span> life_dat <span class="sc">|&gt;</span></span>
-<span id="cb18-169"><a href="#cb18-169"></a>  <span class="fu">filter</span>(Schooling <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb18-170"><a href="#cb18-170"></a>  <span class="fu">distinct</span>(Country, Year, Schooling) <span class="sc">|&gt;</span></span>
-<span id="cb18-171"><a href="#cb18-171"></a>  <span class="fu">arrange</span>(Country, Year)</span>
-<span id="cb18-172"><a href="#cb18-172"></a></span>
-<span id="cb18-173"><a href="#cb18-173"></a>schooling_zero_counts <span class="ot">&lt;-</span> schooling_zero <span class="sc">|&gt;</span></span>
-<span id="cb18-174"><a href="#cb18-174"></a>  <span class="fu">count</span>(Country, <span class="at">name =</span> <span class="st">"Zero-schooling years"</span>)</span>
-<span id="cb18-175"><a href="#cb18-175"></a><span class="in">```</span></span>
-<span id="cb18-176"><a href="#cb18-176"></a></span>
-<span id="cb18-177"><a href="#cb18-177"></a>@tbl-zero-schooling lists the countries represented by one or more rows where schooling is coded as zero.</span>
-<span id="cb18-178"><a href="#cb18-178"></a></span>
-<span id="cb18-181"><a href="#cb18-181"></a><span class="in">```{r}</span></span>
-<span id="cb18-182"><a href="#cb18-182"></a><span class="co">#| label: tbl-zero-schooling</span></span>
-<span id="cb18-183"><a href="#cb18-183"></a><span class="co">#| tbl-cap: "Countries with one or more observations in which schooling is coded as zero."</span></span>
-<span id="cb18-184"><a href="#cb18-184"></a><span class="co">#| echo: false</span></span>
-<span id="cb18-185"><a href="#cb18-185"></a></span>
-<span id="cb18-186"><a href="#cb18-186"></a>schooling_zero_counts <span class="sc">|&gt;</span></span>
-<span id="cb18-187"><a href="#cb18-187"></a>  <span class="fu">gt</span>()</span>
-<span id="cb18-188"><a href="#cb18-188"></a><span class="in">```</span></span>
+<span id="cb18-163"><a href="#cb18-163"></a>p_full_4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(full_aug, <span class="fu">aes</span>(<span class="at">x =</span> .hat, <span class="at">y =</span> .std.resid)) <span class="sc">+</span></span>
+<span id="cb18-164"><a href="#cb18-164"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb18-165"><a href="#cb18-165"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-166"><a href="#cb18-166"></a>    <span class="at">x =</span> <span class="st">"Leverage"</span>,</span>
+<span id="cb18-167"><a href="#cb18-167"></a>    <span class="at">y =</span> <span class="st">"Standardised residuals"</span>,</span>
+<span id="cb18-168"><a href="#cb18-168"></a>    <span class="at">title =</span> <span class="st">"Residuals vs Leverage"</span></span>
+<span id="cb18-169"><a href="#cb18-169"></a>  )</span>
+<span id="cb18-170"><a href="#cb18-170"></a></span>
+<span id="cb18-171"><a href="#cb18-171"></a>(p_full_1 <span class="sc">+</span> p_full_2) <span class="sc">/</span> (p_full_3 <span class="sc">+</span> p_full_4)</span>
+<span id="cb18-172"><a href="#cb18-172"></a><span class="in">```</span></span>
+<span id="cb18-173"><a href="#cb18-173"></a></span>
+<span id="cb18-174"><a href="#cb18-174"></a>The initial diagnostics in @fig-full-diag suggest that the model captures the broad trend reasonably well, but there is evidence that the extreme low-schooling observations deserve scrutiny. The residual plots are not catastrophic, but the zero-schooling countries create a left-edge concentration that may be exerting unnecessary influence on the fitted line.</span>
+<span id="cb18-175"><a href="#cb18-175"></a></span>
+<span id="cb18-176"><a href="#cb18-176"></a>**5. Countries With Zero Schooling**</span>
+<span id="cb18-177"><a href="#cb18-177"></a></span>
+<span id="cb18-178"><a href="#cb18-178"></a>Before fitting the model, I inspect the cases where schooling is recorded as zero. A zero value here is biologically and socially unusual for several countries in the dataset, so it is worth checking whether these cases should be treated with caution.</span>
+<span id="cb18-179"><a href="#cb18-179"></a></span>
+<span id="cb18-182"><a href="#cb18-182"></a><span class="in">```{r}</span></span>
+<span id="cb18-183"><a href="#cb18-183"></a><span class="co">#| label: zero-schooling-data</span></span>
+<span id="cb18-184"><a href="#cb18-184"></a></span>
+<span id="cb18-185"><a href="#cb18-185"></a>schooling_zero <span class="ot">&lt;-</span> life_dat <span class="sc">|&gt;</span></span>
+<span id="cb18-186"><a href="#cb18-186"></a>  <span class="fu">filter</span>(Schooling <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-187"><a href="#cb18-187"></a>  <span class="fu">distinct</span>(Country, Year, Schooling) <span class="sc">|&gt;</span></span>
+<span id="cb18-188"><a href="#cb18-188"></a>  <span class="fu">arrange</span>(Country, Year)</span>
 <span id="cb18-189"><a href="#cb18-189"></a></span>
-<span id="cb18-190"><a href="#cb18-190"></a>The detailed country-year rows are shown in @tbl-zero-schooling-years.</span>
-<span id="cb18-191"><a href="#cb18-191"></a></span>
-<span id="cb18-194"><a href="#cb18-194"></a><span class="in">```{r}</span></span>
-<span id="cb18-195"><a href="#cb18-195"></a><span class="co">#| label: tbl-zero-schooling-years</span></span>
-<span id="cb18-196"><a href="#cb18-196"></a><span class="co">#| tbl-cap: "Country-year observations in which schooling is coded as zero."</span></span>
-<span id="cb18-197"><a href="#cb18-197"></a></span>
-<span id="cb18-198"><a href="#cb18-198"></a>schooling_zero <span class="sc">|&gt;</span></span>
-<span id="cb18-199"><a href="#cb18-199"></a>  <span class="fu">gt</span>()</span>
-<span id="cb18-200"><a href="#cb18-200"></a><span class="in">```</span></span>
-<span id="cb18-201"><a href="#cb18-201"></a></span>
-<span id="cb18-202"><a href="#cb18-202"></a>Because several of these zero-schooling values are unlikely to be literal population-level measurements, I first fit the model with all complete cases and then refit it after excluding these countries.</span>
-<span id="cb18-203"><a href="#cb18-203"></a></span>
-<span id="cb18-204"><a href="#cb18-204"></a>**6. Initial Model: All Complete Cases**</span>
+<span id="cb18-190"><a href="#cb18-190"></a>schooling_zero_counts <span class="ot">&lt;-</span> schooling_zero <span class="sc">|&gt;</span></span>
+<span id="cb18-191"><a href="#cb18-191"></a>  <span class="fu">count</span>(Country, <span class="at">name =</span> <span class="st">"Zero-schooling years"</span>)</span>
+<span id="cb18-192"><a href="#cb18-192"></a></span>
+<span id="cb18-193"><a href="#cb18-193"></a>zero_countries <span class="ot">&lt;-</span> schooling_zero_counts <span class="sc">|&gt;</span></span>
+<span id="cb18-194"><a href="#cb18-194"></a>  <span class="fu">pull</span>(Country)</span>
+<span id="cb18-195"><a href="#cb18-195"></a><span class="in">```</span></span>
+<span id="cb18-196"><a href="#cb18-196"></a></span>
+<span id="cb18-197"><a href="#cb18-197"></a>@tbl-zero-schooling lists the countries represented by one or more rows where schooling is coded as zero.</span>
+<span id="cb18-198"><a href="#cb18-198"></a></span>
+<span id="cb18-201"><a href="#cb18-201"></a><span class="in">```{r}</span></span>
+<span id="cb18-202"><a href="#cb18-202"></a><span class="co">#| label: tbl-zero-schooling</span></span>
+<span id="cb18-203"><a href="#cb18-203"></a><span class="co">#| tbl-cap: "Countries with one or more observations in which schooling is coded as zero."</span></span>
+<span id="cb18-204"><a href="#cb18-204"></a><span class="co">#| echo: false</span></span>
 <span id="cb18-205"><a href="#cb18-205"></a></span>
-<span id="cb18-206"><a href="#cb18-206"></a>I now fit the simple linear regression:</span>
-<span id="cb18-207"><a href="#cb18-207"></a></span>
-<span id="cb18-208"><a href="#cb18-208"></a>$$</span>
-<span id="cb18-209"><a href="#cb18-209"></a>\text{Life expectancy}_i = \beta_0 + \beta_1 \text{Schooling}_i + \varepsilon_i</span>
-<span id="cb18-210"><a href="#cb18-210"></a>$$</span>
+<span id="cb18-206"><a href="#cb18-206"></a>schooling_zero_counts <span class="sc">|&gt;</span></span>
+<span id="cb18-207"><a href="#cb18-207"></a>  <span class="fu">gt</span>()</span>
+<span id="cb18-208"><a href="#cb18-208"></a><span class="in">```</span></span>
+<span id="cb18-209"><a href="#cb18-209"></a></span>
+<span id="cb18-210"><a href="#cb18-210"></a>The detailed country-year rows are shown in @tbl-zero-schooling-years.</span>
 <span id="cb18-211"><a href="#cb18-211"></a></span>
-<span id="cb18-212"><a href="#cb18-212"></a>In this model, $\beta_1$ is the expected change in life expectancy associated with a one-unit increase in schooling.</span>
-<span id="cb18-213"><a href="#cb18-213"></a></span>
-<span id="cb18-216"><a href="#cb18-216"></a><span class="in">```{r}</span></span>
-<span id="cb18-217"><a href="#cb18-217"></a><span class="co">#| label: fit-full</span></span>
-<span id="cb18-218"><a href="#cb18-218"></a></span>
-<span id="cb18-219"><a href="#cb18-219"></a>mod_school_full <span class="ot">&lt;-</span> <span class="fu">lm</span>(life_expectancy <span class="sc">~</span> Schooling, <span class="at">data =</span> life_dat)</span>
-<span id="cb18-220"><a href="#cb18-220"></a><span class="fu">summary</span>(mod_school_full)</span>
-<span id="cb18-221"><a href="#cb18-221"></a><span class="in">```</span></span>
-<span id="cb18-222"><a href="#cb18-222"></a></span>
-<span id="cb18-223"><a href="#cb18-223"></a>The fitted relationship is shown in @fig-full-fit.</span>
-<span id="cb18-224"><a href="#cb18-224"></a></span>
-<span id="cb18-227"><a href="#cb18-227"></a><span class="in">```{r}</span></span>
-<span id="cb18-228"><a href="#cb18-228"></a><span class="co">#| label: fig-full-fit</span></span>
-<span id="cb18-229"><a href="#cb18-229"></a><span class="co">#| fig-cap: "Life expectancy as a function of schooling using all complete observations. The line shows the fitted simple linear regression and the shaded band shows the 95% confidence interval for the mean fitted response."</span></span>
-<span id="cb18-230"><a href="#cb18-230"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb18-231"><a href="#cb18-231"></a><span class="co">#| fig-height: 4.5</span></span>
-<span id="cb18-232"><a href="#cb18-232"></a></span>
-<span id="cb18-233"><a href="#cb18-233"></a><span class="fu">ggplot</span>(life_dat, <span class="fu">aes</span>(<span class="at">x =</span> Schooling, <span class="at">y =</span> life_expectancy)) <span class="sc">+</span></span>
-<span id="cb18-234"><a href="#cb18-234"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.35</span>, <span class="at">colour =</span> <span class="st">"grey35"</span>) <span class="sc">+</span></span>
-<span id="cb18-235"><a href="#cb18-235"></a>  <span class="fu">geom_smooth</span>(</span>
-<span id="cb18-236"><a href="#cb18-236"></a>    <span class="at">method =</span> <span class="st">"lm"</span>,</span>
-<span id="cb18-237"><a href="#cb18-237"></a>    <span class="at">se =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb18-238"><a href="#cb18-238"></a>    <span class="at">colour =</span> <span class="st">"steelblue4"</span>,</span>
-<span id="cb18-239"><a href="#cb18-239"></a>    <span class="at">fill =</span> <span class="st">"lightblue"</span></span>
-<span id="cb18-240"><a href="#cb18-240"></a>  ) <span class="sc">+</span></span>
-<span id="cb18-241"><a href="#cb18-241"></a>  <span class="fu">labs</span>(</span>
-<span id="cb18-242"><a href="#cb18-242"></a>    <span class="at">x =</span> <span class="st">"Schooling"</span>,</span>
-<span id="cb18-243"><a href="#cb18-243"></a>    <span class="at">y =</span> <span class="st">"Life expectancy"</span></span>
-<span id="cb18-244"><a href="#cb18-244"></a>  )</span>
-<span id="cb18-245"><a href="#cb18-245"></a><span class="in">```</span></span>
-<span id="cb18-246"><a href="#cb18-246"></a></span>
-<span id="cb18-247"><a href="#cb18-247"></a>@fig-full-fit shows a clear positive trend: countries with higher schooling values tend to have higher life expectancy. The relationship is not perfectly tight, but it is strong enough to make a simple straight-line model a reasonable first approximation.</span>
-<span id="cb18-248"><a href="#cb18-248"></a></span>
-<span id="cb18-249"><a href="#cb18-249"></a>**7. Refit After Removing Zero-Schooling Countries**</span>
-<span id="cb18-250"><a href="#cb18-250"></a></span>
-<span id="cb18-251"><a href="#cb18-251"></a>I now remove every country that appears in @tbl-zero-schooling and refit the model. This is a more conservative filtering decision than simply dropping the rows where schooling equals zero, because it assumes that a country with obviously suspect schooling values may contribute additional problematic observations in other years as well.</span>
-<span id="cb18-252"><a href="#cb18-252"></a></span>
-<span id="cb18-255"><a href="#cb18-255"></a><span class="in">```{r}</span></span>
-<span id="cb18-256"><a href="#cb18-256"></a><span class="co">#| label: data-filtered</span></span>
-<span id="cb18-257"><a href="#cb18-257"></a></span>
-<span id="cb18-258"><a href="#cb18-258"></a>life_dat_filtered <span class="ot">&lt;-</span> life_dat <span class="sc">|&gt;</span></span>
-<span id="cb18-259"><a href="#cb18-259"></a>  <span class="fu">filter</span>(<span class="sc">!</span>Country <span class="sc">%in%</span> zero_countries)</span>
+<span id="cb18-214"><a href="#cb18-214"></a><span class="in">```{r}</span></span>
+<span id="cb18-215"><a href="#cb18-215"></a><span class="co">#| label: tbl-zero-schooling-years</span></span>
+<span id="cb18-216"><a href="#cb18-216"></a><span class="co">#| tbl-cap: "Country-year observations in which schooling is coded as zero."</span></span>
+<span id="cb18-217"><a href="#cb18-217"></a></span>
+<span id="cb18-218"><a href="#cb18-218"></a>schooling_zero <span class="sc">|&gt;</span></span>
+<span id="cb18-219"><a href="#cb18-219"></a>  <span class="fu">gt</span>()</span>
+<span id="cb18-220"><a href="#cb18-220"></a><span class="in">```</span></span>
+<span id="cb18-221"><a href="#cb18-221"></a></span>
+<span id="cb18-222"><a href="#cb18-222"></a>Because several of these zero-schooling values are unlikely to be literal population-level measurements, I first fit the model with all complete cases and then refit it after excluding these countries.</span>
+<span id="cb18-223"><a href="#cb18-223"></a></span>
+<span id="cb18-224"><a href="#cb18-224"></a>**6. Initial Model: All Complete Cases**</span>
+<span id="cb18-225"><a href="#cb18-225"></a></span>
+<span id="cb18-226"><a href="#cb18-226"></a>The fitted relationship is shown in @fig-full-fit.</span>
+<span id="cb18-227"><a href="#cb18-227"></a></span>
+<span id="cb18-230"><a href="#cb18-230"></a><span class="in">```{r}</span></span>
+<span id="cb18-231"><a href="#cb18-231"></a><span class="co">#| label: fig-full-fit</span></span>
+<span id="cb18-232"><a href="#cb18-232"></a><span class="co">#| fig-cap: "Life expectancy as a function of schooling using all complete observations. The line shows the fitted simple linear regression and the shaded band shows the 95% confidence interval for the mean fitted response."</span></span>
+<span id="cb18-233"><a href="#cb18-233"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb18-234"><a href="#cb18-234"></a><span class="co">#| fig-height: 4.5</span></span>
+<span id="cb18-235"><a href="#cb18-235"></a></span>
+<span id="cb18-236"><a href="#cb18-236"></a><span class="fu">ggplot</span>(life_dat, <span class="fu">aes</span>(<span class="at">x =</span> Schooling, <span class="at">y =</span> life_expectancy)) <span class="sc">+</span></span>
+<span id="cb18-237"><a href="#cb18-237"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.35</span>, <span class="at">colour =</span> <span class="st">"grey35"</span>) <span class="sc">+</span></span>
+<span id="cb18-238"><a href="#cb18-238"></a>  <span class="fu">geom_smooth</span>(</span>
+<span id="cb18-239"><a href="#cb18-239"></a>    <span class="at">method =</span> <span class="st">"lm"</span>,</span>
+<span id="cb18-240"><a href="#cb18-240"></a>    <span class="at">se =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb18-241"><a href="#cb18-241"></a>    <span class="at">colour =</span> <span class="st">"steelblue4"</span>,</span>
+<span id="cb18-242"><a href="#cb18-242"></a>    <span class="at">fill =</span> <span class="st">"lightblue"</span></span>
+<span id="cb18-243"><a href="#cb18-243"></a>  ) <span class="sc">+</span></span>
+<span id="cb18-244"><a href="#cb18-244"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-245"><a href="#cb18-245"></a>    <span class="at">x =</span> <span class="st">"Schooling"</span>,</span>
+<span id="cb18-246"><a href="#cb18-246"></a>    <span class="at">y =</span> <span class="st">"Life expectancy"</span></span>
+<span id="cb18-247"><a href="#cb18-247"></a>  )</span>
+<span id="cb18-248"><a href="#cb18-248"></a><span class="in">```</span></span>
+<span id="cb18-249"><a href="#cb18-249"></a></span>
+<span id="cb18-250"><a href="#cb18-250"></a>@fig-full-fit shows a clear positive trend: countries with higher schooling values tend to have higher life expectancy. The relationship is not perfectly tight, but it is strong enough to make a simple straight-line model a reasonable first approximation.</span>
+<span id="cb18-251"><a href="#cb18-251"></a></span>
+<span id="cb18-252"><a href="#cb18-252"></a>**7. Refit After Removing Zero-Schooling Countries**</span>
+<span id="cb18-253"><a href="#cb18-253"></a></span>
+<span id="cb18-254"><a href="#cb18-254"></a>I now remove every country that appears in @tbl-zero-schooling and refit the model. This is a more conservative filtering decision than simply dropping the rows where schooling equals zero, because it assumes that a country with obviously suspect schooling values may contribute additional problematic observations in other years as well.</span>
+<span id="cb18-255"><a href="#cb18-255"></a></span>
+<span id="cb18-258"><a href="#cb18-258"></a><span class="in">```{r}</span></span>
+<span id="cb18-259"><a href="#cb18-259"></a><span class="co">#| label: data-filtered</span></span>
 <span id="cb18-260"><a href="#cb18-260"></a></span>
-<span id="cb18-261"><a href="#cb18-261"></a><span class="fu">nrow</span>(life_dat_filtered)</span>
-<span id="cb18-262"><a href="#cb18-262"></a><span class="in">```</span></span>
+<span id="cb18-261"><a href="#cb18-261"></a>life_dat_filtered <span class="ot">&lt;-</span> life_dat <span class="sc">|&gt;</span></span>
+<span id="cb18-262"><a href="#cb18-262"></a>  <span class="fu">filter</span>(<span class="sc">!</span>Country <span class="sc">%in%</span> zero_countries)</span>
 <span id="cb18-263"><a href="#cb18-263"></a></span>
-<span id="cb18-264"><a href="#cb18-264"></a>After this filtering step, <span class="in">`r scales::comma(nrow(life_dat_filtered))`</span> observations remain.</span>
-<span id="cb18-265"><a href="#cb18-265"></a></span>
-<span id="cb18-268"><a href="#cb18-268"></a><span class="in">```{r}</span></span>
-<span id="cb18-269"><a href="#cb18-269"></a><span class="co">#| label: fit-filtered</span></span>
-<span id="cb18-270"><a href="#cb18-270"></a></span>
-<span id="cb18-271"><a href="#cb18-271"></a>mod_school_filtered <span class="ot">&lt;-</span> <span class="fu">lm</span>(life_expectancy <span class="sc">~</span> Schooling, <span class="at">data =</span> life_dat_filtered)</span>
-<span id="cb18-272"><a href="#cb18-272"></a><span class="fu">summary</span>(mod_school_filtered)</span>
-<span id="cb18-273"><a href="#cb18-273"></a><span class="in">```</span></span>
-<span id="cb18-274"><a href="#cb18-274"></a></span>
-<span id="cb18-275"><a href="#cb18-275"></a>The refitted relationship is shown in @fig-filtered-fit.</span>
-<span id="cb18-276"><a href="#cb18-276"></a></span>
-<span id="cb18-279"><a href="#cb18-279"></a><span class="in">```{r}</span></span>
-<span id="cb18-280"><a href="#cb18-280"></a><span class="co">#| label: fig-filtered-fit</span></span>
-<span id="cb18-281"><a href="#cb18-281"></a><span class="co">#| fig-cap: "Life expectancy as a function of schooling after removing countries with one or more zero-schooling observations."</span></span>
-<span id="cb18-282"><a href="#cb18-282"></a><span class="co">#| fig-width: 6</span></span>
-<span id="cb18-283"><a href="#cb18-283"></a><span class="co">#| fig-height: 4.5</span></span>
-<span id="cb18-284"><a href="#cb18-284"></a></span>
-<span id="cb18-285"><a href="#cb18-285"></a><span class="fu">ggplot</span>(life_dat_filtered, <span class="fu">aes</span>(<span class="at">x =</span> Schooling, <span class="at">y =</span> life_expectancy)) <span class="sc">+</span></span>
-<span id="cb18-286"><a href="#cb18-286"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.35</span>, <span class="at">colour =</span> <span class="st">"grey35"</span>) <span class="sc">+</span></span>
-<span id="cb18-287"><a href="#cb18-287"></a>  <span class="fu">geom_smooth</span>(</span>
-<span id="cb18-288"><a href="#cb18-288"></a>    <span class="at">method =</span> <span class="st">"lm"</span>,</span>
-<span id="cb18-289"><a href="#cb18-289"></a>    <span class="at">se =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb18-290"><a href="#cb18-290"></a>    <span class="at">colour =</span> <span class="st">"steelblue4"</span>,</span>
-<span id="cb18-291"><a href="#cb18-291"></a>    <span class="at">fill =</span> <span class="st">"lightblue"</span></span>
-<span id="cb18-292"><a href="#cb18-292"></a>  ) <span class="sc">+</span></span>
-<span id="cb18-293"><a href="#cb18-293"></a>  <span class="fu">labs</span>(</span>
-<span id="cb18-294"><a href="#cb18-294"></a>    <span class="at">x =</span> <span class="st">"Schooling"</span>,</span>
-<span id="cb18-295"><a href="#cb18-295"></a>    <span class="at">y =</span> <span class="st">"Life expectancy"</span></span>
-<span id="cb18-296"><a href="#cb18-296"></a>  )</span>
-<span id="cb18-297"><a href="#cb18-297"></a><span class="in">```</span></span>
-<span id="cb18-298"><a href="#cb18-298"></a></span>
-<span id="cb18-299"><a href="#cb18-299"></a>Compared with @fig-full-fit, @fig-filtered-fit shows a slightly cleaner linear pattern. The slope remains strongly positive, but the fit is less distorted by the extreme left-edge cases.</span>
-<span id="cb18-300"><a href="#cb18-300"></a></span>
-<span id="cb18-301"><a href="#cb18-301"></a>**8. Diagnostics for the Filtered Model**</span>
-<span id="cb18-302"><a href="#cb18-302"></a></span>
-<span id="cb18-303"><a href="#cb18-303"></a>I again inspect the standard regression diagnostics, now for the filtered model (@fig-filtered-diag).</span>
-<span id="cb18-304"><a href="#cb18-304"></a></span>
-<span id="cb18-307"><a href="#cb18-307"></a><span class="in">```{r}</span></span>
-<span id="cb18-308"><a href="#cb18-308"></a><span class="co">#| label: filtered-augment</span></span>
-<span id="cb18-309"><a href="#cb18-309"></a></span>
-<span id="cb18-310"><a href="#cb18-310"></a>filtered_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(mod_school_filtered)</span>
-<span id="cb18-311"><a href="#cb18-311"></a><span class="in">```</span></span>
+<span id="cb18-264"><a href="#cb18-264"></a><span class="fu">nrow</span>(life_dat_filtered)</span>
+<span id="cb18-265"><a href="#cb18-265"></a><span class="in">```</span></span>
+<span id="cb18-266"><a href="#cb18-266"></a></span>
+<span id="cb18-267"><a href="#cb18-267"></a>After this filtering step, <span class="in">`r scales::comma(nrow(life_dat_filtered))`</span> observations remain.</span>
+<span id="cb18-268"><a href="#cb18-268"></a></span>
+<span id="cb18-271"><a href="#cb18-271"></a><span class="in">```{r}</span></span>
+<span id="cb18-272"><a href="#cb18-272"></a><span class="co">#| label: fit-filtered</span></span>
+<span id="cb18-273"><a href="#cb18-273"></a></span>
+<span id="cb18-274"><a href="#cb18-274"></a>mod_school_filtered <span class="ot">&lt;-</span> <span class="fu">lm</span>(life_expectancy <span class="sc">~</span> Schooling, <span class="at">data =</span> life_dat_filtered)</span>
+<span id="cb18-275"><a href="#cb18-275"></a><span class="fu">summary</span>(mod_school_filtered)</span>
+<span id="cb18-276"><a href="#cb18-276"></a><span class="in">```</span></span>
+<span id="cb18-277"><a href="#cb18-277"></a></span>
+<span id="cb18-278"><a href="#cb18-278"></a>The refitted relationship is shown in @fig-filtered-fit.</span>
+<span id="cb18-279"><a href="#cb18-279"></a></span>
+<span id="cb18-282"><a href="#cb18-282"></a><span class="in">```{r}</span></span>
+<span id="cb18-283"><a href="#cb18-283"></a><span class="co">#| label: fig-filtered-fit</span></span>
+<span id="cb18-284"><a href="#cb18-284"></a><span class="co">#| fig-cap: "Life expectancy as a function of schooling after removing countries with one or more zero-schooling observations."</span></span>
+<span id="cb18-285"><a href="#cb18-285"></a><span class="co">#| fig-width: 6</span></span>
+<span id="cb18-286"><a href="#cb18-286"></a><span class="co">#| fig-height: 4.5</span></span>
+<span id="cb18-287"><a href="#cb18-287"></a></span>
+<span id="cb18-288"><a href="#cb18-288"></a><span class="fu">ggplot</span>(life_dat_filtered, <span class="fu">aes</span>(<span class="at">x =</span> Schooling, <span class="at">y =</span> life_expectancy)) <span class="sc">+</span></span>
+<span id="cb18-289"><a href="#cb18-289"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.35</span>, <span class="at">colour =</span> <span class="st">"grey35"</span>) <span class="sc">+</span></span>
+<span id="cb18-290"><a href="#cb18-290"></a>  <span class="fu">geom_smooth</span>(</span>
+<span id="cb18-291"><a href="#cb18-291"></a>    <span class="at">method =</span> <span class="st">"lm"</span>,</span>
+<span id="cb18-292"><a href="#cb18-292"></a>    <span class="at">se =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb18-293"><a href="#cb18-293"></a>    <span class="at">colour =</span> <span class="st">"steelblue4"</span>,</span>
+<span id="cb18-294"><a href="#cb18-294"></a>    <span class="at">fill =</span> <span class="st">"lightblue"</span></span>
+<span id="cb18-295"><a href="#cb18-295"></a>  ) <span class="sc">+</span></span>
+<span id="cb18-296"><a href="#cb18-296"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-297"><a href="#cb18-297"></a>    <span class="at">x =</span> <span class="st">"Schooling"</span>,</span>
+<span id="cb18-298"><a href="#cb18-298"></a>    <span class="at">y =</span> <span class="st">"Life expectancy"</span></span>
+<span id="cb18-299"><a href="#cb18-299"></a>  )</span>
+<span id="cb18-300"><a href="#cb18-300"></a><span class="in">```</span></span>
+<span id="cb18-301"><a href="#cb18-301"></a></span>
+<span id="cb18-302"><a href="#cb18-302"></a>Compared with @fig-full-fit, @fig-filtered-fit shows a slightly cleaner linear pattern. The slope remains strongly positive, but the fit is less distorted by the extreme left-edge cases.</span>
+<span id="cb18-303"><a href="#cb18-303"></a></span>
+<span id="cb18-304"><a href="#cb18-304"></a>**8. Diagnostics for the Filtered Model**</span>
+<span id="cb18-305"><a href="#cb18-305"></a></span>
+<span id="cb18-306"><a href="#cb18-306"></a>I again inspect the standard regression diagnostics, now for the filtered model (@fig-filtered-diag).</span>
+<span id="cb18-307"><a href="#cb18-307"></a></span>
+<span id="cb18-310"><a href="#cb18-310"></a><span class="in">```{r}</span></span>
+<span id="cb18-311"><a href="#cb18-311"></a><span class="co">#| label: filtered-augment</span></span>
 <span id="cb18-312"><a href="#cb18-312"></a></span>
-<span id="cb18-315"><a href="#cb18-315"></a><span class="in">```{r}</span></span>
-<span id="cb18-316"><a href="#cb18-316"></a><span class="co">#| label: fig-filtered-diag</span></span>
-<span id="cb18-317"><a href="#cb18-317"></a><span class="co">#| fig-cap: "Diagnostic plots for the simple linear regression of life expectancy on schooling after removing countries with zero-schooling observations."</span></span>
-<span id="cb18-318"><a href="#cb18-318"></a><span class="co">#| fig-width: 8</span></span>
-<span id="cb18-319"><a href="#cb18-319"></a><span class="co">#| fig-height: 7</span></span>
-<span id="cb18-320"><a href="#cb18-320"></a></span>
-<span id="cb18-321"><a href="#cb18-321"></a>p_fil_1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(filtered_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
-<span id="cb18-322"><a href="#cb18-322"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb18-323"><a href="#cb18-323"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
-<span id="cb18-324"><a href="#cb18-324"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Fitted values"</span>, <span class="at">y =</span> <span class="st">"Residuals"</span>, <span class="at">title =</span> <span class="st">"Residuals vs Fitted"</span>)</span>
-<span id="cb18-325"><a href="#cb18-325"></a></span>
-<span id="cb18-326"><a href="#cb18-326"></a>p_fil_2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(filtered_aug, <span class="fu">aes</span>(<span class="at">sample =</span> .std.resid)) <span class="sc">+</span></span>
-<span id="cb18-327"><a href="#cb18-327"></a>  <span class="fu">stat_qq</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb18-328"><a href="#cb18-328"></a>  <span class="fu">stat_qq_line</span>(<span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
-<span id="cb18-329"><a href="#cb18-329"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Normal Q-Q"</span>, <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>, <span class="at">y =</span> <span class="st">"Standardised residuals"</span>)</span>
-<span id="cb18-330"><a href="#cb18-330"></a></span>
-<span id="cb18-331"><a href="#cb18-331"></a>p_fil_3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(filtered_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(.std.resid)))) <span class="sc">+</span></span>
-<span id="cb18-332"><a href="#cb18-332"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb18-333"><a href="#cb18-333"></a>  <span class="fu">labs</span>(</span>
-<span id="cb18-334"><a href="#cb18-334"></a>    <span class="at">x =</span> <span class="st">"Fitted values"</span>,</span>
-<span id="cb18-335"><a href="#cb18-335"></a>    <span class="at">y =</span> <span class="st">"Sqrt(|Standardised residuals|)"</span>,</span>
-<span id="cb18-336"><a href="#cb18-336"></a>    <span class="at">title =</span> <span class="st">"Scale-Location"</span></span>
-<span id="cb18-337"><a href="#cb18-337"></a>  )</span>
-<span id="cb18-338"><a href="#cb18-338"></a></span>
-<span id="cb18-339"><a href="#cb18-339"></a>p_fil_4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(filtered_aug, <span class="fu">aes</span>(<span class="at">x =</span> .hat, <span class="at">y =</span> .std.resid)) <span class="sc">+</span></span>
-<span id="cb18-340"><a href="#cb18-340"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb18-341"><a href="#cb18-341"></a>  <span class="fu">labs</span>(</span>
-<span id="cb18-342"><a href="#cb18-342"></a>    <span class="at">x =</span> <span class="st">"Leverage"</span>,</span>
-<span id="cb18-343"><a href="#cb18-343"></a>    <span class="at">y =</span> <span class="st">"Standardised residuals"</span>,</span>
-<span id="cb18-344"><a href="#cb18-344"></a>    <span class="at">title =</span> <span class="st">"Residuals vs Leverage"</span></span>
-<span id="cb18-345"><a href="#cb18-345"></a>  )</span>
-<span id="cb18-346"><a href="#cb18-346"></a></span>
-<span id="cb18-347"><a href="#cb18-347"></a>(p_fil_1 <span class="sc">+</span> p_fil_2) <span class="sc">/</span> (p_fil_3 <span class="sc">+</span> p_fil_4)</span>
-<span id="cb18-348"><a href="#cb18-348"></a><span class="in">```</span></span>
+<span id="cb18-313"><a href="#cb18-313"></a>filtered_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(mod_school_filtered)</span>
+<span id="cb18-314"><a href="#cb18-314"></a><span class="in">```</span></span>
+<span id="cb18-315"><a href="#cb18-315"></a></span>
+<span id="cb18-318"><a href="#cb18-318"></a><span class="in">```{r}</span></span>
+<span id="cb18-319"><a href="#cb18-319"></a><span class="co">#| label: fig-filtered-diag</span></span>
+<span id="cb18-320"><a href="#cb18-320"></a><span class="co">#| fig-cap: "Diagnostic plots for the simple linear regression of life expectancy on schooling after removing countries with zero-schooling observations."</span></span>
+<span id="cb18-321"><a href="#cb18-321"></a><span class="co">#| fig-width: 8</span></span>
+<span id="cb18-322"><a href="#cb18-322"></a><span class="co">#| fig-height: 7</span></span>
+<span id="cb18-323"><a href="#cb18-323"></a></span>
+<span id="cb18-324"><a href="#cb18-324"></a>p_fil_1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(filtered_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> .resid)) <span class="sc">+</span></span>
+<span id="cb18-325"><a href="#cb18-325"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb18-326"><a href="#cb18-326"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb18-327"><a href="#cb18-327"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Fitted values"</span>, <span class="at">y =</span> <span class="st">"Residuals"</span>, <span class="at">title =</span> <span class="st">"Residuals vs Fitted"</span>)</span>
+<span id="cb18-328"><a href="#cb18-328"></a></span>
+<span id="cb18-329"><a href="#cb18-329"></a>p_fil_2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(filtered_aug, <span class="fu">aes</span>(<span class="at">sample =</span> .std.resid)) <span class="sc">+</span></span>
+<span id="cb18-330"><a href="#cb18-330"></a>  <span class="fu">stat_qq</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb18-331"><a href="#cb18-331"></a>  <span class="fu">stat_qq_line</span>(<span class="at">colour =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb18-332"><a href="#cb18-332"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Normal Q-Q"</span>, <span class="at">x =</span> <span class="st">"Theoretical quantiles"</span>, <span class="at">y =</span> <span class="st">"Standardised residuals"</span>)</span>
+<span id="cb18-333"><a href="#cb18-333"></a></span>
+<span id="cb18-334"><a href="#cb18-334"></a>p_fil_3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(filtered_aug, <span class="fu">aes</span>(<span class="at">x =</span> .fitted, <span class="at">y =</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(.std.resid)))) <span class="sc">+</span></span>
+<span id="cb18-335"><a href="#cb18-335"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb18-336"><a href="#cb18-336"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-337"><a href="#cb18-337"></a>    <span class="at">x =</span> <span class="st">"Fitted values"</span>,</span>
+<span id="cb18-338"><a href="#cb18-338"></a>    <span class="at">y =</span> <span class="st">"Sqrt(|Standardised residuals|)"</span>,</span>
+<span id="cb18-339"><a href="#cb18-339"></a>    <span class="at">title =</span> <span class="st">"Scale-Location"</span></span>
+<span id="cb18-340"><a href="#cb18-340"></a>  )</span>
+<span id="cb18-341"><a href="#cb18-341"></a></span>
+<span id="cb18-342"><a href="#cb18-342"></a>p_fil_4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(filtered_aug, <span class="fu">aes</span>(<span class="at">x =</span> .hat, <span class="at">y =</span> .std.resid)) <span class="sc">+</span></span>
+<span id="cb18-343"><a href="#cb18-343"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb18-344"><a href="#cb18-344"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-345"><a href="#cb18-345"></a>    <span class="at">x =</span> <span class="st">"Leverage"</span>,</span>
+<span id="cb18-346"><a href="#cb18-346"></a>    <span class="at">y =</span> <span class="st">"Standardised residuals"</span>,</span>
+<span id="cb18-347"><a href="#cb18-347"></a>    <span class="at">title =</span> <span class="st">"Residuals vs Leverage"</span></span>
+<span id="cb18-348"><a href="#cb18-348"></a>  )</span>
 <span id="cb18-349"><a href="#cb18-349"></a></span>
-<span id="cb18-350"><a href="#cb18-350"></a>The filtered-model diagnostics in @fig-filtered-diag are more convincing. The residuals remain somewhat scattered, as expected in a large cross-country dataset, but the leverage pattern is less concerning and the model behaves more like a stable simple linear regression.</span>
-<span id="cb18-351"><a href="#cb18-351"></a></span>
-<span id="cb18-352"><a href="#cb18-352"></a>**9. Comparing the Two Fits**</span>
-<span id="cb18-353"><a href="#cb18-353"></a></span>
-<span id="cb18-354"><a href="#cb18-354"></a>To make the comparison explicit, I summarise the key coefficients and fit statistics in @tbl-model-compare.</span>
-<span id="cb18-355"><a href="#cb18-355"></a></span>
-<span id="cb18-358"><a href="#cb18-358"></a><span class="in">```{r}</span></span>
-<span id="cb18-359"><a href="#cb18-359"></a><span class="co">#| label: tbl-model-compare</span></span>
-<span id="cb18-360"><a href="#cb18-360"></a><span class="co">#| tbl-cap: "Comparison of the simple linear regression fitted before and after removing countries with zero-schooling observations."</span></span>
-<span id="cb18-361"><a href="#cb18-361"></a></span>
-<span id="cb18-362"><a href="#cb18-362"></a>model_compare <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb18-363"><a href="#cb18-363"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"All complete cases"</span>, <span class="st">"Zero-schooling countries removed"</span>),</span>
-<span id="cb18-364"><a href="#cb18-364"></a>  <span class="at">N =</span> <span class="fu">c</span>(<span class="fu">nobs</span>(mod_school_full), <span class="fu">nobs</span>(mod_school_filtered)),</span>
-<span id="cb18-365"><a href="#cb18-365"></a>  <span class="at">Intercept =</span> <span class="fu">c</span>(<span class="fu">coef</span>(mod_school_full)[<span class="dv">1</span>], <span class="fu">coef</span>(mod_school_filtered)[<span class="dv">1</span>]),</span>
-<span id="cb18-366"><a href="#cb18-366"></a>  <span class="at">Slope =</span> <span class="fu">c</span>(<span class="fu">coef</span>(mod_school_full)[<span class="dv">2</span>], <span class="fu">coef</span>(mod_school_filtered)[<span class="dv">2</span>]),</span>
-<span id="cb18-367"><a href="#cb18-367"></a>  <span class="st">`</span><span class="at">95% CI lower</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">confint</span>(mod_school_full)[<span class="dv">2</span>, <span class="dv">1</span>], <span class="fu">confint</span>(mod_school_filtered)[<span class="dv">2</span>, <span class="dv">1</span>]),</span>
-<span id="cb18-368"><a href="#cb18-368"></a>  <span class="st">`</span><span class="at">95% CI upper</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">confint</span>(mod_school_full)[<span class="dv">2</span>, <span class="dv">2</span>], <span class="fu">confint</span>(mod_school_filtered)[<span class="dv">2</span>, <span class="dv">2</span>]),</span>
-<span id="cb18-369"><a href="#cb18-369"></a>  <span class="st">`</span><span class="at">R-squared</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">summary</span>(mod_school_full)<span class="sc">$</span>r.squared, <span class="fu">summary</span>(mod_school_filtered)<span class="sc">$</span>r.squared)</span>
-<span id="cb18-370"><a href="#cb18-370"></a>)</span>
-<span id="cb18-371"><a href="#cb18-371"></a></span>
-<span id="cb18-372"><a href="#cb18-372"></a>model_compare <span class="sc">|&gt;</span></span>
-<span id="cb18-373"><a href="#cb18-373"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb18-374"><a href="#cb18-374"></a>    <span class="at">Intercept =</span> <span class="fu">round</span>(Intercept, <span class="dv">3</span>),</span>
-<span id="cb18-375"><a href="#cb18-375"></a>    <span class="at">Slope =</span> <span class="fu">round</span>(Slope, <span class="dv">3</span>),</span>
-<span id="cb18-376"><a href="#cb18-376"></a>    <span class="st">`</span><span class="at">95% CI lower</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">95% CI lower</span><span class="st">`</span>, <span class="dv">3</span>),</span>
-<span id="cb18-377"><a href="#cb18-377"></a>    <span class="st">`</span><span class="at">95% CI upper</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">95% CI upper</span><span class="st">`</span>, <span class="dv">3</span>),</span>
-<span id="cb18-378"><a href="#cb18-378"></a>    <span class="st">`</span><span class="at">R-squared</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">R-squared</span><span class="st">`</span>, <span class="dv">3</span>)</span>
-<span id="cb18-379"><a href="#cb18-379"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb18-380"><a href="#cb18-380"></a>  <span class="fu">gt</span>()</span>
-<span id="cb18-381"><a href="#cb18-381"></a><span class="in">```</span></span>
-<span id="cb18-382"><a href="#cb18-382"></a></span>
-<span id="cb18-383"><a href="#cb18-383"></a>@tbl-model-compare shows that removing the zero-schooling countries increases the estimated slope from about <span class="in">`r round(coef(mod_school_full)[2], 2)`</span> to about <span class="in">`r round(coef(mod_school_filtered)[2], 2)`</span> years of life expectancy per unit schooling. At the same time, $R^2$ increases from <span class="in">`r round(summary(mod_school_full)$r.squared, 3)`</span> to <span class="in">`r round(summary(mod_school_filtered)$r.squared, 3)`</span>, indicating a somewhat tighter linear association after filtering.</span>
-<span id="cb18-384"><a href="#cb18-384"></a></span>
-<span id="cb18-385"><a href="#cb18-385"></a>**10. Write-up**</span>
-<span id="cb18-386"><a href="#cb18-386"></a></span>
-<span id="cb18-387"><a href="#cb18-387"></a>**10.1 Methods**</span>
-<span id="cb18-388"><a href="#cb18-388"></a></span>
-<span id="cb18-389"><a href="#cb18-389"></a>I analysed the relationship between life expectancy and schooling using the Kaggle life expectancy dataset. I retained country, year, life expectancy, and schooling, and removed rows with missing values for life expectancy or schooling. I first fitted a simple linear regression using all complete observations, with life expectancy as the response and schooling as the predictor. I then identified countries for which schooling was coded as zero (@tbl-zero-schooling and @tbl-zero-schooling-years). Because several of these zero values appeared implausible as literal measurements and were likely to represent coding anomalies or problematic records, I excluded all observations from those countries and refitted the regression. For both models, I examined the fitted relationship graphically (@fig-full-fit and @fig-filtered-fit) and assessed assumptions using residual-versus-fitted, normal Q-Q, scale-location, and residual-versus-leverage plots (@fig-full-diag and @fig-filtered-diag). Model coefficients and goodness-of-fit statistics were compared in Table @tbl-model-compare.</span>
-<span id="cb18-390"><a href="#cb18-390"></a></span>
-<span id="cb18-391"><a href="#cb18-391"></a>**10.2 Results**</span>
-<span id="cb18-392"><a href="#cb18-392"></a></span>
-<span id="cb18-393"><a href="#cb18-393"></a>Using all complete observations, life expectancy increased strongly with schooling (@fig-full-fit). The fitted slope was positive, indicating that countries with greater schooling tended to have higher life expectancy, and the simple linear regression explained a substantial proportion of the variation in life expectancy ($R^2 = <span class="in">`r round(summary(mod_school_full)$r.squared, 3)`</span>). Inspection of the data revealed a small group of countries with one or more observations in which schooling was coded as zero (@tbl-zero-schooling and @tbl-zero-schooling-years). After removing those countries, the positive relationship remained clear and became slightly stronger (@fig-filtered-fit). The estimated slope increased from <span class="in">`r round(coef(mod_school_full)[2], 2)`</span> to <span class="in">`r round(coef(mod_school_filtered)[2], 2)`</span>, and model fit improved from $R^2 = <span class="in">`r round(summary(mod_school_full)$r.squared, 3)`</span> to $R^2 = <span class="in">`r round(summary(mod_school_filtered)$r.squared, 3)`</span> (@tbl-model-compare). The diagnostic plots for the filtered model (@fig-filtered-diag) suggested a cleaner and more stable fit than the initial model, with less concern about leverage from extreme low-schooling cases.</span>
-<span id="cb18-394"><a href="#cb18-394"></a></span>
-<span id="cb18-395"><a href="#cb18-395"></a>**10.3 Discussion**</span>
-<span id="cb18-396"><a href="#cb18-396"></a></span>
-<span id="cb18-397"><a href="#cb18-397"></a>This analysis indicates a strong positive association between schooling and life expectancy in the dataset, and the relationship is well captured by a simple linear model after removing countries with zero-schooling records. The comparison between the two fits suggests that those zero-schooling cases were influential enough to weaken the apparent linear pattern and reduce overall fit. Their removal produced a steeper slope and more convincing diagnostics, which supports the decision to treat them as questionable observations for this teaching example.</span>
-<span id="cb18-398"><a href="#cb18-398"></a></span>
-<span id="cb18-399"><a href="#cb18-399"></a>The results should still be interpreted cautiously. These data are observational and cross-national, so the fitted slope should not be read as a direct causal effect of schooling on life expectancy. Many other factors, including wealth, healthcare access, infectious disease burden, governance, and conflict, may contribute to the observed pattern. Even so, the filtered model provides a useful example of simple linear regression because the predictor-response relationship is interpretable, the scatterplot shows a clear trend, and the diagnostics are broadly acceptable.</span>
-<span id="cb18-400"><a href="#cb18-400"></a></span>
-<span id="cb18-401"><a href="#cb18-401"></a><span class="in">`r if (params$hide_answers) ":::"`</span></span>
-<span id="cb18-402"><a href="#cb18-402"></a>::::</span>
+<span id="cb18-350"><a href="#cb18-350"></a>(p_fil_1 <span class="sc">+</span> p_fil_2) <span class="sc">/</span> (p_fil_3 <span class="sc">+</span> p_fil_4)</span>
+<span id="cb18-351"><a href="#cb18-351"></a><span class="in">```</span></span>
+<span id="cb18-352"><a href="#cb18-352"></a></span>
+<span id="cb18-353"><a href="#cb18-353"></a>The filtered-model diagnostics in @fig-filtered-diag are more convincing. The residuals remain somewhat scattered, as expected in a large cross-country dataset, but the leverage pattern is less concerning and the model behaves more like a stable simple linear regression.</span>
+<span id="cb18-354"><a href="#cb18-354"></a></span>
+<span id="cb18-355"><a href="#cb18-355"></a>**9. Comparing the Two Fits**</span>
+<span id="cb18-356"><a href="#cb18-356"></a></span>
+<span id="cb18-357"><a href="#cb18-357"></a>To make the comparison explicit, I summarise the key coefficients and fit statistics in @tbl-model-compare.</span>
+<span id="cb18-358"><a href="#cb18-358"></a></span>
+<span id="cb18-361"><a href="#cb18-361"></a><span class="in">```{r}</span></span>
+<span id="cb18-362"><a href="#cb18-362"></a><span class="co">#| label: tbl-model-compare</span></span>
+<span id="cb18-363"><a href="#cb18-363"></a><span class="co">#| tbl-cap: "Comparison of the simple linear regression fitted before and after removing countries with zero-schooling observations."</span></span>
+<span id="cb18-364"><a href="#cb18-364"></a></span>
+<span id="cb18-365"><a href="#cb18-365"></a>model_compare <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb18-366"><a href="#cb18-366"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"All complete cases"</span>, <span class="st">"Zero-schooling countries removed"</span>),</span>
+<span id="cb18-367"><a href="#cb18-367"></a>  <span class="at">N =</span> <span class="fu">c</span>(<span class="fu">nobs</span>(mod_school_full), <span class="fu">nobs</span>(mod_school_filtered)),</span>
+<span id="cb18-368"><a href="#cb18-368"></a>  <span class="at">Intercept =</span> <span class="fu">c</span>(<span class="fu">coef</span>(mod_school_full)[<span class="dv">1</span>], <span class="fu">coef</span>(mod_school_filtered)[<span class="dv">1</span>]),</span>
+<span id="cb18-369"><a href="#cb18-369"></a>  <span class="at">Slope =</span> <span class="fu">c</span>(<span class="fu">coef</span>(mod_school_full)[<span class="dv">2</span>], <span class="fu">coef</span>(mod_school_filtered)[<span class="dv">2</span>]),</span>
+<span id="cb18-370"><a href="#cb18-370"></a>  <span class="st">`</span><span class="at">95% CI lower</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">confint</span>(mod_school_full)[<span class="dv">2</span>, <span class="dv">1</span>], <span class="fu">confint</span>(mod_school_filtered)[<span class="dv">2</span>, <span class="dv">1</span>]),</span>
+<span id="cb18-371"><a href="#cb18-371"></a>  <span class="st">`</span><span class="at">95% CI upper</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">confint</span>(mod_school_full)[<span class="dv">2</span>, <span class="dv">2</span>], <span class="fu">confint</span>(mod_school_filtered)[<span class="dv">2</span>, <span class="dv">2</span>]),</span>
+<span id="cb18-372"><a href="#cb18-372"></a>  <span class="st">`</span><span class="at">R-squared</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">summary</span>(mod_school_full)<span class="sc">$</span>r.squared, <span class="fu">summary</span>(mod_school_filtered)<span class="sc">$</span>r.squared)</span>
+<span id="cb18-373"><a href="#cb18-373"></a>)</span>
+<span id="cb18-374"><a href="#cb18-374"></a></span>
+<span id="cb18-375"><a href="#cb18-375"></a>model_compare <span class="sc">|&gt;</span></span>
+<span id="cb18-376"><a href="#cb18-376"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb18-377"><a href="#cb18-377"></a>    <span class="at">Intercept =</span> <span class="fu">round</span>(Intercept, <span class="dv">3</span>),</span>
+<span id="cb18-378"><a href="#cb18-378"></a>    <span class="at">Slope =</span> <span class="fu">round</span>(Slope, <span class="dv">3</span>),</span>
+<span id="cb18-379"><a href="#cb18-379"></a>    <span class="st">`</span><span class="at">95% CI lower</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">95% CI lower</span><span class="st">`</span>, <span class="dv">3</span>),</span>
+<span id="cb18-380"><a href="#cb18-380"></a>    <span class="st">`</span><span class="at">95% CI upper</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">95% CI upper</span><span class="st">`</span>, <span class="dv">3</span>),</span>
+<span id="cb18-381"><a href="#cb18-381"></a>    <span class="st">`</span><span class="at">R-squared</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">R-squared</span><span class="st">`</span>, <span class="dv">3</span>)</span>
+<span id="cb18-382"><a href="#cb18-382"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb18-383"><a href="#cb18-383"></a>  <span class="fu">gt</span>()</span>
+<span id="cb18-384"><a href="#cb18-384"></a><span class="in">```</span></span>
+<span id="cb18-385"><a href="#cb18-385"></a></span>
+<span id="cb18-386"><a href="#cb18-386"></a>@tbl-model-compare shows that removing the zero-schooling countries increases the estimated slope from about <span class="in">`r round(coef(mod_school_full)[2], 2)`</span> to about <span class="in">`r round(coef(mod_school_filtered)[2], 2)`</span> years of life expectancy per unit schooling. At the same time, $R^2$ increases from <span class="in">`r round(summary(mod_school_full)$r.squared, 3)`</span> to <span class="in">`r round(summary(mod_school_filtered)$r.squared, 3)`</span>, indicating a somewhat tighter linear association after filtering.</span>
+<span id="cb18-387"><a href="#cb18-387"></a></span>
+<span id="cb18-388"><a href="#cb18-388"></a>**10. Write-up**</span>
+<span id="cb18-389"><a href="#cb18-389"></a></span>
+<span id="cb18-390"><a href="#cb18-390"></a>**10.1 Methods**</span>
+<span id="cb18-391"><a href="#cb18-391"></a></span>
+<span id="cb18-392"><a href="#cb18-392"></a>I analysed the relationship between life expectancy and schooling using the Kaggle life expectancy dataset. I retained country, year, life expectancy, and schooling, and removed rows with missing values for life expectancy or schooling. I first fitted a simple linear regression using all complete observations, with life expectancy as the response and schooling as the predictor. I then identified countries for which schooling was coded as zero (@tbl-zero-schooling and @tbl-zero-schooling-years). Because several of these zero values appeared implausible as literal measurements and were likely to represent coding anomalies or problematic records, I excluded all observations from those countries and refitted the regression. For both models, I examined the fitted relationship graphically (@fig-full-fit and @fig-filtered-fit) and assessed assumptions using residual-versus-fitted, normal Q-Q, scale-location, and residual-versus-leverage plots (@fig-full-diag and @fig-filtered-diag). Model coefficients and goodness-of-fit statistics were compared in Table @tbl-model-compare.</span>
+<span id="cb18-393"><a href="#cb18-393"></a></span>
+<span id="cb18-394"><a href="#cb18-394"></a>**10.2 Results**</span>
+<span id="cb18-395"><a href="#cb18-395"></a></span>
+<span id="cb18-396"><a href="#cb18-396"></a>Using all complete observations, life expectancy increased strongly with schooling (@fig-full-fit). The fitted slope was positive, indicating that countries with greater schooling tended to have higher life expectancy, and the simple linear regression explained a substantial proportion of the variation in life expectancy ($R^2 = <span class="in">`r round(summary(mod_school_full)$r.squared, 3)`</span>). Inspection of the data revealed a small group of countries with one or more observations in which schooling was coded as zero (@tbl-zero-schooling and @tbl-zero-schooling-years). After removing those countries, the positive relationship remained clear and became slightly stronger (@fig-filtered-fit). The estimated slope increased from <span class="in">`r round(coef(mod_school_full)[2], 2)`</span> to <span class="in">`r round(coef(mod_school_filtered)[2], 2)`</span>, and model fit improved from $R^2 = <span class="in">`r round(summary(mod_school_full)$r.squared, 3)`</span> to $R^2 = <span class="in">`r round(summary(mod_school_filtered)$r.squared, 3)`</span> (@tbl-model-compare). The diagnostic plots for the filtered model (@fig-filtered-diag) suggested a cleaner and more stable fit than the initial model, with less concern about leverage from extreme low-schooling cases.</span>
+<span id="cb18-397"><a href="#cb18-397"></a></span>
+<span id="cb18-398"><a href="#cb18-398"></a>**10.3 Discussion**</span>
+<span id="cb18-399"><a href="#cb18-399"></a></span>
+<span id="cb18-400"><a href="#cb18-400"></a>This analysis indicates a strong positive association between schooling and life expectancy in the dataset, and the relationship is well captured by a simple linear model after removing countries with zero-schooling records. The comparison between the two fits suggests that those zero-schooling cases were influential enough to weaken the apparent linear pattern and reduce overall fit. Their removal produced a steeper slope and more convincing diagnostics, which supports the decision to treat them as questionable observations for this teaching example.</span>
+<span id="cb18-401"><a href="#cb18-401"></a></span>
+<span id="cb18-402"><a href="#cb18-402"></a>The results should still be interpreted cautiously. These data are observational and cross-national, so the fitted slope should not be read as a direct causal effect of schooling on life expectancy. Many other factors, including wealth, healthcare access, infectious disease burden, governance, and conflict, may contribute to the observed pattern. Even so, the filtered model provides a useful example of simple linear regression because the predictor-response relationship is interpretable, the scatterplot shows a clear trend, and the diagnostics are broadly acceptable.</span>
+<span id="cb18-403"><a href="#cb18-403"></a></span>
+<span id="cb18-404"><a href="#cb18-404"></a><span class="in">`r if (params$hide_answers) ":::"`</span></span>
+<span id="cb18-405"><a href="#cb18-405"></a>::::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
