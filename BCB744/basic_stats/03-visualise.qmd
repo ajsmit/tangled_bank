@@ -4,8 +4,6 @@ subtitle: "Extending Exploratory Data Analysis with Figures"
 date: last-modified
 date-format: "YYYY/MM/DD"
 reference-location: margin
-params:
-  hide_answers: true
 ---
 
 ::: {.content-visible when-format="html"}
@@ -193,11 +191,11 @@ ggarrange(hist1, hist2, hist3, hist4, ncol = 2, nrow = 2, labels = "AUTO")
 
 `ggplot2` constructs histograms with `geom_histogram()`. We can also create bins manually with `cut()` if we need full control.
 
-`r if (params$hide_answers) ":::"` callout-important
+::: callout-important
 ## Do It Now!
 
 Using with the `cut()` function, recreate @fig-histo1 A-C manually.
-`r if (params$hide_answers) ":::"`
+:::
 
 What if the same continuous variable is measured in several groups? The `iris` dataset gives a grouped example. These are size measurements for 50 flowers from each of three species of *Iris*. The grouped histograms in @fig-histo2 let us compare the distributions directly.
 
@@ -407,162 +405,6 @@ c. Provide visualisations (use Figure 4 as inspiration) and summary statistics t
 
 d. Ensure your presentation is professional and adhere to the standards required by scientific publications. State the major aims of your analysis and the patterns you seek. Using the combined findings from the EDA and the figures produced here, discuss the findings in a formal Results section. **(/5)**
 
-
-`r if (params$hide_answers) "::: {.content-hidden}"`
-
-**Answer**
-
-**a. (/5)**
-
-A tidy workflow selects numeric columns, pivots to long form, and summarises across all variables simultaneously. The resulting table should include the same statistics that `psych::describe()` reports: number of observations, mean, standard deviation, median, minimum, maximum, range, skewness, and kurtosis.
-
-- ✓ Only numeric variables are selected before summarising. (1)
-- ✓ At least *n*, mean, and SD are computed for each variable. (1)
-- ✓ Median, min, and max are also included, giving a table with comparable scope to `psych::describe()`. (1)
-- ✓ Output is passed to a table-formatting function (`kable()` or equivalent) rather than printed as raw R output. (1)
-- ✓ The table is readable: columns are labelled, values are rounded to a sensible number of decimal places. (1)
-
-```{r sat-3-1-a}
-#| tbl-cap: "Descriptive summary statistics for the numeric variables in the palmerpenguins dataset, assembled using a tidy workflow."
-library(palmerpenguins)
-
-penguins_summary <- penguins |>
-  select(where(is.numeric)) |>
-  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
-  group_by(variable) |>
-  summarise(
-    n       = sum(!is.na(value)),
-    mean    = round(mean(value, na.rm = TRUE), 2),
-    sd      = round(sd(value, na.rm = TRUE), 2),
-    median  = round(median(value, na.rm = TRUE), 2),
-    min     = round(min(value, na.rm = TRUE), 2),
-    max     = round(max(value, na.rm = TRUE), 2),
-    range   = round(max - min, 2),
-    skew    = round(e1071::skewness(value, na.rm = TRUE), 2),
-    kurtosis = round(e1071::kurtosis(value, na.rm = TRUE), 2)
-  )
-
-if (knitr::is_html_output()) {
-  library(kableExtra)
-  penguins_summary |>
-    knitr::kable("html", align = "lrrrrrrrrr") |>
-    kable_styling("striped", full_width = FALSE)
-} else {
-  penguins_summary |>
-    knitr::kable(align = "lrrrrrrrrr")
-}
-```
-
----
-
-**b. (/10)**
-
-The EDA should compare the four morphological traits across the three species using appropriate grouped visualisations. Pivoting to long format enables faceting by trait, which is the most compact way to show all four comparisons at once.
-
-- ✓ The correct five columns are selected: `species` plus the four morphological variables. (1)
-- ✓ `pivot_longer(-species)` or equivalent reshapes the data for faceted plotting. (1)
-- ✓ Species is used as the grouping variable (mapped to `x`, `fill`, or `colour`). (1)
-- ✓ A distribution-revealing geometry is used (box plot, violin, or jitter); a bar chart of means alone is insufficient. (2)
-- ✓ `facet_wrap(~name, scales = "free_y")` or equivalent is used so that each trait occupies its own panel with an appropriate y-axis scale. (1)
-- ✓ Colour or fill is mapped to species to make group differences immediately legible. (1)
-- ✓ Free y-scales are used across facets (`scales = "free_y"`), because the four traits are on incommensurable scales. (1)
-- ✓ At least one clear interspecific pattern is evident from the figure (e.g. *Gentoo* has substantially greater body mass and flipper length; *Chinstrap* and *Adélie* overlap in body mass but differ in bill dimensions). (1)
-- ✓ Axis labels are informative and a minimal theme is applied. (1)
-
-```{r sat-3-1-b}
-#| fig-cap: "Distribution of four morphological traits across three penguin species. Each panel uses an independent y-axis scale to accommodate the different units and magnitudes of the traits."
-#| fig-width: 7
-#| fig-height: 5
-
-penguins |>
-  select(species, bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g) |>
-  pivot_longer(-species, names_to = "trait", values_to = "value") |>
-  mutate(trait = recode(trait,
-    bill_length_mm    = "Bill length (mm)",
-    bill_depth_mm     = "Bill depth (mm)",
-    flipper_length_mm = "Flipper length (mm)",
-    body_mass_g       = "Body mass (g)"
-  )) |>
-  ggplot(aes(x = species, y = value, fill = species)) +
-  geom_boxplot(outlier.size = 1, alpha = 0.8) +
-  geom_jitter(width = 0.12, alpha = 0.3, size = 0.8) +
-  facet_wrap(~trait, scales = "free_y") +
-  labs(x = "Species", y = NULL, fill = "Species") +
-  theme_grey() +
-  theme(legend.position = "none")
-```
-
----
-
-**c. (/10)**
-
-Summary statistics per species provide numerical support for the visual patterns. At least one bivariate scatter plot is expected, since the question invites exploration of *relationships* between traits.
-
-- ✓ A per-species summary table is produced (mean ± SD for each trait). (2)
-- ✓ At least one scatter plot shows a bivariate relationship between two morphological traits, coloured by species. (2)
-- ✓ At least one additional plot type (beyond those in part b) is used, e.g. a density plot, violin plot, or faceted scatter. (1)
-- ✓ Observed patterns are described with reference to specific values or groups, not only in general terms. (2)
-- ✓ Figures include captions that describe what is shown. (1)
-- ✓ Visual encoding (colour and/or shape) assists interpretation across species. (1)
-- ✓ A brief commentary connects the summary statistics to the visual patterns. (1)
-
-```{r sat-3-1-c-table}
-#| tbl-cap: "Mean (± SD) of four morphological traits for each penguin species. Values are rounded to one decimal place."
-
-penguins_by_species <- penguins |>
-  group_by(species) |>
-  summarise(across(
-    c(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g),
-    list(mean = \(x) round(mean(x, na.rm = TRUE), 1),
-         sd   = \(x) round(sd(x,   na.rm = TRUE), 1)),
-    .names = "{.col}_{.fn}"
-  ))
-
-if (knitr::is_html_output()) {
-  library(kableExtra)
-  penguins_by_species |>
-    knitr::kable("html") |>
-    kable_styling("striped", full_width = FALSE)
-} else {
-  penguins_by_species |>
-    knitr::kable()
-}
-```
-
-```{r sat-3-1-c-scatter}
-#| fig-cap: "Relationship between bill length and bill depth for three penguin species. The negative relationship between bill dimensions across the pooled data reverses within each species — a classic case of Simpson's paradox. *Adélie* penguins have short, deep bills; *Chinstrap* and *Gentoo* penguins have longer, shallower bills."
-#| fig-width: 5
-#| fig-height: 4
-
-penguins |>
-  ggplot(aes(x = bill_length_mm, y = bill_depth_mm,
-             colour = species, shape = species)) +
-  geom_point(alpha = 0.7, size = 1.8) +
-  geom_smooth(method = "lm", se = FALSE, linewidth = 0.7) +
-  labs(x = "Bill length (mm)", y = "Bill depth (mm)",
-       colour = "Species", shape = "Species") +
-  theme_grey()
-```
-
-The summary table and scatter plot together reveal the major structure in the data. *Gentoo* penguins are the largest species by both body mass (mean ≈ 5092 g) and flipper length (mean ≈ 217 mm). *Adélie* and *Chinstrap* penguins are similar in overall size but differ clearly in bill dimensions: *Adélie* bills are shorter and deeper, while *Chinstrap* bills are longer and shallower. The bill length–depth scatter plot illustrates a within-species positive relationship that is obscured in the pooled data by a between-species negative association — a pattern worth noting explicitly in the Results.
-
----
-
-**d. (/5)**
-
-The written response should state what was investigated, what patterns were expected or sought, and then present the findings in the structured style of a journal Results section.
-
-- ✓ The major aims of the analysis are stated clearly at the outset (e.g. to characterise morphological differences among the three *Pygoscelis* species). (1)
-- ✓ The patterns sought are specified before the results are presented (e.g. differences in bill morphology, body size, and flipper length). (1)
-- ✓ Results are written in formal scientific prose — past tense, passive or first person, no code or raw output visible. (1)
-- ✓ Findings from the summary statistics and figures are synthesised rather than listed separately. (1)
-- ✓ The write-up adheres to publication standards: figures are referenced by number, values are reported with units, and no hedging phrases such as "it seems like" or "maybe" appear. (1)
-
-*Example Results paragraph:*
-
-We characterised variation in four morphological traits — bill length, bill depth, flipper length, and body mass — across three *Pygoscelis* species to assess the degree of interspecific differentiation and to identify which traits most clearly separate species. *Gentoo* penguins (*P. papua*) were the largest species by both body mass (mean ± SD: 5092 ± 501 g) and flipper length (217 ± 7 mm), exceeding the other two species by approximately 1000 g and 20 mm respectively. *Adélie* (*P. adeliae*) and *Chinstrap* (*P. antarcticus*) penguins were similar in overall body size but differed substantially in bill morphology: *Adélie* penguins had shorter (38.8 ± 2.7 mm), deeper bills (18.3 ± 1.2 mm), whereas *Chinstrap* penguins had longer (48.8 ± 3.3 mm), shallower bills (18.4 ± 1.1 mm). A scatter plot of bill length against bill depth revealed that the within-species relationship between these dimensions is positive in all three species, but that the among-species pattern reverses direction — an artefact of species-level size differences that would produce a misleading negative correlation in a pooled analysis.
-
-`r if (params$hide_answers) ":::"`
 ::::
 
 ## Bar Graphs {#sec-bargraphs}
@@ -871,7 +713,4 @@ The same zonal SST structure can also be compressed into the horizon display in 
 Figures extend statistical summaries by showing what the summaries hide. The main task is to match the plot to the question: distributions with histograms or density plots, group comparisons with box or violin plots, relationships with scatter plots or line graphs, and more complex structures with heatmaps or related displays.
 
 The list in this chapter is not exhaustive, but it covers the main decisions you will make during EDA. For more examples and implementation detail, return to the resources listed in the introduction.
-
-
-
 

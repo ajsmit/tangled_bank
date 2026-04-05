@@ -18,6 +18,10 @@ PDF_OUT = OUT_ROOT / "pdf"
 AUX_OUT = OUT_ROOT / "aux"
 LOG_OUT = OUT_ROOT / "logs"
 TMP_OUT = OUT_ROOT / "tmp"
+BOOK_OUT = OUT_ROOT / "book"
+BOOK_TEX_OUT = BOOK_OUT / "tex"
+BOOK_PDF_OUT = BOOK_OUT / "pdf"
+BOOK_AUX_OUT = BOOK_OUT / "aux"
 
 
 class CommandFailure(RuntimeError):
@@ -29,7 +33,7 @@ class CommandFailure(RuntimeError):
 
 
 def ensure_dirs() -> None:
-    for path in (TEX_OUT, PDF_OUT, AUX_OUT, LOG_OUT, TMP_OUT):
+    for path in (TEX_OUT, PDF_OUT, AUX_OUT, LOG_OUT, TMP_OUT, BOOK_OUT, BOOK_TEX_OUT, BOOK_PDF_OUT, BOOK_AUX_OUT):
         path.mkdir(parents=True, exist_ok=True)
     (REPO_ROOT / "site_libs").mkdir(exist_ok=True)
     support_links = {

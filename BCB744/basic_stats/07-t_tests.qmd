@@ -4,8 +4,6 @@ date-format: "YYYY/MM/DD"
 title: "7. *t*-Tests"
 subtitle: "One-Sample, Two-Sample, and Paired Mean Comparisons"
 reference-location: margin
-params:
-  hide_answers: true
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -415,81 +413,6 @@ t.test(dat ~ sample, data = r_two, var.equal = TRUE)
 a.  Repeat this analyses using the Welch's `t.test()`. **(/5)**
 b.  Repeat your analysis, above, using the even more old-fashioned Equation 4 in the lecture. Show the code, talk us through the step you followed to read the *p*-values off the table of *t*-statistics. **(/10)**
 
-`r if (params$hide_answers) "::: {.content-hidden}"`
-
-**Answer**
-
-**a. (/5)**
-
-Welch's *t*-test differs from Student's *t*-test in one key respect: it does not assume equal variances between the two groups. In R, the only change required is setting `var.equal = FALSE`.
-
-- [x] Data are recreated with the same seed and parameters as the original code block. (1)
-- [x] `var.equal = FALSE` is set correctly in the `t.test()` call. (1)
-- [x] The output is read: *t*-statistic, degrees of freedom, and *p*-value are correctly identified. (1)
-- [x] The degrees of freedom from Welch's test are non-integer (the Satterthwaite approximation), which differs from Student's test where df = $n_A + n_B - 2 = 38$. This difference is noted. (1)
-- [x] A correct conclusion is stated: the *p*-value is below 0.05, so the null hypothesis of equal means is rejected at the 5% significance level. (1)
-
-```{r sat-7-1-a}
-set.seed(666)
-r_two <- data.frame(dat = c(rnorm(n = 20, mean = 4, sd = 1),
-                            rnorm(n = 20, mean = 5, sd = 1)),
-                    sample = c(rep("A", 20), rep("B", 20)))
-
-# Welch's t-test: var.equal = FALSE
-t.test(dat ~ sample, data = r_two, var.equal = FALSE)
-```
-
-The *t*-statistic and *p*-value are nearly identical to the Student's test in this case because the sample variances happen to be close, but the degrees of freedom differ: Welch's test produces a non-integer df (here around 37.9) via the Welch–Satterthwaite equation, whereas Student's test gives an integer df of 38.
-
-------------------------------------------------------------------------
-
-**b. (/10)**
-
-The Welch *t*-statistic for the difference of two means is:
-
-$$t = \frac{\bar{A} - \bar{B}}{\sqrt{\dfrac{S_A^2}{n} + \dfrac{S_B^2}{m}}}$$
-
-where $S_A^2$ and $S_B^2$ are the sample variances and $n$, $m$ are the sample sizes. The degrees of freedom are obtained from the Welch–Satterthwaite equation:
-
-$$d.f. = \frac{\left(\dfrac{S_A^2}{n} + \dfrac{S_B^2}{m}\right)^{2}}{\dfrac{S_A^4}{n^2(n-1)} + \dfrac{S_B^4}{m^2(m-1)}}$$
-
-- [x] The *t*-statistic formula is correctly stated or referenced. (1)
-- [x] The numerator (difference of means) is computed correctly. (1)
-- [x] The denominator (pooled standard error using separate variances) is computed correctly. (1)
-- [x] The Welch–Satterthwaite df formula is correctly stated or referenced. (1)
-- [x] The df numerator is computed correctly. (1)
-- [x] The df denominator is computed correctly. (1)
-- [x] The computed *t*-statistic matches the `t.test()` output from part (a). (1)
-- [x] The computed df matches the `t.test()` output from part (a). (1)
-- [x] The process for reading the critical value from a *t*-table is correctly described: use the absolute value of *t* and round df down to the nearest integer when using printed tables. (1)
-- [x] The correct decision rule is stated: if $|t_\text{calc}| > t_\text{crit}$ at the chosen $\alpha$ and the computed df, reject $H_0$. (1)
-
-```{r sat-7-1-b}
-xA <- r_two$dat[r_two$sample == "A"]
-xB <- r_two$dat[r_two$sample == "B"]
-
-# t-statistic
-t_stat <- (mean(xA) - mean(xB)) /
-  sqrt(var(xA) / length(xA) + var(xB) / length(xB))
-
-# Welch-Satterthwaite degrees of freedom
-se2_A <- var(xA) / length(xA)
-se2_B <- var(xB) / length(xB)
-
-df_welch <- (se2_A + se2_B)^2 /
-  (se2_A^2 / (length(xA) - 1) + se2_B^2 / (length(xB) - 1))
-
-cat("t-statistic:", round(t_stat, 4), "\n")
-cat("Degrees of freedom:", round(df_welch, 4), "\n")
-
-# two-sided p-value from the t-distribution
-p_val <- 2 * pt(abs(t_stat), df = df_welch, lower.tail = FALSE)
-cat("p-value:", round(p_val, 4), "\n")
-```
-
-To read the *p*-value from a printed *t*-table: locate the row for the degrees of freedom (round **down** to the nearest integer if the df is non-integer, which is conservative), then scan across the columns for the critical values at different significance levels. If $|t_\text{calc}|$ exceeds the tabulated critical value for $\alpha = 0.05$ (two-tailed), reject $H_0$. Here the critical value at df = 37 and $\alpha = 0.05$ is approximately 2.026; the computed $|t|$ exceeds this, so $H_0$ is rejected.
-
-`r if (params$hide_answers) ":::"`
 :::
 
 # Example 3: A Two-Sample Comparison After Log Transformation
@@ -958,44 +881,6 @@ d.  You measure the length of left and right tibiae from 18 rabbits. **(/2)**
 
 Discuss with a partner whether (b) and (d) are structurally similar or different. What changes between them? **(/2)**
 
-`r if (params$hide_answers) "::: {.content-hidden}"`
-
-**Answer**
-
-**a. (/2)** You measure resting heart rates of 25 athletes and compare with the published population mean of 72 bpm.
-
-- [x] **One-sample *t*-test.** There is a single sample of measurements and a known reference value (the published population mean); no second group is sampled. (1)
-- [x] **Assumption to check:** approximate normality of the 25 heart-rate measurements (histogram or Q-Q plot). With $n = 25$ the Central Limit Theorem provides modest protection, but a strongly skewed distribution would warrant a transformation or a non-parametric alternative. (1)
-
-------------------------------------------------------------------------
-
-**b. (/2)** You compare nitrogen content of leaves from trees in two adjacent forest types (20 trees per forest).
-
-- [x] **Two-sample (independent-samples) *t*-test.** Trees in the two forests are distinct, unrelated individuals — there is no natural pairing between a tree in Forest 1 and a tree in Forest 2. (1)
-- [x] **Assumptions to check:** approximate normality within each group (histogram or Q-Q plot per forest), and homogeneity of variance (Levene's test or an *F*-test; alternatively, use Welch's *t*-test to avoid the equal-variance assumption). Independence of observations within each forest is also required — trees sampled in a cluster may not be independent. (1)
-
-------------------------------------------------------------------------
-
-**c. (/2)** You weigh 15 juvenile tortoises in March and again in October to ask whether they gained mass.
-
-- [x] **Paired *t*-test.** The same 15 individuals are measured twice; each March measurement is naturally paired with the October measurement for the same tortoise. The analysis is performed on the 15 *differences* (October − March), not on the raw measurements. (1)
-- [x] **Assumption to check:** approximate normality of the **differences**, not of the raw measurements separately. With only 15 differences, the assumption is more sensitive to outliers than in larger samples. (1)
-
-------------------------------------------------------------------------
-
-**d. (/2)** You measure the length of left and right tibiae from 18 rabbits.
-
-- [x] **Paired *t*-test.** Each rabbit contributes one left and one right measurement — the two measurements are not independent because they come from the same individual. The analysis is performed on the 18 within-rabbit differences (left − right). (1)
-- [x] **Assumption to check:** approximate normality of the **differences** (left − right tibia length). Because bilateral symmetry is the biological expectation, these differences are often close to zero and approximately normal even when individual measurements are not. (1)
-
-------------------------------------------------------------------------
-
-**Discussion: are (b) and (d) structurally similar or different? (/2)**
-
-- [x] They are **structurally different** despite both involving two groups with equal sample sizes. In (b), the 20 trees in each forest are independent of one another — there is no biologically meaningful basis for pairing a specific tree in Forest 1 with a specific tree in Forest 2. In (d), the left and right tibiae come from the *same individual*, creating a natural and mandatory pairing. Treating (d) as an independent-samples test would ignore the within-rabbit correlation and inflate Type I error by treating a single rabbit's two tibiae as if they were independent observations. (1)
-- [x] What changes between them is the **unit of analysis**: in (b) each tree is an independent unit; in (d) each *rabbit* is the unit, and both measurements on that unit must be kept together. Pairing removes between-individual variation in overall body size from the error term, making the test for left–right asymmetry more powerful. Using a paired test where no real pairing exists — as would happen if someone tried to pair Forest 1 trees with Forest 2 trees arbitrarily — would be incorrect and would reduce power without any biological justification. (1)
-
-`r if (params$hide_answers) ":::"`
 :::
 
 # Conclusion

@@ -893,7 +893,8 @@ cookieconsent.run({
   <li><a href="#a-short-paired-example" id="toc-a-short-paired-example" class="nav-link" data-scroll-target="#a-short-paired-example"><span class="header-section-number">5</span> A Short Paired Example</a></li>
   <li><a href="#what-this-means-in-practice" id="toc-what-this-means-in-practice" class="nav-link" data-scroll-target="#what-this-means-in-practice"><span class="header-section-number">6</span> What This Means in Practice</a></li>
   <li><a href="#practical-guidance" id="toc-practical-guidance" class="nav-link" data-scroll-target="#practical-guidance"><span class="header-section-number">7</span> Practical Guidance</a></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
+  <li><a href="#why-this-distinction-matters-for-the-rest-of-the-course" id="toc-why-this-distinction-matters-for-the-rest-of-the-course" class="nav-link" data-scroll-target="#why-this-distinction-matters-for-the-rest-of-the-course"><span class="header-section-number">8</span> Why This Distinction Matters for the Rest of the Course</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">9</span> Summary</a></li>
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/master/BCB744/basic_stats/24-prediction-and-explanation.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
@@ -925,7 +926,7 @@ cookieconsent.run({
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026/03/25</p>
+      <p class="date">2026/04/05</p>
     </div>
   </div>
   
@@ -972,6 +973,7 @@ cookieconsent.run({
 <span class="header-section-number">1</span> Introduction</h1>
 <p>Not all models are built for the same purpose. Some are built to explain mechanisms, isolate effects, and support biologically interpretable statements. Others are built to predict future outcomes as accurately as possible. These goals overlap, but they are not identical.</p>
 <p>That distinction matters because a model that is good for explanation is not always the one that is best for prediction. The trade-off becomes especially important once models become high-dimensional, predictors become strongly overlapping, or out-of-sample performance becomes the main concern.</p>
+<p>This distinction has been present in the background of many earlier chapters, even when I did not always name it explicitly. When I insisted on clear biological interpretation in the regression chapters, I was leaning toward explanation. When I introduced cross-validation and model comparison, I was already moving toward prediction. Here I make that contrast explicit so that model quality can be judged against purpose rather than by one generic standard of “best fit.”</p>
 </section><section id="key-concepts" class="level1" data-number="2"><h1 data-number="2">
 <span class="header-section-number">2</span> Key Concepts</h1>
 <ul>
@@ -1013,7 +1015,7 @@ cookieconsent.run({
 </section><section id="a-short-paired-example" class="level1" data-number="5"><h1 data-number="5">
 <span class="header-section-number">5</span> A Short Paired Example</h1>
 <p>The same dataset can motivate different models depending on the scientific goal. Suppose we measure algal biomass together with temperature, nutrient concentration, wave exposure, and turbidity. If the biological question is whether biomass depends on temperature differently under different nutrient conditions, an explanatory model should keep that interaction central. If the goal is simply to forecast biomass at new sites, we may tolerate a more flexible and less interpretable model if it predicts better.</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
 <span id="cb1-2"><a href="#cb1-2"></a>eco_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
 <span id="cb1-3"><a href="#cb1-3"></a>  <span class="at">temp =</span> <span class="fu">runif</span>(<span class="dv">180</span>, <span class="dv">8</span>, <span class="dv">24</span>),</span>
@@ -1060,11 +1062,11 @@ cookieconsent.run({
 <span id="cb1-44"><a href="#cb1-44"></a></span>
 <span id="cb1-45"><a href="#cb1-45"></a>comparison_tbl</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 2 × 4
-  model_goal  model                                    adj_r2_training rmse_test
-  &lt;chr&gt;       &lt;chr&gt;                                              &lt;dbl&gt;     &lt;dbl&gt;
-1 Explanation biomass ~ temp * nutrient + wave                   0.873      3.27
-2 Prediction  biomass ~ temp * nutrient + wave + turb…           0.876      2.97</code></pre>
+<pre><code>R&gt; # A tibble: 2 × 4
+R&gt;   model_goal  model                                    adj_r2_training rmse_test
+R&gt;   &lt;chr&gt;       &lt;chr&gt;                                              &lt;dbl&gt;     &lt;dbl&gt;
+R&gt; 1 Explanation biomass ~ temp * nutrient + wave                   0.873      3.27
+R&gt; 2 Prediction  biomass ~ temp * nutrient + wave + turb…           0.876      2.97</code></pre>
 </div>
 </div>
 <p>The explanatory model is smaller because it stays close to the biological question: does the temperature effect depend on nutrient concentration, after accounting for wave exposure? Its coefficients can be discussed directly. The predictive model is judged differently. It adds curvature and extra interactions because the goal is lower error on new data, not a cleaner causal statement.</p>
@@ -1099,8 +1101,12 @@ cookieconsent.run({
 <li>evaluate models out of sample;</li>
 <li>accept that some loss of interpretability may be worthwhile;</li>
 <li>consider methods that shrink coefficients or otherwise stabilise model performance.</li>
-</ul></section><section id="summary" class="level1" data-number="8"><h1 data-number="8">
-<span class="header-section-number">8</span> Summary</h1>
+</ul></section><section id="why-this-distinction-matters-for-the-rest-of-the-course" class="level1" data-number="8"><h1 data-number="8">
+<span class="header-section-number">8</span> Why This Distinction Matters for the Rest of the Course</h1>
+<p>Once the modelling goal is named clearly, several earlier chapter choices become easier to interpret. Collinearity is especially damaging for explanation because it destabilises biological attribution. Overfitting is especially damaging for prediction because it reduces performance on new data. Diagnostics also change meaning slightly: some are about whether the model is interpretable and defensible, others about whether it generalises honestly.</p>
+<p>The distinction is therefore not philosophical decoration. It tells you what kind of error you most want to avoid, what model complexity is acceptable, and which summaries deserve priority when you report the result.</p>
+</section><section id="summary" class="level1" data-number="9"><h1 data-number="9">
+<span class="header-section-number">9</span> Summary</h1>
 <ul>
 <li>Explanation and prediction are overlapping but distinct modelling goals.</li>
 <li>Ordinary regression is often strongest for explanation when the model is interpretable and well specified.</li>
@@ -1115,7 +1121,7 @@ cookieconsent.run({
 </section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2026,
   author = {Smit, A. J.},
   title = {24. {Prediction} and {Explanation}},
-  date = {2026-03-25},
+  date = {2026-04-05},
   url = {https://tangledbank.netlify.app/BCB744/basic_stats/24-prediction-and-explanation.html},
   langid = {en}
 }
@@ -1710,139 +1716,147 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb3-47"><a href="#cb3-47"></a></span>
 <span id="cb3-48"><a href="#cb3-48"></a>That distinction matters because a model that is good for explanation is not always the one that is best for prediction. The trade-off becomes especially important once models become high-dimensional, predictors become strongly overlapping, or out-of-sample performance becomes the main concern.</span>
 <span id="cb3-49"><a href="#cb3-49"></a></span>
-<span id="cb3-50"><a href="#cb3-50"></a><span class="fu"># Key Concepts</span></span>
+<span id="cb3-50"><a href="#cb3-50"></a>This distinction has been present in the background of many earlier chapters, even when I did not always name it explicitly. When I insisted on clear biological interpretation in the regression chapters, I was leaning toward explanation. When I introduced cross-validation and model comparison, I was already moving toward prediction. Here I make that contrast explicit so that model quality can be judged against purpose rather than by one generic standard of "best fit."</span>
 <span id="cb3-51"><a href="#cb3-51"></a></span>
-<span id="cb3-52"><a href="#cb3-52"></a><span class="ss">-   </span>**Explanation** and **prediction** are related but different modelling goals.</span>
-<span id="cb3-53"><a href="#cb3-53"></a><span class="ss">-   </span>**Interpretability** matters most when explanation is the main goal.</span>
-<span id="cb3-54"><a href="#cb3-54"></a><span class="ss">-   </span>**Out-of-sample performance** matters most when prediction is the main goal.</span>
-<span id="cb3-55"><a href="#cb3-55"></a><span class="ss">-   </span>**Model choice should be justified by purpose**, not only by convention.</span>
-<span id="cb3-56"><a href="#cb3-56"></a></span>
-<span id="cb3-57"><a href="#cb3-57"></a><span class="fu"># Explanation Versus Prediction</span></span>
+<span id="cb3-52"><a href="#cb3-52"></a><span class="fu"># Key Concepts</span></span>
+<span id="cb3-53"><a href="#cb3-53"></a></span>
+<span id="cb3-54"><a href="#cb3-54"></a><span class="ss">-   </span>**Explanation** and **prediction** are related but different modelling goals.</span>
+<span id="cb3-55"><a href="#cb3-55"></a><span class="ss">-   </span>**Interpretability** matters most when explanation is the main goal.</span>
+<span id="cb3-56"><a href="#cb3-56"></a><span class="ss">-   </span>**Out-of-sample performance** matters most when prediction is the main goal.</span>
+<span id="cb3-57"><a href="#cb3-57"></a><span class="ss">-   </span>**Model choice should be justified by purpose**, not only by convention.</span>
 <span id="cb3-58"><a href="#cb3-58"></a></span>
-<span id="cb3-59"><a href="#cb3-59"></a>An explanatory model typically emphasises:</span>
+<span id="cb3-59"><a href="#cb3-59"></a><span class="fu"># Explanation Versus Prediction</span></span>
 <span id="cb3-60"><a href="#cb3-60"></a></span>
-<span id="cb3-61"><a href="#cb3-61"></a><span class="ss">-   </span>biologically interpretable coefficients;</span>
-<span id="cb3-62"><a href="#cb3-62"></a><span class="ss">-   </span>careful model specification;</span>
-<span id="cb3-63"><a href="#cb3-63"></a><span class="ss">-   </span>defensible causal or process-based language;</span>
-<span id="cb3-64"><a href="#cb3-64"></a><span class="ss">-   </span>explicit treatment of confounders and assumptions.</span>
-<span id="cb3-65"><a href="#cb3-65"></a></span>
-<span id="cb3-66"><a href="#cb3-66"></a>A predictive model typically emphasises:</span>
+<span id="cb3-61"><a href="#cb3-61"></a>An explanatory model typically emphasises:</span>
+<span id="cb3-62"><a href="#cb3-62"></a></span>
+<span id="cb3-63"><a href="#cb3-63"></a><span class="ss">-   </span>biologically interpretable coefficients;</span>
+<span id="cb3-64"><a href="#cb3-64"></a><span class="ss">-   </span>careful model specification;</span>
+<span id="cb3-65"><a href="#cb3-65"></a><span class="ss">-   </span>defensible causal or process-based language;</span>
+<span id="cb3-66"><a href="#cb3-66"></a><span class="ss">-   </span>explicit treatment of confounders and assumptions.</span>
 <span id="cb3-67"><a href="#cb3-67"></a></span>
-<span id="cb3-68"><a href="#cb3-68"></a><span class="ss">-   </span>accurate performance on new data;</span>
-<span id="cb3-69"><a href="#cb3-69"></a><span class="ss">-   </span>stability under collinearity or large predictor sets;</span>
-<span id="cb3-70"><a href="#cb3-70"></a><span class="ss">-   </span>lower prediction error rather than coefficient-by-coefficient interpretation.</span>
-<span id="cb3-71"><a href="#cb3-71"></a></span>
-<span id="cb3-72"><a href="#cb3-72"></a>Neither goal is superior in the abstract. The important thing is to know which goal you are pursuing.</span>
+<span id="cb3-68"><a href="#cb3-68"></a>A predictive model typically emphasises:</span>
+<span id="cb3-69"><a href="#cb3-69"></a></span>
+<span id="cb3-70"><a href="#cb3-70"></a><span class="ss">-   </span>accurate performance on new data;</span>
+<span id="cb3-71"><a href="#cb3-71"></a><span class="ss">-   </span>stability under collinearity or large predictor sets;</span>
+<span id="cb3-72"><a href="#cb3-72"></a><span class="ss">-   </span>lower prediction error rather than coefficient-by-coefficient interpretation.</span>
 <span id="cb3-73"><a href="#cb3-73"></a></span>
-<span id="cb3-74"><a href="#cb3-74"></a><span class="fu"># Cross-Validation and Out-of-Sample Thinking</span></span>
+<span id="cb3-74"><a href="#cb3-74"></a>Neither goal is superior in the abstract. The important thing is to know which goal you are pursuing.</span>
 <span id="cb3-75"><a href="#cb3-75"></a></span>
-<span id="cb3-76"><a href="#cb3-76"></a>If prediction is the main goal, the model should be evaluated primarily on data that were not used to fit it. Cross-validation is one of the main ways to do this.</span>
+<span id="cb3-76"><a href="#cb3-76"></a><span class="fu"># Cross-Validation and Out-of-Sample Thinking</span></span>
 <span id="cb3-77"><a href="#cb3-77"></a></span>
-<span id="cb3-78"><a href="#cb3-78"></a>The basic idea is:</span>
+<span id="cb3-78"><a href="#cb3-78"></a>If prediction is the main goal, the model should be evaluated primarily on data that were not used to fit it. Cross-validation is one of the main ways to do this.</span>
 <span id="cb3-79"><a href="#cb3-79"></a></span>
-<span id="cb3-80"><a href="#cb3-80"></a><span class="ss">1. </span>split the data into training and validation parts;</span>
-<span id="cb3-81"><a href="#cb3-81"></a><span class="ss">2. </span>fit the model on the training data;</span>
-<span id="cb3-82"><a href="#cb3-82"></a><span class="ss">3. </span>evaluate predictive performance on held-out data;</span>
-<span id="cb3-83"><a href="#cb3-83"></a><span class="ss">4. </span>repeat this across several splits.</span>
-<span id="cb3-84"><a href="#cb3-84"></a></span>
-<span id="cb3-85"><a href="#cb3-85"></a>This kind of out-of-sample thinking becomes especially important when models are built for forecasting, classification, or any situation where performance on new data matters more than close interpretation of each coefficient.</span>
+<span id="cb3-80"><a href="#cb3-80"></a>The basic idea is:</span>
+<span id="cb3-81"><a href="#cb3-81"></a></span>
+<span id="cb3-82"><a href="#cb3-82"></a><span class="ss">1. </span>split the data into training and validation parts;</span>
+<span id="cb3-83"><a href="#cb3-83"></a><span class="ss">2. </span>fit the model on the training data;</span>
+<span id="cb3-84"><a href="#cb3-84"></a><span class="ss">3. </span>evaluate predictive performance on held-out data;</span>
+<span id="cb3-85"><a href="#cb3-85"></a><span class="ss">4. </span>repeat this across several splits.</span>
 <span id="cb3-86"><a href="#cb3-86"></a></span>
-<span id="cb3-87"><a href="#cb3-87"></a><span class="fu"># A Short Paired Example</span></span>
+<span id="cb3-87"><a href="#cb3-87"></a>This kind of out-of-sample thinking becomes especially important when models are built for forecasting, classification, or any situation where performance on new data matters more than close interpretation of each coefficient.</span>
 <span id="cb3-88"><a href="#cb3-88"></a></span>
-<span id="cb3-89"><a href="#cb3-89"></a>The same dataset can motivate different models depending on the scientific goal. Suppose we measure algal biomass together with temperature, nutrient concentration, wave exposure, and turbidity. If the biological question is whether biomass depends on temperature differently under different nutrient conditions, an explanatory model should keep that interaction central. If the goal is simply to forecast biomass at new sites, we may tolerate a more flexible and less interpretable model if it predicts better.</span>
+<span id="cb3-89"><a href="#cb3-89"></a><span class="fu"># A Short Paired Example</span></span>
 <span id="cb3-90"><a href="#cb3-90"></a></span>
-<span id="cb3-91"><a href="#cb3-91"></a><span class="in">```{r code-explanation-vs-prediction}</span></span>
-<span id="cb3-92"><a href="#cb3-92"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb3-93"><a href="#cb3-93"></a>eco_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb3-94"><a href="#cb3-94"></a>  <span class="at">temp =</span> <span class="fu">runif</span>(<span class="dv">180</span>, <span class="dv">8</span>, <span class="dv">24</span>),</span>
-<span id="cb3-95"><a href="#cb3-95"></a>  <span class="at">nutrient =</span> <span class="fu">runif</span>(<span class="dv">180</span>, <span class="fl">0.5</span>, <span class="fl">4.5</span>),</span>
-<span id="cb3-96"><a href="#cb3-96"></a>  <span class="at">wave =</span> <span class="fu">runif</span>(<span class="dv">180</span>, <span class="dv">0</span>, <span class="dv">8</span>),</span>
-<span id="cb3-97"><a href="#cb3-97"></a>  <span class="at">turbidity =</span> <span class="fu">runif</span>(<span class="dv">180</span>, <span class="dv">0</span>, <span class="dv">5</span>)</span>
-<span id="cb3-98"><a href="#cb3-98"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb3-99"><a href="#cb3-99"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb3-100"><a href="#cb3-100"></a>    <span class="at">biomass =</span> <span class="dv">6</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> temp <span class="sc">+</span> <span class="fl">2.1</span> <span class="sc">*</span> nutrient <span class="sc">-</span> <span class="fl">0.45</span> <span class="sc">*</span> wave <span class="sc">+</span></span>
-<span id="cb3-101"><a href="#cb3-101"></a>      <span class="fl">0.32</span> <span class="sc">*</span> temp <span class="sc">*</span> nutrient <span class="sc">-</span> <span class="fl">0.05</span> <span class="sc">*</span> temp<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="fl">0.35</span> <span class="sc">*</span> turbidity <span class="sc">+</span></span>
-<span id="cb3-102"><a href="#cb3-102"></a>      <span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="at">sd =</span> <span class="fl">3.2</span>)</span>
-<span id="cb3-103"><a href="#cb3-103"></a>  )</span>
-<span id="cb3-104"><a href="#cb3-104"></a></span>
-<span id="cb3-105"><a href="#cb3-105"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb3-106"><a href="#cb3-106"></a>train_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(eco_dat)), <span class="at">size =</span> <span class="fu">round</span>(<span class="fl">0.75</span> <span class="sc">*</span> <span class="fu">nrow</span>(eco_dat)))</span>
-<span id="cb3-107"><a href="#cb3-107"></a>train_dat <span class="ot">&lt;-</span> eco_dat[train_id, ]</span>
-<span id="cb3-108"><a href="#cb3-108"></a>test_dat <span class="ot">&lt;-</span> eco_dat[<span class="sc">-</span>train_id, ]</span>
-<span id="cb3-109"><a href="#cb3-109"></a></span>
-<span id="cb3-110"><a href="#cb3-110"></a>mod_expl <span class="ot">&lt;-</span> <span class="fu">lm</span>(biomass <span class="sc">~</span> temp <span class="sc">*</span> nutrient <span class="sc">+</span> wave, <span class="at">data =</span> train_dat)</span>
-<span id="cb3-111"><a href="#cb3-111"></a>mod_pred <span class="ot">&lt;-</span> <span class="fu">lm</span>(</span>
-<span id="cb3-112"><a href="#cb3-112"></a>  biomass <span class="sc">~</span> temp <span class="sc">*</span> nutrient <span class="sc">+</span> wave <span class="sc">+</span> turbidity <span class="sc">+</span></span>
-<span id="cb3-113"><a href="#cb3-113"></a>    <span class="fu">I</span>(temp<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(nutrient<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> temp<span class="sc">:</span>wave <span class="sc">+</span> nutrient<span class="sc">:</span>wave,</span>
-<span id="cb3-114"><a href="#cb3-114"></a>  <span class="at">data =</span> train_dat</span>
-<span id="cb3-115"><a href="#cb3-115"></a>)</span>
-<span id="cb3-116"><a href="#cb3-116"></a></span>
-<span id="cb3-117"><a href="#cb3-117"></a>rmse <span class="ot">&lt;-</span> <span class="cf">function</span>(obs, pred) <span class="fu">sqrt</span>(<span class="fu">mean</span>((obs <span class="sc">-</span> pred)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb3-91"><a href="#cb3-91"></a>The same dataset can motivate different models depending on the scientific goal. Suppose we measure algal biomass together with temperature, nutrient concentration, wave exposure, and turbidity. If the biological question is whether biomass depends on temperature differently under different nutrient conditions, an explanatory model should keep that interaction central. If the goal is simply to forecast biomass at new sites, we may tolerate a more flexible and less interpretable model if it predicts better.</span>
+<span id="cb3-92"><a href="#cb3-92"></a></span>
+<span id="cb3-93"><a href="#cb3-93"></a><span class="in">```{r code-explanation-vs-prediction}</span></span>
+<span id="cb3-94"><a href="#cb3-94"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb3-95"><a href="#cb3-95"></a>eco_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb3-96"><a href="#cb3-96"></a>  <span class="at">temp =</span> <span class="fu">runif</span>(<span class="dv">180</span>, <span class="dv">8</span>, <span class="dv">24</span>),</span>
+<span id="cb3-97"><a href="#cb3-97"></a>  <span class="at">nutrient =</span> <span class="fu">runif</span>(<span class="dv">180</span>, <span class="fl">0.5</span>, <span class="fl">4.5</span>),</span>
+<span id="cb3-98"><a href="#cb3-98"></a>  <span class="at">wave =</span> <span class="fu">runif</span>(<span class="dv">180</span>, <span class="dv">0</span>, <span class="dv">8</span>),</span>
+<span id="cb3-99"><a href="#cb3-99"></a>  <span class="at">turbidity =</span> <span class="fu">runif</span>(<span class="dv">180</span>, <span class="dv">0</span>, <span class="dv">5</span>)</span>
+<span id="cb3-100"><a href="#cb3-100"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb3-101"><a href="#cb3-101"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-102"><a href="#cb3-102"></a>    <span class="at">biomass =</span> <span class="dv">6</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> temp <span class="sc">+</span> <span class="fl">2.1</span> <span class="sc">*</span> nutrient <span class="sc">-</span> <span class="fl">0.45</span> <span class="sc">*</span> wave <span class="sc">+</span></span>
+<span id="cb3-103"><a href="#cb3-103"></a>      <span class="fl">0.32</span> <span class="sc">*</span> temp <span class="sc">*</span> nutrient <span class="sc">-</span> <span class="fl">0.05</span> <span class="sc">*</span> temp<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="fl">0.35</span> <span class="sc">*</span> turbidity <span class="sc">+</span></span>
+<span id="cb3-104"><a href="#cb3-104"></a>      <span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="at">sd =</span> <span class="fl">3.2</span>)</span>
+<span id="cb3-105"><a href="#cb3-105"></a>  )</span>
+<span id="cb3-106"><a href="#cb3-106"></a></span>
+<span id="cb3-107"><a href="#cb3-107"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb3-108"><a href="#cb3-108"></a>train_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(eco_dat)), <span class="at">size =</span> <span class="fu">round</span>(<span class="fl">0.75</span> <span class="sc">*</span> <span class="fu">nrow</span>(eco_dat)))</span>
+<span id="cb3-109"><a href="#cb3-109"></a>train_dat <span class="ot">&lt;-</span> eco_dat[train_id, ]</span>
+<span id="cb3-110"><a href="#cb3-110"></a>test_dat <span class="ot">&lt;-</span> eco_dat[<span class="sc">-</span>train_id, ]</span>
+<span id="cb3-111"><a href="#cb3-111"></a></span>
+<span id="cb3-112"><a href="#cb3-112"></a>mod_expl <span class="ot">&lt;-</span> <span class="fu">lm</span>(biomass <span class="sc">~</span> temp <span class="sc">*</span> nutrient <span class="sc">+</span> wave, <span class="at">data =</span> train_dat)</span>
+<span id="cb3-113"><a href="#cb3-113"></a>mod_pred <span class="ot">&lt;-</span> <span class="fu">lm</span>(</span>
+<span id="cb3-114"><a href="#cb3-114"></a>  biomass <span class="sc">~</span> temp <span class="sc">*</span> nutrient <span class="sc">+</span> wave <span class="sc">+</span> turbidity <span class="sc">+</span></span>
+<span id="cb3-115"><a href="#cb3-115"></a>    <span class="fu">I</span>(temp<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(nutrient<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> temp<span class="sc">:</span>wave <span class="sc">+</span> nutrient<span class="sc">:</span>wave,</span>
+<span id="cb3-116"><a href="#cb3-116"></a>  <span class="at">data =</span> train_dat</span>
+<span id="cb3-117"><a href="#cb3-117"></a>)</span>
 <span id="cb3-118"><a href="#cb3-118"></a></span>
-<span id="cb3-119"><a href="#cb3-119"></a>comparison_tbl <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb3-120"><a href="#cb3-120"></a>  <span class="at">model_goal =</span> <span class="fu">c</span>(<span class="st">"Explanation"</span>, <span class="st">"Prediction"</span>),</span>
-<span id="cb3-121"><a href="#cb3-121"></a>  <span class="at">model =</span> <span class="fu">c</span>(</span>
-<span id="cb3-122"><a href="#cb3-122"></a>    <span class="st">"biomass ~ temp * nutrient + wave"</span>,</span>
-<span id="cb3-123"><a href="#cb3-123"></a>    <span class="st">"biomass ~ temp * nutrient + wave + turbidity + I(temp^2) + I(nutrient^2) + temp:wave + nutrient:wave"</span></span>
-<span id="cb3-124"><a href="#cb3-124"></a>  ),</span>
-<span id="cb3-125"><a href="#cb3-125"></a>  <span class="at">adj_r2_training =</span> <span class="fu">c</span>(</span>
-<span id="cb3-126"><a href="#cb3-126"></a>    <span class="fu">summary</span>(mod_expl)<span class="sc">$</span>adj.r.squared,</span>
-<span id="cb3-127"><a href="#cb3-127"></a>    <span class="fu">summary</span>(mod_pred)<span class="sc">$</span>adj.r.squared</span>
-<span id="cb3-128"><a href="#cb3-128"></a>  ),</span>
-<span id="cb3-129"><a href="#cb3-129"></a>  <span class="at">rmse_test =</span> <span class="fu">c</span>(</span>
-<span id="cb3-130"><a href="#cb3-130"></a>    <span class="fu">rmse</span>(test_dat<span class="sc">$</span>biomass, <span class="fu">predict</span>(mod_expl, <span class="at">newdata =</span> test_dat)),</span>
-<span id="cb3-131"><a href="#cb3-131"></a>    <span class="fu">rmse</span>(test_dat<span class="sc">$</span>biomass, <span class="fu">predict</span>(mod_pred, <span class="at">newdata =</span> test_dat))</span>
-<span id="cb3-132"><a href="#cb3-132"></a>  )</span>
-<span id="cb3-133"><a href="#cb3-133"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb3-134"><a href="#cb3-134"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(adj_r2_training, rmse_test), \(x) <span class="fu">round</span>(x, <span class="dv">3</span>)))</span>
-<span id="cb3-135"><a href="#cb3-135"></a></span>
-<span id="cb3-136"><a href="#cb3-136"></a>comparison_tbl</span>
-<span id="cb3-137"><a href="#cb3-137"></a><span class="in">```</span></span>
-<span id="cb3-138"><a href="#cb3-138"></a></span>
-<span id="cb3-139"><a href="#cb3-139"></a>The explanatory model is smaller because it stays close to the biological question: does the temperature effect depend on nutrient concentration, after accounting for wave exposure? Its coefficients can be discussed directly. The predictive model is judged differently. It adds curvature and extra interactions because the goal is lower error on new data, not a cleaner causal statement.</span>
+<span id="cb3-119"><a href="#cb3-119"></a>rmse <span class="ot">&lt;-</span> <span class="cf">function</span>(obs, pred) <span class="fu">sqrt</span>(<span class="fu">mean</span>((obs <span class="sc">-</span> pred)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb3-120"><a href="#cb3-120"></a></span>
+<span id="cb3-121"><a href="#cb3-121"></a>comparison_tbl <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb3-122"><a href="#cb3-122"></a>  <span class="at">model_goal =</span> <span class="fu">c</span>(<span class="st">"Explanation"</span>, <span class="st">"Prediction"</span>),</span>
+<span id="cb3-123"><a href="#cb3-123"></a>  <span class="at">model =</span> <span class="fu">c</span>(</span>
+<span id="cb3-124"><a href="#cb3-124"></a>    <span class="st">"biomass ~ temp * nutrient + wave"</span>,</span>
+<span id="cb3-125"><a href="#cb3-125"></a>    <span class="st">"biomass ~ temp * nutrient + wave + turbidity + I(temp^2) + I(nutrient^2) + temp:wave + nutrient:wave"</span></span>
+<span id="cb3-126"><a href="#cb3-126"></a>  ),</span>
+<span id="cb3-127"><a href="#cb3-127"></a>  <span class="at">adj_r2_training =</span> <span class="fu">c</span>(</span>
+<span id="cb3-128"><a href="#cb3-128"></a>    <span class="fu">summary</span>(mod_expl)<span class="sc">$</span>adj.r.squared,</span>
+<span id="cb3-129"><a href="#cb3-129"></a>    <span class="fu">summary</span>(mod_pred)<span class="sc">$</span>adj.r.squared</span>
+<span id="cb3-130"><a href="#cb3-130"></a>  ),</span>
+<span id="cb3-131"><a href="#cb3-131"></a>  <span class="at">rmse_test =</span> <span class="fu">c</span>(</span>
+<span id="cb3-132"><a href="#cb3-132"></a>    <span class="fu">rmse</span>(test_dat<span class="sc">$</span>biomass, <span class="fu">predict</span>(mod_expl, <span class="at">newdata =</span> test_dat)),</span>
+<span id="cb3-133"><a href="#cb3-133"></a>    <span class="fu">rmse</span>(test_dat<span class="sc">$</span>biomass, <span class="fu">predict</span>(mod_pred, <span class="at">newdata =</span> test_dat))</span>
+<span id="cb3-134"><a href="#cb3-134"></a>  )</span>
+<span id="cb3-135"><a href="#cb3-135"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb3-136"><a href="#cb3-136"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(adj_r2_training, rmse_test), \(x) <span class="fu">round</span>(x, <span class="dv">3</span>)))</span>
+<span id="cb3-137"><a href="#cb3-137"></a></span>
+<span id="cb3-138"><a href="#cb3-138"></a>comparison_tbl</span>
+<span id="cb3-139"><a href="#cb3-139"></a><span class="in">```</span></span>
 <span id="cb3-140"><a href="#cb3-140"></a></span>
-<span id="cb3-141"><a href="#cb3-141"></a>The same response variable and the same predictors do not force the same model. The modelling goal determines what counts as a good model.</span>
+<span id="cb3-141"><a href="#cb3-141"></a>The explanatory model is smaller because it stays close to the biological question: does the temperature effect depend on nutrient concentration, after accounting for wave exposure? Its coefficients can be discussed directly. The predictive model is judged differently. It adds curvature and extra interactions because the goal is lower error on new data, not a cleaner causal statement.</span>
 <span id="cb3-142"><a href="#cb3-142"></a></span>
-<span id="cb3-143"><a href="#cb3-143"></a><span class="fu"># What This Means in Practice</span></span>
+<span id="cb3-143"><a href="#cb3-143"></a>The same response variable and the same predictors do not force the same model. The modelling goal determines what counts as a good model.</span>
 <span id="cb3-144"><a href="#cb3-144"></a></span>
-<span id="cb3-145"><a href="#cb3-145"></a>If you are building a model to explain ecological structure or process, you will usually prioritise:</span>
+<span id="cb3-145"><a href="#cb3-145"></a><span class="fu"># What This Means in Practice</span></span>
 <span id="cb3-146"><a href="#cb3-146"></a></span>
-<span id="cb3-147"><a href="#cb3-147"></a><span class="ss">-   </span>coefficients that can be interpreted directly;</span>
-<span id="cb3-148"><a href="#cb3-148"></a><span class="ss">-   </span>predictors chosen for biological reasons rather than only for predictive convenience;</span>
-<span id="cb3-149"><a href="#cb3-149"></a><span class="ss">-   </span>explicit discussion of assumptions, confounding, and design limitations;</span>
-<span id="cb3-150"><a href="#cb3-150"></a><span class="ss">-   </span>model statements that remain close to the original scientific question.</span>
-<span id="cb3-151"><a href="#cb3-151"></a></span>
-<span id="cb3-152"><a href="#cb3-152"></a>If you are building a model to predict accurately, you will usually prioritise:</span>
+<span id="cb3-147"><a href="#cb3-147"></a>If you are building a model to explain ecological structure or process, you will usually prioritise:</span>
+<span id="cb3-148"><a href="#cb3-148"></a></span>
+<span id="cb3-149"><a href="#cb3-149"></a><span class="ss">-   </span>coefficients that can be interpreted directly;</span>
+<span id="cb3-150"><a href="#cb3-150"></a><span class="ss">-   </span>predictors chosen for biological reasons rather than only for predictive convenience;</span>
+<span id="cb3-151"><a href="#cb3-151"></a><span class="ss">-   </span>explicit discussion of assumptions, confounding, and design limitations;</span>
+<span id="cb3-152"><a href="#cb3-152"></a><span class="ss">-   </span>model statements that remain close to the original scientific question.</span>
 <span id="cb3-153"><a href="#cb3-153"></a></span>
-<span id="cb3-154"><a href="#cb3-154"></a><span class="ss">-   </span>out-of-sample predictive performance;</span>
-<span id="cb3-155"><a href="#cb3-155"></a><span class="ss">-   </span>stable behaviour when predictors overlap or become numerous;</span>
-<span id="cb3-156"><a href="#cb3-156"></a><span class="ss">-   </span>procedures that reduce overfitting;</span>
-<span id="cb3-157"><a href="#cb3-157"></a><span class="ss">-   </span>honest evaluation on data not used in fitting.</span>
-<span id="cb3-158"><a href="#cb3-158"></a></span>
-<span id="cb3-159"><a href="#cb3-159"></a>These priorities often overlap, but they are not identical. A model that is excellent for explanation may be suboptimal for forecasting. A model that predicts well may be harder to interpret mechanistically.</span>
+<span id="cb3-154"><a href="#cb3-154"></a>If you are building a model to predict accurately, you will usually prioritise:</span>
+<span id="cb3-155"><a href="#cb3-155"></a></span>
+<span id="cb3-156"><a href="#cb3-156"></a><span class="ss">-   </span>out-of-sample predictive performance;</span>
+<span id="cb3-157"><a href="#cb3-157"></a><span class="ss">-   </span>stable behaviour when predictors overlap or become numerous;</span>
+<span id="cb3-158"><a href="#cb3-158"></a><span class="ss">-   </span>procedures that reduce overfitting;</span>
+<span id="cb3-159"><a href="#cb3-159"></a><span class="ss">-   </span>honest evaluation on data not used in fitting.</span>
 <span id="cb3-160"><a href="#cb3-160"></a></span>
-<span id="cb3-161"><a href="#cb3-161"></a><span class="fu"># Practical Guidance</span></span>
+<span id="cb3-161"><a href="#cb3-161"></a>These priorities often overlap, but they are not identical. A model that is excellent for explanation may be suboptimal for forecasting. A model that predicts well may be harder to interpret mechanistically.</span>
 <span id="cb3-162"><a href="#cb3-162"></a></span>
-<span id="cb3-163"><a href="#cb3-163"></a>If your goal is primarily **explanation**:</span>
+<span id="cb3-163"><a href="#cb3-163"></a><span class="fu"># Practical Guidance</span></span>
 <span id="cb3-164"><a href="#cb3-164"></a></span>
-<span id="cb3-165"><a href="#cb3-165"></a><span class="ss">-   </span>prefer models whose coefficients can be interpreted clearly;</span>
-<span id="cb3-166"><a href="#cb3-166"></a><span class="ss">-   </span>keep the biological argument central;</span>
-<span id="cb3-167"><a href="#cb3-167"></a><span class="ss">-   </span>avoid adding complexity unless it strengthens the scientific question.</span>
-<span id="cb3-168"><a href="#cb3-168"></a></span>
-<span id="cb3-169"><a href="#cb3-169"></a>If your goal is primarily **prediction**:</span>
+<span id="cb3-165"><a href="#cb3-165"></a>If your goal is primarily **explanation**:</span>
+<span id="cb3-166"><a href="#cb3-166"></a></span>
+<span id="cb3-167"><a href="#cb3-167"></a><span class="ss">-   </span>prefer models whose coefficients can be interpreted clearly;</span>
+<span id="cb3-168"><a href="#cb3-168"></a><span class="ss">-   </span>keep the biological argument central;</span>
+<span id="cb3-169"><a href="#cb3-169"></a><span class="ss">-   </span>avoid adding complexity unless it strengthens the scientific question.</span>
 <span id="cb3-170"><a href="#cb3-170"></a></span>
-<span id="cb3-171"><a href="#cb3-171"></a><span class="ss">-   </span>evaluate models out of sample;</span>
-<span id="cb3-172"><a href="#cb3-172"></a><span class="ss">-   </span>accept that some loss of interpretability may be worthwhile;</span>
-<span id="cb3-173"><a href="#cb3-173"></a><span class="ss">-   </span>consider methods that shrink coefficients or otherwise stabilise model performance.</span>
-<span id="cb3-174"><a href="#cb3-174"></a></span>
-<span id="cb3-175"><a href="#cb3-175"></a><span class="fu"># Summary</span></span>
+<span id="cb3-171"><a href="#cb3-171"></a>If your goal is primarily **prediction**:</span>
+<span id="cb3-172"><a href="#cb3-172"></a></span>
+<span id="cb3-173"><a href="#cb3-173"></a><span class="ss">-   </span>evaluate models out of sample;</span>
+<span id="cb3-174"><a href="#cb3-174"></a><span class="ss">-   </span>accept that some loss of interpretability may be worthwhile;</span>
+<span id="cb3-175"><a href="#cb3-175"></a><span class="ss">-   </span>consider methods that shrink coefficients or otherwise stabilise model performance.</span>
 <span id="cb3-176"><a href="#cb3-176"></a></span>
-<span id="cb3-177"><a href="#cb3-177"></a><span class="ss">-   </span>Explanation and prediction are overlapping but distinct modelling goals.</span>
-<span id="cb3-178"><a href="#cb3-178"></a><span class="ss">-   </span>Ordinary regression is often strongest for explanation when the model is interpretable and well specified.</span>
-<span id="cb3-179"><a href="#cb3-179"></a><span class="ss">-   </span>Cross-validation is central when predictive performance is the goal.</span>
-<span id="cb3-180"><a href="#cb3-180"></a><span class="ss">-   </span>The next chapter takes up regularisation directly and shows how ridge, lasso, and elastic net help when prediction and coefficient stability matter most.</span>
-<span id="cb3-181"><a href="#cb3-181"></a></span>
-<span id="cb3-182"><a href="#cb3-182"></a>In this chapter, I make the modelling goal explicit. In the next chapter, I turn to regularisation, and in the final chapter I close the sequence with reproducible analytical workflow.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb3-177"><a href="#cb3-177"></a><span class="fu"># Why This Distinction Matters for the Rest of the Course</span></span>
+<span id="cb3-178"><a href="#cb3-178"></a></span>
+<span id="cb3-179"><a href="#cb3-179"></a>Once the modelling goal is named clearly, several earlier chapter choices become easier to interpret. Collinearity is especially damaging for explanation because it destabilises biological attribution. Overfitting is especially damaging for prediction because it reduces performance on new data. Diagnostics also change meaning slightly: some are about whether the model is interpretable and defensible, others about whether it generalises honestly.</span>
+<span id="cb3-180"><a href="#cb3-180"></a></span>
+<span id="cb3-181"><a href="#cb3-181"></a>The distinction is therefore not philosophical decoration. It tells you what kind of error you most want to avoid, what model complexity is acceptable, and which summaries deserve priority when you report the result.</span>
+<span id="cb3-182"><a href="#cb3-182"></a></span>
+<span id="cb3-183"><a href="#cb3-183"></a><span class="fu"># Summary</span></span>
+<span id="cb3-184"><a href="#cb3-184"></a></span>
+<span id="cb3-185"><a href="#cb3-185"></a><span class="ss">-   </span>Explanation and prediction are overlapping but distinct modelling goals.</span>
+<span id="cb3-186"><a href="#cb3-186"></a><span class="ss">-   </span>Ordinary regression is often strongest for explanation when the model is interpretable and well specified.</span>
+<span id="cb3-187"><a href="#cb3-187"></a><span class="ss">-   </span>Cross-validation is central when predictive performance is the goal.</span>
+<span id="cb3-188"><a href="#cb3-188"></a><span class="ss">-   </span>The next chapter takes up regularisation directly and shows how ridge, lasso, and elastic net help when prediction and coefficient stability matter most.</span>
+<span id="cb3-189"><a href="#cb3-189"></a></span>
+<span id="cb3-190"><a href="#cb3-190"></a>In this chapter, I make the modelling goal explicit. In the next chapter, I turn to regularisation, and in the final chapter I close the sequence with reproducible analytical workflow.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
