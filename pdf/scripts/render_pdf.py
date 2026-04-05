@@ -27,8 +27,28 @@ from utils import (
     TMP_OUT,
 )
 
+PDF_EXECUTE_SETUP = """```{r pdf-print-width, include=FALSE}
+options(
+  width = 75,
+  pillar.width = 75
+)
+```
 
-def resolved_meta_file() -> Path:
+"""
+
+
+def inject_pdf_execute_setup(content: str) -> str:
+    if "pdf-print-width" in content:
+        return content
+    if content.startswith("---\n"):
+        end = content.find("\n---", 4)
+        if end != -1:
+            end += 4
+            return content[:end] + "\n\n" + PDF_EXECUTE_SETUP + content[end:].lstrip("\n")
+    return PDF_EXECUTE_SETUP + content
+
+
+def resolved_meta_file(chapter: dict | None = None) -> Path:
     data = load_yaml(CONFIG_ROOT / "pdf-meta.yml")
     for key in ("bibliography", "csl"):
         value = data.get(key)
@@ -60,6 +80,16 @@ def resolved_meta_file() -> Path:
             values = [values]
         if isinstance(values, list):
             data[key] = [str((REPO_ROOT / value).resolve()) for value in values]
+
+    metadata = data.get("metadata", {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+    if chapter is not None:
+        slug = str(chapter.get("slug", ""))
+        match = re.match(r"(\d+)", slug)
+        if match:
+            metadata["pdf_chapter_number"] = int(match.group(1))
+    data["metadata"] = metadata
 
     out = TMP_OUT / "pdf-meta.resolved.yml"
     dump_yaml(out, data)
@@ -179,9 +209,11 @@ def postprocess_tex(tex_path: Path) -> None:
     tex_path.write_text(text, encoding="utf-8")
 
 
-def render_tex(source: str, slug: str, quiet: bool = False) -> Path:
+def render_tex(chapter: dict, quiet: bool = False) -> Path:
+    source = chapter["source"]
+    slug = chapter["slug"]
     tex_path = chapter_tex_path(slug)
-    meta_path = resolved_meta_file()
+    meta_path = resolved_meta_file(chapter)
     source_path = REPO_ROOT / source
     stage_root = Path(tempfile.mkdtemp(prefix=f"stage-{slug}-", dir=TMP_OUT))
     stage_project = stage_root / "project"
@@ -217,7 +249,8 @@ def render_tex(source: str, slug: str, quiet: bool = False) -> Path:
 
         staged_source = stage_project / source
         staged_source.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source_path, staged_source)
+        source_text = source_path.read_text(encoding="utf-8")
+        staged_source.write_text(inject_pdf_execute_setup(source_text), encoding="utf-8")
 
         parent_metadata = source_path.parent / "_metadata.yml"
         if parent_metadata.exists():
@@ -322,7 +355,7 @@ def publish_pdf(chapter: dict, pdf_path: Path) -> None:
 
 def build_one(chapter: dict, quiet: bool = False) -> Path:
     slug = chapter["slug"]
-    tex_path = render_tex(chapter["source"], slug, quiet=quiet)
+    tex_path = render_tex(chapter, quiet=quiet)
     pdf_path = compile_pdf(tex_path, slug, quiet=quiet)
     publish_pdf(chapter, pdf_path)
     return pdf_path
