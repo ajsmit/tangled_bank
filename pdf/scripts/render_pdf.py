@@ -107,11 +107,26 @@ def classify_callout_kind(kind: str, title: str) -> str:
     return kind
 
 
+def default_callout_title(kind: str, title: str) -> str:
+    cleaned = (title or "").strip()
+    if cleaned:
+        return cleaned
+    defaults = {
+        "note": "Note",
+        "important": "Important",
+        "warning": "Warning",
+        "tip": "Tip",
+        "caution": "Caution",
+    }
+    return defaults.get(kind, kind.title())
+
+
 def latex_callout(kind: str, title: str, body: str) -> str:
-    resolved_kind = classify_callout_kind(kind, title)
+    resolved_title = default_callout_title(kind, title)
+    resolved_kind = classify_callout_kind(kind, resolved_title)
     cleaned_body = body.strip()
     return (
-        f"\\begin{{bcbcallout}}{{{resolved_kind}}}{{{title.strip()}}}\n\n"
+        f"\\begin{{bcbcallout}}{{{resolved_kind}}}{{{resolved_title}}}\n\n"
         f"{cleaned_body}\n\n"
         "\\end{bcbcallout}"
     )
@@ -141,9 +156,9 @@ def postprocess_tex(tex_path: Path) -> None:
         (?P<options>[^\]]*?colframe=quarto-callout-(?P<kind>[a-z]+)-color-frame[^\]]*?)
         title=\\textcolor\{quarto-callout-[^}]+\}\{\\fa[^}]+\}\\hspace\{0\.5em\}\{(?P<title>.*?)\}
         [^\]]*?\]
-        \n\n
+        \s*
         (?P<body>.*?)
-        \n\n\\end\{tcolorbox\}
+        \s*\\end\{tcolorbox\}
         """,
         re.DOTALL | re.VERBOSE,
     )
@@ -156,8 +171,8 @@ def postprocess_tex(tex_path: Path) -> None:
         \s*\\begin\{minipage\}\[t\]\{5\.5mm\}
         \s*\\textcolor\{quarto-callout-[^}]+\}\{\\fa[^}]+\}
         \s*\\end\{minipage\}%
-        \s*\\begin\{minipage\}\[t\]\{\\textwidth\s*-\s*5\.5mm\}
-        \s*\\vspace\{-3mm\}\\textbf\{(?P<title>.*?)\}\\vspace\{3mm\}
+        \s*\\begin\{minipage\}\[t\]\{\s*\\textwidth\s*-\s*5\.5mm\s*\}
+        \s*(?:\\vspace\{-3mm\}\\textbf\{(?P<title>.*?)\}\\vspace\{3mm\})?
         \s*(?P<body>.*?)
         \s*\\end\{minipage\}%
         \s*\\end\{tcolorbox\}

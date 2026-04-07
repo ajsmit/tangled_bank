@@ -45,8 +45,6 @@ library(tidyverse)
 -   None
 :::
 
-# Introduction
-
 Many ecological and biological processes are interactive. Nutrient supply may matter more at high temperature than at low temperature. The influence of distance may differ among bioregions. A treatment may affect males and females differently. These are situations where the effect of one variable is contingent on the state of another.
 
 Linear regression handles these cases by including an **interaction term**. The idea is that one slope depends on another variable. Building this into a model requires care, because once an interaction is present, the main effects can no longer be read in isolation and the coefficient table becomes harder to interpret without accompanying plots.
@@ -156,7 +154,7 @@ For example, consider a model of mussel filtration rate (L h⁻¹) as a function
 
 ## A Worked Algebra Example
 
-A simple numeric illustration makes this concrete. Suppose we fit a model where `group` is a two-level factor (`A` and `B`, with `A` as the reference) and `x` is a continuous predictor. The factor is represented in the model matrix by a [dummy variable](14-multiple-regression-and-model-specification.qmd#dummy-variable-coding) $D_i$:
+A simple numeric illustration makes this visible. Suppose we fit a model where `group` is a two-level factor (`A` and `B`, with `A` as the reference) and `x` is a continuous predictor. The factor is represented in the model matrix by a [dummy variable](14-multiple-regression-and-model-specification.qmd#dummy-variable-coding) $D_i$:
 
 $$Y_i = \alpha + \beta_1 x_i + \beta_2 D_i + \beta_3 x_i D_i + \epsilon_i$$
 
@@ -211,11 +209,13 @@ Check that the coefficient of `temp` matches your answer to question 2.
 
 # Example 1: Two Continuous Predictors with and without Centring
 
-Interactions do not only arise between a factor and a continuous predictor. They also occur when two continuous predictors work together, and this case gives one of the clearest demonstrations of why the reference-point problem matters.
+Interactions do not only arise between a factor and a continuous predictor. They also occur when two continuous predictors occur together.
 
 I model algal growth as a function of temperature and nutrient concentration, expecting that the effect of temperature depends on nutrient supply. Warming may be more influential when nutrients are abundant than when they are scarce. This is a biologically plausible interaction with a mechanistic basis, *i.e.*, we know that photosynthetic response to temperature is partly limited by nutrient availability.
 
 ## Example Dataset
+
+I simulate some data for this example.
 
 ```{r code-centering-example}
 set.seed(14)
@@ -274,7 +274,7 @@ int_demo |>
   theme_grey()
 ```
 
-The fitted lines in @fig-centering-eda are not parallel. As nutrient concentration increases, the temperature-growth slope becomes steeper. That fan shape is the visual signature of an interaction: the same unit increase in temperature produces a larger growth response when nutrients are abundant than when they are scarce.
+The fitted lines in @fig-centering-eda are not parallel. As nutrient concentration increases, the temperature-growth slope becomes steeper. This fan shape is the visual sign of an interaction; in other words, the same unit increase in temperature produces a larger growth response when nutrients are abundant than when they are scarce.
 
 ::: callout-important
 ## Do It Now!
@@ -305,16 +305,16 @@ Answer:
 
 ## State the Model Question
 
-The biological question is not whether temperature matters or whether nutrient concentration matters. It is whether the effect of temperature changes across the nutrient gradient.
+The biological question is not whether temperature or nutrient concentration is influential alone, but it is whether or not the effect of temperature *changes across* the nutrient gradient.
 
 For the interaction term, the hypothesis pair is:
 
 $$H_{0}: \beta_{\text{temp:nutrient}} = 0$$
 $$H_{a}: \beta_{\text{temp:nutrient}} \ne 0$$
 
-If the interaction coefficient is zero, the slope of temperature does not depend on nutrient concentration. If it differs from zero, the temperature effect is conditional on nutrient supply.
+If the interaction coefficient is zero, the slope of temperature does not depend on nutrient concentration, so we can have one sloped line for all nutrient regimes. If it differs from zero, the temperature effect is conditional on nutrient supply and we will have a different line, each with its unique slope, for each nutrient condition.
 
-This framing might suggest that the appropriate model is `lm(growth ~ temp:nutrient, data = int_demo)`, which specifies the interaction term alone and drops the main effects. That model is almost always wrong. The `:` operator without main effects constrains both $\beta_1$ and $\beta_2$ to zero; it asserts that temperature has no direct effect on growth and neither does nutrient concentration, only their product matters. That claim is too strong and usually unjustified biologically. The **hierarchy principle** says that whenever an interaction is in the model, its constituent main effects must be in the model too, regardless of whether the primary question concerns them. This is what `*` enforces: `temp * nutrient` expands to `temp + nutrient + temp:nutrient`. The main effects are there not because they are the focal hypothesis but because the interaction term is only meaningful in their presence. Dropping them changes the interpretation of $\beta_3$ entirely.
+Stating the question like this might suggest that the appropriate model is `lm(growth ~ temp:nutrient, data = int_demo)`, which specifies the interaction term alone and drops the main effects. That model is almost always wrong. The `:` operator without main effects constrains both $\beta_1$ and $\beta_2$ to zero; it asserts that temperature has no direct effect on growth and neither does nutrient concentration, only their product matters. That claim is too strong and usually unjustified biologically. The **hierarchy principle** says that whenever an interaction is in the model, its constituent main effects must be in the model too, regardless of whether the primary question concerns them. This is what `*` enforces: `temp * nutrient` expands to `temp + nutrient + temp:nutrient`. The main effects are there not because they are the focal hypothesis but because the interaction term is only meaningful in their presence. Dropping them changes the interpretation of $\beta_3$ entirely.
 
 ## Fit the Uncentred and Centred Models
 
@@ -335,11 +335,9 @@ tibble(
 
 The interaction coefficient is identical in both models; so, centring does not change the interaction estimate. What centring changes are the main effects, and that is the important point.
 
-In the uncentred model, the temperature coefficient is the slope of temperature when nutrient concentration is zero. Nutrient ranges from 0.5 to 5 in this dataset: zero is outside the data range entirely. That coefficient describes an extrapolated, biologically unobservable condition, and interpreting it directly is misleading.
+In the uncentred model, the temperature coefficient is the slope of temperature when nutrient concentration is zero. Nutrient ranges from 0.5 to 5 in this dataset, and zero is outside the data range entirely. That coefficient describes an extrapolated, biologically unobservable condition, and interpreting it directly is misleading. In the centred model, the temperature coefficient is the slope of temperature at the mean nutrient concentration, and the nutrient coefficient is the slope of nutrient at the mean temperature. Both describe something that actually occurs in the data, and centring the data makes this possible.
 
-In the centred model, the temperature coefficient is the slope of temperature at the mean nutrient concentration, and the nutrient coefficient is the slope of nutrient at the mean temperature. Both describe something that actually occurs in the data, and the centring rule makes this possible.
-
-The fitted values are unchanged. Centring is a reparameterisation, not a different model. It moves the reference point from an arbitrary zero to the sample mean, making the main effects describe something scientifically interpretable rather than a mathematically convenient but biologically meaningless baseline.
+The fitted values are unchanged because centring is a reparameterisation and not a different model. It repositions the reference point from an arbitrary zero to the sample mean to make the main effects describe something scientifically interpretable rather than a mathematically convenient but biologically meaningless baseline. The same reasonong informs factor × continuous interactions, ANCOVA-style models, and more complex multiple-regression scenarios. Whenever an interaction is present, ask whether the zero point of each continuous predictor gives you main effects that carry biologically relatable meaning. If it does not, centring is the way to go.
 
 ::: callout-important
 ## Do It Now!
@@ -364,11 +362,7 @@ all.equal(fitted(mod_raw), fitted(mod_cent))
 ```
 :::
 
-## Why is This Example Important?
-
-Centring does not remove the interaction or change the fitted values. It changes the reference point so that the main effects describe something scientifically interpretable rather than a mathematically arbitrary zero. The same reasonong informs factor × continuous interactions, ANCOVA-style models, and more complex multiple-regression scenarios. Whenever an interaction is present, ask whether the zero point of each continuous predictor gives you main effects that carry biologically relatable meaning. If it does not, centring is the way to go.
-
-## A Note on Scale Dependence
+## Scale Dependence
 
 Centring is not the only scale consideration worth making. Interactions can appear or disappear depending on whether the response is modelled on an arithmetic or logarithmic scale. If a multiplicative process generates the data (for example, growth rates often multiply rather than add) then a log transformation of the response may convert an apparent interaction into an additive relationship. Before concluding that an interaction is biologically real, ask if it reflects the measurement scale. So, a log-scale additive model and an arithmetic-scale interaction model sometimes describe the same underlying biology.
 
@@ -405,7 +399,7 @@ The fitted lines in @fig-seaweed-interaction are not parallel. The relationship 
 
 Three increasingly specific questions inform this analysis:
 
-1. Is dissimilarity related to istance?
+1. Is dissimilarity related to distance?
 2. Do average dissimilarity levels differ among bioregions?
 3. Does the effect of distance differ among bioregions?
 
@@ -433,15 +427,54 @@ anova(mod_dist, mod_main, mod_int)
 summary(mod_int)
 ```
 
-Adding bioregion to the distance-only model improves fit strongly. Adding the interaction improves fit again. The interaction changes the model materially.
+Adding bioregion to the distance-only model improves fit strongly. Adding the interaction improves fit again. The interaction changes the model materially. We can see this in the nested-ANOVA, where the `Y ~ dist * bio` model has the smallest residual sum of squares (RSS), and is highly significant.
 
 ## Interpret the Interaction
 
-Using the algebra from the earlier worked example, each bioregion's fitted slope is the sum of the reference slope ($\hat{\beta}_\text{dist}$) and that bioregion's interaction coefficient. The reference bioregion has slope $\hat{\beta}_\text{dist}$ alone; every other bioregion has a slope that deviates from this by the relevant interaction coefficient. The coefficient table gives the parameterisation and the plot gives the biological interpretation.
+The interaction model `Y ~ dist * bio` expands the additive model with a second set of dummy-coded terms (one per non-reference bioregion) that allow the slope of `dist` to differ across groups. The full equation is:
+
+$$Y_i = \alpha + \beta_\text{dist}\,\text{dist}_i + \gamma_1 D_{i,\text{B-ATZ}} + \gamma_2 D_{i,\text{BMP}} + \gamma_3 D_{i,\text{ECTZ}} + \delta_1(\text{dist}_i \cdot D_{i,\text{B-ATZ}}) + \delta_2(\text{dist}_i \cdot D_{i,\text{BMP}}) + \delta_3(\text{dist}_i \cdot D_{i,\text{ECTZ}}) + \epsilon_i$$
+
+where each $D$ is an indicator variable (1 for that bioregion, 0 otherwise). Substituting the 0/1 values for each bioregion collapses the equation to a simple regression line, but one with a bioregion-specific intercept **and** a bioregion-specific slope.
+
+@tbl-int-coding shows which terms are active for each bioregion. For `AMP` every dummy is zero, so all $\gamma$ and $\delta$ terms drop out entirely. For `B-ATZ`, $D_{i,\text{B-ATZ}} = 1$ and both `bioB-ATZ` and `dist:bioB-ATZ` become active; the interaction term contributes $\delta_1 \cdot \text{dist}_i$, which scales with the actual distance value.
+
+| Bioregion | `bioB-ATZ` | `bioBMP` | `bioECTZ` | `dist:bioB-ATZ` | `dist:bioBMP` | `dist:bioECTZ` |
+|:----------|:----------:|:--------:|:---------:|:---------------:|:-------------:|:--------------:|
+| AMP | 0 | 0 | 0 | 0 | 0 | 0 |
+| B-ATZ | 1 | 0 | 0 | $\text{dist}$ | 0 | 0 |
+| BMP | 0 | 1 | 0 | 0 | $\text{dist}$ | 0 |
+| ECTZ | 0 | 0 | 1 | 0 | 0 | $\text{dist}$ |
+
+: Dummy-variable coding for the interaction model `Y ~ dist * bio`, with `AMP` as the reference level. For each non-reference bioregion, exactly one intercept dummy and one slope dummy are switched on. {#tbl-int-coding}
+
+Because each bioregion activates at most one $\gamma$ and one $\delta$, every group's regression line reduces to a simple intercept–slope pair. @tbl-int-algebra shows the symbolic expressions and @tbl-int-numeric applies the coefficient estimates from `summary(mod_int)`.
+
+| Bioregion | Effective intercept | Effective slope |
+|:----------|:--------------------|:----------------|
+| AMP | $\hat\alpha$ | $\hat\beta_\text{dist}$ |
+| B-ATZ | $\hat\alpha + \hat\gamma_1$ | $\hat\beta_\text{dist} + \hat\delta_1$ |
+| BMP | $\hat\alpha + \hat\gamma_2$ | $\hat\beta_\text{dist} + \hat\delta_2$ |
+| ECTZ | $\hat\alpha + \hat\gamma_3$ | $\hat\beta_\text{dist} + \hat\delta_3$ |
+
+: Symbolic effective intercepts and slopes for each bioregion in `mod_int`. The interaction coefficients $\hat\delta_i$ are slope *adjustments* relative to the reference slope, not bioregion slopes in their own right. {#tbl-int-algebra}
+
+| Bioregion | Effective intercept | Effective slope (per km) |
+|:----------|:--------------------|:-------------------------|
+| AMP | $\hat\alpha = 0.00534$ | $\hat\beta_\text{dist} = 3.53 \times 10^{-4}$ |
+| B-ATZ | $0.00534 + (-0.00614) = -0.00080$ | $3.53\times10^{-4} + 7.98\times10^{-4} = 1.151\times10^{-3}$ |
+| BMP | $0.00534 + 0.03820 = 0.04354$ | $3.53\times10^{-4} + (-1.29\times10^{-4}) = 2.25\times10^{-4}$ |
+| ECTZ | $0.00534 + 0.01629 = 0.02163$ | $3.53\times10^{-4} + 4.21\times10^{-4} = 7.74\times10^{-4}$ |
+
+: Numerical effective intercepts and slopes for each bioregion, computed from `summary(mod_int)`. Read the `dist` row for $\hat\beta_\text{dist}$ and the `dist:bioX` rows for the $\hat\delta_i$ adjustments, then add. Do not read the interaction rows as slopes — they are deviations from the AMP slope. {#tbl-int-numeric}
+
+The most important column is the effective slope. `B-ATZ` shows the steepest gradient ($1.15 \times 10^{-3}$ per km), more than three times the `BMP` slope ($2.25 \times 10^{-4}$ per km). Over a 500 km transect, `B-ATZ` accumulates roughly 0.58 units of Sørensen dissimilarity from distance alone, while `BMP` accumulates only 0.11. That is the biological content of the significant interaction.
+
+The standard errors for the effective slopes follow the same idea presented in [Chapter 14](14-multiple-regression-and-model-specification.qmd). That is, the SE of $\hat\beta_\text{dist} + \hat\delta_i$ requires the covariance between the two estimates, available from `vcov(mod_int)`, or can be read directly by re-levelling `bio` to place each target bioregion first and refitting.
 
 The adjusted $R^2$ of around 0.86 indicates that the model accounts for most of the variation in dissimilarity across the coastline.
 
-**Effect size alongside significance.** The model comparison establishes that the interaction is statistically detectable ($p < 0.001$). The more biologically informative question is how different the slopes actually are. Extract the slope for each bioregion from the coefficient table by adding $\hat{\beta}_\text{dist}$ to each interaction coefficient, then compare them. If one bioregion shows a slope of 0.003 per kilometre and another shows 0.008 per kilometre, that two-fold difference may be substantial relative to the range of Sørensen dissimilarity (0 to 1), or it may be negligible depending on the spatial scale of the study. A significant interaction is not automatically an important one. Evaluate the magnitude of slope differences against what is biologically meaningful, not only against the null of zero difference.
+The model comparison establishes that the interaction is statistically detectable ($p < 0.001$). The more biologically informative question is how different the slopes actually are. Extract the slope for each bioregion from the coefficient table by adding $\hat{\beta}_\text{dist}$ to each interaction coefficient, then compare them. If one bioregion shows a slope of 0.003 per kilometre and another shows 0.008 per kilometre, that two-fold difference may be substantial relative to the range of Sørensen dissimilarity (0 to 1), or it may be negligible depending on the spatial scale of the study. A significant interaction is not automatically an important one. Evaluate the magnitude of slope differences against what is biologically meaningful, not only against the null of zero difference.
 
 ::: callout-important
 ## Do It Now!

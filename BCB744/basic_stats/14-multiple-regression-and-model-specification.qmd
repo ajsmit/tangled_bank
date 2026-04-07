@@ -54,15 +54,13 @@ palette(viridis(8))
 - None
 :::
 
-# Introduction
-
 I modelled the relationship between two variables in [Chapter 12](12-simple-linear-regression.qmd). Biological systems are rarely that simple. Growth, abundance, species diversity, and dissimilarity in community composition are each driven by several environmental and biological factors acting simultaneously. Multiple linear regression is obvious progression from simple regression to more realistic applications, since it models a continuous response as a linear function of two or more predictors.
 
 Adding predictors creates a more demanding scientific problem alongside the statistical one. Which predictors belong in the model, and why? What does each coefficient mean once others are present? So, I treat multiple regression and model specification together in this chapter, because separating them encourages data-driven assembly of predictors that produces unreliable models. I would rather place emphasis on biology and encourage theory-driven insights as the prime motivation of the model's construction.
 
 The worked examples use seaweed biogeographic data from @smit2017seaweeds. The dataset reappears in several places in BCB744 and is well suited here because it contains a continuous response, continuous climate predictors, and a categorical regional predictor.
 
-# Key Concepts
+# Important Concepts
 
 - **Multiple regression** models a response using several predictors simultaneously. Each fitted coefficient is a partial effect; this is, the expected change in the response for a one-unit increase in that predictor when all other predictors are held constant.
 - **Model specification** is the process of capturing the biological reasoning into a statistical formula. Specifying a model means deciding which variables belong, what functional forms they should take, and whether any interactions are needed.
@@ -456,6 +454,8 @@ $$Y = \alpha + \beta_1 \text{augMean} + \beta_2 \text{febSD} + \beta_3 \text{aug
 
 The **coefficient table** from `summary()` tests each partial effect *conditional* on all other predictors in the model. The *t*-statistic for `augMean` asks: given that `febSD` and `augSD` are already in the model, does `augMean` still contribute? Each test conditions on the full model as specified.
 
+Each $\hat\beta$ is the rate of change in $Y$ per unit change in that predictor, with all others held constant. For `augMean`, $\hat\beta_1 = 0.2833$: each additional degree Celsius of August mean temperature corresponds to a 0.28-unit increase in Sørensen dissimilarity. Sørensen spans 0 to 1, so that is a steep gradient (roughly a quarter of the entire response range per degree) reflecting the strong thermal structuring of seaweed assemblages along the South African coast.
+
 The **ANOVA table** from `anova()` is *sequential*. It partitions the total sum of squares in the order the predictors were entered: `augMean` is assessed first, then `febSD` gets credit for what `augMean` left unexplained, and `augSD` gets the remainder. Change the order of predictors in the formula and the sums of squares in the ANOVA table change.
 
 For testing whether a predictor contributes after adjusting for all others, the coefficient table is the appropriate place to look. The ANOVA table is more informative when the question is about the total variance attributable to each predictor in a natural sequence, or when comparing nested models (see [Chapter 15](15-interaction-effects.qmd)).
@@ -571,9 +571,9 @@ Mean Sørensen dissimilarity in the East Coast Transition Zone was modelled as a
 
 Mean Sørensen dissimilarity in the East Coast Transition Zone was strongly explained by a multiple linear regression containing August mean temperature, February temperature variability, and August temperature variability (adjusted $R^2 = 0.84$; overall model $F$-test $p < 0.001$). All three retained predictors had positive partial effects. The 95% confidence intervals confirm that the partial effects of `augMean` and `febSD` exclude zero comfortably, while the interval for `augSD` is positive but wider.
 
-```{r}
+<!-- ```{r}
 confint(mod1)
-```
+``` -->
 
 **Discussion**
 
@@ -586,7 +586,7 @@ Multiple regression can include both continuous and categorical predictors. In R
 
 ## Dummy Variable Coding
 
-When a categorical variable with $k$ levels is included in a regression, R represents it using $k - 1$ dummy variables. One level is taken as the reference, and its contribution is absorbed into the model intercept. Each remaining level receives a coefficient that gives the difference in fitted intercept relative to that reference.
+When a *categorical variable* with $k$ levels is included in a regression, R represents it using $k - 1$ dummy variables. One level is taken as the reference, and its contribution is absorbed into the model intercept. Each remaining level receives a coefficient that gives the difference in fitted intercept relative to that reference.
 
 The four seaweed bioregions are `AMP`, `B-ATZ`, `BMP`, and `ECTZ`. With `AMP` as the reference level, the additive model containing both geographic distance and bioregion is:
 
@@ -598,17 +598,21 @@ $$Y_i = \alpha + \beta_1 \text{dist}_i
 
 where each $D$ is an indicator variable: it equals 1 for observations belonging to that bioregion and 0 for all others.
 
-**What the equation says.** Look at the equation term by term. The term $\beta_1 \text{dist}_i$ contributes the same amount to the predicted $Y$ regardless of which bioregion site $i$ belongs to: the slope $\beta_1$ is shared across all regions. The dummy terms switch on or off depending on the bioregion. For a site in `AMP`, all three dummies are zero, so the predicted value simplifies to $\alpha + \beta_1 \text{dist}_i$. For a site in `B-ATZ`, only $D_{i,\text{B-ATZ}} = 1$, so the predicted value is $\alpha + \beta_1 \text{dist}_i + \gamma_1$. The $\gamma$ coefficients therefore describe *shifts in the intercept*, so they adjust the expected baseline level of dissimilarity for each bioregion up or down from the `AMP` reference, independently of how far apart the sites are.
+### What the Equation Says
+
+Look at the equation term by term. The term $\beta_1 \text{dist}_i$ contributes the same amount to the predicted $Y$ regardless of which bioregion site $i$ belongs to, so the slope $\beta_1$ is shared across all regions. The dummy terms switch on or off depending on the bioregion. For a site in `AMP`, all three dummies are zero, so the predicted value simplifies to $\alpha + \beta_1 \text{dist}_i$. For a site in `B-ATZ`, only $D_{i,\text{B-ATZ}} = 1$, so the predicted value is $\alpha + \beta_1 \text{dist}_i + \gamma_1$. The $\gamma$ coefficients therefore describe *shifts in the intercept*, so they adjust the expected baseline level of dissimilarity for each bioregion up or down from the `AMP` reference, independently of how far apart the sites are.
 
 Put differently: the coefficient $\gamma_1$ is not the mean `Y` for `B-ATZ`. It is the *difference* between the average level of `Y` in `B-ATZ` and the average level of `Y` in `AMP`, after accounting for distance. A positive $\hat\gamma_2$ for `BMP` means that, at any given geographic distance, sites in `BMP` show higher mean dissimilarity than sites in `AMP`. This is what the model is designed to address: **does the average level of Sørensen dissimilarity differ among bioregions once distance is accounted for?**
 
-**What the equation does not say.** The model has only one slope for `dist`, $\beta_1$. That single value applies equally in `AMP`, `B-ATZ`, `BMP`, and `ECTZ`. If you drew the fitted regression line for each bioregion, all four lines would be parallel, that is, the share the same gradient but they have different heights. The model therefore cannot answer whether dissimilarity *accumulates with distance faster or slower in some bioregions than in others*. Whether the lines should instead have different slopes is a separate biological question entirely: it asks whether the rate of compositional turnover with distance differs among bioregions, not merely whether the baseline level differs. Answering that question requires adding an interaction term, `dist:bio`, which allows each bioregion to have its own slope. That extension is the subject of [Chapter 15](15-interaction-effects.qmd).
+### What it Does Not Say
+
+The model has only one slope for `dist`, $\beta_1$. That single value applies equally in `AMP`, `B-ATZ`, `BMP`, and `ECTZ`. If you drew the fitted regression line for each bioregion, all four lines would be parallel, that is, the share the same gradient but they have different heights. The model therefore cannot answer whether dissimilarity *accumulates with distance faster or slower in some bioregions than in others*. Whether the lines should instead have different slopes is a separate biological question entirely: it asks whether the rate of compositional turnover with distance differs among bioregions, not merely whether the baseline level differs. Answering that question requires adding an interaction term, `dist:bio`, which allows each bioregion to have its own slope. That extension is the subject of [Chapter 15](15-interaction-effects.qmd).
 
 For this chapter, the additive structure is the right tool for the questions being asked. The bioregion coefficients in `summary()` are intercept adjustments. They describe *how high or low the mean dissimilarity is* in each region relative to `AMP`, after removing the distance effect. They say nothing about the steepness of that distance effect in any particular region.
 
-**A visual way to think about it.** @fig-parallel-lines shows the reasoning in two steps.
+### A Visual Representation
 
-Panel A shows the simplest possible model: `Y ~ bio` with no distance predictor at all. The fitted value for each bioregion is just its group mean, producing a horizontal line for every region. The lines have no slope because distance plays no role here. This is also precisely what a one-way ANOVA produces. The vertical gaps between the horizontal lines represent the raw mean differences among bioregions in `Y`.
+@fig-parallel-lines shows the reasoning in two steps. Panel A shows the simplest possible model: `Y ~ bio` with no distance predictor at all. The fitted value for each bioregion is just its group mean, producing a horizontal line for every region. The lines have no slope because distance plays no role here. This is also precisely what a one-way ANOVA produces. The vertical gaps between the horizontal lines represent the raw mean differences among bioregions in `Y`.
 
 Panel B adds `dist` to the model: `Y ~ dist + bio`. All four horizontal lines from panel A now tilt by the same angle, acquiring the shared slope $\hat\beta_1$. Their vertical separation is preserved, so the gaps between the lines are unchanged from panel A, because the bioregion coefficients still describe the same intercept differences. What the slope adds is the ability to account for the tendency of dissimilarity to increase with geographic distance, and in this model, it does so by the same amount in every bioregion.
 
@@ -658,7 +662,7 @@ ggarrange(p_a, p_b, ncol = 2, labels = "AUTO", common.legend = TRUE,
 
 The parallelism in panel B is the algebraic consequence of the additive structure. If the lines were *not* parallel (*i.e.*, if the slope of `dist` differed among bioregions), the additive model would be the wrong model. Whether that is the case here is the question that motivates the interaction models in [Chapter 15](15-interaction-effects.qmd).
 
-## What the Coding Looks Like in Practice
+## Dummy Variables in Practice
 
 ```{r code-bio-demo}
 #| code-fold: true
@@ -696,13 +700,13 @@ bio_model_matrix |>
   theme_grey()
 ```
 
-**Reading the table.** Each row of @tbl-bio-demo is a bioregion; each column after the first is a dummy variable. The first column, `(Intercept)`, contains a 1 for every observation without exception. It is not a variable in the usual sense; it is the column that allows the model to estimate a constant term. Multiplying $\alpha$ by 1 for every row is how the intercept enters the linear predictor $\mathbf{X}\pmb{\beta}$ in matrix notation. When you see `(Intercept)` in `summary()` output, the coefficient next to it is $\hat\alpha$, which is the fitted value of $Y$ when every other column in the model matrix is zero, which in this case means an `AMP` observation at `dist = 0`.
+Each row of @tbl-bio-demo is a bioregion; each column after the first is a dummy variable. The first column, `(Intercept)`, contains a 1 for every observation without exception. It is not a variable in the usual sense; it is the column that allows the model to estimate a constant term. Multiplying $\alpha$ by 1 for every row is how the intercept enters the linear predictor $\mathbf{X}\pmb{\beta}$ in matrix notation. When you see `(Intercept)` in `summary()` output, the coefficient next to it is $\hat\alpha$, which is the fitted value of $Y$ when every other column in the model matrix is zero, which in this case means an `AMP` observation at `dist = 0`.
 
 The three dummy columns come after it. The dummy for a given bioregion is 1 for that bioregion's row and 0 for every other row. `AMP` has a 0 in every dummy column — that is not an error or a gap; it is the definition of the reference level. When all dummies are zero, the model collapses to the intercept column alone, so $\hat\alpha$ *is* the fitted baseline for `AMP`.
 
 @fig-bio-dummy-coding shows the same information as a grid. The pattern clearly reveals that no two bioregions share a 1 in the same dummy variable column. Each bioregion is uniquely identified by exactly one blue cell, or, in the case of `AMP`, by the absence of blue cells.
 
-**Translating to `summary()` output.** When `sw$bio` is passed to `lm()` as a factor, R creates the three dummy columns shown in @tbl-bio-demo and fits a coefficient to each. The coefficient table in `summary()` will contain rows named `bioB-ATZ`, `bioBMP`, and `bioECTZ`. It will *not* contain a row for `bioAMP`, because `AMP` is captured entirely by the intercept. Reading those output rows correctly requires remembering the table:
+Let's see what `summary()` does. When `sw$bio` is passed to `lm()` as a factor, R creates the three dummy columns shown in @tbl-bio-demo and fits a coefficient to each. The coefficient table in `summary()` will contain rows named `bioB-ATZ`, `bioBMP`, and `bioECTZ`. It will *not* contain a row for `bioAMP`, because `AMP` is captured entirely by the intercept. Reading those output rows correctly requires remembering the table:
 
 - For an `AMP` observation: all three dummies are 0. The fitted value from the categorical part of the model is $\alpha$, i.e., the intercept alone.
 - For a `BMP` observation: `bioBMP = 1`, the other two dummies are 0. The fitted value from the categorical part is $\alpha + \hat\gamma_2$, where $\hat\gamma_2$ is the coefficient of `bioBMP`. The model has shifted the fitted line for `BMP` up (or down) relative to `AMP` by exactly $\hat\gamma_2$.
@@ -803,6 +807,41 @@ The nested comparison uses the sequential ANOVA approach described in [Example 1
 
 The `summary()` output shows the partial effect of `dist` and the coefficient for each non-reference bioregion. Each `bio` coefficient is the difference in fitted intercept from `AMP` after conditioning on distance.
 
+@tbl-mod2-dummy translates those coefficients into effective intercepts for each bioregion. Read across each row: the 0/1 values determine which $\hat\gamma$ coefficient gets added to $\hat\alpha = -0.0270$.
+
+| Bioregion | `bioB-ATZ` | `bioBMP` | `bioECTZ` | Effective intercept | Estimate |
+|:----------|:----------:|:--------:|:---------:|:--------------------|:--------:|
+| AMP | 0 | 0 | 0 | $\hat\alpha$ | $-0.0270$ |
+| B-ATZ | 1 | 0 | 0 | $\hat\alpha + \hat\gamma_1$ | $-0.0270 + 0.0734 = 0.0464$ |
+| BMP | 0 | 1 | 0 | $\hat\alpha + \hat\gamma_2$ | $-0.0270 + 0.0126 = -0.0144$ |
+| ECTZ | 0 | 0 | 1 | $\hat\alpha + \hat\gamma_3$ | $-0.0270 + 0.1385 = 0.1115$ |
+
+: Dummy-variable coding, effective intercepts, and estimates for each bioregion in `mod2`, with `AMP` as the reference level. The full predicted $\hat{Y}$ for any observation adds the effective intercept to $\hat\beta_1 \cdot \text{dist}$, which is identical for all bioregions. {#tbl-mod2-dummy}
+
+The estimate for `AMP` is $\hat\alpha$ read directly from the `(Intercept)` row of `summary(mod2)`, and its SE is $\text{SE}(\hat\alpha) = 0.0045$. For any other bioregion the effective intercept is $\hat\alpha + \hat\gamma_i$, and its SE is **not** simply the sum of the two standard errors reported in `summary()`. Because $\hat\alpha$ and $\hat\gamma_i$ are estimated from the same data they are correlated, and that correlation must be included:
+
+$$\text{SE}(\hat\alpha + \hat\gamma_i) = \sqrt{\text{Var}(\hat\alpha) + \text{Var}(\hat\gamma_i) + 2\,\text{Cov}(\hat\alpha,\,\hat\gamma_i)}$$
+
+The required variances and covariance come from the full variance–covariance matrix of the fitted model, accessible in R as `vcov(mod2)`. For `B-ATZ`, for example:
+
+```{r code-mod2-fit-se}
+V <- vcov(mod2)
+se_batz <- sqrt(V["(Intercept)", "(Intercept)"] +
+                V["bioB-ATZ",   "bioB-ATZ"  ] +
+            2 * V["(Intercept)", "bioB-ATZ"  ])
+se_batz
+```
+
+Equivalently, re-levelling the factor to place `B-ATZ` first and refitting moves its effective intercept into the `(Intercept)` row, from which the SE is read directly:
+
+```{r code-mod2-fit-relevel}
+sw$bio    <- relevel(factor(sw$bio), ref = "B-ATZ")
+mod2_batz <- lm(Y ~ dist + bio, data = sw)
+summary(mod2_batz)$coefficients["(Intercept)", ]
+```
+
+The `(Intercept)` row of `mod2_batz` now reports the fitted baseline for `B-ATZ` (0.0464) together with its SE, without any matrix arithmetic. The fitted values, residuals, and overall model fit are unchanged; only the parameterisation of the intercept shifts.
+
 ## Interpret the Additive Model
 
 The additive model assumes one common slope for `dist` across all bioregions. The fitted distance effect is strongly positive, so as sample sites become more geographically separated along the coast, their seaweed assemblages become more dissimilar. The bioregion coefficients show that baseline dissimilarity differs among regions even after that distance effect is removed.
@@ -898,6 +937,60 @@ crPlots(full_mod3, col = "dodgerblue4", col.lines = "magenta")
 
 The component-plus-residual plots in @fig-mod3-crplots are most useful for assessing whether the continuous predictors require nonlinear terms. These plots do not show strong, systematic curvature, so the linear terms for augMean, febSD, and augSD appear adequate at the present level of resolution. Overall, I'd say the diagnostics support treating the additive linear model as a reasonable summary of the data, while recognising that model adequacy in regression is a matter of degree rather than a binary decision.
 
+@fig-mod3-results summarises the two main findings of `full_mod3`: the dominant positive relationship between August mean temperature and dissimilarity, expressed as parallel fitted lines that share a single slope across all bioregions, and the bioregion-specific intercept shifts relative to `AMP`.
+
+```{r fig-mod3-results}
+#| fig-cap: "Results of the additive climate-plus-bioregion model. (A) Observed mean Sørensen dissimilarity plotted against August mean temperature, coloured by bioregion. Parallel lines show the partial effect of `augMean` with `febSD` and `augSD` held at their means; the shared slope reflects the additive structure of `full_mod3`. (B) Bioregion coefficients ($\\hat\\gamma_i$) with 95% confidence intervals, expressed as differences in baseline dissimilarity relative to the `AMP` reference level. A point to the right of the dashed line indicates higher mean dissimilarity than `AMP` at any given set of climate values."
+#| fig-width: 8
+#| fig-height: 2.75
+#| code-fold: true
+
+bio_levels <- c("AMP", "B-ATZ", "BMP", "ECTZ")
+
+aug_seq <- seq(min(sw_sub2$augMean), max(sw_sub2$augMean), length.out = 200)
+pred_partial <- expand.grid(
+  augMean = aug_seq,
+  febSD   = mean(sw_sub2$febSD),
+  augSD   = mean(sw_sub2$augSD),
+  bio     = bio_levels
+)
+pred_partial$bio <- factor(pred_partial$bio, levels = bio_levels)
+pred_partial$fit <- predict(full_mod3, newdata = pred_partial)
+
+p_a <- ggplot() +
+  geom_point(data = sw_sub2 |> mutate(bio = factor(bio, levels = bio_levels)),
+             aes(x = augMean, y = Y, colour = bio),
+             shape = 1, alpha = 0.35, size = 1.2) +
+  geom_line(data = pred_partial,
+            aes(x = augMean, y = fit, colour = bio),
+            linewidth = 0.9) +
+  scale_colour_brewer(palette = "Set1", name = "Bioregion",
+                      breaks = bio_levels) +
+  labs(x = "August mean temperature (°C)",
+       y = "Mean Sørensen dissimilarity") +
+  theme_grey()
+
+coef_df <- broom::tidy(full_mod3, conf.int = TRUE) |>
+  dplyr::filter(stringr::str_starts(term, "bio")) |>
+  dplyr::mutate(
+    bio = factor(stringr::str_remove(term, "bio"),
+                 levels = rev(bio_levels[-1]))
+  )
+
+p_b <- ggplot(coef_df, aes(x = estimate, y = bio, colour = bio)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey50") +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0.15) +
+  geom_point(size = 2.5) +
+  scale_colour_brewer(palette = "Set1", breaks = bio_levels, drop = FALSE) +
+  labs(x = expression(hat(gamma)[i] ~ "(relative to AMP)"),
+       y = NULL) +
+  theme_grey() +
+  theme(legend.position = "none")
+
+ggarrange(p_a, p_b, ncol = 2, labels = "AUTO",
+          widths = c(1.6, 1), common.legend = TRUE, legend = "right")
+```
+
 ## Interpret the Model
 
 `augMean` remains the dominant climate predictor. The `bio` coefficients show that after adjusting for the three climate variables, the baseline dissimilarity still differs among regions. The model is additive, so the climate slopes are assumed to be the same in all bioregions.
@@ -936,7 +1029,7 @@ A comprehensive additive multiple regression was fitted to evaluate whether mean
 
 **Results**
 
-The climate-plus-bioregion additive model fitted the data substantially better than the corresponding climate-only model (lower AIC; nested model comparison $p < 0.001$). August mean temperature remained the dominant positive predictor. The inclusion of bioregion showed that regional differences in baseline dissimilarity persisted even after the climate variables were accounted for. The overall model explained a large proportion of the variation in mean Sørensen dissimilarity.
+The climate-plus-bioregion additive model fitted the data substantially better than the corresponding climate-only model (lower AIC; nested model comparison $p < 0.001$). August mean temperature remained the dominant positive predictor (@fig-mod3-results A). After accounting for climate, baseline dissimilarity still differed among bioregions: ECTZ showed the highest dissimilarity relative to AMP and BMP the lowest, as shown by the bioregion coefficient estimates and their confidence intervals (@fig-mod3-results B). The overall model explained approximately 70% of the variation in mean Sørensen dissimilarity.
 
 **Discussion**
 

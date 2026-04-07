@@ -40,8 +40,6 @@ library(gt)
 - write the analysis up as a short Results and Discussion section.
 :::
 
-# Introduction
-
 The Doubs River environmental data contain measurements from `r nrow(read.csv(here::here("data", "BCB743", "DoubsEnv.csv")))` sites along the river. The variables describe position in the catchment (`dfs`, `alt`, `slo`), hydrology (`flo`), water chemistry (`pH`, `har`), nutrient and pollution load (`pho`, `nit`, `amm`, `bod`), and dissolved oxygen (`oxy`).
 
 For a multiple regression, the variables should not be treated symmetrically. Here I model **dissolved oxygen** (`oxy`) as the **response** because oxygen concentration is an ecological state variable that can plausibly be influenced by channel morphology, flow, and pollution, whereas the reverse is not biologically sensible. For example, biochemical oxygen demand (`bod`) can reduce oxygen, but oxygen concentration does not cause upstream distance or channel slope.
@@ -213,7 +211,7 @@ model_comp <- tibble(
   adj_R2 = c(summary(mod_global)$adj.r.squared,
              summary(mod_reduced)$adj.r.squared,
              summary(mod_minimal)$adj.r.squared),
-  max_VIF = c(max(vif(mod_global)), max(vif(mod_reduced)), max(vif(mod_minimal)))
+  max_VIF = c(max(car::vif(mod_global)), max(car::vif(mod_reduced)), max(car::vif(mod_minimal)))
 )
 
 model_comp |>
@@ -225,7 +223,7 @@ model_comp |>
   gt()
 ```
 
-The model including `hardness` has the lowest AIC, but only by `r round(AIC(mod_reduced) - AIC(mod_global), 2)` units. That difference is negligible. Because the reduced model also lowers the maximum variance inflation factor from `r round(max(vif(mod_global)), 2)` to `r round(max(vif(mod_reduced)), 2)`, I prefer the **parsimonious model**:
+The model including `hardness` has the lowest AIC, but only by `r round(AIC(mod_reduced) - AIC(mod_global), 2)` units. That difference is negligible. Because the reduced model also lowers the maximum variance inflation factor from `r round(max(car::vif(mod_global)), 2)` to `r round(max(car::vif(mod_reduced)), 2)`, I prefer the **parsimonious model**:
 
 ```{r}
 final_mod <- mod_reduced
@@ -235,7 +233,7 @@ summary(final_mod)
 # Model Fit and Interpretation
 
 ```{r}
-coef_table <- tidy(final_mod, conf.int = TRUE) |>
+coef_table <- broom::tidy(final_mod, conf.int = TRUE) |>
   mutate(across(where(is.numeric), ~ round(.x, 3)))
 
 coef_table |>
@@ -287,8 +285,8 @@ site23_sensitivity <- lm(oxygen ~ bod + pH + log_flow + log_slope + log_nitrate,
                          data = filter(doubs, site != 23))
 
 bind_rows(
-  tidy(final_mod) |> mutate(model = "All sites"),
-  tidy(site23_sensitivity) |> mutate(model = "Without site 23")
+  broom::tidy(final_mod) |> mutate(model = "All sites"),
+  broom::tidy(site23_sensitivity) |> mutate(model = "Without site 23")
 ) |>
   select(model, term, estimate, std.error, p.value) |>
   mutate(across(where(is.numeric), ~ round(.x, 3))) |>
@@ -301,7 +299,7 @@ Removing site 23 changes the exact coefficient values but not the overall story:
 
 At 30 sites in the Doubs River, dissolved oxygen was analysed as a function of biochemical oxygen demand, pH, flow, channel slope, and nitrate concentration. Exploratory plots showed that several raw predictors were right-skewed and only approximately linear on the original scale, so `flow`, `slope`, and `nitrate` were log-transformed before modelling. Because longitudinal variables (`distance`, `altitude`, and `flow`) and pollution variables (`bod`, `phosphorus`, and `ammonia`) were strongly collinear, only one representative variable from each cluster was retained in the candidate set.
 
-The final multiple regression model was `oxygen ~ bod + pH + log_flow + log_slope + log_nitrate`. The model explained `r scales::percent(summary(final_mod)$r.squared, accuracy = 0.1)` of the variance in dissolved oxygen (`adjusted R^2 = `r round(summary(final_mod)$adj.r.squared, 3)``; `F_{5,24} = `r round(summary(final_mod)$fstatistic[1], 2)`, `p < 0.001`). Dissolved oxygen decreased significantly as biochemical oxygen demand increased ($\beta = `r round(tidy(final_mod)$estimate[tidy(final_mod)$term == "bod"], 3)`, 95% CI `r round(tidy(final_mod, conf.int = TRUE)$conf.low[tidy(final_mod, conf.int = TRUE)$term == "bod"], 3)` to `r round(tidy(final_mod, conf.int = TRUE)$conf.high[tidy(final_mod, conf.int = TRUE)$term == "bod"], 3)``). Oxygen increased with both `log_flow` ($\beta = `r round(tidy(final_mod)$estimate[tidy(final_mod)$term == "log_flow"], 3)`, `p = `r round(tidy(final_mod)$p.value[tidy(final_mod)$term == "log_flow"], 3)``) and `log_slope` ($\beta = `r round(tidy(final_mod)$estimate[tidy(final_mod)$term == "log_slope"], 3)`, `p = `r round(tidy(final_mod)$p.value[tidy(final_mod)$term == "log_slope"], 3)``). The fitted effects of pH and nitrate were weaker and not individually significant at the 0.05 level, but they were retained because they modestly improved model fit and helped adjust for background chemical variation. Residual and influence diagnostics did not indicate serious violations of normality or homoscedasticity.
+The final multiple regression model was `oxygen ~ bod + pH + log_flow + log_slope + log_nitrate`. The model explained `r scales::percent(summary(final_mod)$r.squared, accuracy = 0.1)` of the variance in dissolved oxygen (`adjusted R^2 = `r round(summary(final_mod)$adj.r.squared, 3)``; `F_{5,24} = `r round(summary(final_mod)$fstatistic[1], 2)`, `p < 0.001`). Dissolved oxygen decreased significantly as biochemical oxygen demand increased ($\beta = `r round(broom::tidy(final_mod)$estimate[broom::tidy(final_mod)$term == "bod"], 3)`, 95% CI `r round(broom::tidy(final_mod, conf.int = TRUE)$conf.low[broom::tidy(final_mod, conf.int = TRUE)$term == "bod"], 3)` to `r round(broom::tidy(final_mod, conf.int = TRUE)$conf.high[broom::tidy(final_mod, conf.int = TRUE)$term == "bod"], 3)``). Oxygen increased with both `log_flow` ($\beta = `r round(broom::tidy(final_mod)$estimate[broom::tidy(final_mod)$term == "log_flow"], 3)`, `p = `r round(broom::tidy(final_mod)$p.value[broom::tidy(final_mod)$term == "log_flow"], 3)``) and `log_slope` ($\beta = `r round(broom::tidy(final_mod)$estimate[broom::tidy(final_mod)$term == "log_slope"], 3)`, `p = `r round(broom::tidy(final_mod)$p.value[broom::tidy(final_mod)$term == "log_slope"], 3)``). The fitted effects of pH and nitrate were weaker and not individually significant at the 0.05 level, but they were retained because they modestly improved model fit and helped adjust for background chemical variation. Residual and influence diagnostics did not indicate serious violations of normality or homoscedasticity.
 
 # Discussion
 
