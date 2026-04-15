@@ -308,6 +308,32 @@ chicks_aov1 <- aov(weight ~ Diet, data = chicks_day21)
 summary(chicks_aov1)
 ```
 
+::: {.callout-note appearance="simple"}
+## Reading the ANOVA Table
+
+The ANOVA table has one row per source of variation and a `Residuals` row. Here is what each column records, using the chick-diet result as a worked example.
+
+**`Df` (degrees of freedom)** counts the independent pieces of information available to estimate each source of variation.
+
+- `Diet`: $k - 1 = 4 - 1 = 3$, because four diet groups require only three contrasts to fully describe all group-mean differences; once three comparisons are fixed, the fourth is determined.
+- `Residuals`: $N - k = 45 - 4 = 41$, where $N$ is the total number of observations. Once each of the four group means has been estimated, 41 observations remain to estimate within-group scatter.
+
+**`Sum Sq` (sum of squares)** quantifies the total squared deviation attributable to each source (@eq-anova-ssamong and @eq-anova-sswithin in the *Mathematical Detail* box above).
+
+- `Diet` ($SS_\text{among}$): the weighted sum of squared distances from each group mean to the grand mean — how much the four diet means spread around the overall mean across all chicks.
+- `Residuals` ($SS_\text{within}$): the sum of squared distances from each individual observation to its own group mean — unexplained scatter within each diet group.
+
+**`Mean Sq` (mean square)** converts each sum of squares to an average by dividing by its degrees of freedom. This step places both sources on a comparable per-degree-of-freedom scale so that the between- and within-group variation can be fairly compared.
+
+$$MS_\text{Diet} = \frac{SS_\text{Diet}}{Df_\text{Diet}}, \qquad MS_\text{Residuals} = \frac{SS_\text{Residuals}}{Df_\text{Residuals}}$$
+
+**`F value`** is the ratio of the two mean squares (@eq-anova-f).
+
+$$F = \frac{MS_\text{Diet}}{MS_\text{Residuals}}$$
+
+If $H_0$ is true, the diet group means vary only by chance, and both mean squares estimate the same underlying population variance, so $F$ should hover near 1. A large $F$ means the diet means spread far more than would be expected from within-diet scatter alone. Here, $F_{3,\,41} \approx 4.66$, which falls far enough into the right tail of the $F_{3,\,41}$ null distribution that $p < 0.01$. This means that an $F$ this large would arise by chance less than 1% of the time if all four diet means were truly equal.
+:::
+
 ## Brief Residual Check
 
 Before interpreting the ANOVA table, I take a quick look at the fitted residuals (@fig-chicks-aov1-diagnostics). The residual-versus-fitted panel checks whether the spread is broadly stable across the fitted group means, and the Q-Q plot checks whether the residual distribution is close enough to normal for the usual ANOVA inference.
@@ -483,6 +509,28 @@ chicks_two_way <- filter(chicks, Time %in% c(0, 21)) |>
 summary(aov(weight ~ Diet + Time, data = chicks_two_way))
 ```
 
+::: {.callout-note appearance="simple"}
+## Reading the Two-Way ANOVA Table
+
+Adding `Time` gives the table a second source row, but the column arithmetic is identical to the one-way case, but applied now to each factor in turn.
+
+**`Df`**: each factor loses one degree of freedom per level estimated.
+
+- `Diet`: $k_\text{Diet} - 1 = 3$.
+- `Time`: $k_\text{Time} - 1 = 1$ (two time points, so one contrast).
+- `Residuals`: $N$ minus one degree of freedom for every group mean estimated across both factors: $N - k_\text{Diet} - k_\text{Time} = N - 4 - 2$.
+
+**`Sum Sq`**: each row measures the variation in chick mass attributable to *that factor alone*, after the variation explained by the other factor has been removed. The two `Sum Sq` values are therefore independent slices of the total variation.
+
+**`Mean Sq`**: each `Sum Sq` divided by its `Df`, as before. There is still only one `Residuals` row, and its `Mean Sq` serves as the shared denominator for both $F$ ratios.
+
+**`F value`**: computed separately for each main effect, but both use the same residual mean square as the denominator.
+
+$$F_\text{Diet} = \frac{MS_\text{Diet}}{MS_\text{Residuals}}, \qquad F_\text{Time} = \frac{MS_\text{Time}}{MS_\text{Residuals}}$$
+
+The large $F$ values for both `Diet` and `Time` confirm that each factor explains variation in chick mass over and above the other — both factors matter independently.
+:::
+
 ::: {#self-assessment-task-8-6 .callout-important appearance="simple"}
 ## Self-Assessment Task 8-6
 
@@ -500,6 +548,28 @@ If the effect of diet changes with time, the additive model is too simple. We th
 ```{r code-summary-aov-weight-diet-3}
 summary(aov(weight ~ Diet * Time, data = chicks_two_way))
 ```
+
+::: {.callout-note appearance="simple"}
+## The Interaction Row
+
+Including `Diet * Time` expands the table with a fourth row: `Diet:Time`. Everything about `Df`, `Sum Sq`, `Mean Sq`, and `F value` works exactly as before, but the new row has its own interpretation.
+
+**`Df` for `Diet:Time`**: the product of the two main-effect degrees of freedom.
+
+$$Df_\text{Diet:Time} = (k_\text{Diet} - 1) \times (k_\text{Time} - 1) = 3 \times 1 = 3$$
+
+This reflects the number of independent interaction contrasts: with four diets and two time points there are three independent ways the diet-by-time pattern can deviate from a purely additive structure.
+
+**`Sum Sq` for `Diet:Time`**: the variation not accounted for by the two main effects acting independently. It captures the *extra* structure that emerges only from the combination of diet and time — the part where diet differences at Time 0 do not simply repeat at Time 21.
+
+**`Mean Sq` for `Diet:Time`**: $SS_\text{Diet:Time}$ divided by $Df_\text{Diet:Time} = 3$.
+
+**`F value` for `Diet:Time`**: the interaction mean square divided by the *same* residual mean square used for the main effects.
+
+$$F_\text{Diet:Time} = \frac{MS_\text{Diet:Time}}{MS_\text{Residuals}}$$
+
+A large $F$ here means the diet-related pattern of chick mass is not the same at both time points — the groups diverge differently depending on when they are measured. The `Residuals` `Df` is now smaller than in the additive model because three additional degrees of freedom have been consumed by estimating the interaction.
+:::
 
 The interaction addresses the question whether diet-related differences are the same at Time 0 and Time 21. Stated differently, does the effect of diet change depending on when we sample the chicks? In this subset, yes, it depends. The interaction term is significant, so the effect of diet depends on time. [Chapter 15](15-interaction-effects.qmd) develops the interpretation of interactions in much more detail.
 

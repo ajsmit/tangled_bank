@@ -283,40 +283,6 @@ def postprocess_book_tex(tex_path: Path, chapters: list[dict]) -> None:
         text,
     )
 
-    subsubsection_counter = 0
-    paragraph_counter = 0
-
-    def relabel_deep_headings(match: re.Match[str]) -> str:
-        nonlocal subsubsection_counter, paragraph_counter
-        level = match.group("level")
-        title = match.group("title")
-        label = match.group("label") or ""
-        if level == "subsection":
-            subsubsection_counter = 0
-            paragraph_counter = 0
-            return match.group(0)
-        if level == "subsubsection":
-            subsubsection_counter += 1
-            paragraph_counter = 0
-            prefix = f"{chr(ord('a') + subsubsection_counter - 1)}) "
-            return rf"\subsubsection*{{{prefix}{title}}}{label}"
-        if level == "paragraph":
-            paragraph_counter += 1
-            roman_map = [
-                "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
-                "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii",
-                "xix", "xx",
-            ]
-            numeral = roman_map[paragraph_counter - 1] if paragraph_counter <= len(roman_map) else str(paragraph_counter)
-            prefix = f"{numeral}) "
-            return rf"\paragraph*{{{prefix}{title}}}{label}"
-        return match.group(0)
-
-    text = re.sub(
-        r"\\(?P<level>subsection|subsubsection|paragraph)\{(?P<title>[^{}]+)\}(?P<label>\\label\{[^{}]+\})?",
-        relabel_deep_headings,
-        text,
-    )
     tex_path.write_text(text, encoding="utf-8")
 
 
