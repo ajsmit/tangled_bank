@@ -434,31 +434,73 @@ mod1 <- stepAIC(
   direction = "forward",
   trace = FALSE
 )
-
-formula(mod1)
-summary(mod1)
-anova(mod1)
 ```
 
 ::: {.callout-note appearance="simple"}
-We include the null model as part of the `stepAIC()` function. The fitted model therefore estimates a single value (the grand mean of `Y`)and uses it as the prediction for every observation. In `stepAIC()`, this sets the starting point (for forward selection) or the lower boundary (for both forward and stepwise) to prevent the search from stepping below an intercept-only baseline.
+We include the null model as part of the `stepAIC()` function. The fitted model therefore estimates a single value (the grand mean of `Y`) and uses it as the prediction for every observation. In `stepAIC()`, this sets the starting point (for forward selection) or the lower boundary (for both forward and stepwise) to prevent the search from stepping below an intercept-only baseline.
 :::
 
 The selected model is:
 
 $$Y = \alpha + \beta_1 \text{augMean} + \beta_2 \text{febSD} + \beta_3 \text{augSD} + \epsilon$$
 
-## Reading the Coefficient and ANOVA Tables {#reading-the-coefficient-table-and-the-anova-table}
+```{r code-forward-selection-summary}
+summary(mod1)
+```
 
-`summary()` and `anova()` each answer a different question, and both appear above.
+::: {.callout-note appearance="simple"}
+## Reading the `summary()` Output
 
-The **coefficient table** from `summary()` tests each partial effect *conditional* on all other predictors in the model. The *t*-statistic for `augMean` asks: given that `febSD` and `augSD` are already in the model, does `augMean` still contribute? Each test conditions on the full model as specified.
+The column meanings extend those introduced in [Chapter 12](12-simple-linear-regression.qmd#reading-the-regression-summary), with one big difference, which is, every quantity in the coefficient table is now a *partial* estimate.
 
-Each $\hat\beta$ is the rate of change in $Y$ per unit change in that predictor, with all others held constant. For `augMean`, $\hat\beta_1 = 0.2833$: each additional degree Celsius of August mean temperature corresponds to a 0.28-unit increase in Sørensen dissimilarity. Sørensen spans 0 to 1, so that is a steep gradient (roughly a quarter of the entire response range per degree) reflecting the strong thermal structuring of seaweed assemblages along the South African coast.
+Each row tests one predictor's effect *conditional on all other predictors in the model*. The *t*-statistic for `augMean` asks: given that `febSD` and `augSD` are already in the model, does `augMean` still contribute?
 
-The **ANOVA table** from `anova()` is *sequential*. It partitions the total sum of squares in the order the predictors were entered: `augMean` is assessed first, then `febSD` gets credit for what `augMean` left unexplained, and `augSD` gets the remainder. Change the order of predictors in the formula and the sums of squares in the ANOVA table change.
+| Column | What it contains |
+|---|---|
+| `Estimate` | $\hat\beta_j$ gives the expected change in $Y$ per one-unit increase in predictor $j$, **with all other predictors held constant**. It is this partial interpretation is what makes multiple regression different from a sequence of simple regressions. |
+| `Std. Error` | The standard error of $\hat\beta_j$. In multiple regression this is inflated by any correlation between predictors (multicollinearity). |
+| `t value` | $\hat\beta_j / \text{Std. Error}$ is the partial *t*-statistic for $H_0: \beta_j = 0$ given the full model. |
+| `Pr(>|t|)` | The two-sided *p*-value for that partial test. |
 
-For testing whether a predictor contributes after adjusting for all others, the coefficient table is the appropriate place to look. The ANOVA table is more informative when the question is about the total variance attributable to each predictor in a natural sequence, or when comparing nested models (see [Chapter 15](15-interaction-effects.qmd)).
+The bottom of the output also reports the overall $F$-statistic, which is a *global* test of whether the full model explains more variance than the intercept-only null model. It uses the same $F = MS_\text{model} / MS_\text{residuals}$ ratio described in [Chapter 8](08-anova.qmd#reading-the-anova-table), and is numerically identical to the result of `anova(null_mod1, full_mod1)` shown earlier.
+:::
+
+## The Sequential ANOVA Table
+
+`anova()` on a fitted `lm` produces a *sequential* (Type I) decomposition, which is a completely different question from the one `summary()` answers.
+
+`summary()` asks: does this predictor contribute, *given all other predictors simultaneously*? It is a simultaneous (Type III) test and its results do not depend on predictor order.
+
+`anova()` asks: does this predictor explain additional variance *beyond what the preceding predictors already captured*? It is a sequential (Type I) test that adds predictors one at a time in formula order and records how much residual sum of squares each removes at its own step. Here, `augMean` is assessed first against the intercept-only baseline; `febSD` then receives credit for whatever `augMean` left unexplained; `augSD` receives the remainder. The `Sum Sq` and $F$ values therefore change if the predictors are reordered in the formula, whereas the `Estimate`, `t value`, and `Pr(>|t|)` in `summary()` do not.
+
+Use `summary()` to test whether a specific predictor contributes after adjusting for all others. Use `anova()` to describe how variance is partitioned across predictors in a biologically meaningful order, or to compare nested models (see [Chapter 15](15-interaction-effects.qmd)).
+
+```{r code-forward-selection-anova}
+anova(mod1)
+```
+
+::: {.callout-note appearance="simple"}
+## Reading the `anova()` Output
+
+The columns follow the same principle as the ANOVA tables in [Chapter 8](08-anova.qmd#reading-the-anova-table):
+
+| Column | What it contains |
+|---|---|
+| `Df` | Degrees of freedom consumed by that predictor (1 per continuous predictor). |
+| `Sum Sq` | Reduction in residual $SS$ achieved by adding this predictor at this step, given all preceding predictors are already in the model. |
+| `Mean Sq` | `Sum Sq` / `Df`. |
+| `F value` | `Mean Sq` for this predictor divided by the single residual `Mean Sq` at the bottom of the table. |
+| `Pr(>F)` | *p*-value for that $F$. |
+
+**The $F = t^2$ identity**
+
+For a single predictor ($Df = 1$), the $F$ from `anova()` equals the square of the $t$ from `summary()` *only when that predictor is last in the formula*, because in that position the sequential and simultaneous tests coincide. Reordering breaks the equality for every predictor except the last.
+:::
+
+
+
+
+
 
 <!-- ::: callout-important
 ## Do It Now!
