@@ -335,7 +335,7 @@ ggplot(sw_sub1 |> mutate(obs = row_number()), aes(x = obs, y = Y)) +
 The **null model** (`lm(Y ~ 1, data = sw_sub1)`) estimates a single parameter, the *grand mean* of `Y` (@fig-null-model). Here, the `Y ~ 1` specifies the intercept-only, so there are no predictors on the right-hand side. The null's fitted value is identical for every observation and its residuals are the deviations of each observation from that mean. The null model is often used as a the baseline against which any more fully-specified model can be compared using a nested test that asks whether adding predictors reduces residual variance by more than chance alone.
 
 ::: {.callout-note appearance="simple"}
-`summary()` on a fitted `lm` object computes the overall $F$-statistic internally, by comparing the fitted model's residual sum of squares with the total sum of squares around the grand mean of `Y`. That total sum of squares is what the null model's residuals would give, and R derives it directly from the response vector without needing the null model object. I explicitly fit the `null_mod1` here for two reasons: i) to make the idea of the null model visible as a named model object, and to allow a direct nested comparison using `anova()`, which is demonstrated below.
+`summary()` on a fitted `lm` object computes the overall $F$-statistic internally, by comparing the fitted model's residual sum of squares with the total sum of squares around the grand mean of `Y`. That total sum of squares is what the null model's residuals would give, and R derives it directly from the response vector without needing the null model object. I explicitly fit the `null_mod1` here because I want to: i) make the idea of the null model visible as a named model object, ii) allow a direct nested comparison using `anova()`, which I will demonstrate below, and lastly, iii) to apply in the `stepAIC()` forward model selection procedure, which I also demonstrate below.
 :::
 
 Calling `anova(null_mod1, full_mod1)` does the nested comparison and asks whether adding all five climate predictors to the intercept-only baseline reduces residual variance by more than would be expected by chance.
@@ -497,11 +497,6 @@ The columns follow the same principle as the ANOVA tables in [Chapter 8](08-anov
 For a single predictor ($Df = 1$), the $F$ from `anova()` equals the square of the $t$ from `summary()` *only when that predictor is last in the formula*, because in that position the sequential and simultaneous tests coincide. Reordering breaks the equality for every predictor except the last.
 :::
 
-
-
-
-
-
 <!-- ::: callout-important
 ## Do It Now!
 
@@ -577,7 +572,7 @@ The added-variable plots in @fig-mod1-partial and the component-plus-residual pl
 
 An **added-variable plot** for predictor $X_j$ plots two sets of residuals against each other: the residuals from regressing $Y$ on all predictors *except* $X_j$, against the residuals from regressing $X_j$ on all those same other predictors. Both axes have been purged of the other predictors' effects. The slope of the line in that panel is exactly the partial coefficient $\hat\beta_j$. What the plot reveals is the partial relationship; that is, the strength and direction of $X_j$'s contribution to $Y$ after everything else in the model has been removed from both variables. If $X_j$ has no partial effect, the cloud in its panel will be horizontal. If $X_j$'s partial effect is nonlinear, the cloud will curve.
 
-A **component-plus-residual plot** (also called a partial-residual plot) for predictor $X_j$ plots $e_i + \hat\beta_j X_{ji}$ on the vertical axis — the raw residuals with the fitted linear component of $X_j$ added back in — against $X_{ji}$ itself on the horizontal axis. The idea is to reconstruct what the response would look like as a function of $X_j$ alone, after adjusting for the other predictors. The slope of the fitted line in the panel is again $\hat\beta_j$, but now the vertical axis is on the original scale of the predictor rather than on a residualised scale.
+A **component-plus-residual plot** (also called a partial-residual plot) for predictor $X_j$ plots $e_i + \hat\beta_j X_{ji}$ on the vertical axis (the raw residuals with the fitted linear component of $X_j$ added back in) against $X_{ji}$ itself on the horizontal axis. The idea is to reconstruct what the response would look like as a function of $X_j$ alone, after adjusting for the other predictors. The slope of the fitted line in the panel is again $\hat\beta_j$, but now the vertical axis is on the original scale of the predictor rather than on a residualised scale.
 
 The practical difference is that added-variable plots are better for assessing the *existence* and *strength* of a partial effect and for detecting influential observations, because both axes are free of the other predictors. Component-plus-residual plots are better for diagnosing the *functional form* of each predictor's contribution, because the vertical axis retains the scale of $X_j$ and any smooth curve fitted through the cloud reveals whether a linear term is adequate or whether a nonlinear term is needed. In both plots, the line should be roughly straight; but it is the component-plus-residual plot where departures from linearity are most directly interpretable as evidence that a predictor needs to be transformed.
 :::
@@ -750,7 +745,7 @@ The three dummy columns come after it. The dummy for a given bioregion is 1 for 
 
 Let's see what `summary()` does. When `sw$bio` is passed to `lm()` as a factor, R creates the three dummy columns shown in @tbl-bio-demo and fits a coefficient to each. The coefficient table in `summary()` will contain rows named `bioB-ATZ`, `bioBMP`, and `bioECTZ`. It will *not* contain a row for `bioAMP`, because `AMP` is captured entirely by the intercept. Reading those output rows correctly requires remembering the table:
 
-- For an `AMP` observation: all three dummies are 0. The fitted value from the categorical part of the model is $\alpha$, i.e., the intercept alone.
+- For an `AMP` observation: all three dummies are 0. The fitted value from the categorical part of the model is $\alpha$, *i.e.*, the intercept alone.
 - For a `BMP` observation: `bioBMP = 1`, the other two dummies are 0. The fitted value from the categorical part is $\alpha + \hat\gamma_2$, where $\hat\gamma_2$ is the coefficient of `bioBMP`. The model has shifted the fitted line for `BMP` up (or down) relative to `AMP` by exactly $\hat\gamma_2$.
 - For an `ECTZ` observation: `bioECTZ = 1`, the others are 0. The fitted value is $\alpha + \hat\gamma_3$.
 
@@ -932,7 +927,8 @@ I now combine the selected climate predictors from [Example 1](#example-1-a-clim
 
 ```{r code-mod3-fit}
 sw_sub2 <- sw |>
-  dplyr::select(Y, augMean, febSD, augSD, bio)
+  dplyr::select(Y, augMean, febSD, augSD, bio) |>
+  dplyr::mutate(bio = relevel(factor(bio), ref = "AMP"))
 
 full_mod3 <- lm(Y ~ augMean + febSD + augSD + bio, data = sw_sub2)
 full_mod3a <- lm(Y ~ augMean + febSD + augSD, data = sw_sub2)
@@ -1058,7 +1054,7 @@ Discuss:
 
 1.  By how many AIC units does the climate-plus-bioregion model improve over the climate-only model? Is that a meaningful difference (rule of thumb: $\Delta$AIC \> 2 is noteworthy)?
 2.  What does a significant nested *F*-test tell you that AIC alone does not?
-3.  In plain biological language, what does it mean that adding `bio` to the model improves fit — even after the three climate predictors are already included?
+3.  In plain biological language, what does it mean that adding `bio` to the model improves fit, even after the three climate predictors are already included?
 :::
 
 ## Report
@@ -1076,7 +1072,7 @@ The climate-plus-bioregion additive model fitted the data substantially better t
 
 **Discussion**
 
-Compositional turnover along the South African coast is shaped both by the selected climate variables and by broader biogeographic structure. The additive model assumes that the climate slopes are uniform across bioregions. Whether that assumption is defensible — or whether the Agulhas and Benguela systems show distinct rates of climate-driven turnover — is a question for the interaction models developed in [Chapter 15](15-interaction-effects.qmd).
+Compositional turnover along the South African coast is shaped both by the selected climate variables and by broader biogeographic structure. The additive model assumes that the climate slopes are uniform across bioregions. Whether that assumption is defensible (or whether the Agulhas and Benguela systems show distinct rates of climate-driven turnover) is a question for the interaction models developed in [Chapter 15](15-interaction-effects.qmd).
 :::
 
 # Alternative Categorical Variable Coding Schemes (Contrasts)
