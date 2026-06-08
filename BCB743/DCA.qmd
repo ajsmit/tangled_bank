@@ -7,8 +7,8 @@ author: "A. J. Smit"
 
 ```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
-  comment = "R>", 
-  warning = FALSE, 
+  comment = "R>",
+  warning = FALSE,
   message = FALSE,
   fig.width = 4.5,
   fig.height = 2.625,
@@ -23,6 +23,13 @@ ggplot2::theme_set(
 ggplot2::theme_set(
   ggplot2::theme_bw(base_size = 8)
 )
+```
+
+```{r code-setup-hidden}
+#| echo: false
+library(tidyverse)
+library(vegan)
+library(ggpubr)
 ```
 
 ::: callout-tip
@@ -51,42 +58,74 @@ When plotted on a pair of Correspondence Analysis (CA) axes, this gradient is re
 
 Due to the arch effect, the second CA axis is often an artefact, and difficult to interpret ecologically. The compression issue means that the spacing of samples and species along the first axis may not correctly reflect the amount of change ($\beta$-diversity) along the primary gradient. However, the arch effect in CA is less severe than the horseshoe effect in Principal Component Analysis (PCA), and the samples are still ordered correctly relative to each other.
 
-Detrended Correspondence Analysis (DCA) addresses these issues by removing the arch effect through a process called detrending. This involves segmenting the first axis into equal intervals and adjusting the scores within each segment to remove systematic distortions caused by the arch effect. It maintains the use of $\chi$-squared distances while improving the interpretability of the ordination results.
+Detrended Correspondence Analysis (DCA) addresses these issues by removing the arch effect through a process called detrending. This involves segmenting the first axis into equal intervals and adjusting the scores within each segment to remove systematic distortions caused by the arch effect. It maintains the use of $\chi^2$ distances while improving the interpretability of the ordination results.
+
+A second step, **rescaling**, addresses the compression. DCA stretches and shrinks the segments of the first axis so that a unit of axis length corresponds to a constant amount of species turnover, measured in standard-deviation units of $\beta$-diversity. The compressed ends of the CA axis are pulled back out to an even spacing (@fig-dca-compression), so that equal distances on the axis represent equal amounts of compositional change.
+
+```{r fig-dca-compression}
+#| fig-cap: "Why rescaling matters. On a CA axis (top), the ends of the gradient are compressed, so sites near the source and the mouth crowd together while the middle is stretched; equal distances on the axis do not represent equal compositional change. DCA rescales the axis (bottom) so that turnover is even along its length. The letters mark the same nine hypothetical sites in both rows."
+#| fig-width: 6.8
+#| fig-height: 2.1
+#| code-fold: true
+lv <- c(
+  "After rescaling (DCA): even turnover",
+  "CA axis: gradient ends compressed"
+)
+comp <- bind_rows(
+  tibble(x = c(0, 0.7, 1.6, 3.0, 5.0, 7.0, 8.4, 9.3, 10), row = lv[2]),
+  tibble(x = seq(0, 10, length.out = 9), row = lv[1])
+)
+comp$row <- factor(comp$row, levels = lv)
+comp$lab <- rep(LETTERS[1:9], 2)
+
+ggplot(comp, aes(x, row)) +
+  geom_line(aes(group = row), colour = "grey75") +
+  geom_point(size = 2.6, colour = "steelblue") +
+  geom_text(aes(label = lab), vjust = -1.1, size = 3) +
+  labs(x = "position along the first ordination axis", y = NULL) +
+  theme_minimal(base_size = 9) +
+  theme(panel.grid = element_blank())
+```
+
+To see detrending on real data we switch, for this chapter only, from the Doubs River to the **dune** meadow dataset that ships with **vegan**. The dune data show the arch more clearly than the Doubs fish data, so the contrast between CA and DCA is easier to see; the principle is identical. The arch is plain in the CA panel of @fig-ca-dca, where the sites lie along a curved locus, and the DCA panel shows the same sites with the arch removed.
 
 ```{r fig-ca-dca, fig.height=4, fig.width=8}
 #| fig.align: center
-#| fig.cap: "Comparison of CA and DCA ordinations applied to the dune data."
-
-# Load necessary libraries
-library(vegan)
-library(ggplot2)
-library(ggpubr)
-
-# Load example data
+#| fig.cap: "Comparison of CA and DCA ordinations applied to the dune meadow data. The grey line in the CA panel traces the arch along which the sites fall. DCA removes that curvature, spreading the sites across the plane."
 data(dune)
 
-# Perform CA
 ca_result <- cca(dune)
-
-# Perform DCA
 dca_result <- decorana(dune)
 
-# Extract scores for sites
-ca_sites <- scores(ca_result, display = "sites")
-dca_sites <- scores(dca_result, display = "sites")
+ca_sites <- as.data.frame(scores(ca_result, display = "sites"))
+dca_sites <- as.data.frame(scores(dca_result, display = "sites"))
 
-# Create CA plot
-ca_plot <- ggplot(as.data.frame(ca_sites), aes(x = CA1, y = CA2)) +
-  geom_point(colour = 'dodgerblue4', size = 1.8) +
-  labs(title = "CA Ordination Plot (Sites)", x = "CA1", y = "CA2") +
+ca_plot <- ggplot(ca_sites, aes(x = CA1, y = CA2)) +
+  geom_smooth(
+    method = "loess",
+    se = FALSE,
+    colour = "grey60",
+    linewidth = 0.5,
+    span = 1
+  ) +
+  geom_point(colour = "dodgerblue4", size = 1.8) +
+  labs(title = "CA: sites lie on an arch", x = "CA1", y = "CA2") +
   theme_linedraw()
 
-# Create DCA plot
-dca_plot <- ggplot(as.data.frame(dca_sites), aes(x = DCA1, y = DCA2)) +
-  geom_point(colour = 'indianred4', size = 1.8) +
-  labs(title = "DCA Ordination Plot (Sites)", x = "DCA1", y = "DCA2") +
+dca_plot <- ggplot(dca_sites, aes(x = DCA1, y = DCA2)) +
+  geom_point(colour = "indianred4", size = 1.8) +
+  labs(title = "DCA: the arch is removed", x = "DCA1", y = "DCA2") +
   theme_linedraw()
 
-# Arrange plots side by side
 ggarrange(ca_plot, dca_plot, ncol = 2, labels = "AUTO")
 ```
+
+## Why DCA Is Rarely Used Today
+
+DCA was widely used in vegetation ecology through the 1980s and 1990s because it corrected two well-recognised artefacts of Correspondence Analysis, namely the arch effect and the compression of gradient ends. For a time it was among the most common ordination methods in the field.
+
+It is used far less now. Detrending and rescaling are algorithmic corrections rather than properties that follow from an ecological model, so the adjusted axes can be hard to interpret, and different software implementations can give slightly different results. The corrections also treat the symptom, the arch, rather than its cause, which is a linear geometry applied to unimodal data.
+
+Modern analyses more often prefer Principal Coordinates Analysis (PCoA), non-metric Multidimensional Scaling (nMDS), and the constrained methods. These begin from a distance measure the analyst chooses on ecological grounds, give axes that are easier to interpret, and connect more directly to hypothesis testing. I include DCA here because it has earned its place as a piece of methodological history.
+
+So, DCA repairs the geometry that Correspondence Analysis produces. The methods that followed begin from an ecologically meaningful distance matrix and construct the ordination from it. [Principal Coordinates Analysis (PCoA)](PCoA.qmd), introduced next, is the first of these.

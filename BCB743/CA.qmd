@@ -7,8 +7,8 @@ author: "A. J. Smit"
 
 ```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
-  comment = "R>", 
-  warning = FALSE, 
+  comment = "R>",
+  warning = FALSE,
   message = FALSE,
   fig.width = 4.5,
   fig.height = 2.625,
@@ -23,6 +23,13 @@ ggplot2::theme_set(
 ggplot2::theme_set(
   ggplot2::theme_bw(base_size = 8)
 )
+```
+
+```{r code-setup-hidden}
+#| echo: false
+library(tidyverse)
+library(ggpubr)
+library(ggrepel)
 ```
 
 <!-- # Topic 9: Correspondence Analysis (CA) -->
@@ -43,7 +50,59 @@ ggplot2::theme_set(
 * [Task E 1--4](tasks/Task_E.qmd)
 :::
 
-Correspondence Analysis (CA) is an eigenvector-based ordination method that handles nonlinear species responses more effectively than Principal Component Analysis (PCA). PCA relies on linear relationships and maximises variance explained using a covariance or correlation matrix, but CA employs similar regression techniques based on $\chi^2$-standardised data and weights. This makes it more appropriate for species count and presence/absence data.
+Correspondence Analysis (CA) is an eigenvector-based ordination method that handles non-linear species responses more effectively than Principal Component Analysis (PCA). PCA relies on linear relationships and maximises variance explained using a covariance or correlation matrix, but CA employs similar regression techniques based on $\chi^2$-standardised data and weights. This makes it more appropriate for species count and presence/absence data.
+
+## Why Not Just Use PCA?
+
+The PCA chapter worked cleanly because the Doubs environmental variables change along the river in a roughly linear way: elevation falls, discharge rises, and a straight arrow captures each trend. Species do not behave like that. A fish species thrives within a limited stretch of the river and is absent elsewhere, so its abundance climbs to a peak somewhere along the gradient and falls away on either side. This is a **unimodal** response, and it is the normal shape for species along environmental gradients (@fig-ca-responses).
+
+```{r fig-ca-responses}
+#| fig-cap: "Two ways a species' abundance can change along an environmental gradient. **(A)** Linear responses, the shape PCA assumes: abundance rises or falls steadily. **(B)** Unimodal responses, the usual ecological shape: each species peaks at its own preferred position and is absent elsewhere. Different species replace one another along the gradient, so no straight line describes the whole community."
+#| fig-width: 5.5
+#| fig-height: 5
+#| code-fold: true
+g <- seq(0, 100, length.out = 200)
+
+linear_resp <- bind_rows(
+  tibble(grad = g, abund = pmax(0, 0.9 * g), species = "Species 1"),
+  tibble(grad = g, abund = pmax(0, 90 - 0.9 * g), species = "Species 2")
+)
+
+gauss <- function(opt, h = 100, w = 14) h * exp(-((g - opt)^2) / (2 * w^2))
+optima <- c(12, 32, 50, 68, 88)
+unimodal_resp <- bind_rows(lapply(seq_along(optima), function(i) {
+  tibble(grad = g, abund = gauss(optima[i]), species = paste("Species", i))
+}))
+
+panel_lin <- ggplot(linear_resp, aes(grad, abund, colour = species)) +
+  geom_line(linewidth = 0.8) +
+  labs(
+    title = "Linear responses (PCA assumes this)",
+    x = "Environmental gradient",
+    y = "Abundance"
+  ) +
+  theme(legend.position = "none")
+
+panel_uni <- ggplot(unimodal_resp, aes(grad, abund, colour = species)) +
+  geom_line(linewidth = 0.8) +
+  labs(
+    title = "Unimodal responses (CA accommodates this)",
+    x = "Environmental gradient",
+    y = "Abundance"
+  ) +
+  theme(legend.position = "none")
+
+ggarrange(panel_lin, panel_uni, ncol = 1, labels = "AUTO")
+```
+
+Two consequences follow, and both answer the question a student naturally asks, namely *why not just run PCA on the species abundances?* First, PCA fits straight lines through humped data, and when species turn over along a long gradient it bends the ends of that gradient back on themselves, producing the horseshoe seen in the [PCA chapter](PCA.qmd#sec-horseshoe-effect). Second, species data are full of zeros: most species are absent from most sites. PCA treats two shared absences as evidence of similarity, so two species that never occur anywhere together can look alike simply because they are jointly absent. These shared absences are the *double zeros*, and they mislead Euclidean methods. CA is built to avoid both traps. The table sets the two methods side by side:
+
+| Feature | PCA | CA |
+| :--- | :--- | :--- |
+| Distance preserved | Euclidean | $\chi^2$ |
+| Assumed species response | linear | unimodal |
+| Best suited to | environmental variables | species abundance |
+| Sensitivity to double zeros | high | low |
 
 CA maximises the correspondence between species scores and sample scores by preserving $\chi^2$ distances between sites in a species-by-site matrix instead of Euclidean distances. The $\chi^2$ distance metric is not influenced by [double zeros](https://www.davidzeleny.net/anadat-r/doku.php/en:similarity), making it suitable for situation when many species might be absent from several sites. The process involves performing a Singular Value Decomposition (SVD), or eigenvalue decomposition (two different approaches in linear algebra applied to the analysis of matrices) on the standardised data matrix, and reporting the eigenvalues and eigenvectors.
 
@@ -51,9 +110,7 @@ In CA ordination diagrams, species, and sites are presented as points within a r
 
 The species scores are derived as weighted averages of site scores or equivalently as linear combinations of the original species data. As such, they are constructed to maximise the dispersion of species configurations along successive ordination axes. So, they capture dominant gradients, and patterns of variation that may reflect underlying ecological processes. Whereas PCAs provide a linear mapping of species onto environmental gradients, CAs better approximate species’ nonlinear, often unimodal, or skewed, responses to latent environmental factors. Because of this nonlinear structure, species points in CA biplots are not represented as vectors radiating from the origin (as they are in PCA, where linear monotonic gradients predominate). Instead, CA are better suited to visualisations involving curved response surfaces, which indicate the fact that species’ occurrence, or abundance peaks at intermediate positions along gradients rather than increasing or decreasing uniformly across the ordination space.
 
-One potential downside of CA is that it assumes the total abundance or presence of species across sites to be constant, which may not always hold true. Additionally, some ecologists argue that CA might be overly influenced by rare species, as their contributions to the $\chi^2$ statistic can be disproportionately large. This issue can be mitigated by applying appropriate transformations or down weighting rare species in the analysis.
-
-Another problem with CA is the 'arch effect.' This is similar to the [horseshoe effect in PCA](PCA.qmd#sec-horseshoe-effect), but less severe. The arch effect can be mitigated by using a [Detrended Correspondence Analysis (DCA)](DCA.qmd), which is a variation of CA that detrends the arch effect by removing the linear trend from the eigenvalues.
+One potential downside of CA is that it assumes the total abundance or presence of species across sites to be constant, which may not always hold true. Additionally, some ecologists argue that CA might be overly influenced by rare species, as their contributions to the $\chi^2$ statistic can be disproportionately large. This issue can be mitigated by applying appropriate transformations or down-weighting rare species in the analysis. CA also produces an artefact of its own, the *arch effect*, which we meet once we have an ordination to look at (see [The Arch Effect](#sec-arch-effect), below).
 
 CA produces one axis fewer than the minimum of the number of sites (*n*) or the number of species (*p*). Like PCA, CA produces orthogonal axes ranked in decreasing order of importance. However, the variation represented is the total inertia, which is the sum of squares of all values in the $\chi^2$ matrix, rather than the sum of eigenvalues along the diagonal as in PCA. Individual eigenvalues in CA can be greater than 1, indicating that the corresponding axis captures a significant portion of the total variance in the data.
 
@@ -67,6 +124,8 @@ As with all ordination techniques, interpreting CA results should be done with c
 library(tidyverse)
 library(vegan)
 library(viridis)
+library(ggrepel) # for tidy biplot labels
+library(ggpubr) # for arranging panels
 
 # Files will be referenced using here::here() for absolute paths
 ```
@@ -76,7 +135,13 @@ library(viridis)
 In the PCA chapter we analysed the environmental data. This time we work with the species data.
 
 ```{r code-load-here-here-data}
-load(here::here("data", "BCB743", "NEwR-2ed_code_data", "NEwR2-Data", "Doubs.RData"))
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
 head(spe, 8)
 ```
 
@@ -120,6 +185,20 @@ The output looks similar to that of a PCA. The important things to note are the 
 round(sum(spe_ca$CA$eig), 5)
 ```
 
+::: {.callout-note appearance="simple"}
+## Variance, Inertia, Eigenvalue
+
+These three terms name the same underlying idea at different stages, and they are easy to confuse:
+
+| Term            | What it measures here |
+| :--- | :--- |
+| Variance (PCA)  | spread among environmental measurements |
+| Inertia (CA)    | spread in species composition among sites |
+| Eigenvalue      | the amount of that spread held by a single axis |
+
+In CA, **inertia measures the overall heterogeneity of species composition**. A river whose fish community turns over completely from source to mouth has high inertia; one with the same few species at every site has low inertia. The total inertia here (about 1.17) is that whole heterogeneity, and the eigenvalue of CA1 is the share of it the first axis accounts for.
+:::
+
 The inertia for the first axis (CA1) is:
 
 ```{r code-round-spe-ca-ca-eig}
@@ -142,15 +221,14 @@ Above, the value is the same one as in **Cumulative Proportion** in the `summary
 
 ```{r fig-ca-screeplot, fig.height=4, fig.width=6}
 #| fig.align: center
-#| fig.cap: "Scree plot of the Doubs River environmental data PCA."
-
+#| fig.cap: "Scree plot of the Doubs River fish species CA."
 # make a scree plot using the vegan function:
 screeplot(spe_ca, bstick = TRUE, type = "lines")
 ```
 
 The scree plot (@fig-ca-screeplot) shows the eigenvalues of the CA axes which helps us decide how many axes to retain in the analysis. In this case, we will retain the first two axes, as they explain the most variance in the data.
 
-Species scores are *actual* species scores as they now relate to species data (in the PCA, the environmental variables were in the columns, and so the species scores referred instead to the environment). The most positive and most negative eigenvectors (or loadings) indicate those species that dominate in their influence along particular CA axes. For example, CA1 will be most heavily loaded by the species Cogo and Satr (eigenvectors of 1.50075 and 1.66167, respectively). If there is an environmental gradient, it will be these species that show the strongest response. At the very least, we can say that the contributions of these species are having an overriding influence on the community differences seen between sites.
+Species scores are *actual* species scores now, as they relate to the species data (in the PCA the environmental variables were in the columns, so the species scores there referred to the environment). A species with a large positive or large negative score on an axis is the one most strongly **associated with that end of the axis**, namely the part of the gradient where it peaks. This is not the same as being the most abundant or the most important species overall, and reading a large score as "dominance" is a common error. For example, CA1 carries Satr and Cogo at one extreme (scores of about 1.66 and 1.50), the brown trout and bullhead of the cool upper river; lowland species such as Abbr and Blbj sit at the other extreme. A large score therefore tells us where a species sits along the gradient, not how dominant it is.
 
 Site scores are also as seen earlier in PCA. The highest positive or negative loadings indicate sites that are dispersed far apart on the biplot (in ordination space). They will have large differences in fish community composition.
 
@@ -165,7 +243,6 @@ The biplots for the above ordination are given in @fig-ca-biplots.
 #| fig-height: 5.625 
 #| fig.align: center
 #| fig.cap: "CA ordination plot of the Doubs River species data showing site scaling (left) and species scaling (right)."
-
 opar <- par(no.readonly = TRUE)
 par(mfrow = c(1, 2))
 plot(spe_ca, scaling = 1, main = "CA fish abundances - biplot scaling 1")
@@ -177,6 +254,85 @@ par(opar)
 
 **Scaling 2:** Species scaling. This *emphasises relationships between columns* accurately in low-dimensional ordination space. Distances among objects (samples or sites) in the biplot are not approximations of their $\chi^{2}$ distances in multidimensional space, but the distances among species are. *Species scaling means that species points close together will have similar abundance patterns across sites, and any species close to a site point is more likely to have a high abundance at that site.*
 
+### How to Read This CA
+
+The base **vegan** plots are dense, so @fig-ca-interp redraws the same ordination with the sites coloured by their position along the river and the most distinctive species labelled. Reading it is the point of the whole analysis.
+
+```{r fig-ca-interp}
+#| fig-cap: "An annotated CA of the Doubs fish data. Points are sites, coloured from the source (dark) to the mouth (yellow). Green crosses are species, labelled where they sit away from the crowded centre. The black cross marks the centroid (the average composition). CA1 orders sites along the river, as the arrow shows."
+#| fig-width: 6.5
+#| fig-height: 5
+#| code-fold: true
+ca_pct <- round(100 * spe_ca$CA$eig / sum(spe_ca$CA$eig), 1)
+
+ca_sites <- as.data.frame(scores(spe_ca, display = "sites", choices = 1:2))
+ca_sites$site <- as.integer(rownames(ca_sites))
+ca_spp <- as.data.frame(scores(spe_ca, display = "species", choices = 1:2))
+ca_spp$lab <- rownames(ca_spp)
+ca_spp$d <- sqrt(ca_spp$CA1^2 + ca_spp$CA2^2)
+ca_lab <- ca_spp[ca_spp$d > quantile(ca_spp$d, 0.45), ] # label the outer species
+
+ggplot(ca_sites, aes(CA1, CA2)) +
+  geom_hline(yintercept = 0, colour = "grey85") +
+  geom_vline(xintercept = 0, colour = "grey85") +
+  annotate("point", x = 0, y = 0, shape = 3, size = 3, colour = "black") +
+  annotate(
+    "text",
+    x = 0.18,
+    y = 0.16,
+    label = "centroid",
+    size = 2.6,
+    hjust = 0
+  ) +
+  geom_point(aes(colour = site), size = 2) +
+  scale_colour_viridis_c(name = "Site\n(1 = source)") +
+  geom_point(
+    data = ca_spp,
+    aes(CA1, CA2),
+    colour = "seagreen4",
+    shape = 3,
+    size = 0.8
+  ) +
+  geom_text_repel(
+    data = ca_lab,
+    aes(CA1, CA2, label = lab),
+    colour = "seagreen4",
+    size = 2.5,
+    max.overlaps = Inf,
+    segment.colour = "grey80"
+  ) +
+  annotate(
+    "segment",
+    x = 2.4,
+    y = -1.75,
+    xend = -0.9,
+    yend = -1.75,
+    arrow = arrow(length = unit(2.5, "mm")),
+    colour = "firebrick"
+  ) +
+  annotate(
+    "text",
+    x = 0.75,
+    y = -2.0,
+    label = "upstream to downstream (CA1)",
+    colour = "firebrick",
+    size = 2.7
+  ) +
+  labs(
+    x = paste0("CA1 (", ca_pct[1], "%)"),
+    y = paste0("CA2 (", ca_pct[2], "%)")
+  ) +
+  coord_equal()
+```
+
+The ordination tells a clear ecological story:
+
+- **CA1 carries 51.5% of the inertia**, far more than any other axis, so it is the dominant pattern.
+- **The sites line up along CA1 in river order.** Source sites sit at one end and mouth sites at the other, so CA1 recovers the upstream-to-downstream sequence from species composition alone.
+- **The species split into two faunas.** The cool upper river holds brown trout (`Satr`), grayling (`Thth`), bullhead (`Cogo`), and minnow (`Phph`); the warmer lower river holds bream (`Abbr`), silver bream (`Blbj`), ruffe (`Gyce`), and eel (`Anan`). A site's colour predicts which group it carries.
+- **CA1 is therefore the primary river gradient**, the same upstream-to-downstream gradient that the [PCA of the environmental data](PCA.qmd) recovered, now read through the fish rather than the measurements. The `envfit` arrows added below confirm it: elevation and oxygen point towards the trout end, distance from source and discharge towards the lowland end.
+- **CA2 (12.4%) is a weaker, harder-to-read contrast.** As the arch discussion below shows, much of it is a geometric by-product of the strong first axis rather than a separate ecological gradient.
+
 Below I provide biplots with site and species scores for four selected species (@fig-ca-ordisurf2). The point size of the site scores scales with species scores: the larger the point, the greater the species score. Here, the species score is seen as a centre of abundance; it represents the species' maximum abundance, which decreases in every direction from the centroid. The plots are augmented with response surfaces created using the `ordisurf()` function. This function fits models to predict the abundance of the species *Salmo trutta fario* (Brown Trout), *Scardinius erythrophthalmus* (Rudd), *Telestes souffia* (Souffia, or Western Vairone), and *Cottus gobio* (Bullhead) using a Generalised Additive Model (GAM) of the Correspondence Analysis (CA) site scores on axes 1, and 2 as the predictor variables. The response surfaces illustrate where the species are most abundant and the direction of their response.
 
 Additionally, I used the `envfit()` function to project biplot arrows for the continuous environmental variables into the ordination space. Each arrow points in the direction of the maximum increase of the variable. The length of the arrow is proportional to the correlation between the variable and the ordination axes. The significance of the correlation is tested by permutation, with significant vectors shown in red. The environmental variables are the same as those used in the PCA.
@@ -186,29 +342,56 @@ Additionally, I used the `envfit()` function to project biplot arrows for the co
 #| fig-height: 10.25 
 #| fig.align: center
 #| fig.cap: "CA ordination plots with species response surfaces of the Doubs River species data emphasising four species of fish: A) Satr, B) Scer, C) Teso, and D) Cogo. D) additionally has the environmental vectors projected on the plot, with the significant vectors shown in red."
-
 palette(viridis(8))
 opar <- par(no.readonly = TRUE)
 par(mar = c(4, 4, 0.9, 0.5) + .1, mfrow = c(2, 2))
 
-invisible(ordisurf(spe_ca ~ Satr, data = spe, bubble = 3,
-                   family = quasipoisson, knots = 2, col = 6,
-                   display = "sites", main = "Salmo trutta fario"))
+invisible(ordisurf(
+  spe_ca ~ Satr,
+  data = spe,
+  bubble = 3,
+  family = quasipoisson,
+  knots = 2,
+  col = 6,
+  display = "sites",
+  main = "Salmo trutta fario"
+))
 abline(h = 0, v = 0, lty = 3)
 
-invisible(ordisurf(spe_ca ~ Scer, data = spe, bubble = 3,
-                   family = quasipoisson, knots = 2, col = 6,
-                   display = "sites", main = "Scardinius erythrophthalmus"))
+invisible(ordisurf(
+  spe_ca ~ Scer,
+  data = spe,
+  bubble = 3,
+  family = quasipoisson,
+  knots = 2,
+  col = 6,
+  display = "sites",
+  main = "Scardinius erythrophthalmus"
+))
 abline(h = 0, v = 0, lty = 3)
 
-invisible(ordisurf(spe_ca ~ Teso, data = spe, bubble = 3,
-                   family = quasipoisson, knots = 2, col = 6,
-                   display = "sites", main = "Telestes souffia"))
+invisible(ordisurf(
+  spe_ca ~ Teso,
+  data = spe,
+  bubble = 3,
+  family = quasipoisson,
+  knots = 2,
+  col = 6,
+  display = "sites",
+  main = "Telestes souffia"
+))
 abline(h = 0, v = 0, lty = 3)
 
-invisible(ordisurf(spe_ca ~ Cogo, data = spe, bubble = 3,
-                   family = quasipoisson, knots = 2, col = 6,
-                   display = "sites", main = "Cottus gobio"))
+invisible(ordisurf(
+  spe_ca ~ Cogo,
+  data = spe,
+  bubble = 3,
+  family = quasipoisson,
+  knots = 2,
+  col = 6,
+  display = "sites",
+  main = "Cottus gobio"
+))
 abline(h = 0, v = 0, lty = 3)
 
 env <- env[-8, ] # because we removed the eighth site in the spp data
@@ -224,6 +407,37 @@ par(opar)
 ```
 
 The species response surfaces in @fig-ca-ordisurf2 show the change of species abundance across the ordination space and the vectors indicate how the species distribution and abundance relate to the predominant environmental gradients. Seen in this way, it quickly becomes evident that the biplot is a simplification of [coenospaces](../BDC334/Lec-03-gradients.qmd).
+
+## The Arch Effect {#sec-arch-effect}
+
+With an ordination in front of us, the arch effect is easy to see. @fig-ca-arch redraws the site scores and joins the sites in river order, from the source (site 1) to the mouth. The sites do not fall on a straight line along CA1. They bow into an arch, rising on CA2 in the middle of the river and falling again towards each end.
+
+```{r fig-ca-arch}
+#| fig-cap: "The arch effect. The Doubs sites, joined in order from source to mouth, do not lie on a straight line along CA1 but bend into an arch. CA2 here is largely a geometric by-product of the strong first axis, not a separate ecological gradient."
+#| fig-width: 6
+#| fig-height: 4.2
+#| code-fold: true
+arch_sites <- as.data.frame(scores(spe_ca, display = "sites", choices = 1:2))
+arch_sites$site <- as.integer(rownames(arch_sites))
+arch_pct <- round(100 * spe_ca$CA$eig / sum(spe_ca$CA$eig), 1)
+
+ggplot(arch_sites[order(arch_sites$site), ], aes(CA1, CA2)) +
+  geom_hline(yintercept = 0, colour = "grey85") +
+  geom_vline(xintercept = 0, colour = "grey85") +
+  geom_path(colour = "grey70", linewidth = 0.4) +
+  geom_point(aes(colour = site), size = 2.4) +
+  scale_colour_viridis_c(name = "Site\n(1 = source)") +
+  geom_text(aes(label = site), size = 2, vjust = -0.8) +
+  labs(
+    x = paste0("CA1 (", arch_pct[1], "%)"),
+    y = paste0("CA2 (", arch_pct[2], "%)")
+  ) +
+  coord_equal()
+```
+
+The arch is a mathematical artefact, not an ecological pattern. Once CA1 has captured the strong source-to-mouth gradient, the requirement that CA2 be uncorrelated with it forces the mid-river sites, which are average on CA1, to take extreme values on CA2. The second axis therefore curves the gradient back on itself rather than describing a genuine second gradient. This is the CA counterpart of the [horseshoe effect in PCA](PCA.qmd#sec-horseshoe-effect), and it is the milder of the two: the sites keep their correct order along CA1, so the primary gradient is still read correctly, but CA2 should not be interpreted as a second ecological axis.
+
+The arch can be straightened with a [Detrended Correspondence Analysis (DCA)](DCA.qmd), a variant of CA that removes the trend from the later axes. The next chapter takes that up.
 
 ## References
 

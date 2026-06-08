@@ -1,6 +1,6 @@
 ---
 date: last-modified
-title: "Correlations and Associations"
+title: "Environmental Correlations and Species Associations"
 author: "A. J. Smit"
 
 prefer-html: true
@@ -10,8 +10,8 @@ format:
 
 ```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
-  comment = "R>", 
-  warning = FALSE, 
+  comment = "R>",
+  warning = FALSE,
   message = FALSE,
   fig.width = 4.5,
   fig.height = 2.625,
@@ -28,7 +28,7 @@ ggplot2::theme_set(
 )
 ```
 
-<!-- # Topic 6: Correlations and associations -->
+<!-- # Topic 6: Environmental correlations and species associations -->
 
 ::: callout-tip
 ## **Material Required for This Chapter**
@@ -45,7 +45,17 @@ ggplot2::theme_set(
 * [Task B 1--8](tasks/Task_B.qmd)
 :::
 
-You were introduced to [correlations in BCB744](../BCB744/basic_stats/09-correlation-and-association.qmd), and you will now revisit this concept in the context of environmental data. 
+::: {.callout-note appearance="simple"}
+## In This Chapter
+
+- correlations among environmental variables as joint expressions of a river gradient
+- reading a correlation matrix, and visualising it as a heatmap
+- collinearity, and why it constrains later regression and ordination
+- Pearson against Spearman when variables are skewed
+- species associations as co-occurrence structure, measured with the Jaccard index
+:::
+
+You met correlation as an inferential tool in [BCB744, Chapter 9](../BCB744/basic_stats/09-correlation-and-association.qmd), where a single coefficient summarised the association between one pair of variables at a time. Here we revisit the idea with environmental data and many variables at once. A correlation matrix for a river system is interpreted as an analysis of how one spatial gradient structures the whole dataset, and this is what later ordination and constrained methods build on.
 
 ## Set-Up the Analysis Environment
 
@@ -53,89 +63,236 @@ You were introduced to [correlations in BCB744](../BCB744/basic_stats/09-correla
 library(tidyverse)
 library(vegan)
 library(Hmisc) # for rcorr()
+library(ggcorrplot) # for the correlation heatmap
 ```
 
 ## The Doubs River Data
 
-David Zelený describes the background to the data on his excellent [website](https://www.davidzeleny.net/anadat-r/doku.php/en:data:doubs) and in the book **Numerical Ecology with R** by @borcard2011numerical. These data are a beautiful example of how gradients structure biodiversity. It will be in your own interest to fully understand how the various environmental factors used as explanatory variables vary along a riverine gradient from the source to the terminus of the river.
+David Zelený describes the background to the data on his excellent [website](https://www.davidzeleny.net/anadat-r/doku.php/en:data:doubs), and further information is presented in the book **Numerical Ecology with R** by @borcard2011numerical. These data are a beautiful example of how gradients structure biodiversity. It will be in your own interest to fully understand how the various environmental factors used as explanatory variables vary along a riverine gradient from the source to the terminus of the river.
 
-### Correlations between environmental variables
+The environmental table `env` holds 30 sites (rows) and 11 measured variables (columns). Reading the correlation matrix later is much easier once the variable codes are familiar, so we set them out here:
 
-**Correlation** refers to the statistical (non-causal) relationship between two continuous variables. It measures the extent to which changes in one variable correspond to changes in another variable. Correlations are quantified into values ranging from -1 to +1, with -1 indicating a perfect negative correlation, +1 indicating a perfect positive correlation, and 0 indicating no correlation. A positive correlation implies that as one variable increases, the other variable also increases. Conversely, a negative correlation implies that as one variable increases, the other decreases. Correlation can be calculated using several methods, the most common one being the Pearson correlation coefficient. Non-parametric correlations can be applied to ordinal or non-normal data.
-
-In a system such as the Doubs River, correlations among environmental variables should not be seen as a collection of independent pairwise relationships. Instead, many of these correlations are joint expressions of a single, spatially ordered gradient extending from the headwaters to the river mouth. Variables such as elevation, distance from source, slope, nutrient concentrations, oxygen availability, and organic load are structurally linked through longitudinal transport, cumulative catchment effects, and downstream integration of physical and biogeochemical processes. As a result, strong correlations here often reflect the coherence of the riverine gradient rather than discrete ecological linkages between variables. Recognising this distinction is important, as it takes interpretation from isolated variable–variable associations to an integrative understanding of how multivariate environmental structure is imposed by spatial ordering along the river continuum.
-
-Because these variables are jointly structured by a altitudinal (or some other geographical) gradient, high pairwise correlations also indicate substantial *collinearity* within the environmental dataset. This has important consequences for further analyses. When strongly correlated predictors are treated as independent covariates (such as in multiple regression or constrained ordination) their shared variance becomes difficult to disentangle, parameter estimates become unstable, and apparent effects may reflect gradient position rather than distinct environmental influences. Here, the correlation matrix functions less as an indication of relationships to be interpreted individually and more as a diagnostic view of multivariate redundancy imposed by spatial ordering. Identifying such collinearity early is therefore a matter of one's analytical routine... it informs decisions about variable selection, dimensional reduction, and the appropriateness of modelling frameworks that assume relative independence among predictors.
-
-Here follows a correlation analysis of the Doubs River envirnmental data:
+| Code  | Variable                  | Units                |
+| :--- | :--- | :--- |
+| `dfs` | distance from source      | km                   |
+| `ele` | elevation                 | m a.s.l.             |
+| `slo` | channel slope             | ‰                    |
+| `dis` | mean minimum discharge    | m³ s⁻¹               |
+| `pH`  | water pH                  | (dimensionless)      |
+| `har` | total hardness (calcium)  | mg L⁻¹               |
+| `pho` | phosphate                 | mg L⁻¹               |
+| `nit` | nitrate                   | mg L⁻¹               |
+| `amm` | ammonium                  | mg L⁻¹               |
+| `oxy` | dissolved oxygen          | mg L⁻¹               |
+| `bod` | biological oxygen demand  | mg L⁻¹               |
 
 ```{r code-load-here-here-data}
-load(here::here("data", "BCB743", "NEwR-2ed_code_data", "NEwR2-Data", "Doubs.RData"))
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
 
 head(env, 5)
 ```
 
-We do not need to standardise as one would do for the calculation of Euclidean distances, but in some instances data transformations might be necessary:
+## Correlations Between Environmental Variables
+
+**Correlation** refers to the statistical (non-causal) relationship between two continuous variables. It measures the extent to which changes in one variable correspond to changes in another. Correlations range from -1 to +1, with -1 a perfect negative correlation, +1 a perfect positive correlation, and 0 no correlation. A positive correlation means that as one variable increases the other also increases; a negative correlation means that as one increases the other decreases. The most common method is the Pearson correlation coefficient, with rank-based alternatives for ordinal or non-normal data. The mechanics of choosing and testing a single coefficient are covered in [BCB744, Chapter 9](../BCB744/basic_stats/09-correlation-and-association.qmd); here we use those tools on a whole environmental table.
+
+In a system such as the Doubs River, correlations among environmental variables are not a collection of independent pairwise relationships. Many of them are joint expressions of a single, spatially ordered gradient that extends from the headwaters to the river mouth. Elevation, distance from source, slope, nutrient concentrations, oxygen availability, and organic load are structurally linked through longitudinal transport, cumulative catchment effects, and the downstream integration of physical and biogeochemical processes. Strong correlations here often reflect the coherence of the riverine gradient rather than discrete ecological links between variable pairs. Recognising this takes interpretation from isolated variable-to-variable associations towards an integrative understanding of how multivariate environmental structure follows from spatial ordering along the river continuum.
+
+::: {.callout-note appearance="simple"}
+## What the Gradient Does to the Correlations
+
+- One spatial gradient (source to mouth) orders most of the variables.
+- Variables that track that gradient become mutually correlated as a by-product.
+- A strong correlation is therefore often evidence of shared gradient position, not of a direct link between the two variables.
+:::
+
+We do not need to standardise the variables, as one would for Euclidean distances, although in some instances a transformation might be needed:
 
 ```{r code-env-cor-round-cor-env}
 env_cor <- round(cor(env), 2)
 env_cor
 ```
 
-Or if we want to see the associated *p*-values to establish a statistical significance:
+### Visualise the Matrix
+
+An $11 \times 11$ table of numbers is hard to scan. The same information becomes legible at a glance as a heatmap, where colour encodes the sign and saturation encodes the strength of each correlation (@fig-env-corr).
+
+```{r fig-env-corr}
+#| fig-cap: "Pairwise Pearson correlations among the 11 Doubs River environmental variables. Red marks positive correlations, blue marks negative; colour saturation scales with the magnitude of the coefficient. Only the upper triangle is shown, since the matrix is symmetric."
+#| fig-width: 7
+#| fig-height: 7
+#| code-fold: true
+ggcorrplot(
+  env_cor,
+  type = "upper",
+  outline.col = "white",
+  colors = c("#1679a1", "white", "#f8766d"),
+  lab = TRUE,
+  lab_size = 2.5
+)
+```
+
+### Reading the Matrix
+
+A matrix is only useful once you can read it. Four of the strongest entries are worth walking through, since each one traces back to the river gradient rather than to a private relationship between the two variables.
+
+::: {.callout-note appearance="simple"}
+## Reading Four Entries
+
+- **`dfs` and `dis` = 0.95.** Distance from source and discharge rise together: the further down the river, the more water the channel carries as tributaries accumulate.
+- **`dfs` and `ele` = -0.94.** Elevation falls as distance from source increases. The river loses height as it runs downstream, so the two are almost mirror images.
+- **`pho` and `amm` = 0.97.** Phosphate and ammonium track each other closely, consistent with nutrients accumulating together in the lower, more enriched reaches.
+- **`oxy` and `bod` = -0.84.** Dissolved oxygen falls as biological oxygen demand rises, consistent with oxygen being consumed as organic load increases downstream.
+:::
+
+None of these four pairs needs a direct causal link to explain the correlation. Each variable changes monotonically along the river, so any two of them appear correlated simply because both are ordered by position. The same logic explains the block of mutually correlated nutrient variables (`pho`, `nit`, `amm`, `bod`) in the top-left of @fig-env-corr: they rise together downstream, and so they rise together in the matrix.
+
+### Collinearity
+
+Because these variables are jointly structured by an altitudinal (or some other geographical) gradient, high pairwise correlations also signal substantial *collinearity* within the environmental dataset, and this has consequences for later analyses. When strongly correlated predictors are treated as independent covariates, as in multiple regression or constrained ordination, their shared variance is hard to disentangle, parameter estimates become unstable, and an apparent effect may reflect gradient position rather than a distinct environmental influence. understood this way, the correlation matrix is a diagnostic view of the multivariate redundancy that spatial ordering imposes. Spotting that redundancy early shapes decisions about variable selection, dimensional reduction, and whether a modelling framework that assumes near-independent predictors is appropriate at all.
+
+::: {.callout-note appearance="simple"}
+## Why We Should Assess Collinearity Here
+
+- Strongly correlated predictors share variance.
+- That shared variance cannot be split cleanly between them.
+- Regression and constrained-ordination coefficients become unstable.
+- Dimensional reduction (such as PCA) or variable selection is often preferable.
+:::
+
+The same redundancy is treated in detail in [BCB744, Chapter 16](../BCB744/basic_stats/16-collinearity-confounding-measurement-error.qmd), and its effect on fitted coefficients is shown in [BCB744, Chapter 14](../BCB744/basic_stats/14-multiple-regression-and-model-specification.qmd). It returns in this course when we reach constrained ordination, where variance inflation factors (VIF) are used to flag and prune collinear predictors.
+
+### Pearson or Spearman?
+
+Pearson correlation is used above for convenience and familiarity, but its interpretation depends on distributional assumptions that hold only weakly for several Doubs variables. Phosphate, ammonium, and biological oxygen demand are right-skewed, with most sites at low values and a few enriched downstream sites having large ones (@fig-env-dist). Slope is the most extreme case, dropping from steep headwater reaches to a near-flat lower river.
+
+```{r fig-env-dist}
+#| fig-cap: "Distributions of the 11 environmental variables across the 30 sites. Several variables, namely slope, phosphate, ammonium, and biological oxygen demand, are strongly right-skewed, with a long tail set by a small number of downstream sites."
+#| fig-width: 7
+#| fig-height: 5
+#| code-fold: true
+env |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 12, fill = "grey70", colour = "white") +
+  facet_wrap(~variable, scales = "free", ncol = 4) +
+  labs(x = NULL, y = "Count")
+```
+
+Under skew, Pearson's *r* mixes the strength of an association with the leverage of a few extreme sites. A rank-based alternative, namely Spearman's $\rho$, relaxes the assumption by measuring the relative ordering of values rather than their magnitudes. Comparing the two is a useful diagnostic as it shows whether a relationship is affected by a monotonic trend along the gradient or by a handful of influential observations. Slope against discharge makes the contrast concrete.
+
+```{r fig-slo-dis}
+#| fig-cap: "Channel slope against mean minimum discharge across the 30 Doubs sites. The fitted line is a visual guide only. Most sites cluster at low slope, with a few steep headwater sites stretching the *x*-axis."
+#| fig-width: 4.5
+#| fig-height: 3
+#| code-fold: true
+ggplot(env, aes(x = slo, y = dis)) +
+  geom_point(shape = 1, colour = "dodgerblue4") +
+  geom_smooth(method = "lm", se = FALSE, colour = "firebrick") +
+  labs(x = "Channel slope (‰)", y = expression(Discharge ~ (m^3 ~ s^-1)))
+```
+
+```{r code-slo-dis-compare}
+cor.test(env$slo, env$dis, method = "pearson")
+cor.test(env$slo, env$dis, method = "spearman", exact = FALSE)
+```
+
+Pearson reports a weak relationship ($r \approx -0.34$), while Spearman reports a strong one ($\rho \approx -0.82$). The two disagree because steep slopes occur only in the upper river where discharge is low, so the ranks line up almost perfectly even though the raw spacing does not: the handful of very steep headwater sites flattens the Pearson estimate. The reverse pattern appears for `pho` and `amm`, where Pearson (0.97) sits well above Spearman (0.72); there the near-perfect Pearson value is partly the leverage of a few high-nutrient downstream sites. The worked Spearman example in [BCB744, Chapter 9](../BCB744/basic_stats/09-correlation-and-association.qmd#example-2-spearmans-rho-when-the-rank-pattern-is-clearer-than-the-linear-one) follows the same thinking on a single variable pair.
+
+::: {.callout-note appearance="simple"}
+## Pearson or Spearman?
+
+- **Pearson** measures linear co-variation and is pulled by extreme values.
+- **Spearman** measures monotonic co-variation on ranks and resists skew.
+- A large gap between the two flags a relationship carried either by a few influential sites or by a monotonic pattern that is not straight.
+:::
+
+Stating the choice of coefficient in these terms turns the analysis into a considered approach where the shape of the data informs the statistical tool applied to it.
+
+### Statistical Significance
+
+The matrix can also be returned with *p*-values attached, to establish which correlations are statistically distinguishable from zero:
 
 ```{r code-rcorr-as-matrix-env}
 rcorr(as.matrix(env))
 ```
 
-We can now follow with a visual exploration (see Question 1, below).
+Treat a small *p*-value here as a sign that a pattern is consistent across the 30 sites, not as proof of a separable mechanism linking the two variables. The reason for that caution is set out below, and it becomes important once these variables are subject to ordination or regression.
 
+::: {.callout-note collapse="true" appearance="simple"}
+## Advanced Note: p-values Under Gradient Structure
 
+The *p*-values reported for these correlations must be used carefully. With 30 sites arranged along a strongly ordered riverine gradient, the assumption of *independent observations* that underpins classical significance testing is only weakly met. Many of these variables co-vary not because of distinct pairwise relationships, but because they are jointly structured by position along the continuum. Small *p*-values then arise as a by-product of gradient coherence rather than as evidence for separable or mechanistic links.
 
-<!-- ```{r} -->
+Read this way, the *p*-value works mainly as a descriptive indicator of consistency across sites, not as a hypothesis test in the conventional sense (H~0~: there is no statistically significant relationship among a variable pair along the length of the Doubs River). Treating it as a yes/no marker for "significant" against "non-significant" can hide the very multivariate dependence that motivates the analysis, and it encourages interpretive habits that mislead once these variables enter ordination or regression-based frameworks. The same non-independence problem, set out generally, appears in [BCB744, Chapter 9](../BCB744/basic_stats/09-correlation-and-association.qmd#correlation-and-non-independent-data).
+:::
 
-<!-- library(ggcorrplot) -->
+## Associations Between Species
 
-<!-- ggcorrplot(env_cor, type = 'upper', outline.col = "white", -->
+**Species association** is used here in a strictly statistical sense, to denote patterns of joint occurrence across sampling sites. An association describes whether two species tend to be recorded at the same sites more or less often than expected from their individual distributions, without implying any underlying ecological mechanism.
 
-<!--            colours = c("#00AFBB", "white", "#FC4E07"), -->
+Such patterns may arise from shared responses to environmental gradients, similar habitat tolerances, or the spatial structuring of sites, as much as from direct biological interactions. The methods used here, based on dissimilarity measures such as the Jaccard index, operate only on presence-absence or abundance patterns, and so they are agnostic to the processes that generate those patterns.
 
-<!--            lab = TRUE) -->
+::: {.callout-note appearance="simple"}
+## Co-occurrence Is Not Interaction
 
-<!-- ``` -->
+An association matrix summarises co-occurrence structure but does not establish interaction, dependency, or ecological coupling between species. Two species may co-occur because they share a habitat preference, not because either responds to the other.
+:::
 
-Although Pearson correlation is used here for convenience and familiarity, its interpretation requires that the distributional assumptions are met, which is only weakly true for several of the environmental variables in the Doubs dataset. Nutrient concentrations, biological oxygen demand, and ammonia exhibit skewness, uneven variance across sites, and the influence of low or zero values associated with upstream locations. Under such conditions, Pearson’s *r* reflects the strength of association *and* the leverage of extreme values along the river gradient. Non-parametric (rank-based) alternatives, such as Spearman correlation, relax these assumptions assessing the relative ordering rather than their given magnitudes. Comparing Pearson and Spearman correlations for this dataset therefore provides a useful diagnostic exercise, since it allows one to assess whether observed relationships are driven primarily by monotonic structure along the gradient or by a smaller number of influential observations. By stating our choice of correlation in this way, we can shift the analysis from default computation to informative method selection, where the form of the data actively informs the statistical lens applied to it.
+### A Worked Jaccard Example
 
-Note also that the *p*-values reported for these correlations must be carefully used. With a sample size of 30 sites arranged along a strongly ordered riverine gradient, the assumption of *independent observations* that underpins classical significance testing is only weakly met. Many environmental variables here co-vary not because of distinct pairwise relationships, but because they are jointly structured by position along the river continuum. Under such conditions, small *p*-values often arise as a by-product of gradient coherence rather than as evidence for separable or mechanistic links between variables. Here, the *p*-value functions primarily as a descriptive indicator of consistency across sites, not as a hypothesis test in the conventional sense (H~0~: There is not statistically-significant relationship among variable pairs along the length of the Doubs River). Treating it as an yes/no marker for “significant” versus “non-significant” relationships might hide the multivariate dependence that motivates the analysis in the first place, and can encourage interpretive habits that become misleading once these variables are carried forward into ordination or regression-based frameworks.
+Before computing an association matrix for the fish, it helps to see how the Jaccard index turns co-occurrence into a number. Consider two species recorded across five sites, where 1 marks presence and 0 marks absence:
 
-### Association between species
+| Site | Species A | Species B |
+| :--- | :---: | :---: |
+| 1    | 1 | 1 |
+| 2    | 1 | 0 |
+| 3    | 1 | 1 |
+| 4    | 0 | 1 |
+| 5    | 0 | 0 |
 
-In this chapter, **species association** is used in a strictly statistical sense to denote patterns of joint occurrence across sampling sites. An association describes whether two species tend to be recorded at the same sites more or less often than expected from their individual distributions, without implying any underlying ecological mechanism.
+Three quantities summarise the pair: the sites where both occur ($a = 2$, sites 1 and 3), the sites where only A occurs ($b = 1$, site 2), and the sites where only B occurs ($c = 1$, site 4). Sites where neither occurs (site 5) are ignored. The binary Jaccard *similarity* is the shared fraction of occupied sites, $a/(a+b+c) = 2/4 = 0.5$, and the Jaccard *distance* is its complement, $1 - 0.5 = 0.5$.
 
-Such patterns may arise from shared responses to environmental gradients, similar habitat tolerances, or spatial structuring of sites, as well as from direct biological interactions.
+```{r code-jaccard-toy}
+toy <- data.frame(
+  speciesA = c(1, 1, 1, 0, 0),
+  speciesB = c(1, 0, 1, 1, 0)
+)
+# vegdist works row-wise, so transpose to put each species in a row
+vegdist(t(toy), method = "jaccard", binary = TRUE)
+```
 
-The methods applied here (based on dissimilarity measures such as the Jaccard index) operate only on presence–absence or abundance patterns and are therefore agnostic to the processes that generate those patterns. Association matrices should accordingly be seen as summaries of co-occurrence structure, not as evidence of interaction, dependency, or ecological coupling between species.
+The value 0.5 confirms the hand calculation. The two ideas to remember are that Jaccard is a *dissimilarity* (lower means more alike), and that the "neither present" sites contribute nothing to it.
 
-The Doubs River fish species dataset is an example of abundance data and it will serve well to examine the properties of an association matrix:
+### The Fish-Species Association Matrix
+
+The Doubs fish dataset records abundances on a 0-to-5 scale across the 30 sites, and it is insightful to examine the properties of an association matrix:
 
 ```{r code-head-spe}
 head(spe)
 ```
 
-In order to calculate an association matrix for the fish species we
-first need to **transpose** the data:
+To calculate associations *between species*, we first need to **transpose** the data, so that each row is a species and each column a site:
 
 ```{r code-spe-t-t-spe}
 spe_t <- t(spe)
 ```
 
-Now we can calculate the association matrix:
+Now we can calculate the association matrix. The first version uses the abundances directly:
 
 ```{r code-spe-assoc1-vegdist-spe-t-method}
 spe_assoc1 <- vegdist(spe_t, method = "jaccard")
- # display only a portion of the data...
+# display only a portion of the data...
 as.matrix((spe_assoc1))[1:10, 1:10]
 ```
+
+The second reduces the data to presence and absence (`binary = TRUE`):
 
 ```{r code-spe-assoc2-vegdist-spe-t-method}
 spe_assoc2 <- vegdist(spe_t, method = "jaccard", binary = TRUE)
@@ -148,15 +305,45 @@ as.matrix((spe_assoc2))[1:10, 1:10]
 write_pkgs <- function() {
   pkgs <- .packages() |> sort() |> unique()
   np <- length(pkgs)
-  cat(np, " packages used here:\n", paste(pkgs, collapse = ", ")  )
-  if(np > 0) cat(pkgs, file = .pkg_file, append=TRUE, sep = "\n")
+  cat(np, " packages used here:\n", paste(pkgs, collapse = ", "))
+  if (np > 0) cat(pkgs, file = .pkg_file, append = TRUE, sep = "\n")
 }
 ```
 
-Interpreting these association matrices requires attention to what the chosen form of the Jaccard index reflects. When calculated on abundance data, the Jaccard distance shows whether two species co-occur *and* how their abundances are distributed across shared sites. Under this specofocation, species that frequently occur together but differ greatly in dominance can appear less closely associated than species with more similar abundances, even when their occupancy patterns are comparable. The binary version of the Jaccard index, however, removes abundance information altogether and retains only shared presence or absence, giving a measure that isolates co-occurrence structure independently of dominance. It is also worth emphasising that the Jaccard index is a dissimilarity, i.e., lower values correspond to stronger co-occurrence (greater association), whereas higher values indicate weaker co-occurrence. Interpreting “strong” or “weak” association therefore requires paying attention both to the magnitude of the distance and to how that distance has been constructed (from a *dissimilarity index*, in this case). Reading the abundance-weighted and binary matrices side by side makes clear that association is not an intrinsic property of a species pair, but a consequence of the analytical view applied. This is a distinction that becomes important when these distances are later used for clustering and ordination.
+Interpreting these matrices requires attention to what each form of the Jaccard index reflects. On abundance data, the Jaccard distance responds both to whether two species co-occur and to how their abundances are distributed across shared sites. Under this specification, species that occur together often but differ greatly in dominance can appear less closely associated than species with similar abundances, even when their occupancy patterns are comparable. The binary version removes abundance information and keeps only shared presence or absence, isolating co-occurrence structure from dominance. Recall that the index is a dissimilarity, namely lower values correspond to stronger co-occurrence and higher values to weaker. Judging an association as "strong" or "weak" therefore depends both on the magnitude of the distance and on how that distance was constructed. Assessing the abundance-weighted and binary matrices side by side shows that association is not an intrinsic property of a species pair, but a consequence of the analytical view applied to it, a distinction that returns when these distances drive clustering and ordination.
+
+### Reading the Fish Matrix
+
+The fish matrix records the same longitudinal gradient as the environmental one, now expressed through which species share sites. Rather than scan all 27 species at once, we pull out six that span the river, from the cool upper reaches to the lowland sites, using the binary matrix:
+
+```{r code-spe-assoc-reading}
+gradient_spp <- c("Cogo", "Satr", "Phph", "Abbr", "Blbj", "Anan")
+round(as.matrix(spe_assoc2)[gradient_spp, gradient_spp], 2)
+```
+
+::: {.callout-note appearance="simple"}
+## Reading Three Entries
+
+- **`Abbr` and `Blbj` = 0.10.** Common bream and silver bream, two lowland cyprinids, are recorded at almost the same sites: a low distance marks strong co-occurrence.
+- **`Satr` and `Phph` = 0.24.** Brown trout and minnow share the cool upper reaches, so they too co-occur strongly.
+- **`Cogo` and `Abbr` = 1.00.** Bullhead (an upper-river species) and bream (a lowland species) share no site at all, namely the maximum Jaccard distance and complete mutual exclusion.
+:::
+
+Read as blocks, the sub-matrix splits in two. The upper-river species (`Cogo`, `Satr`, `Phph`) sit at low distances among themselves and at high distances from the lowland species (`Abbr`, `Blbj`, `Anan`), which in turn group together. The association matrix therefore recovers the source-to-mouth ordering already seen in the environmental correlations, now written in the co-occurrence of species rather than the co-variation of measurements. That two-block structure is what clustering and ordination will formalise in the chapters that follow.
+
+## Bringing It Together
+
+The chapter has used four ideas that are easy to conflate, so let's separate them:
+
+| Concept          | What it measures                 | Typical use            |
+| :--- | :--- | :--- |
+| Correlation      | relationship between two variables | environmental data     |
+| Collinearity     | shared structure among predictors  | regression diagnostics |
+| Association      | species co-occurrence pattern      | community ecology      |
+| Jaccard distance | species dissimilarity              | ordination, clustering |
 
 ## Looking Forward
 
-The analyses in this chapter are intended as diagnostic steps on which the subsequent modelling choices can build. But they may also be insightful in themselves, as being able to read these matricers certainly gives one a level of deeper insight into one's data. Strong correlations among environmental variables indicate redundancy that constrains how these predictors can be used together in regression-based models, i.e., collinearity inflates variance, destabilises parameter estimates, and undermines attempts to attribute effects to individual covariates. In such situations, treating each variable as an independent explanatory factor becomes statistically problematic. Correlation matrices therefore provide an initial step before downstream analyses are attempted. They reveal when dimensional reduction or alternative representations of environmental structure are required before formal modelling proceeds.
+The analyses in this chapter are EDA and diagnostic steps that the later modelling choices build on, although they are also insightful in themselves: interpreting these matrices gives a deeper feel for the structure of one's data. Strong correlations among environmental variables indicate redundancy that constrains how the predictors can be used together, namely collinearity inflates variance, destabilises parameter estimates, and undermines attempts to attribute effects to individual covariates. Where that holds, treating each variable as an independent explanatory factor becomes statistically problematic. The correlation matrix is therefore a first step before further analyses, revealing when dimensional reduction or an alternative representation of environmental structure is needed before formal modelling proceeds.
 
-The same applies to species associations. Patterns of co-occurrence summarised in association matrices anticipate the geometry that species will occupy in multivariate space. High redundancy among species warns of compressed ordination structures, while weak or uneven associations often translate into elongated gradients or sparse configurations. This will become clear when we do our first ordination analyses. By examining correlations and associations at an early stage, we describe the data *and* diagnose their effective dimensionality; so, they represent assessments that motivate the transition toward ordination, clustering, and constrained multivariate methods in subsequent chapters.
+The same applies to species associations. Patterns of co-occurrence summarised in an association matrix anticipate the distributional shape of species in multivariate space. High redundancy among species warns of compressed ordination structures, while weak or uneven associations often translate into elongated gradients or dispersed configurations. This will become clear in our first ordination analyses. So, by examining correlations and associations at this early stage, we describe the data and diagnose their effective dimensionality at the same time, which motivates the transition towards ordination, clustering, and constrained multivariate methods in the chapters that follow.

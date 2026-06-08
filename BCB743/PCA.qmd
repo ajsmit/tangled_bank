@@ -10,8 +10,8 @@ format:
 
 ```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
-  comment = "R>", 
-  warning = FALSE, 
+  comment = "R>",
+  warning = FALSE,
   message = FALSE,
   fig.width = 4.5,
   fig.height = 2.625,
@@ -26,6 +26,12 @@ ggplot2::theme_set(
 ggplot2::theme_set(
   ggplot2::theme_bw(base_size = 8)
 )
+```
+
+```{r code-setup-hidden}
+#| echo: false
+library(tidyverse)
+library(ggpubr)
 ```
 
 ::: callout-tip
@@ -48,37 +54,98 @@ ggplot2::theme_set(
 ::: {.callout-important appearance="simple"}
 ## PCA as a Foundation for Understanding Ordination
 
-Thoroughly understanding PCA is a prerequisite for understanding more complex ordination techniques. Mastered this chapter before moving on to CA, PCoA, RDA, and CCA. Much of the same terminology and concepts are used in these techniques.
+Thoroughly understanding PCA is a prerequisite for understanding more complex ordination techniques. Master this chapter before moving on to CA, PCoA, RDA, and CCA. Much of the same terminology and concepts are used in these techniques.
+:::
+
+::: {.callout-note appearance="simple"}
+## The PCA Workflow
+
+The chapter follows one sequence from start to finish. Keep it in view as a map:
+
+1. Examine the correlations among variables.
+2. Standardise the variables to a common scale.
+3. Run the PCA.
+4. Examine the eigenvalues (how much variation each axis carries).
+5. Decide how many axes to retain.
+6. Plot the ordination (the biplot).
+7. Interpret the ecological gradients.
 :::
 
 ## Geometric Projection of High-Dimensional Data
 
-Ordination refers to a suite of multivariate techniques that reduce a high-dimensional dataset into a lower-dimensional space, typically 2D or 3D, in such a way that any intrinsic structure in the data forms visually-discernible patterns (Pielou, 1984). In ecology, ordination techniques are used to describe relationships between community structure patterns and underlying environmental gradients. They allow us to determine the relative importance of different gradients and visualise species-environment relationships.
+Ordination refers to a suite of multivariate techniques that reduces a high-dimensional dataset into a lower-dimensional space, typically 2D or 3D, in such a way that any intrinsic structure in the data forms visually-discernible patterns (Pielou, 1984). In ecology, ordination techniques are used to describe relationships between community structure patterns and underlying environmental gradients. They allow us to determine the relative importance of different gradients and visualise species-environment relationships.
 
 Principal Component Analysis (PCA) is one of the commonly used ordination techniques in ecology. It is a dimensionality reduction technique that transforms the original set of variables into a new set of uncorrelated variables called principal components. PCA is performed on a data matrix containing species abundances or environmental variables across multiple sites or samples.
 
 Although PCA is often introduced as a method for reducing dimensionality, it is more accurately understood as a geometric re-expression of the data. The method does not discard variables arbitrarily; rather, it rotates the original coordinate system so that new, mutually orthogonal (independent) axes are aligned with directions of maximal variance, and then projects the data onto these axes. This rotation-projection viewpoint will become explicit later when we examine how PCA is computed in R, but it is worth keeping in mind from the outset that PCA reorganises variation by changing the basis in which the data are represented.
 
+@fig-pca-concept shows the idea on two correlated variables. The cloud of points has most of its spread along one diagonal direction. PCA finds that direction and makes it the first axis (PC1), with the second axis (PC2) at right angles to it. Rotating the data onto these new axes leaves the points unchanged but concentrates the variation onto PC1, so that a single axis now carries most of what two variables held between them.
+
+```{r fig-pca-concept}
+#| fig-cap: "PCA on two correlated variables. **(A)** The original variables, with the PC axes overlaid: PC1 follows the direction of greatest spread, PC2 lies at right angles to it. **(B)** The same points after rotation onto the PC axes; the variation is now concentrated along PC1. No data are lost, the cloud is only viewed from a more informative angle."
+#| fig-width: 5.2
+#| fig-height: 5.6
+#| code-fold: true
+set.seed(42)
+n <- 60
+x1 <- rnorm(n)
+x2 <- 0.85 * x1 + rnorm(n, sd = 0.5)
+demo <- data.frame(V1 = x1 * 2 + 6, V2 = x2 * 1.5 + 5)
+demo_c <- scale(demo, scale = FALSE) # centre only
+pc <- prcomp(demo_c)
+
+# the sign of a PC axis is arbitrary; flip so PC1 points up-right
+if (pc$rotation[1, 1] < 0) {
+  pc$rotation[, 1] <- -pc$rotation[, 1]
+  pc$x[, 1] <- -pc$x[, 1]
+}
+arr <- data.frame(
+  lab = c("PC1", "PC2"),
+  xend = pc$rotation[1, ] * pc$sdev * 2.2,
+  yend = pc$rotation[2, ] * pc$sdev * 2.2
+)
+
+panel_a <- ggplot(as.data.frame(demo_c), aes(V1, V2)) +
+  geom_hline(yintercept = 0, colour = "grey85") +
+  geom_vline(xintercept = 0, colour = "grey85") +
+  geom_point(colour = "grey45", size = 1.4) +
+  geom_segment(
+    data = arr,
+    aes(x = 0, y = 0, xend = xend, yend = yend),
+    colour = "firebrick",
+    arrow = arrow(length = unit(2.5, "mm")),
+    linewidth = 0.6
+  ) +
+  geom_text(
+    data = arr,
+    aes(x = xend * 1.14, y = yend * 1.14, label = lab),
+    colour = "firebrick",
+    size = 3
+  ) +
+  labs(
+    title = "Original variables, with PC axes",
+    x = "Variable 1 (centred)",
+    y = "Variable 2 (centred)"
+  ) +
+  coord_equal()
+
+panel_b <- ggplot(as.data.frame(pc$x), aes(PC1, PC2)) +
+  geom_hline(yintercept = 0, colour = "grey85") +
+  geom_vline(xintercept = 0, colour = "grey85") +
+  geom_point(colour = "steelblue", size = 1.4) +
+  labs(
+    title = "Same data, projected onto PC axes",
+    x = "PC1 (most variance)",
+    y = "PC2"
+  ) +
+  coord_equal()
+
+ggarrange(panel_a, panel_b, ncol = 1, labels = "AUTO", heights = c(1.6, 1))
+```
+
 The PCA process involves calculating the **eigenvectors** and **eigenvalues** of the covariance or correlation matrix of the data. The eigenvectors represent the directions of maximum variance in the data, and the corresponding eigenvalues represent the amount of variance explained by each eigenvector. The new axes, called principal components, are linear combinations of the original variables, ordered by the amount of variance they explain.
 
-PCA preserves the Euclidean distances between samples in the original high-dimensional space when projecting them onto the lower-dimensional ordination space. This property makes PCA more suitable for analysing environmental data, where Euclidean distances between samples are meaningful and interpretable. However, for species data, which is often in the form of counts or frequencies, Euclidean distances may not be an appropriate measure of dissimilarity between samples.
-
-## The Horseshoe Effect {#sec-horseshoe-effect}
-
-The **horseshoe effect** (sometimes called the Guttman effect) is an artefact often seen with PCA when applied to species data, especially when using species abundance data for communities along environmental gradients. It distorts the data points in the ordination space. A less severe version of the horseshoe effect is called the ‘arch effect’ and is seen in [Correspondence Analysis (CA)](CA.qmd).
-
-The horseshoe effect occurs because PCA assumes linear relationships between variables, while species data often exhibit unimodal responses to environmental gradients. The unimodal model was discussed in [BDC334](../BDC334/Lec-03-gradients.qmd#sec-unimodal). When species have unimodal distributions along a gradient, PCA tends to fold the ends of the gradient towards each other.
-
-From a geometric perspective, the horseshoe effect points to a mismatch between the structure of the data and the space into which PCA forces it. Species responding unimodally to an underlying gradient occupy a curved configuration in multivariate space. PCA, however, seeks a linear subspace that maximises variance under Euclidean geometry. In doing so, it approximates this curved structure with straight axes, causing the ends of the gradient to bend back toward one another in the reduced ordination. The horseshoe, which is visible on the ordination diagram, is therefore not a peculiarity of the data, but a consequence of representing a non-linear manifold using a linear projection.
-
-This distortion can lead to several issues:
-
-1. The horseshoe shape can make it appear that sites at opposite ends of the gradient are more similar than they really are.
-2. The folding of the gradient ends compresses the data and potentially obscures important ecological patterns.
-3. The second PCA axis --- the most affected axis --- often does not represent a meaningful ecological gradient, making interpretation challenging.
-4. Unlike the arch effect in CA, the horseshoe effect in PCA can lead to incorrect ordering of samples along the gradient.
-
-These distortions are informative, because they reveal the limits of PCA’s linear and Euclidean assumptions when confronted with non-linear ecological structure. To address these issues, we prefer to use [non-metric Multidimensional Scaling (nMDS)](nMDS.qmd) or a distance-based method (like [Principal Coordinates Analysis, PCoA](PCoA.qmd)) that are not constrained to linear projections. Alternatively, we may use techniques specifically designed to handle unimodal species responses, such as [Correspondence Analysis (CA)](CA.qmd), which uses $\chi^2$-distance and not Euclidean distance, or its detrended version ([Detrended Correspondence Analysis, DCA](DCA.qmd)), but these come with their own set of considerations.
+PCA seeks a low-dimensional representation that retains as much of the Euclidean structure among samples as possible. The full set of axes reproduces the original Euclidean distances exactly; the first two or three axes that we actually plot retain only an approximation, namely as much of that structure as the retained axes can hold. This makes PCA well suited to environmental data, where Euclidean distances between samples are meaningful and interpretable. For species data, often in the form of counts or frequencies, Euclidean distances may not be an appropriate measure of dissimilarity between samples.
 
 Let us work through a PCA to demonstrate the ideas.
 
@@ -94,7 +161,13 @@ library(ggpubr)
 ## The Doubs River Data
 
 ```{r code-load-here-here-data}
-load(here::here("data", "BCB743", "NEwR-2ed_code_data", "NEwR2-Data", "Doubs.RData"))
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
 head(env)
 ```
 
@@ -105,19 +178,22 @@ head(env)
 #| fig-height: 8
 #| fig.align: center
 #| fig.cap: "Pairwise correlations among the environmental variables included with the Doubs River study."
-
 # computing a correlation matrix
 corr <- round(cor(env), 1)
 
 # visualisation of the correlation matrix
-ggcorrplot(corr, type = 'upper', outline.col = "white",
-           colors = c("#1679a1", "white", "#f8766d"),
-           lab = TRUE)
+ggcorrplot(
+  corr,
+  type = 'upper',
+  outline.col = "white",
+  colors = c("#1679a1", "white", "#f8766d"),
+  lab = TRUE
+)
 ```
 
 Some variables are very correlated, and they might be omitted from the subsequent analyses. We say that these variables are **collinear**. Collinear variables cannot be teased apart in terms of finding out which one is most influential in structuring the community. There are more advanced ways to search for collinear variables (e.g., Variance Inflation Factors, VIF) and in this way we can systematically exclude them from the PCA. See @graham2003confronting for a discussion on collinearity.
 
-Here we will proceed with all the variables --- this is a delibirate decision for my approach here. In PCA, collinearity does not cause instability in estimated coefficients in the way it does in multiple regression, because PCA does not estimate regression parameters. Instead, correlated variables jointly determine the orientation of the ordination axes, i.e., strongly collinear variables tend to load in similar directions and contribute collectively to the same components. While this can complicate interpretation (by making it harder to disentangle the influence of individual variables) it does not invalidate the construction of the axes themselves. For teaching purposes, retaining collinear variables makes the structure of the data explicit and allows us to see how shared variance is redistributed across components. As we shall see later, in the constrained analyses where coefficients are interpreted directly, collinearity becomes a more serious inferential (statistical) issue and is addressed explicitly through diagnostics such as variance inflation factors and variable selection.
+Here we will proceed with all the variables, a deliberate decision for my approach here. In PCA, collinearity does not cause instability in estimated coefficients in the way it does in multiple regression, because PCA does not estimate regression parameters. Instead, correlated variables jointly determine the orientation of the ordination axes, i.e., strongly collinear variables tend to load in similar directions and contribute collectively to the same components. While this can complicate interpretation (by making it harder to disentangle the influence of individual variables) it does not invalidate the construction of the axes themselves. For teaching purposes, retaining collinear variables makes the structure of the data explicit and allows us to see how shared variance is redistributed across components. As we shall see later, in the constrained analyses where coefficients are interpreted directly, collinearity becomes a more serious inferential (statistical) issue and is addressed explicitly through diagnostics such as variance inflation factors and variable selection.
 
 ## See the Spatial Context
 
@@ -126,7 +202,6 @@ The patterns in the data and the correlations between them will make more sense 
 ```{r fig-pca-map1}
 #| fig.align: center
 #| fig.cap: "The spatial configuration of the Doubs River sites."
-
 head(spa)
 ggplot(spa, aes(x = X, y = Y, label = rownames(spa))) +
   geom_point(shape = 1) +
@@ -140,7 +215,6 @@ These site numbers correspond approximately to the ones in @verneaux1973cours bu
 #| fig-height: 6
 #| fig.align: center
 #| fig.cap: "Four different representations of the site configuration (spatial context) of the Doubs River sampling layout. Symbols are scaled relative to A) ammonium concentration, B) BOD, C) Altitude, and D) Flow rate."
-
 # We scale the data first so as to better represent the full
 # magnitude of all variables with a common symbol size
 env_std <- decostand(env, method = "standardize")
@@ -158,22 +232,30 @@ plt2 <- ggplot(spa, aes(x = X, y = Y, label = rownames(spa))) +
 
 # inverse correlations
 plt3 <- ggplot(spa, aes(x = X, y = Y, label = rownames(spa))) +
-  geom_point(shape = 1, col = "blue", aes(size = env_std$alt)) +
+  geom_point(shape = 1, col = "blue", aes(size = env_std$ele)) +
   geom_text(vjust = -0.5, nudge_y = 0.5, check_overlap = TRUE) +
   labs(title = "Altitude")
 
 plt4 <- ggplot(spa, aes(x = X, y = Y, label = rownames(spa))) +
-  geom_point(shape = 1, col = "blue", aes(size = env_std$flo)) +
+  geom_point(shape = 1, col = "blue", aes(size = env_std$dis)) +
   geom_text(vjust = -0.5, nudge_y = 0.5, check_overlap = TRUE) +
   labs(title = "Flow rate")
 
-ggarrange(plt1, plt2, plt3, plt4, nrow = 2, ncol = 2,
-          common.legend = TRUE, labels = "AUTO")
+ggarrange(
+  plt1,
+  plt2,
+  plt3,
+  plt4,
+  nrow = 2,
+  ncol = 2,
+  common.legend = TRUE,
+  labels = "AUTO"
+)
 ```
 
 ## Do the PCA
 
-We use the function `rda()` to do the PCA, but it can also be performed in base R with the functions `prcomp()` and `princomp()`. `rda()` is the same function that we will use later for a Redundancy Analysis, but when used without specifying constraints (as we do here) it amounts to simply doing a PCA. Typically we standardise environmental data to unit variance, but the PCA done by the `rda()` function accomplishes this step automagically when `scale = TRUE`. When applied to environmental data (as we typically do with a PCA) it works with correlations amongst the scaled variables. PCA preserves Euclidean distance and the relationships detected are linear, and for this reason it is not typically applied to species data without suitable transformations. In fact, in this module we will seldom apply a PCA to species data at all.
+We use the function `rda()` to do the PCA, but it can also be performed in base R with the functions `prcomp()` and `princomp()`. `rda()` is the same function that we will use later for a Redundancy Analysis, but when used without specifying constraints (as we do here) it amounts to simply doing a PCA. Typically we standardise environmental data to unit variance, but the PCA done by the `rda()` function accomplishes this step automagically when `scale = TRUE`. When applied to environmental data (as we typically do with a PCA) it works with correlations amongst the scaled variables. PCA is built on Euclidean distance and the relationships it detects are linear, and for this reason it is not typically applied to species data without suitable transformations. In fact, in this module we will seldom apply a PCA to species data at all.
 
 ```{r code-env-pca-rda-env-scale}
 env_pca <- rda(env, scale = TRUE)
@@ -225,6 +307,18 @@ We can show the same information as part of a more verbose summary. Here we see 
 summary(env_pca)
 ```
 
+::: {.callout-note appearance="simple"}
+## What to Read in That Output
+
+The block is long, but only a few numbers has the message you need. Find the **Proportion Explained** and **Cumulative Proportion** rows near the top and read across the first two columns:
+
+- PC1 explains about 54% of the variation.
+- PC2 explains about 20%.
+- Together they account for about 74%.
+
+Everything else (the species and site scores, the scaling note) is detail we extract separately below. For deciding how far the ordination compresses the data, those three percentages are the whole story.
+:::
+
 Newer versions of the ordinations' `summary()` method no longer shows the species and site scores. To access these scores, we use the `scores()` function:
 
 The species scores can be extracted from the ordination object by:
@@ -237,7 +331,7 @@ Similarly, for the site scores, do:
 
 ```{r code-scores-env-pca-display-site}
 # extract the site scores for axes 1 and 2
-scores(env_pca, display = "site", choices = 1:3) |> 
+scores(env_pca, display = "site", choices = 1:3) |>
   head() # truncate to save space in this example
 ```
 
@@ -251,7 +345,25 @@ We are dealing with environmental variables here, so why do we call them "specie
 
 ## Terminology
 
-The geometric ideas introduced earlier (rotation of axes and projection of data into a reduced space) are formalised in ordination methods through a singular-value decomposition (SVD). In **vegan**, ordination functions such as `rda()` for PCA/RDA and `cca()` for CA/CCA implement this decomposition directly.
+The geometric ideas introduced earlier (rotation of axes and projection of data into a reduced space) are formalised in ordination methods through a singular-value decomposition (SVD). In **vegan**, ordination functions such as `rda()` for PCA/RDA and `cca()` for CA/CCA implement this decomposition directly. The whole pipeline reduces to one sentence: **eigenvectors define the directions of the new axes, and scores are the data projected onto those directions** (@fig-pca-pipeline). Several labels attach to the steps along the way, and the schematic keeps them in order.
+
+```{mermaid}
+%%| label: fig-pca-pipeline
+%%| echo: false
+%%| fig-cap: "From data to ordination plot. The SVD turns the data matrix into directions (eigenvectors) and their importances (eigenvalues); scaling the eigenvectors gives the scores that are plotted."
+flowchart TD
+  A["Data matrix<br/>(sites × variables)"] --> B["SVD / eigen-analysis"]
+  B --> C["Eigenvectors<br/>(directions of the axes)"]
+  B --> D["Eigenvalues<br/>(variance per axis)"]
+  C --> E["Scores<br/>(coordinates = projections)"]
+  D --> E
+  E --> F["Ordination plot<br/>(biplot)"]
+```
+
+The mathematics behind the first two boxes is given below for completeness. It can be skimmed on a first reading; the terms it defines are gathered in the table that follows, which is the part to return to.
+
+::: {.callout-note collapse="true" appearance="simple"}
+## Mathematical Detail: the SVD in Full
 
 Once the data matrix $X$ has been centred (and, where necessary, scaled or $\chi^2$-transformed), the SVD computes:
 
@@ -263,6 +375,7 @@ with orthonormal *left-singular vectors* $U$, orthonormal *right-singular vector
   - $V$ is the matrix of right singular vectors; they are the *eigenvectors of the columns* (species or variables). The quantities can be accessed by `env_pca$CA$v`.
   - $U$ is the matrix of left singular vectors; *i.e.*, the *eigenvectors of the rows* (sites). The left singular vectors can be accessed by `env_pca$CA$u`
 - $\Sigma$ is a diagonal matrix of singular values $d$, and the **eigenvalues** are the square of these singular values, $eig=d^ 2$. Eigenvalues represent the amount of variance explained by each corresponding eigenvector (or principal component), represented in PCA (and other unconstrained ordinations such as CA) by `env_pca$CA$eig`. Higher eigenvalues indicate that the corresponding principal component explains a larger portion of the total variance in the data. The sum of all eigenvalues is equal to the total variance in the data.
+:::
 
 Let us map these directly to our `env_pca` object, which I will assume was created with the `rda()` function. Looking inside the `env_pca` object, we will see a structure with a component named $CA$ or $CCA$. This holds the results for the constrained/canonical analysis. For a simple PCA, all the results are in $CA$. The eigenvectors (`env_pca$CA$eig`) define the direction of the new axes, they are not the final coordinates for ordination plots. *Projection* is the process of mapping the original data points onto the new reduced axes (principal components). What we plot are actually these *scores*.
 
@@ -288,12 +401,11 @@ When interpreting a PCA biplot (see below), the species scores (loadings) indica
 
 ## How Many Axes to Retain?
 
-The number of axes to retain is a difficult question to answer. The first few axes will always explain the most variation, but how do we know how many reduced axes are influential and should be kept? Commonly recommended is the **broken stick** method --- keep the principal components whose eigenvalues are higher than corresponding random broken stick components:
+The number of axes to retain is a difficult question to answer. The first few axes will always explain the most variation, but how do we know how many reduced axes are influential and should be kept? Commonly recommended is the **broken stick** method, namely keep the principal components whose eigenvalues are higher than corresponding random broken stick components:
 
 ```{r code-pca-screeplot, fig.height=4, fig.width=6}
 #| fig.align: center
 #| fig.cap: "Scree plot of the Doubs River environmental data PCA."
-
 # make a scree plot using the vegan function:
 screeplot(env_pca, bstick = TRUE, type = "lines")
 ```
@@ -303,12 +415,13 @@ Or I can make a scree plot using **ggplot2**, which is more flexible:
 ```{r fig-pca-scree-ggplot, fig.height=3, fig.width=6}
 #| fig.align: center
 #| fig.cap: "Scree plot of the Doubs River environmental data PCA made in **ggplot2**."
-
-scree_dat <- data.frame(eigenvalue = as.vector(eigenvals(env_pca)),
-                        bstick = bstick(env_pca))
+scree_dat <- data.frame(
+  eigenvalue = as.vector(eigenvals(env_pca)),
+  bstick = bstick(env_pca)
+)
 scree_dat$axis <- rownames(scree_dat)
 rownames(scree_dat) <- NULL
-scree_dat <- scree_dat |> 
+scree_dat <- scree_dat |>
   mutate(axis = factor(axis, levels = paste0(rep("PC", 11), seq(1:11))))
 
 ggplot(data = scree_dat, aes(x = axis, y = eigenvalue)) +
@@ -439,7 +552,6 @@ Let us look at examples. In a PCA ordination diagram, following the tradition of
 #| fig-height: 5.625 
 #| fig.align: center
 #| fig.cap: "Ordination plot of the Doubs River environmental data showing site scaling (left) and species scaling (right)."
-
 opar <- par(no.readonly = TRUE)
 par(mfrow = c(1, 2))
 biplot(env_pca, scaling = 1, main = "PCA scaling 1", choices = c(1, 2))
@@ -447,26 +559,48 @@ biplot(env_pca, scaling = 2, main = "PCA scaling 2", choices = c(1, 2))
 par(opar)
 ```
 
+### How to Read This PCA
+
+Interpretation is a skill worth seeing modelled. Reading the scaling 2 biplot above, with its variable arrows, here is what the ordination says about the Doubs River:
+
+- **PC1 carries 54% of the variation**, far more than any other axis, so it is the dominant pattern in the data.
+- **The sites spread along PC1 in river order.** The low-numbered sites near the source gather at one end; the high-numbered sites towards the mouth gather at the other. PC1 recovers the source-to-mouth sequence without ever being told where a site sits on the river.
+- **The variable arrows split into two opposing groups.** Elevation (`ele`), slope (`slo`), and dissolved oxygen (`oxy`) point towards the headwater end. Distance from source (`dfs`), discharge (`dis`), hardness (`har`), the nutrients (`nit`, `pho`, `amm`), and biological oxygen demand (`bod`) point towards the lowland end.
+- **PC1 is therefore an upstream-to-downstream gradient.** One end is the cool, steep, oxygen-rich headwaters; the other is the warmer, harder, nutrient-rich and organically loaded lower river.
+- **PC2 (20%) is a weaker secondary contrast**, separating sites with high discharge and oxygen from those with high organic load, and it is harder to interpret cleanly. This is common: lower axes often mix several minor influences.
+
+The ecological reading and the [correlation matrix](correlations.qmd) tell the same story. Variables whose arrows point the same way are the collinear groups seen earlier, and PC1 is the single gradient that their shared variance was expressing all along.
+
 ## Scaling
 
-The choice of scaling in a PCA biplot helps us to make the right inferences about our data. Each scaling answers a different question, and the interpretation of distances, angles, and vector lengths depends on which question is being asked.
+The choice of scaling in a PCA biplot helps us to make the right inferences about our data. Each scaling answers a different question, and the interpretation of distances, angles, and vector lengths depends on which question is being asked. The table is the short version to memorise:
 
-**Scaling 1** should be used when the primary question concerns how *sites relate to one another across environmental gradients*. Distances among objects (samples or sites --- whatever is contained in the data table's rows) in the biplot are approximations of their Euclidean distances in multidimensional space. Objects positioned further apart show a greater degree of environmental dissimilarity. The angles among descriptor vectors should not be interpreted as indicating the degree of correlation between the variables.
+| Scaling   | Interpret best                | Use when the question is about |
+| :--- | :--- | :--- |
+| Scaling 1 | distances among sites         | which sites resemble which     |
+| Scaling 2 | correlations among variables  | how variables relate to each other and to the axes |
+
+**Scaling 1** should be used when the primary question concerns how *sites relate to one another across environmental gradients*. Distances among objects (samples or sites, whatever is contained in the data table's rows) in the biplot are approximations of their Euclidean distances in multidimensional space. Objects positioned further apart show a greater degree of environmental dissimilarity. The angles among descriptor vectors should not be interpreted as indicating the degree of correlation between the variables.
 
 **Scaling 2** should be used when the primary question concerns how *variables relate to the ordination axes and to one another*. This is the content of the data table's columns. Distances among objects (samples or sites) in the biplot are not approximations of their Euclidean distances in multidimensional space. The angles among descriptor vectors can be interpreted as indicating the degree of correlation between the variables.
 
-Now we create biplots using the `cleanplot.pca()` function that comes with the *Numerical Ecology with R* book. The figures are more or less the same, except the plot showing the Site scores with Scaling 1 adds a 'circle of equilibrium contribution' (see *Numerical Ecology with R*, p. 125). The circle of equilibrium contribution is a visual aid drawn on a biplot to help assess the relative importance of species (or variables) in the ordination space. It is most useful in PCA biplots using scaling 1, where the focus is on species relationships. The circle is not a formal statistical test. It helps us to quickly identify the most important variables or species, but it does not directly indicate statistical significance.
+Now we create biplots using the `cleanplot.pca()` function that comes with the *Numerical Ecology with R* book. The figures are more or less the same, except that the scaling 1 plot adds a *circle of equilibrium contribution* (see *Numerical Ecology with R*, p. 125).
 
-We only assign importance to the arrows that extend beyond the radius of the circle (@fig-pca-cleanplot):
+The circle has a precise meaning. If a variable contributed equally to every ordination axis, its arrow would have a predictable length in the two-dimensional plane we plot, namely the radius of the circle. For a plot of two axes built from $p$ variables, that radius is $\sqrt{2/p}$. A variable whose arrow reaches beyond the circle therefore contributes more than its equal share to the two displayed axes, and one whose arrow falls short contributes less. Two cautions follow. The circle is a reference length and not a significance test, so it tells us which variables are well represented in the plane on view, not which are statistically significant. It also applies only to scaling 1, where arrow lengths are directly comparable; under scaling 2 the arrows encode correlations rather than contributions, and the circle is not drawn. With those caveats, we read importance from the arrows that extend beyond the radius (@fig-pca-cleanplot):
 
 ```{r fig-pca-cleanplot}
 #| fig-width: 10
 #| fig-height: 5.625 
 #| fig.align: center
 #| fig.cap: "Ordination plot of the Doubs River environmental data made with the `cleanplot.pca()` function."
-
 # we need to load the function first from its R file:
-source(here::here("data", "BCB743", "NEwR-2ed_code_data", "NEwR2-Functions", "cleanplot.pca.R"))
+source(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Functions",
+  "cleanplot.pca.R"
+))
 cleanplot.pca(env_pca, scaling = 1)
 ```
 
@@ -487,11 +621,46 @@ We plot the response surfaces for elevation and biological oxygen demand:
 #| fig-height: 5.625 
 #| fig.align: center
 #| fig.cap: "Ordination plot of the Doubs River environmental data fitted with a smooth response surface for elevation and biological oxygen demand."
-
 biplot(env_pca, type = c("text", "points"), col = c("black", "black"))
-invisible(ordisurf(env_pca ~ bod, env, add = TRUE, col = "turquoise", knots = 1)) # <1>
+invisible(ordisurf(
+  env_pca ~ bod,
+  env,
+  add = TRUE,
+  col = "turquoise",
+  knots = 1
+)) # <1>
 invisible(ordisurf(env_pca ~ ele, env, add = TRUE, col = "salmon", knots = 1))
 ```
 1. `invisible()` is used to suppress the output of the `ordisurf()` function; only the figure is returned.
 
+## When PCA Fails: The Horseshoe Effect {#sec-horseshoe-effect}
+
+Having run, plotted, and interpreted a PCA, we are in a position to see where it breaks down. On the Doubs environmental data PCA performed well, since the variables relate to the river gradient in a roughly linear way. On species data the picture often changes, and the most common symptom is the horseshoe.
+
+The **horseshoe effect** (sometimes called the Guttman effect) is an artefact often seen with PCA when applied to species data, especially when using species abundance data for communities along environmental gradients. It distorts the data points in the ordination space. A less severe version of the horseshoe effect is called the ‘arch effect’ and is seen in [Correspondence Analysis (CA)](CA.qmd).
+
+The horseshoe effect occurs because PCA assumes linear relationships between variables, while species data often exhibit unimodal responses to environmental gradients. The unimodal model was discussed in [BDC334](../BDC334/Lec-03-gradients.qmd#sec-unimodal). When species have unimodal distributions along a gradient, PCA tends to fold the ends of the gradient towards each other.
+
+From a geometric perspective, the horseshoe effect indicates a mismatch between the structure of the data and the space into which PCA forces it. Species responding unimodally to an underlying gradient occupy a curved configuration in multivariate space. PCA, however, seeks a linear subspace that maximises variance under Euclidean geometry. In doing so, it approximates this curved structure with straight axes, causing the ends of the gradient to bend back toward one another in the reduced ordination. The horseshoe, which is visible on the ordination diagram, is therefore not a peculiarity of the data, but a consequence of representing a non-linear manifold using a linear projection.
+
+This distortion can lead to several issues:
+
+1. The horseshoe shape can make it appear that sites at opposite ends of the gradient are more similar than they really are.
+2. The folding of the gradient ends compresses the data and potentially obscures important ecological patterns.
+3. The second PCA axis (the most affected axis) often does not represent a meaningful ecological gradient, making interpretation challenging.
+4. Unlike the arch effect in CA, the horseshoe effect in PCA can lead to incorrect ordering of samples along the gradient.
+
+These distortions are informative, because they reveal the limits of PCA’s linear and Euclidean assumptions when confronted with non-linear ecological structure. To address these issues, we prefer to use [non-metric Multidimensional Scaling (nMDS)](nMDS.qmd) or a distance-based method (like [Principal Coordinates Analysis, PCoA](PCoA.qmd)) that are not constrained to linear projections. Alternatively, we may use techniques specifically designed to handle unimodal species responses, such as [Correspondence Analysis (CA)](CA.qmd), which uses $\chi^2$-distance and not Euclidean distance, or its detrended version ([Detrended Correspondence Analysis, DCA](DCA.qmd)), but these come with their own set of considerations.
+
 PCA is best understood as an exploratory and diagnostic method rather than a catch-all solution for ecological ordination. Its strength lies in revealing broad structure in multivariate data, i.e., dominant gradients, major axes of covariation, and large-scale patterns that organise samples and variables in a reduced space. When applied to environmental data, PCA can provide a clear initial orientation to highlight correlated drivers, identify major contrasts among sites, and offer a coherent global summary of variation. Its limitations arise from the scope of a PCA: it is constrained to linear relationships under Euclidean geometry, and therefore cannot represent non-linear ecological responses without distortion them. PCA can be useful to establish a baseline against which alternative ordination methods can be evaluated, to guide you toward approaches such as CA, CCA, nMDS, or distance-based methods that are better aligned with specific response forms and inferential goals.
+
+::: {.callout-warning appearance="simple"}
+## Common Mistakes
+
+A few errors recur often enough to name. Each undoes part of what the chapter has built:
+
+- **Reading variance explained as ecological importance.** A large eigenvalue means an axis compresses the data well, not that it represents the dominant ecological process. The two can differ.
+- **Treating a PC axis as a measured variable.** An axis is a composite of many variables; it has no units and is interpreted through the loadings, not read off directly.
+- **Ignoring scaling.** Distances among sites are interpretable under scaling 1, correlations among variables under scaling 2. Reading the wrong quantity from the wrong biplot is a common slip.
+- **Running PCA on raw species counts.** Euclidean geometry and unimodal species responses do not match, and the result is a horseshoe. Use CA, nMDS, or a distance-based method, or transform the data first.
+:::

@@ -9,8 +9,8 @@ format:
 
 ```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
-  comment = "R>", 
-  warning = FALSE, 
+  comment = "R>",
+  warning = FALSE,
   message = FALSE,
   fig.width = 4.5,
   fig.height = 2.625,
@@ -38,7 +38,7 @@ ggplot2::theme_set(
 | **Reading** | Vegan--An Introduction to Ordination | [💾 `Oksanen_intro-vegan.pdf`](../docs/Oksanen_intro-vegan.pdf)                 |
 :::
 
-Ecological data are complex --- we want to know about many species, many environmental factors that are thought to affect those species, at many places, and at many times. Often, we think about these things all at once. Ecologists routinely consider the following data matrices, which do different kinds of "work" --- *representation* of the data we collect in the field, *comparison* of community structure across space and time, and *explanation* of any patterns seen:
+Ecological data are complex, since we want to know about many species, many environmental factors that are thought to affect those species, at many places, and at many times. Often, we think about these things all at once. Ecologists routinely consider the following data matrices, which do different kinds of "work", namely *representation* of the data we collect in the field, *comparison* of community structure across space and time, and *explanation* of any patterns seen:
 
 - A spatial context (e.g., a landscape) comprised of many sites (rows), each one characterised by multiple variables (columns), such as species abundances or environmental factors.
 - A time series (e.g., repeated sampling) comprised of many samples (rows), each one containing multiple variables (columns), such as species or environmental variables.
@@ -46,9 +46,93 @@ Ecological data are complex --- we want to know about many species, many environ
 
 Collectively, these matrices are successive abstractions about the ecological reality (in as far as we are able to measure it), each discarding some information to gain analytical leverage at others.
 
-In such complex, high-dimensional data, analysing each variable separately using a series of univariate or bivariate analyses would be inefficient (if not impossible) and unlikely to reveal the underlying patterns accurately. For example, in the Doubs River dataset, a univariate approach would require (27 × 26) / 2 = 351 separate analyses, which is impractical and prone to misinterpretation.
+In such complex, high-dimensional data, analysing each variable separately using a series of univariate or bivariate analyses would be inefficient (if not impossible) and unlikely to reveal the underlying patterns accurately. For example, in the Doubs River dataset, a univariate approach would require (27 × 26) / 2 = 351 separate species-pair analyses, which is impractical and prone to misinterpretation.
+
+The count is the smaller problem. Even with unlimited patience for 351 correlations, the pairwise approach would still miss what matters most, namely the structure that emerges only when all species and sites are considered together. A gradient that orders the whole community, or a group of sites that share a fauna, is a property of the joint configuration, not of any single pair. Ordination recovers that joint structure, so it does more than simply saving time.
 
 Ordination comes from the Latin word *ordinatio*, which means placing things in order [Chapter 9, @legendre2012numerical]. In ecology and some other sciences, it refers to a suite of multivariate statistical techniques used to analyse and visualise complex, high-dimensional data, such as ecological community data. In other words, high-dimensional data are ordered along some 'reduced axes' that explain patterns seen in nature. While [clustering methods](cluster_analysis.qmd) focus on identifying discontinuities or groups within the data, ordination aims to highlight and interpret gradients, which are ubiquitous in ecological communities.
+
+Before going further, it helps to see the destination. @fig-ordination-preview is the kind of figure ordination produces, namely a single picture that places all 30 Doubs sites and all 11 environmental variables in one view, with the dominant gradient running from left to right.
+
+```{r code-setup}
+#| echo: false
+library(tidyverse)
+library(vegan)
+library(ggrepel)
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
+```
+
+```{r fig-ordination-preview}
+#| fig-cap: "A PCA ordination of the Doubs River environmental data. Each point is one of the 30 sites, coloured by its position from source (dark) to mouth (yellow). Each red arrow is an environmental variable, pointing in the direction of increasing values. PC1 captures 54.3% of the variation and PC2 a further 19.7%."
+#| fig-width: 6
+#| fig-height: 4.5
+#| code-fold: true
+env_pca <- rda(env, scale = TRUE)
+ev <- round(100 * eigenvals(env_pca) / sum(eigenvals(env_pca)), 1)
+
+site_sc <- as.data.frame(scores(
+  env_pca,
+  display = "sites",
+  scaling = 2,
+  choices = 1:2
+))
+var_sc <- as.data.frame(scores(
+  env_pca,
+  display = "species",
+  scaling = 2,
+  choices = 1:2
+))
+site_sc$site <- 1:nrow(site_sc)
+var_sc$lab <- rownames(var_sc)
+
+# scale the arrows to fit the site cloud
+mult <- 0.9 *
+  min(
+    max(abs(site_sc$PC1)) / max(abs(var_sc$PC1)),
+    max(abs(site_sc$PC2)) / max(abs(var_sc$PC2))
+  )
+
+ggplot(site_sc, aes(PC1, PC2)) +
+  geom_hline(yintercept = 0, colour = "grey85") +
+  geom_vline(xintercept = 0, colour = "grey85") +
+  geom_point(aes(colour = site), size = 2) +
+  scale_colour_viridis_c(name = "Site\n(source to mouth)") +
+  geom_segment(
+    data = var_sc,
+    aes(x = 0, y = 0, xend = PC1 * mult, yend = PC2 * mult),
+    arrow = arrow(length = unit(2, "mm")),
+    colour = "firebrick",
+    linewidth = 0.4
+  ) +
+  geom_text_repel(
+    data = var_sc,
+    aes(x = PC1 * mult, y = PC2 * mult, label = lab),
+    colour = "firebrick",
+    size = 2.7,
+    segment.colour = "grey70",
+    min.segment.length = 0,
+    max.overlaps = Inf
+  ) +
+  labs(x = paste0("PC1 (", ev[1], "%)"), y = paste0("PC2 (", ev[2], "%)")) +
+  coord_equal()
+```
+
+::: {.callout-note appearance="simple"}
+## How to Read This Figure (for now)
+
+- Each **point** is a site; sites close together have similar environments.
+- Colour runs from the **source** (dark) to the **mouth** (yellow), so the left-to-right spread is the river gradient.
+- Each **arrow** is an environmental variable, pointing towards higher values.
+- Arrows pointing the same way (`pho`, `amm`, `bod`) are correlated; arrows pointing opposite ways (`oxy` against the nutrients) are negatively correlated.
+
+The rest of the chapter earns the right to read every element of this figure. For now, the point is that ordination turns a 30 × 11 table into one interpretable picture.
+:::
 
 The multivariate data about environmental properties or species composition, which we present to the analyses as tables of species or environmental variables, can be prepared in different ways. The most common workflows involve the following steps (@fig-data-tables):
 
@@ -94,16 +178,61 @@ Essentially, ordination geometrically arranges (projects) sites or species into 
 ::: {.callout-tip}
 ## Analogy of What an Ordination Does
 
-Consider a 3D pear held in a directed beam of light, its shadow falling upon a plane. The silhouette cast on the surface depends entirely on the pear's orientation --- rotate it through the beam and the shadow shifts from the recognisable pear form to a near-circular disc, and various shapes in-between with greater and lesser resemblance to the recognisable pear shape. Each rotation offers a different 2D view of the same 3D reality.
-
-Ordination works through an analogous geometric transformation. Your original data inhabit a high-dimensional space. Each variable constitutes an axis, and each observation (i.e., species, environmental variables) is a point within that space. The method seeks orientations (principal components, in the case of PCA) that maximise the spread of these points when viewed from particular vantage points, much as rotating the pear reveals which angles preserve the most information about its form in shadow. Variance along the first axis corresponds to the rotation that casts the "widest" and most realistic pear-shaped shadow; subsequent axes capture diminishing amounts of the remaining spread, each perpendicular to those preceding it.
-
-Projection maps this high-dimensional (often > 3D) configuration onto fewer dimensions by effectively choosing how to "illuminate" the data. Rotate the pear to face the light directly along its narrow axis and the shadow collapses into something uninformative, most likely a round disc that might as well have been cast by an orange. Angle it differently and the shadow preserves the distinctive taper and bulge. So too with ordination: certain projections reveal clustering, gradients, or correlations that high-dimensional space obscures; others flatten structure into meaninglessness. The ordination computation identifies rotations that retain maximum information to ensure the reduced representation (the shadow) captures the data's inherent geometry with minimal distortion.
+Picture a three-dimensional pear lit by a directed beam, casting a shadow on a wall. Rotate the pear and the shadow shifts from a recognisable pear outline to an uninformative disc, and some orientations preserve far more of its shape than others. Ordination does the same with data. It rotates a high-dimensional cloud of points, where each variable is an axis and each site a point, and projects that cloud onto a few axes, choosing the orientation that keeps as much of the structure as possible. The first axis is the rotation that casts the most informative shadow; each later axis captures what remains, at right angles to those before it.
 :::
 
 The reduced axes are ordered by the amount of variation they capture, with the first axis capturing the most variation, the second axis capturing the second most, and so on. The axes are orthogonal, so they are uncorrelated. They are linear combinations of the original variables, making them interpretable.
 
 “Ordination primarily endeavours to represent sample and species relationships as faithfully as possible in a low-dimensional space” (Gauch, 1982). This is necessary because visualising multiple dimensions (species or variables) simultaneously in community data is extremely challenging, if not impossible. Ordination compromises between the number of dimensions and the amount of information retained. Ecologists are frequently confronted by 10s, if not 100s, of variables, species, and samples. A single multivariate analysis also saves time compared to conducting separate univariate analyses for each species or variable. What we really want is for the dimensions of this 'low-dimensional space' to represent important and interpretable environmental gradients.
+
+### A Small Worked Example
+
+Dimension reduction is easiest to grasp on a dataset small enough to read by eye. Consider five sites and three environmental variables:
+
+| Site | Temperature | Nutrients | Oxygen |
+| :--- | :---: | :---: | :---: |
+| A | 25 | 9 | 4  |
+| B | 22 | 7 | 6  |
+| C | 18 | 5 | 8  |
+| D | 15 | 3 | 10 |
+| E | 12 | 1 | 12 |
+
+The three variables are not independent. Temperature and nutrients rise together, and both fall as oxygen rises, so a warm, nutrient-rich site is oxygen-poor and the reverse. The three columns carry one shared story, told three times.
+
+A PCA recognises this redundancy and replaces the three variables with a single dominant axis (@fig-pca-toy). That one axis accounts for 99.9% of the variation, ordering the sites from A to E along one gradient. The other two axes have been set aside with almost no loss, since they repeated what the first already said.
+
+```{r fig-pca-toy}
+#| fig-cap: "The five toy sites projected onto the first PCA axis. A single gradient (PC1) carries 99.9% of the variation in the three original variables, ordering the sites from A (warm, nutrient-rich, oxygen-poor) to E (cool, nutrient-poor, oxygen-rich)."
+#| fig-width: 5.5
+#| fig-height: 1.9
+#| code-fold: true
+toy <- data.frame(
+  Temperature = c(25, 22, 18, 15, 12),
+  Nutrients = c(9, 7, 5, 3, 1),
+  Oxygen = c(4, 6, 8, 10, 12),
+  row.names = c("A", "B", "C", "D", "E")
+)
+
+toy_pca <- rda(toy, scale = TRUE)
+tev <- round(100 * eigenvals(toy_pca) / sum(eigenvals(toy_pca)), 1)
+ts <- as.data.frame(scores(
+  toy_pca,
+  display = "sites",
+  scaling = 1,
+  choices = 1:2
+))
+ts$site <- rownames(ts)
+
+ggplot(ts, aes(PC1, 0)) +
+  geom_hline(yintercept = 0, colour = "grey60") +
+  geom_point(size = 3, colour = "steelblue") +
+  geom_text(aes(label = site), vjust = -1.2, size = 3.5) +
+  scale_y_continuous(limits = c(-0.6, 0.6), breaks = NULL, name = NULL) +
+  labs(x = paste0("PC1 (", tev[1], "% of variance)")) +
+  theme(panel.grid = element_blank())
+```
+
+This is what ordination does on the full Doubs dataset, only with 11 variables rather than three, and with the redundancy spread across several axes rather than collapsed onto one.
 
 ## Benefits of Ordination
 
@@ -117,15 +246,13 @@ Finally, ordination translates numerical relationships into spatial configuratio
 
 ## Types of Ordinations
 
-The first group of ordination techniques includes **eigen-analysis methods**, which use linear algebra for dimensionality reduction. The second group includes **non-eigen-analysis methods**, which use iterative algorithms for dimensionality reduction. I will cover both classes in this lecture, with non-Metric Multidimensional Scaling being the only example of the second group. 
+The most useful way to organise the methods is by their purpose, namely the question each one answers. **Unconstrained** methods take a single table (species or environmental) and ask what its dominant patterns are; they are exploratory. **Constrained** methods bring in a second table of explanatory variables and ask how much of the pattern that table accounts for; they are hypothesis-driven. The distinction is whether environmental data shape the axes (constrained) or are mapped onto them afterwards (unconstrained).
 
-The eigen-analysis methods produce outputs called eigenvectors and eigenvalues, which are then used to determine the most important patterns or gradients in the data. These properties and applications of eigenvectors and eigenvalues will be covered in subsequent sections. The non-eigen approach instead uses numerical optimisation to find the best representation of the data in a lower-dimensional space.
-
-Below, I prefer a classification of the ordination methods into constrained and unconstrained methods. This classification is based on the type of information used to construct the ordination axes and how they are used. Constrained methods use environmental data to construct the axes, while unconstrained methods do not. The main difference between these two classes is that constrained methods are hypothesis-driven, while unconstrained methods are exploratory.
+Underneath, the methods reduce dimensions in one of two ways. Most solve for their axes in a single step through matrix decomposition, an approach known as **eigen-analysis**; non-Metric Multidimensional Scaling is the exception, finding its axes by iterative numerical optimisation. The method of eigenvalues and eigenvectors is covered in the [PCA chapter](PCA.qmd), where it does real work. At this stage it is enough to know that some methods compute their axes directly and one searches for them by trial and improvement.
 
 ### Unconstrained ordination (indirect gradient analysis)
 
-Although unconstrained ordinations are grounded in statistical models and assumptions (e.g. Euclidean geometry, χ² distances, linearity vs. unimodality), they do not natively apply inference testing --- their default application makes them more descriptive than inferential. Sometimes they are called indirect gradient analysis. These analyses are based on either the environment × sites matrix or the species × sites matrix, each analysed and interpreted in isolation. The main goal is to find the main gradients in the data. We apply indirect gradient analysis when the gradients are unknown *a priori* and we do not have environmental data related to the species. Gradients or other influences that structure species in space are therefore inferred from the species composition data only. The communities thus reveal the presence (or absence) of gradients, but may not offer insight into the identity of the structuring gradients. The most common methods are:
+Although unconstrained ordinations are grounded in statistical models and assumptions (e.g. Euclidean geometry, χ² distances, linearity vs. unimodality), they do not natively apply inference testing, so their default application makes them more descriptive than inferential. Sometimes they are called indirect gradient analysis. These analyses are based on either the environment × sites matrix or the species × sites matrix, each analysed and interpreted in isolation. The main goal is to find the main gradients in the data. We apply indirect gradient analysis when the gradients are unknown *a priori* and we do not have environmental data related to the species. Gradients or other influences that structure species in space are therefore inferred from the species composition data only. The communities thus reveal the presence (or absence) of gradients, but may not offer insight into the identity of the structuring gradients. The most common methods are:
 
 - **[Principal Component Analysis (PCA)](PCA.qmd):** The main eigenvector-based method, working on raw, quantitative data. It preserves the Euclidean (linear) distances among sites, mainly used for environmental data but also applicable to species dissimilarities.
 - **[Correspondence Analysis (CA)](CA.qmd):** Works on data that must be frequencies or frequency-like, dimensionally homogeneous, and non-negative. It preserves the $\chi^2$ distances among rows or columns, mainly used in ecology to analyse species data tables.
@@ -146,11 +273,101 @@ So, the take home here is that unconstrained ordinations are often used in hypot
 
 PCoA and nMDS can produce ordinations from any square [dissimilarity or distance matrix](dis-metrics.qmd), offering more flexibility than PCA and CA, which require site-by-species tables. PCoA and nMDS are also more robust to outliers and missing data than PCA and CA.
 
+## Which Ordination Should I Use?
+
+The methods differ in the data they take, the kind of distance they preserve, and the question they suit. The table sets them side by side:
+
+| Method | Class         | Input data                     | Distance preserved   | Typical use                              |
+| :--- | :--- | :--- | :--- | :--- |
+| PCA    | unconstrained | site × variable table          | Euclidean (linear)   | environmental gradients                  |
+| CA     | unconstrained | site × species counts          | $\chi^2$             | species composition, short gradients     |
+| DCA    | unconstrained | site × species counts          | $\chi^2$, detrended  | species composition, long gradients      |
+| PCoA   | unconstrained | any distance matrix            | user-chosen          | flexible ecological distances            |
+| nMDS   | unconstrained | any distance matrix            | rank order           | complex communities, robust to outliers  |
+| RDA    | constrained   | species + environment          | Euclidean (linear)   | linear species–environment hypotheses    |
+| CCA    | constrained   | species + environment          | $\chi^2$             | unimodal species–environment hypotheses  |
+| db-RDA | constrained   | distance matrix + environment  | user-chosen          | hypotheses on any chosen distance        |
+
+The same choices can be followed as a sequence of questions (@fig-ordination-decision): first the goal (explore or test), then the data, then the length of the gradient.
+
+```{mermaid}
+%%| label: fig-ordination-decision
+%%| echo: false
+%%| fig-cap: "A decision aid for choosing an ordination method, organised first by goal and then by the data in hand."
+flowchart TD
+  A["What is the goal?"] --> B["Explore patterns<br/>(unconstrained)"]
+  A --> C["Test environmental<br/>hypotheses (constrained)"]
+  B --> D{"Input data?"}
+  D -->|Environmental variables| E["PCA"]
+  D -->|Species composition| F{"Gradient length?"}
+  D -->|Any distance matrix| G["PCoA or nMDS"]
+  F -->|Short| H["CA"]
+  F -->|Long| I["DCA"]
+  C --> J{"Underlying response?"}
+  J -->|Linear / Euclidean| K["RDA"]
+  J -->|Unimodal species turnover| L["CCA"]
+  J -->|Any distance matrix| M["db-RDA"]
+```
+
 ## Ordination Diagrams
 
 Ordination diagrams are convenient visual summaries that capture the geometric representations of relationships in high-dimensional space. Distances, directions, and relative positions (of sites and species) in the diagram correspond to patterns in the original multivariate ecological data, compressed into a form that can be visually inspected and interpreted.
 
 Ordination analyses are typically presented through graphical representations called ordination diagrams, which provide a simplified visual summary of the relationships between samples (the rows), species (columns), and environmental variables (also columns) in multivariate ecological data.
+
+### Reading a Biplot
+
+We opened with an ordination diagram (@fig-ordination-preview) and postponed its full reading. With the ideas above in place, here is the complete guide. The diagram is a **biplot**, namely it shows two things at once, sites as points and variables as arrows.
+
+1. **Sites (points).** Each point is a site. Points near one another mark sites with similar environments; points far apart mark sites that differ.
+2. **Axes.** PC1 (horizontal) is the dominant gradient and carries the most variation (54.3%); PC2 (vertical) adds the next most (19.7%). Here PC1 is the source-to-mouth gradient, recovered without telling the analysis where any site sits on the river.
+3. **Arrows (variables).** Each arrow points towards increasing values of its variable. A site's value for that variable is read by projecting its point onto the arrow's line.
+4. **Arrow length.** Longer arrows mark variables more strongly correlated with the displayed axes (`ele`, `oxy`, and the nutrients); a short arrow (`pH`) is weakly represented in this plane.
+5. **Angles between arrows.** A small angle marks a positive correlation (`pho`, `amm`, and `bod` group together); an angle near 180° marks a negative correlation (`oxy` opposes the nutrients); a right angle marks near-independence. This is the collinearity already seen in the [correlation matrix](correlations.qmd), now read geometrically.
+
+### Species as Points: a Correspondence Analysis
+
+Linear methods such as PCA draw variables as arrows, which suits environmental data. For species composition, Correspondence Analysis (CA) is usually more appropriate, and it draws species as **points** rather than arrows, each point marking where that species is most abundant along the axes (@fig-ca-doubs).
+
+```{r fig-ca-doubs}
+#| fig-cap: "A CA ordination of the Doubs River fish data. Grey points are sites; green crosses are species, labelled where they sit away from the crowded centre. The first axis (CA1) is again the upstream-to-downstream gradient. The gentle curve in the site points is the arch effect."
+#| fig-width: 5.8
+#| fig-height: 4.2
+#| code-fold: true
+spe_nonzero <- spe[rowSums(spe) > 0, ] # drop the one fishless site
+spe_ca <- cca(spe_nonzero)
+cev <- round(100 * eigenvals(spe_ca) / sum(eigenvals(spe_ca)), 1)
+
+ca_sites <- as.data.frame(scores(spe_ca, display = "sites", choices = 1:2))
+ca_spp <- as.data.frame(scores(spe_ca, display = "species", choices = 1:2))
+ca_spp$lab <- rownames(ca_spp)
+ca_spp$d <- sqrt(ca_spp$CA1^2 + ca_spp$CA2^2)
+ca_lab <- ca_spp[ca_spp$d > quantile(ca_spp$d, 0.5), ] # label outer species only
+
+ggplot() +
+  geom_hline(yintercept = 0, colour = "grey85") +
+  geom_vline(xintercept = 0, colour = "grey85") +
+  geom_point(data = ca_sites, aes(CA1, CA2), colour = "grey45", size = 1.6) +
+  geom_point(
+    data = ca_spp,
+    aes(CA1, CA2),
+    colour = "seagreen4",
+    size = 0.8,
+    shape = 3
+  ) +
+  geom_text_repel(
+    data = ca_lab,
+    aes(CA1, CA2, label = lab),
+    colour = "seagreen4",
+    size = 2.4,
+    max.overlaps = Inf,
+    segment.colour = "grey80"
+  ) +
+  labs(x = paste0("CA1 (", cev[1], "%)"), y = paste0("CA2 (", cev[2], "%)")) +
+  coord_equal()
+```
+
+In @fig-ca-doubs the sites again spread along a dominant first axis, the upstream-to-downstream gradient, with cool-water species (`Satr`, `Phph`, `Thth`, `Cogo`) at one end and lowland species (`Abbr`, `Blbj`, `Gyce`) at the other. The curve in the site points is the *arch effect*, an artefact of long gradients that motivates Detrended Correspondence Analysis (DCA). The two diagrams answer different questions: the PCA biplot shows how environmental variables covary, while the CA shows which species share sites.
 
 ### Basic elements of ordination diagrams
 
@@ -186,3 +403,19 @@ Ordination analyses are typically presented through graphical representations ca
     - Parallel arrows suggest positive correlation, opposite arrows indicate negative correlation, and perpendicular arrows suggest uncorrelated variables.
 - Biplots are heuristic tools and patterns should be further tested for statistical significance if necessary.
 - Outliers can greatly influence the ordination and should be carefully examined.
+
+## Summary
+
+The chapter has introduced a vocabulary that recurs throughout the rest of the course. The table gathers it in one place:
+
+| Concept       | In one line                                                       |
+| :--- | :--- |
+| Ordination    | reduce dimensions while keeping as much structure as possible     |
+| Axis          | a composite gradient built from many original variables           |
+| Eigenvalue    | the amount of variation an axis captures                          |
+| Eigenvector   | the direction of an axis in the space of original variables       |
+| Unconstrained | explore the dominant patterns in a single table                   |
+| Constrained   | test how much a second, environmental table explains              |
+| Biplot        | sites and variables shown together in the reduced space           |
+
+Two figures hold the chapter together. @fig-ordination-preview shows what ordination produces, namely a high-dimensional table turned into one readable picture, and @fig-data-tables shows where ordination sits in the wider workflow of species tables, environmental tables, correlations, associations, and distances. The chapters that follow take each method in turn, starting with [PCA](PCA.qmd).
