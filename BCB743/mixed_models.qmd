@@ -1,0 +1,217 @@
+---
+date: last-modified
+title: "20: Linear and Generalised Linear Mixed Models"
+author: "A. J. Smit"
+
+format:
+  html:
+    code-link: false
+---
+
+```{r code-brewing-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 4.5,
+  fig.height = 2.625,
+  out.width = "75%",
+  fig.asp = NULL, # control via width/height
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 8)
+)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 8)
+)
+```
+
+::: callout-tip
+## **Material Required for This Chapter**
+
+| Type           | Name                                     | Link                                                                              |
+| :--- | :--- | :--- |
+| **Prior**      | GLM; the Diatom case study               | [GLM](glm.qmd); [nMDS: PERMANOVA (Diatoms)](nMDS_diatoms.qmd)                      |
+| **Data**       | Mayombo diatom data                      | [💾 `PB_data_matrix_abrev.csv`](../data/BCB743/diatoms/PB_data_matrix_abrev.csv)   |
+|                |                                          | [💾 `PB_diat_env.csv`](../data/BCB743/diatoms/PB_diat_env.csv)                     |
+:::
+
+The regression chapters so far have assumed that observations are **independent**, the "I" in the LINE assumptions. Ecological sampling routinely breaks that assumption. Sites are nested within rivers, quadrats within transects, measurements within individuals, and subsamples within a single specimen. Observations that share a group are more alike than observations from different groups, and treating them as independent is **pseudoreplication**: it credits the analysis with more independent information than the design actually delivered, and it makes *p*-values far too small.
+
+A **mixed model** solves this by adding a **random effect** for the grouping. I meet the same design that the [diatom case study](nMDS_diatoms.qmd) analysed with blocked PERMANOVA, and I now handle its nesting in a univariate model instead.
+
+## The Diatom Study and the Pseudoreplication It Creates
+
+Epiphytic diatoms were sampled from kelp blades. The design crosses two fixed factors, **host species** (*Ecklonia* vs *Laminaria*) and **host size** (adult vs juvenile), and from each individual kelp **plant** up to three replicate tissue pieces were taken. Those three pieces are **subsamples of the same blade**, not independent replicates of the treatment. This is why the diatom chapter set `plant` as the permutation block.
+
+```{r code-load-data}
+library(tidyverse)
+library(vegan)
+library(lme4) # lmer(), glmer()
+library(performance) # icc(), r2()
+
+spp <- read.csv(
+  here::here("data", "BCB743", "diatoms", "PB_data_matrix_abrev.csv"),
+  row.names = 1
+)
+env <- read.csv(
+  here::here("data", "BCB743", "diatoms", "PB_diat_env.csv"),
+  row.names = 1
+)
+env <- env |>
+  mutate(
+    host_spp = factor(host_spp),
+    host_size = factor(host_size),
+    plant = factor(plant),
+    richness = rowSums(spp > 0), # diatom genera per sample
+    Gomph = spp[["Gomphoseptatum.spp"]] # the dominant genus, a count
+  )
+
+table(plant_samples = table(env$plant)) # how many subsamples per plant
+```
+
+Most plants contribute three subsamples. Ignoring that structure would treat `r nrow(env)` correlated subsamples as `r nrow(env)` independent observations.
+
+## Fixed and Random Effects
+
+A **fixed effect** is a factor whose specific levels are of direct interest and would recur if you repeated the study: host species and host size are fixed. A **random effect** is a factor whose levels are a *sample* from a population of possible levels and are not themselves of interest: the particular kelp plants are an arbitrary sample of kelp plants, and I care about kelp plants in general, not plant number 7. I model the plant effect not as a set of coefficients but as a single **variance**: how much do blades differ from one another, over and above the treatments?
+
+Written out, a random-intercept model gives each plant $j$ its own deviation $b_j$ from the overall mean,
+
+$$
+y_{ij} = \beta_0 + \beta_1 x_{ij} + b_j + \varepsilon_{ij}, \qquad b_j \sim N(0, \sigma^2_{\text{plant}}), \quad \varepsilon_{ij} \sim N(0, \sigma^2).
+$$
+
+The model estimates the two variances rather than 16 separate plant means, which is far more economical and lets the plant deviations "borrow strength" from one another.
+
+## A Linear Mixed Model
+
+I begin with diatom **richness** as a linear mixed model. The fixed part is the host species by host size interaction; the random part, `(1 | plant)`, gives each blade its own intercept:
+
+```{r code-lmm}
+lmm <- lmer(richness ~ host_spp * host_size + (1 | plant), data = env)
+summary(lmm)
+```
+
+The **Random effects** table is new to you. It reports the plant-to-plant standard deviation and the residual (within-plant) standard deviation. Their relative size is captured by the **intraclass correlation coefficient** (ICC), the proportion of the total variance that is between plants:
+
+```{r code-icc-lmm}
+icc(lmm)
+```
+
+For richness the ICC is small: blades of the same plant are only slightly more alike than blades of different plants. The fixed-effect coefficients are read exactly as in an ordinary regression, except that their standard errors now correctly account for the grouping. Note that `lmer()` gives no *p*-values by design, because the degrees of freedom for these tests are not exactly known; I test effects below by comparing models.
+
+::: {.callout-note appearance="simple"}
+## REML and ML
+
+`lmer()` fits by **restricted maximum likelihood** (REML) by default, which gives unbiased variance estimates and is what you report. To compare models that differ in their **fixed** effects, however, you must refit with ordinary maximum likelihood (ML), because REML likelihoods of different fixed-effect structures are not comparable. The `anova()` method does this refitting automatically.
+:::
+
+## A Generalised Linear Mixed Model
+
+Richness is a count, so the correct model is a **generalised linear mixed model** (GLMM): the random intercept of a mixed model combined with the Poisson family and log link of a [GLM](glm.qmd). I model the abundance of the dominant genus, *Gomphoseptatum*:
+
+```{r code-glmm}
+glmm <- glmer(
+  Gomph ~ host_spp * host_size + (1 | plant),
+  family = poisson,
+  data = env
+)
+summary(glmm)
+icc(glmm)
+```
+
+Here the picture is completely different from the richness model: the ICC is high, so blades differ strongly in their *Gomphoseptatum* counts. That is precisely the situation in which ignoring the nesting does real damage.
+
+## Why It Matters: Pseudoreplication Quantified
+
+Fit the same fixed-effects model as an ordinary GLM, pretending the subsamples are independent, and compare the standard error of the host-species effect with the GLMM's:
+
+```{r code-pseudorep}
+naive <- glm(Gomph ~ host_spp * host_size, family = poisson, data = env)
+
+c(
+  naive_SE = coef(summary(naive))["host_sppLp", "Std. Error"],
+  glmm_SE = coef(summary(glmm))["host_sppLp", "Std. Error"]
+)
+```
+
+The naive standard error is roughly a third of the correct one. Pretending that 42 subsamples are 42 independent observations nearly **trebles** the apparent precision and would turn a non-significant effect into a "significant" one. The mixed model spends the degrees of freedom the design actually earned. This is the single most important reason to use a mixed model, and you cannot know in advance whether the inflation will be small (as for richness) or large (as for *Gomphoseptatum*): you have to fit the random effect to find out.
+
+## Random Slopes
+
+A random intercept lets the *baseline* vary between plants. A **random slope** lets a predictor's *effect* vary between plants as well, written `(1 + host_size | plant)`:
+
+```{r code-random-slope}
+rs <- lmer(
+  richness ~ host_spp * host_size + (1 + host_size | plant),
+  data = env
+)
+summary(rs)$varcor
+```
+
+Use a random slope when there is reason to think the effect of a within-group predictor genuinely differs between groups. Random slopes are demanding of data: each added random term needs enough groups, and enough observations per group, to be estimated. With only sixteen plants and at most three subsamples each, the diatom data can barely support them, which leads directly to the next point.
+
+## Singular Fits
+
+When a random-effects structure is too complex for the data, or a variance is genuinely near zero, `lmer()` returns a **singular fit**: a variance estimated at (or against) the boundary of zero. Modelling total diatom abundance is a clear case:
+
+```{r code-singular}
+sf <- lmer(log1p(rowSums(spp)) ~ host_spp * host_size + (1 | plant), data = env)
+VarCorr(sf)
+isSingular(sf)
+```
+
+The plant variance collapses to zero: for total abundance, blades of the same plant are no more alike than blades of different plants. A singular fit is a warning. The remedies are to simplify the random structure (drop a random slope, or a whole grouping factor that explains nothing), and to report clearly that the grouping contributed no detectable variance, having checked rather than assumed it.
+
+## Testing Effects and Measuring Fit
+
+Fixed effects are tested by a likelihood-ratio test that compares nested models, refitted with ML (which `anova()` handles):
+
+```{r code-lrt}
+m_full <- glmer(
+  Gomph ~ host_spp * host_size + (1 | plant),
+  family = poisson,
+  data = env
+)
+m_red <- glmer(
+  Gomph ~ host_spp + host_size + (1 | plant),
+  family = poisson,
+  data = env
+)
+anova(m_red, m_full)
+```
+
+A significant result means the interaction earns is real. For overall fit, a mixed model has **two** $R^2$ values: the **marginal** $R^2$ (variance explained by the fixed effects alone) and the **conditional** $R^2$ (fixed and random effects together). The gap between them is the contribution of the grouping:
+
+```{r code-r2}
+r2(glmm)
+```
+
+::: {.callout-warning}
+## Testing a variance component is a boundary problem
+
+Testing whether a random effect is needed (is $\sigma^2_{\text{plant}} = 0$?) is not an ordinary likelihood-ratio test, because the null value sits on the boundary of the parameter space, which makes the usual $\chi^2$ reference distribution conservative. In practice, decide whether to include a random effect from the **design** (is there grouping or nesting?) rather than from a significance test. If the design has subsamples within plants, the plant random effect belongs in the model whether or not its variance turns out to be large.
+:::
+
+## Diagnostics and Reporting
+
+Check a mixed model much as you would a GLM: plot the residuals against the fitted values, and inspect the distribution of the estimated random intercepts, which should be roughly normal.
+
+```{r fig-mm-diagnostics}
+#| fig-cap: "Residuals against fitted values for the Gomphoseptatum GLMM."
+plot(glmm)
+```
+
+When you report a mixed model, give the fixed-effect estimates with their uncertainty, the **variance components** (or the ICC) for every random effect, the marginal and conditional $R^2$, the error family and link for a GLMM, and the structure of the random effects in words ("a random intercept for each kelp plant, to account for the three subsamples taken per blade"). State that the random effect reflects the **design**, not a fishing expedition.
+
+## All These Regressions...
+
+These four chapters have lifted the three restrictions of ordinary multiple regression one at a time. The [GLM](glm.qmd) replaced the normal error with a family matched to the data; the [GAM](gam.qmd) replaced straight lines with smooths; and the mixed model has replaced the independence assumption with explicit terms for grouping and nesting. The same skeleton, a linear predictor of environmental drivers, runs through all of them, and through the [constrained ordination](constrained_ordination.qmd) that applies the very same logic to whole communities at once. Choosing among them is the subject of the [Model Building](model_building.qmd) chapter: match the model to the data you have and the question you are asking, then check that the model you fitted is the model you should report.
+
+## References
+
+::: {#refs}
+:::

@@ -1,0 +1,247 @@
+---
+date: last-modified
+title: "18: Generalised Linear Models (GLM)"
+author: "A. J. Smit"
+
+format:
+  html:
+    code-link: false
+---
+
+```{r code-brewing-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  comment = "R>",
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 4.5,
+  fig.height = 2.625,
+  out.width = "75%",
+  fig.asp = NULL, # control via width/height
+  dpi = 300
+)
+
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 8)
+)
+ggplot2::theme_set(
+  ggplot2::theme_bw(base_size = 8)
+)
+```
+
+::: callout-tip
+## **Material Required for This Chapter**
+
+| Type           | Name                                     | Link                                                                              |
+| :--- | :--- | :--- |
+| **Prior**      | Multiple Linear Regression               | [Multiple Regression](multiple_regression.qmd)                                    |
+| **Data**       | The Doubs River data                     | [💾 `Doubs.RData`](../data/BCB743/NEwR-2ed_code_data/NeWR2-Data/Doubs.RData)       |
+:::
+
+The [Multiple Regression](multiple_regression.qmd) chapter ended by suggesting a MLR isn't ideally suited to the Doubs data: species richness is a count, bounded below by zero, yet I modelled it with a method that assumes normally distributed errors of constant variance. For that particular response the model didn't perform too badly, but ecological data routinely break the normal-error assumption in ways no transformation fully repairs. Counts pile up near zero and have a variance that grows with the mean. Presence-absence data take only the values 0 and 1. Proportions are confined to the interval $[0, 1]$. A straight line with normal errors can predict negative counts and impossible probabilities, and its *p*-values cannot be trusted when the variance is tied to the mean.
+
+A **generalised linear model** (GLM) keeps the linear-predictor core of multiple regression but replaces the normal error with an error distribution chosen to match the response, and inserts a **link function** that connects the linear predictor to the mean of that distribution. Everything you learned about partial slopes, multicollinearity, model selection, and reporting applies here too, and only two new ideas are added.
+
+## The Three Components of a GLM
+
+Every GLM has three parts:
+
+1. A **random component**: the probability distribution of the response, chosen from the exponential family (Normal, Poisson, binomial, Gamma, and others). This fixes the mean-variance relationship.
+2. A **systematic component**: the linear predictor $\eta = \beta_0 + \beta_1 x_1 + \dots + \beta_p x_p$, exactly as in multiple regression.
+3. A **link function** $g$ that connects the two, $g(\mu) = \eta$, where $\mu$ is the mean of the response. The link lets a linear predictor that ranges over all real numbers map onto a mean that may be constrained to be positive (counts) or to lie in $[0,1]$ (probabilities).
+
+The common choices in ecology are:
+
+| Response | Distribution | Default link | Mean constrained to |
+| :--- | :--- | :--- | :--- |
+| Continuous, symmetric | Normal (Gaussian) | identity | all real numbers |
+| Counts | Poisson | log | $> 0$ |
+| Overdispersed counts | negative binomial | log | $> 0$ |
+| Presence-absence, proportions | binomial | logit | $[0, 1]$ |
+| Positive, right-skewed (e.g. biomass) | Gamma | log | $> 0$ |
+
+Ordinary multiple regression is simply the GLM with a Normal distribution and an identity link, so a GLM is a generalisation rather than a different method.
+
+```{r code-load-data}
+library(tidyverse)
+library(vegan)
+library(performance) # check_overdispersion(), r2()
+# negative-binomial models use MASS::glm.nb(); we call it by namespace rather
+# than attaching MASS, because MASS::select() would mask dplyr::select()
+
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
+spe <- spe[rowSums(spe) > 0, ]
+env <- env[rownames(spe), ]
+
+dat <- data.frame(
+  richness = specnumber(spe), # a count: number of species per site
+  total = rowSums(spe), # total community abundance per site
+  trout = as.integer(spe$Satr > 0), # presence-absence of brown trout
+  env
+)
+```
+
+## Poisson Regression for Counts
+
+I model species richness, the same count response as in the regression chapter, with a Poisson GLM and its default log link:
+
+```{r code-poisson}
+pois <- glm(richness ~ ele + oxy + nit + bod, family = poisson, data = dat)
+summary(pois)
+```
+
+The coefficients live on the **log scale**, because the link is the logarithm. A coefficient there is not a change in richness but a change in *log* richness, so it is easiest to interpret after exponentiating:
+
+```{r code-poisson-exp}
+exp(coef(pois))
+```
+
+On the response scale the effects are **multiplicative**: each one-unit increase in a predictor multiplies the expected richness by $e^{\beta}$. A value above 1 means richness increases, below 1 means it decreases. Dissolved oxygen and biological oxygen demand both multiply expected richness by appreciably less than 1, so richness falls in cold, highly oxygenated headwaters and at organically polluted sites, the same ecological story the linear model told, now expressed in a way that can never predict a negative richness.
+
+## Overdispersion
+
+The Poisson distribution makes a strong, testable assumption, which is that the variance equals the mean. Real ecological counts are often more variable than that, a condition called **overdispersion**, usually caused by unmeasured heterogeneity among sites or by clustering of individuals. Overdispersion does not bias the coefficients, but it makes the standard errors too small, so *p*-values look more significant than they are. Always check for it.
+
+The quick check is the ratio of the residual deviance to its degrees of freedom, which should be near 1. The **performance** package gives a formal test:
+
+```{r code-overdispersion}
+pois$deviance / pois$df.residual # rule of thumb: should be near 1
+check_overdispersion(pois)
+```
+
+The dispersion ratio here is modestly above 1, so there is mild overdispersion worth addressing. Two standard remedies exist.
+
+### Quasi-Poisson
+
+The **quasi-Poisson** family estimates a dispersion parameter from the data and inflates the standard errors by its square root. The coefficients are unchanged; only their uncertainty grows:
+
+```{r code-quasipoisson}
+quasi <- glm(
+  richness ~ ele + oxy + nit + bod,
+  family = quasipoisson,
+  data = dat
+)
+summary(quasi)$dispersion # the estimated dispersion
+coef(summary(quasi))[, c("Estimate", "Std. Error")]
+```
+
+### Negative binomial
+
+The **negative binomial** distribution adds a parameter, $\theta$, that explicitly models the extra variance, and unlike the quasi-Poisson it is a proper likelihood, so it can be compared with AIC:
+
+```{r code-negbin}
+negbin <- MASS::glm.nb(richness ~ ele + oxy + nit + bod, data = dat)
+negbin$theta # large theta => close to Poisson
+AIC(pois, negbin)
+```
+
+Here $\theta$ is large and the negative binomial AIC barely improves on the Poisson, confirming that the overdispersion is mild and the conclusions are robust to it. That is a good outcome which you can only establish it by checking it specifically. When the dispersion ratio is large (say above 2) and $\theta$ is small, the negative binomial standard errors are substantially wider than the Poisson ones, and reporting the Poisson model would be an error.
+
+::: {.callout-note appearance="simple"}
+## Overdispersion is not the same as excess zeros
+
+If a count response has far more zeros than a Poisson or negative binomial can produce (many sites where a species is simply absent for reasons unrelated to abundance), a **zero-inflated** or **hurdle** model is the appropriate tool (`pscl::zeroinfl()`, `glmmTMB()`). Diagnose this by comparing the observed number of zeros with the number the fitted model predicts.
+:::
+
+## Offsets: Modelling Rates Rather Than Counts
+
+Sometimes the count you model was collected over different amounts of effort, area, or time, or you want a count *relative to* some total. Dividing the count to make a rate and then modelling it loses the count structure; the correct device is an **offset**, a predictor whose coefficient is fixed at 1. To model brown-trout abundance as a share of the whole fish community, I offset by the log of total community abundance:
+
+```{r code-offset}
+offset_mod <- glm(
+  Satr ~ ele + bod,
+  family = poisson,
+  offset = log(total),
+  data = cbind(dat, Satr = spe$Satr)
+)
+coef(summary(offset_mod))
+```
+
+The model now describes the trout's expected *share* of the community: that share rises with elevation and falls with organic pollution, which places brown trout clearly in the clean, cool, upstream reaches. Because total abundance enters through the offset rather than as an ordinary predictor, its coefficient is not estimated; it simply rescales each site's expected count to its community size.
+
+## Logistic Regression for Presence-Absence
+
+When the response is binary, like presence or absence, the binomial family with a **logit link** is the standard tool. I model the presence of brown trout:
+
+```{r code-logistic}
+logit <- glm(trout ~ ele + bod, family = binomial, data = dat)
+summary(logit)
+```
+
+Logistic coefficients are **log-odds**. Exponentiating gives **odds ratios**, the factor by which the odds of presence change per unit of predictor:
+
+```{r code-logistic-odds}
+exp(coef(logit))
+```
+
+Each unit of biological oxygen demand multiplies the odds of finding trout by roughly one third, a strong negative effect of organic pollution, while higher elevation slightly raises the odds. Odds ratios are still not the most intuitive quantity, so it is usually clearer to predict on the **probability** scale across a gradient of one predictor:
+
+```{r fig-logistic-prediction}
+#| fig-cap: "Predicted probability of brown-trout presence along the elevation gradient, at the mean biological oxygen demand."
+newdat <- data.frame(
+  ele = seq(min(dat$ele), max(dat$ele), length.out = 100),
+  bod = mean(dat$bod)
+)
+newdat$prob <- predict(logit, newdat, type = "response")
+
+ggplot(newdat, aes(ele, prob)) +
+  geom_line(colour = "steelblue4", linewidth = 0.8) +
+  geom_rug(data = dat, aes(x = ele), sides = "b", inherit.aes = FALSE) +
+  labs(x = "Elevation (m)", y = "P(trout present)")
+```
+
+A useful summary of fit for a logistic model is **Tjur's coefficient of discrimination**, an $R^2$ analogue that contrasts the mean predicted probability for present and absent sites:
+
+```{r code-tjur}
+r2(logit)
+```
+
+## Inference and Model Selection in GLMs
+
+The *t*-tests of multiple regression become *z*-tests (Wald tests) in the `summary()` of a GLM, but Wald tests behave poorly in small samples and for coefficients near separation. The more reliable test compares nested models by the change in **deviance**, which follows a $\chi^2$ distribution. `drop1()` performs these likelihood-ratio tests for each term:
+
+```{r code-drop1}
+drop1(logit, test = "Chisq")
+```
+
+Both predictors are clearly significant by the likelihood-ratio test, which here is the more trustworthy finding. For choosing among non-nested candidate models, **AIC** works exactly as it did for linear models (lower is better), with the same warning against treating automatic stepwise selection as confirmatory rather than exploratory.
+
+## Diagnostics for GLMs
+
+The residuals-vs-fitted method of linear models does not transfer cleanly to GLMs, because the residuals are expected to be heteroscedastic from the onset. Use **deviance residuals** and read the plots with that in mind:
+
+```{r fig-glm-diagnostics}
+#| fig-width: 7
+#| fig-height: 6
+#| out-width: "85%"
+#| fig-cap: "Diagnostic plots for the Poisson richness model, based on deviance residuals."
+par(mfrow = c(2, 2))
+plot(pois)
+par(mfrow = c(1, 1))
+```
+
+The most important GLM-specific checks are the **overdispersion** test shown earlier and, for counts, a comparison of observed and predicted zeros. For binary responses the ordinary residual plots are nearly uninformative (residuals can only take two patterns), so judge a logistic model by its discrimination (Tjur's $R^2$, or the area under the ROC curve) and by **binned residuals**, which average residuals within groups of similar fitted probability.
+
+::: {.callout-note appearance="simple"}
+## Simulation-based residuals
+
+The most general GLM diagnostic is the **simulated quantile residual** implemented in the `DHARMa` package. It transforms the residuals of any GLM (or mixed model) onto a uniform scale where the usual visual checks become valid, and it provides direct tests for overdispersion, zero-inflation, and departures from the assumed distribution. If `DHARMa` is available, `DHARMa::simulateResiduals(model)` followed by `plot()` is the recommended check for every GLM in this module.
+:::
+
+## Reporting a GLM
+
+Report the error family and link, the coefficients on an interpretable scale (exponentiated for log and logit links, with their confidence intervals), the result of the overdispersion check for counts, a measure of fit (deviance explained, or a pseudo-$R^2$ such as Tjur's for logistic models), and the likelihood-ratio tests of the terms you discuss. State which family you chose and why; "a Poisson GLM with a log link" tells a reader more than "a regression".
+
+## Beyond the GLM
+
+A GLM still assumes that each predictor acts as a straight line on the link scale, and that the observations are independent. The next two chapters relax those assumptions in turn. The [GAM](gam.qmd) replaces the straight line on the link scale with a smooth curve, which is what a species' unimodal response along a gradient requires. The [mixed model](mixed_models.qmd) adds random effects for grouped or nested data, and in its generalised form (the GLMM) carries the error families of this chapter into designs where the independence assumption fails.
+
+## References
+
+::: {#refs}
+:::
