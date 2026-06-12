@@ -20,8 +20,8 @@ format:
 
 ```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
-  comment = "R>", 
-  warning = FALSE, 
+  comment = "R>",
+  warning = FALSE,
   message = FALSE,
   fig.width = 4.5,
   fig.height = 2.625,
@@ -38,7 +38,31 @@ ggplot2::theme_set(
 )
 ```
 
-In this document you will find examples of a fairly complicated series of constrained ordinations performed for the paper @smit2017seaweeds. The analyses are based on the distribution of seaweeds around the coast of South Africa, and the environmental variables that might explain these distributions. 
+In this document you will find examples of a fairly complicated series of constrained ordinations performed for the paper @smit2017seaweeds. The analyses are based on the distribution of seaweeds around the coast of South Africa, and the environmental variables that might explain these distributions.
+
+This is a technical appendix rather than a teaching chapter. Its purpose is documentation, transparency, and reproducibility, namely to let another researcher repeat the analysis and follow the methodological decisions. The output is therefore long in places; the summary boxes after each major block, and the synthesis at the end, give the short version.
+
+## Analytical Workflow
+
+The analysis moves from the raw species table to a partition of community structure into spatial and thermal components (@fig-workflow). Two β-diversity components, turnover ($\beta_{sim}$) and nestedness-resultant dissimilarity ($\beta_{sne}$), are each modelled against two sets of predictors, namely spatial variables (Moran's eigenvector maps, MEMs) and thermal variables. Distance-based redundancy analysis (db-RDA) with forward selection reduces each predictor set, and variance partitioning then separates the spatial from the thermal contribution.
+
+```{mermaid}
+%%| label: fig-workflow
+%%| echo: false
+%%| fig-cap: "Analytical workflow for the β-diversity analysis. The species table is decomposed into turnover and nestedness components, each modelled by db-RDA against spatial (MEM) and thermal predictors before variance partitioning separates the two contributions."
+flowchart TD
+  Y["Species table<br/>(846 spp × 58 sections)"] --> BD["Sørensen β-diversity<br/>decomposition (betapart)"]
+  BD --> Y1["β_sim<br/>turnover (Y1)"]
+  BD --> Y2["β_sne<br/>nestedness (Y2)"]
+  COORD["Section coordinates"] --> MEM["MEM construction<br/>MST → PCoA → positive<br/>Moran eigenvectors"]
+  ENV["In situ thermal series (E)"] --> THERM["Thermal predictors<br/>(standardised)"]
+  Y1 --> RDA["db-RDA +<br/>forward selection"]
+  Y2 --> RDA
+  MEM --> RDA
+  THERM --> RDA
+  RDA --> VP["Variance partitioning<br/>(spatial vs thermal)"]
+  VP --> INF["Inference: scale and<br/>driver of community structure"]
+```
 
 ## Spatial Analysis Background and Code
 
@@ -148,9 +172,9 @@ bioreg <- read.csv(
 
 ## Preparation of Spatial Variables
 
-I test the niche difference mechanism as the primary species compositional assembly process operating along South African shores. I suggest that the thermal gradient along the coast provides a suite of abiotic (thermal) conditions from which species can select based on their physiological tolerances, and hence this will structure \textbeta-diversity. For this mechanism to function one would assume that all species have equal access to all sections along this stretch of coast, thus following Beijerinck's 'Law' that everything is everywhere but the environment selects [@Sauer1988] (but see main text!).
+I test the niche difference mechanism as the primary species compositional assembly process operating along South African shores. I suggest that the thermal gradient along the coast provides a suite of abiotic (thermal) conditions from which species can select based on their physiological tolerances, and hence this will structure \textbeta-diversity. For this mechanism to function one would assume that all species have equal access to all sections along this stretch of coast, thus following Beijerinck's 'Law' that everything is everywhere but the environment selects [@Sauer1988]. This assumption provides a useful null model rather than a literal description of coastal dispersal processes, and the main text qualifies it against the directional influence of the Agulhas and Benguela Currents.
 
-The basic approach to a spatial analysis structured around a biological response (*e.g.*, community structure and composition; $Y$), environmental variables ($E$) and their spatial representation ($S$) involves an analysis of Moran's eigenvector maps (MEM), followed by db-RDA and variance partitioning. Various literature sources discuss principle behind Moran's eigenvector maps [@Dray2006; @Dray2012a]. Worked examples are also presented in the excellent book *Numerical Ecology with R* [@Borcard2011] in Section 7.4. The method followed here has been adapted from these and other sources.
+The basic approach to a spatial analysis structured around a biological response (*e.g.*, community structure and composition; $Y$), environmental variables ($E$) and their spatial representation ($S$) involves an analysis of MEMs, followed by db-RDA and variance partitioning. Various literature sources discuss the principle behind them [@Dray2006; @Dray2012a]. Worked examples are also presented in the excellent book *Numerical Ecology with R* [@Borcard2011] in Section 7.4. The method followed here has been adapted from these and other sources.
 
 Obtaining the MEMs to use in the analysis is based on the procedure introduced by Borcard and Legendre (2002), which was later modified by @Dray2006. The basic approach involves:
 
@@ -166,13 +190,12 @@ Truncation produced by Minimum Spanning Trees (MST) focuses on the binary relati
 
 Once the truncated distance matrix has been prepared, it is subjected to a PCoA and I keep the eigenvectors that represent positive spatial correlation (positive Moran's $I$). For the MEM analysis I use the function `PCNM()` that resides in the `functions` folder in the file `PCNM.R` (see notes inside about authorship). PCNM stands for Principal Coordinates Analysis of Neighbourhood Matrices (the neighbourhood matrix in this instance being the MST). This method automatically constructs the spatial variables and calculates the Moran's I for each. The MEMs are completely orthogonal and represent the spatial structures over the full range of scales from 50 to 2,700 km. The large eigenvectors represent broad spatial scales while smaller ones cover finer features. The *spatial data* will be used as a set of explanatory variables in the multiple regression type analyses applied to a species dissimilarity matrix [*i.e.*, the db-RDA; @Dray2012a]
 
-The code below reproduces the spatial analysis in the paper. Due to the length of the output I have prevented the script from returning any output here; rather, if the reader is for some odd reason interested in repeating this analysis, s/he may find the data and scripts in my [GitHub](https://github.com/ajsmit/Seaweed-beta) repository, and the full code can be run in its entirety. Well, I hope this will work, but if it does not (probably very likely) then write to me at [ajsmit\@uwc.ac.za](mailto:ajsmit@uwc.ac.za){.email} and I shall assist --- this may depend on if your email has a catchy title that will make it stand out from among all the other emails which other people think are equally important.
+The code below reproduces the spatial analysis in the paper. Because the output is lengthy, the script is set not to print its results here; the data and scripts needed to repeat the analysis in full are available in my [GitHub](https://github.com/ajsmit/Seaweed-beta) repository. If a step does not run in a current **R** environment, please write to me at [ajsmit\@uwc.ac.za](mailto:ajsmit@uwc.ac.za){.email} and I shall assist.
 
 ```{r code-pcnm}
 #| fig-width: 8
 #| fig-height: 4
 #| fig.align: center
-
 ## Auto PCNM:
 S.auto <- PCNM(dist(sites), silent = TRUE)
 # summary(S.auto)
@@ -202,7 +225,6 @@ The code below lets us visualise the configuration of the 58 coastal sections as
 #| fig-width: 8
 #| fig-height: 4
 #| fig.align: center
-
 # The spatial netwwork topology of the coastal sections can be seen by:
 plot(S.auto$spanning, sites)
 ```
@@ -225,6 +247,12 @@ S.Y1.cs.R2 <- RsquareAdj(S.Y1.cs)$adj.r.squared
 sum(S.Y1.cs$CCA$eig) / S.Y1.cs$tot.chi * 100
 ```
 
+::: callout-important
+## Why some variance percentages exceed 100%
+
+Several of the `sum(...$CCA$eig) / ...$tot.chi * 100` lines in this document return values above 100% (here 102.5% for the global $\beta_{sim}$ model, and later 128.9% and 108.1% for $\beta_{sne}$). These are not errors. The db-RDA is run on the principal coordinate representation of a Sørensen dissimilarity, which is not fully Euclidean, so the underlying PCoA produces some negative eigenvalues. The total inertia (`tot.chi`) is the sum of *all* eigenvalues, including the negative ones, whereas the constrained eigenvalues counted in the numerator are positive, so their ratio can exceed one. Read these percentages as an index of fit rather than as a conventional proportion of variance explained, and use the adjusted *R*^2^ from `RsquareAdj()` as the more reliable summary.
+:::
+
 ```{r code-y2-pcnm-capscale-global}
 # And on the Y2 data (uncommented, but same as above):
 S.Y2.cs <- capscale(Y2 ~ ., data = S.pos)
@@ -232,7 +260,7 @@ S.Y2.cs.R2 <- RsquareAdj(S.Y2.cs)$adj.r.squared
 sum(S.Y2.cs$CCA$eig) / S.Y2.cs$tot.chi * 100
 ```
 
-**Initial analysis (pre-2017):** Since the analysis is significant, I compute the adjusted *R*^2^ and run forward selection of the MEMs. The forward selection procedure of @Blanchet2008 is implemented in the **packfor** package for R, and I use it to reduce the number of MEM variables and retain only those that best fit the biotic data. Forward selection prevents the inflation of the overall type I error and reduces the number of explanatory variables used in the final model, which improves parsimony. I then run a new db-RDA analysis on the 'best' (reduced) set of MEM variables that was selected.
+**Original 2017 workflow.** Since the analysis is significant, I compute the adjusted *R*^2^ and run forward selection of the MEMs. The forward selection procedure of @Blanchet2008 is implemented in the **packfor** package for R, and I use it to reduce the number of MEM variables and retain only those that best fit the biotic data. Forward selection prevents the inflation of the overall type I error and reduces the number of explanatory variables used in the final model, which improves parsimony. I then run a new db-RDA analysis on the 'best' (reduced) set of MEM variables that was selected.
 
 ```{r code-s-y1-fwd-forward}
 #| eval: false
@@ -247,7 +275,6 @@ S.Y2.fwd <- forward.sel(Y2, as.matrix(S.pos), adjR2thresh = S.Y2.cs.R2)
 ```{r code-s-y1-no-sig}
 #| eval: false
 #| echo: false
-
 # Write the significant MEMs to a new object:
 S.Y1.no.sig <- nrow(S.Y1.fwd)
 S.Y1.sign <- sort(S.Y1.fwd[, 2])
@@ -293,7 +320,6 @@ scores(S.Y1.s2, display = "bp", choices = c(1:4))[1:6, ]
 ```{r code-s-y2-no-sig}
 #| eval: false
 #| echo: false
-
 # As above, but now with Y2:
 S.Y2.no.sig <- nrow(S.Y2.fwd)
 S.Y2.sign <- sort(S.Y2.fwd[, 2])
@@ -321,7 +347,7 @@ sum(S.Y2.s2$CCA$eig) / S.Y2.s2$tot.chi * 100
 scores(S.Y2.s2, display = "bp", choices = c(1:4))
 ```
 
-**Update (2024):** The **packfor** package is no longer available so I have updated my methods to use **vegan**'s `ordiR2step()` function instead. This function is a stepwise model selection procedure that uses adjusted *R*^2^ as the criterion (as in **packfor**) for selecting the best model. I run the forward selection procedure on the full model and retain the significant ('best', reduced) MEMs in the final model. I then use only the retained MEMs in subsequent steps.
+**Reproducible workflow (2024 update).** The **packfor** package is no longer available so I have updated my methods to use **vegan**'s `ordiR2step()` function instead. This function is a stepwise model selection procedure that uses adjusted *R*^2^ as the criterion (as in **packfor**) for selecting the best model. I run the forward selection procedure on the full model and retain the significant ('best', reduced) MEMs in the final model. I then use only the retained MEMs in subsequent steps.
 
 ```{r code-s-y1-cs-null}
 # Run the db-RDA on the Y1 data:
@@ -395,6 +421,14 @@ sum(S.Y2.s2$CCA$eig) / S.Y2.s2$tot.chi * 100
 scores(S.Y2.s2, display = "bp", choices = c(1:4))
 ```
 
+::: callout-note
+## Spatial (MEM) analysis: summary
+
+- **Turnover ($\beta_{sim}$).** 27 positive MEMs entered the global model, and forward selection retained 15. The reduced db-RDA is significant ($F = 50.7$, $p = 0.001$), and almost all of the constrained signal sits on the first two axes (CAP1 $F = 587$, CAP2 $F = 154$, with a significant but minor CAP3).
+- **Nestedness ($\beta_{sne}$).** Forward selection retained 9 MEMs, and the reduced model is significant ($F = 12.2$, $p = 0.001$), again dominated by CAP1 ($F = 96$) and CAP2 ($F = 9.3$).
+- Both components carry strong, broad-scale spatial structure. The retained MEMs are the large-scale (low-numbered) eigenvectors, so the structure spans the coastline rather than local neighbourhoods.
+:::
+
 ## A Few Visualisations
 
 Now I make a visualisation to reveal the spatial arrangement of the MEMs used in the final db-RDA involving the spatial variables (*i.e.*, \texttt{S.Y1.s2} and \texttt{S.Y2.s2}). The spatial configuration relates to broad scales as seen in Fig. 3 in the paper. Here are plots of the site scores for the MEMs and $Y1$ and $Y2$ (a few panels belonging with Fig. 3):
@@ -405,7 +439,12 @@ sa_basemap <- local({
   sa_lats <- c(-35.5, -26)
   sa_lons <- c(14, 34)
   sa_bbox <- sf::st_bbox(
-    c(xmin = sa_lons[1], xmax = sa_lons[2], ymin = sa_lats[1], ymax = sa_lats[2]),
+    c(
+      xmin = sa_lons[1],
+      xmax = sa_lons[2],
+      ymin = sa_lats[1],
+      ymax = sa_lats[2]
+    ),
     crs = sf::st_crs(4326)
   )
   sa_world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
@@ -571,7 +610,9 @@ S.Y2.p <- ggplot(data = S.Y2.df_sites, aes(x, y, colour = Bioregion)) +
 
 ## Analysis of the Thermal Variables
 
-As before with the spatial variable, I now do a db-RDA involving all the thermal variables ($E$) followed by forward selection. There is less explanation provided here as the reader should now be familiar with db-RDA --- the procedure is the same as with the MEMs, just different explanatory variables are supplied. Another difference is that the thermal variables are not necessarily orthogonal, so I check for collinearity using variance inflation factors (VIF).
+The thermal variables are the abiotic side of the niche-selection hypothesis set out earlier. If species sort along the coast by physiological tolerance, the thermal envelope each section presents should structure $\beta$-diversity. The nine predictors in $E$ summarise that envelope along three axes, namely the seasonal extremes (February and August, representing summer and winter), the central tendency (annual mean), and the variability (monthly ranges and standard deviations). Summer and winter means locate a section on the warm-to-cold gradient, while ranges and standard deviations describe how variable its temperatures are through the year. Where the MEM analysis asks *at what spatial scale* assemblages are organised, the thermal analysis asks *which features of the temperature regime* track that organisation.
+
+As before with the spatial variables, I now do a db-RDA involving all the thermal variables ($E$) followed by forward selection. There is less explanation provided here as the reader should now be familiar with db-RDA --- the procedure is the same as with the MEMs, just different explanatory variables are supplied. Another difference is that the thermal variables are not necessarily orthogonal, so I check for collinearity using variance inflation factors (VIF).
 
 I start with the full model and then run forward selection and repeat the db-RDA on the reduced set. Analyses shown for $Y1$ and $Y2$:
 
@@ -673,7 +714,7 @@ anova(E.Y2.cs2, parallel = 4) # ... yes!
 E.Y2.axis.test <- anova(E.Y2.cs2, by = "terms", parallel = 4)
 # E.Y2.ax <- which(E.Y2.axis.test[, 4] < 0.05) # doesn't work...
 # E.Y2.sign.ax <- colnames(E.Y2.red[,E.Y2.ax])
-E.Y2.sign.ax <- "annMean" # a manual cheat
+E.Y2.sign.ax <- "annMean" # manually specify significant term because automatic extraction failed
 
 anova(E.Y2.cs2, by = "terms", parallel = 4) # ... yes!
 
@@ -683,6 +724,14 @@ sum(E.Y2.cs2$CCA$eig) / E.Y2.cs2$tot.chi * 100
 
 scores(E.Y2.cs2, display = "bp", choices = c(1:2))
 ```
+
+::: callout-note
+## Thermal analysis: summary
+
+- **Turnover ($\beta_{sim}$).** Of the nine thermal predictors, forward selection retained four, namely `augMean`, `febRange`, `febSD`, and `augSD`. The reduced model is significant ($F = 78.5$, $p = 0.001$) with two significant axes (CAP1 $F = 260$, CAP2 $F = 53$). Turnover tracks both the warm-to-cold gradient (winter mean) and seasonal variability (summer range and variability).
+- **Nestedness ($\beta_{sne}$).** Forward selection retained two predictors, namely `annSD` and `annMean`, and the reduced model is significant ($F = 16.1$, $p = 0.001$) and effectively one-dimensional. Nestedness responds mainly to annual thermal variability rather than to the mean gradient.
+- The thermal models are more parsimonious than the spatial ones (four and two predictors against 15 and 9), and a single warm-to-cold axis carries most of the turnover signal.
+:::
 
 Now I make the remaining panels of Fig. 3, these showing the spatial arrangement associated with the site scores of the environmental variables for $Y1$ and $Y2$:
 
@@ -824,7 +873,6 @@ Here I now assemble the various panels into what we see produced in Fig. 2 in th
 #| fig-width: 10
 #| fig-height: 8.25
 #| fig.align: center
-
 ggarrange(
   E.Y1.p,
   E.Y2.p,
@@ -844,7 +892,6 @@ And I do the same with assembling the panels that form Fig. 3 in the paper:
 #| fig-width: 10
 #| fig-height: 10
 #| fig.align: center
-
 grid::grid.newpage()
 grid::pushViewport(grid::viewport(layout = grid::grid.layout(3, 2)))
 vplayout <- function(x, y) {
@@ -860,7 +907,7 @@ print(S.Y2.plt.axis1, vp = vplayout(3, 2))
 ::: callout-note
 ## **MEMs and Their Interpretation**
 
-MEMs (Moran's Eigenvector Maps) are spatial variables used to represent different scales of spatial structure in spatial ecological data. They accomplish the following:
+MEMs are spatial variables used to represent different scales of spatial structure in spatial ecological data. They accomplish the following:
 
 1. Account for spatial autocorrelation that might be present due to the nature of ecological processes and geographic proximity of sampling sites (processes at a specific site might be affected by nearly processes, but less so by processes operating further away).
 2. Capture and model spatial patterns that may not be directly accounted for by measured environmental variables.
@@ -891,7 +938,6 @@ Lastly, using **vegan**'s `varpart()` function, I partition the variance between
 #| fig-width: 8
 #| fig-height: 4
 #| fig.align: center
-
 # These lines of code produce a few figures to visually understand
 # the variance partitioning on Y1:
 vp2.Y1 <- varpart(Y1, E.Y1.red, S.Y1.red)
@@ -965,7 +1011,7 @@ anova.cca(
   capscale(
     Y2 ~
       annMean +
-        Condition(MEM1 + MEM2 + MEM3 + MEM5),
+      Condition(MEM1 + MEM2 + MEM3 + MEM5),
     data = ES.Y2.red
   ),
   parallel = 4,
@@ -996,6 +1042,14 @@ anova.cca(
 )
 ```
 
+::: callout-note
+## Variance partitioning: summary
+
+- **Turnover ($\beta_{sim}$).** Both pure fractions are significant, namely the pure thermal fraction ($E\,|\,S$: $F = 8.5$, $p = 0.001$) and the pure spatial fraction ($S\,|\,E$: $F = 10.7$, $p = 0.001$). A large shared fraction reflects the fact that the thermal gradient is itself spatially organised along the coast, so much of the thermal and spatial signal overlaps.
+- **Nestedness ($\beta_{sne}$).** The pure spatial fraction is significant ($S\,|\,E$: $F = 13.6$, $p = 0.001$) but the pure thermal fraction is not ($E\,|\,S$: $F = 1.5$, $p = 0.198$). The adjusted $R^2$ values place most explained variation in the pure spatial (≈ 0.37) and shared (≈ 0.22) fractions, with the pure thermal fraction near zero.
+- Turnover is jointly structured by temperature and space, whereas nestedness is structured mainly by space, with temperature adding little once space is accounted for.
+:::
+
 ## Network Graphs of $\beta$-Diversity
 
 This is Appendix C of the paper @smit2017seaweeds.
@@ -1006,13 +1060,12 @@ The usual visualisation approach is to plot the dissimilarity metric as a functi
 
 In doing so, the change in $\beta$-diversity per unit of separating distance between sections (km^-1^) could be calculated for each bioregion using linear regression. Since the connectivity between sections is constrained by their location along the shore, I calculated the distances between sections not as 'as the crow ﬂies' distances (*e.g.*, Section **1** is not connected in a straight line to Section **58** because of the intervening land in-between), but as the great circle geodesic distances between each pair of sections along a network of connected sections (vertices on a network graph). In other words, travelling from Section **1** to Section **58** requires travelling first along the coast through Section **2**, then Section **3**, and eventually all the way up to Section **58**. The total distance between a pair of arbitrary sections is therefore the cumulative sum of the great circle distances between each consecutive pair of intervening sections along the 'route'. This information is encapsulated as a square geodesic distance matrix, and can supply the distance along the abscissa against which species dissimilarities are plotted along the ordinate. The plots showing the relationship between \textbeta-diversity with distance are limited because they do not provide a geographical context.
 
-To overcome this problem, I relied on a visualisation technique not commonly found in biogeographical studies to explicitly provide the geographical context. I structured the sections as vertices of a network graph and assigned to them their geographical coordinates to force a familiar layout of the graph --- when plotted on geographic coordinates, the sections form a map of South Africa. The species dissimilarities were assigned as edge weights (the lines connecting the **58** coastal sections) between pairs of sections and added to the map. The weights are directly proportional to the thickness of the edges and colours assigned to vertices (points or the 58 coastal sections) cluster the sections into their bioregions. Initially I used the **igraph** package that many people rave about, but I found it bothersome. So I devised a cunning way to create network graphs from scratch with some **dplyr** and **ggplot2** magic. I suppose that if I really wanted to I could have made neat functions here (and elsewhere) to reduce some of the repetitive nature of my code, but I really could not be bother doing that.
+To overcome this problem, I relied on a visualisation technique not commonly found in biogeographical studies to explicitly provide the geographical context. I structured the sections as vertices of a network graph and assigned to them their geographical coordinates to force a familiar layout of the graph --- when plotted on geographic coordinates, the sections form a map of South Africa. The species dissimilarities were assigned as edge weights (the lines connecting the **58** coastal sections) between pairs of sections and added to the map. The weights are directly proportional to the thickness of the edges and colours assigned to vertices (points or the 58 coastal sections) cluster the sections into their bioregions. I first tried the **igraph** package, but found it awkward for forcing a geographic layout, so I built the network graphs directly with **dplyr** and **ggplot2**. The code below is repetitive and could be wrapped into a function, but I have left each bioregion explicit so that every step of the construction stays visible.
 
 ```{r fn-network-graphs}
 #| fig-width: 10
 #| fig-height: 7
 #| fig.align: center
-
 # Visualise the pairwise dissimilarities as network graphs where the
 # vertices are geographical coordinates and the edge lengths are the geodesic
 # distances.
@@ -1087,7 +1140,10 @@ sa_bbox <- sf::st_bbox(
   c(xmin = sa_lons[1], xmax = sa_lons[2], ymin = sa_lats[1], ymax = sa_lats[2]),
   crs = sf::st_crs(4326)
 )
-south_africa_coast <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+south_africa_coast <- rnaturalearth::ne_countries(
+  scale = "medium",
+  returnclass = "sf"
+)
 south_africa_coast <- sf::st_crop(south_africa_coast, sa_bbox)
 
 net.plot.Y1 <- function(dissim = NULL, title = NULL, col.seq = NULL) {
@@ -1163,8 +1219,31 @@ d <- net.plot.Y1(
 ggarrange(a, b, c, d, ncol = 2, nrow = 2, labels = "AUTO", common.legend = TRUE)
 ```
 
-And that is it, folks. You will notice that I have not reproduced Fig. 5 here. I will leave that up to you... or ask me and I will send the code. All of the matrices have (mostly) been calculated above and they can be used together with some **dplyr** and **ggplot2** know-how in the creation of that graph.
+Fig. 5 of the paper is not reproduced here. The matrices it needs have already been calculated above, and the figure can be assembled from them with **dplyr** and **ggplot2**. The code is available on request.
 
-Legalise seaweed!
+## Main Findings
+
+The output above is long, so the ecological conclusions are collected here.
+
+- **Turnover dominates, and it is jointly structured by temperature and space.** $\beta_{sim}$ (species turnover) carries far more of the assemblage signal than $\beta_{sne}$ (nestedness). Turnover is explained almost equally well by the thermal predictors (reduced-model adjusted $R^2 \approx 0.85$, four variables) and by the spatial MEMs (adjusted $R^2 \approx 0.93$, 15 variables), and the two sets covary strongly because the thermal gradient is itself organised along the coast.
+
+- **The thermal signal is the interpretable driver.** Under the niche-selection hypothesis, the warm-to-cold gradient is the mechanism that sorts species by physiological tolerance, and the large shared spatial fraction is consistent with the spatial autocorrelation of temperature rather than with a separate process. The pure thermal fraction stays significant for turnover after space is partialled out ($F = 8.5$, $p = 0.001$).
+
+- **Spatial structure remains significant after accounting for temperature.** For both $\beta$-components the pure spatial fraction is significant ($S\,|\,E$: turnover $F = 10.7$, nestedness $F = 13.6$; both $p = 0.001$), so distance-related structure contributes beyond what temperature explains.
+
+- **Nestedness is weaker and mainly spatial.** Once space is removed, temperature adds essentially nothing to $\beta_{sne}$ (pure thermal fraction not significant, $F = 1.5$, $p = 0.198$). Nestedness-resultant dissimilarity tracks annual thermal variability and broad spatial position rather than the mean gradient.
+
+- **The structuring is broad-scale.** In every reduced model the first two canonical axes (CAP1, CAP2) carry almost all of the constrained signal, and the retained MEMs are the low-order, large-scale eigenvectors. The pattern matches the regional division between the Benguela and Agulhas regimes rather than local, section-to-section variation.
+
+## Reproducibility and Software Environment
+
+The analysis was first run for @smit2017seaweeds in 2017 with **packfor** for forward selection, and updated in 2024 to use **vegan**'s `ordiR2step()` after **packfor** left CRAN (see the two workflow notes in the spatial section). Package versions move on, and a result that runs today may not run unchanged in a few years. The session below records the exact versions used to render this document, so the analysis can be reproduced or, if a function has since changed, diagnosed.
+
+```{r code-session-info}
+sessionInfo()
+```
 
 ## References
+
+::: {#refs}
+:::
