@@ -1,16 +1,14 @@
 ---
 date: last-modified
 title: "16: Deep Dive into Gradients"
-author: "A. J. Smit"
-
 format:
   html: default
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
 knitr::opts_chunk$set(
-  comment = "R>", 
-  warning = FALSE, 
+  comment = "R>",
+  warning = FALSE,
   message = FALSE,
   fig.width = 4.5,
   fig.height = 2.625,
@@ -70,8 +68,17 @@ library(betapart) # for partitioning beta-diversity
 load(here::here("data", "BCB743", "seaweed", "SeaweedEnv.RData"))
 env <- as.data.frame(env)
 # keep only some...
-env <- env[, c("annMean", "annRange", "annSD", "febMean", "febRange",
-               "febSD", "augMean", "augRange", "augSD")]
+env <- env[, c(
+  "annMean",
+  "annRange",
+  "annSD",
+  "febMean",
+  "febRange",
+  "febSD",
+  "augMean",
+  "augRange",
+  "augSD"
+)]
 ```
 
 ### The bioregional classification
@@ -80,8 +87,10 @@ Various bioregions have been defined for South African marine biota. I prefer to
 
 ```{r code-bioreg-read-csv-here}
 # load the bioregions data...
-bioreg <- read.csv(here::here("data", "BCB743", "seaweed", "bioregions.csv"),
-                   header = TRUE)
+bioreg <- read.csv(
+  here::here("data", "BCB743", "seaweed", "bioregions.csv"),
+  header = TRUE
+)
 rbind(head(bioreg, 3), tail(bioreg, 3))
 ```
 
@@ -108,12 +117,12 @@ bioreg_mat[42:58, 42:58] <- "ECTZ"
 dim(bioreg_mat)
 
 # see what is inside the matrix...
-bioreg_mat[1:3, 1:10] 
+bioreg_mat[1:3, 1:10]
 bioreg_mat[56:58, 53:58]
 
 # convert to show only the lower left triangle (not used later)
 # requires the gdata package...
-bioreg_tri <- gdata::lowerTriangle(bioreg_mat, diag = FALSE) 
+bioreg_tri <- gdata::lowerTriangle(bioreg_mat, diag = FALSE)
 ```
 
 In `bioreg_._mat`, pairs of sites that do not fall within any of the bioregions are labelled 'out':
@@ -158,9 +167,9 @@ Calculate $\beta$-diversity using the Sørensen index of dissimilarity. This is 
 Y <- vegdist(spp, binary = TRUE)
 Y_mat <- as.matrix(Y)
 # extract the subdiagonal...
-Y_diag <- diag(Y_mat[-1, -nrow(Y_mat)]) 
+Y_diag <- diag(Y_mat[-1, -nrow(Y_mat)])
 # add a zero in front...
-Y_diag <- append(0, Y_diag, after = 1) 
+Y_diag <- append(0, Y_diag, after = 1)
 ```
 
 Decompose into turnover and nestedness-resultant beta-diversity:
@@ -174,7 +183,7 @@ Y.core <- betapart.core(spp)
 # the (i) turnover (replacement), (ii) nestedness-resultant component, and
 # (iii) total dissimilarity (i.e. the sum of both components)
 # use for pairwise plotting...
-Y.pair <- beta.pair(Y.core, index.family = "sor") 
+Y.pair <- beta.pair(Y.core, index.family = "sor")
 ```
 
 Extract the subdiagonal for plotting later on:
@@ -183,9 +192,9 @@ Extract the subdiagonal for plotting later on:
 # Y1 will be the turnover component
 Y1_mat <- as.matrix(Y.pair$beta.sim)
 # extract the subdiagonal...
-Y1_diag <- diag(Y1_mat  [-1, -nrow(Y1_mat)]) 
+Y1_diag <- diag(Y1_mat[-1, -nrow(Y1_mat)])
 # add a zero in front...
-Y1_diag <- append(0, Y1_diag, after = 1) 
+Y1_diag <- append(0, Y1_diag, after = 1)
 
 # Y2 will be the nestedness-resultant component
 Y2_mat <- as.matrix(Y.pair$beta.sne)
@@ -235,7 +244,7 @@ Calculate the environmental distances:
 # ---- environmental-distance ----
 # Euclidean distances on temperatures
 # first make a copy so we can use untransformed data later on...
-env_raw <- env 
+env_raw <- env
 # calculate z-scores...
 env <- decostand(env, method = "standardize")
 ```
@@ -245,9 +254,9 @@ Using individual thermal variables, calculate Euclidean distances, make a matrix
 ```{r code-env4-mat-env}
 # augMean
 # to be used in env_rda2...
-env4_mat <- env |> 
-  dplyr::select(augMean) |> 
-  vegdist(method = 'euclidian') |> 
+env4_mat <- env |>
+  dplyr::select(augMean) |>
+  vegdist(method = 'euclidian') |>
   as.matrix()
 
 env4_diag <- diag(env4_mat[-1, -nrow(env4_mat)])
@@ -257,9 +266,9 @@ env4_diag <- append(0, env4_diag, after = 1)
 ```{r code-env5-mat-env}
 # febRange
 # to be used in env_rda2...
-env5_mat <- env |> 
-  dplyr::select(febRange) |> 
-  vegdist(method = 'euclidian') |> 
+env5_mat <- env |>
+  dplyr::select(febRange) |>
+  vegdist(method = 'euclidian') |>
   as.matrix()
 
 env5_diag <- diag(env5_mat[-1, -nrow(env5_mat)])
@@ -269,9 +278,9 @@ env5_diag <- append(0, env5_diag, after = 1)
 ```{r code-env6-mat-env}
 # febSD
 # to be used in env_rda2...
-env6_mat <- env |> 
-  dplyr::select(febSD) |> 
-  vegdist(method = 'euclidian') |> 
+env6_mat <- env |>
+  dplyr::select(febSD) |>
+  vegdist(method = 'euclidian') |>
   as.matrix()
 
 env6_diag <- diag(env6_mat[-1, -nrow(env6_mat)])
@@ -281,9 +290,9 @@ env6_diag <- append(0, env6_diag, after = 1)
 ```{r code-env7-mat-env}
 # augSD
 # to be used in env_rda2...
-env7_mat <- env |> 
-  dplyr::select(augSD) |> 
-  vegdist(method = 'euclidian') |> 
+env7_mat <- env |>
+  dplyr::select(augSD) |>
+  vegdist(method = 'euclidian') |>
   as.matrix()
 
 env7_diag <- diag(env7_mat[-1, -nrow(env7_mat)])
@@ -293,9 +302,9 @@ env7_diag <- append(0, env7_diag, after = 1)
 ```{r code-env8-mat-env}
 # annMean
 # to be used in env_rda2...
-env8_mat <- env |> 
-  dplyr::select(annMean) |> 
-  vegdist(method = 'euclidian') |> 
+env8_mat <- env |>
+  dplyr::select(annMean) |>
+  vegdist(method = 'euclidian') |>
   as.matrix()
 
 env8_diag <- diag(env8_mat[-1, -nrow(env8_mat)])
@@ -305,9 +314,9 @@ env8_diag <- append(0, env8_diag, after = 1)
 ```{r code-env-comb-mat-env}
 # combined variables selected with the db-RDA
 # these have a far poorer fit...
-env_comb_mat <- env |> 
-  dplyr::select(augMean, febRange, febSD, augSD) |> 
-  vegdist(method = 'euclidian') |> 
+env_comb_mat <- env |>
+  dplyr::select(augMean, febRange, febSD, augSD) |>
+  vegdist(method = 'euclidian') |>
   as.matrix()
 
 env_comb_diag <- diag(env_comb_mat[-1, -nrow(env_comb_mat)])
@@ -317,19 +326,21 @@ env_comb_diag <- append(0, env_comb_diag, after = 1)
 ```{r code-spp-df-data-frame-dist}
 # ---- do-figure-5 ----
 # assemble data frame for plotting...
-spp_df <- data.frame(dist = as.vector(dists.mat),
-                     bio = as.vector(bioreg_mat),
-                     augMean = as.vector(env4_mat),
-                     febRange = as.vector(env5_mat),
-                     febSD = as.vector(env6_mat),
-                     augSD = as.vector(env7_mat),
-                     annMean = as.vector(env8_mat),
-                     Y = as.vector(Y_mat),
-                     Y1 = as.vector(Y1_mat),
-                     Y2 = as.vector(Y2_mat))
+spp_df <- data.frame(
+  dist = as.vector(dists.mat),
+  bio = as.vector(bioreg_mat),
+  augMean = as.vector(env4_mat),
+  febRange = as.vector(env5_mat),
+  febSD = as.vector(env6_mat),
+  augSD = as.vector(env7_mat),
+  annMean = as.vector(env8_mat),
+  Y = as.vector(Y_mat),
+  Y1 = as.vector(Y1_mat),
+  Y2 = as.vector(Y2_mat)
+)
 
 # include only site pairs that fall within bioregions...
-spp_df2 <- droplevels(subset(spp_df, bio !=  "out"))
+spp_df2 <- droplevels(subset(spp_df, bio != "out"))
 rbind(head(spp_df2, 3), tail(spp_df2, 3))
 ```
 
@@ -337,7 +348,10 @@ I will save this file with the combined data for use later in the [Multiple Regr
 
 ```{r code-write-csv-spp-df2-file}
 #| eval: false
-write.csv(spp_df2, file = here::here("data", "BCB743", "seaweed", "spp_df2.csv"))
+write.csv(
+  spp_df2,
+  file = here::here("data", "BCB743", "seaweed", "spp_df2.csv")
+)
 ```
 
 
@@ -347,19 +361,19 @@ Do the various linear regressions of Sørensen dissimilarities ($\beta_\text{sø
 # turnover...
 Y1_lm1 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ dist, data = x))
 lapply(Y1_lm1, summary)
-Y1_lm2 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ augMean , data = x))
+Y1_lm2 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ augMean, data = x))
 # lapply(Y1_lm2, summary)
-Y1_lm3 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ augSD , data = x))
+Y1_lm3 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ augSD, data = x))
 # lapply(Y1_lm3, summary)
-Y1_lm4 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ febRange , data = x))
+Y1_lm4 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ febRange, data = x))
 # lapply(Y1_lm4, summary)
-Y1_lm5 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ febSD , data = x))
+Y1_lm5 <- dlply(spp_df2, .(bio), function(x) lm(Y1 ~ febSD, data = x))
 # lapply(Y1_lm5, summary)
 
 # nestedness-resultant...
 Y2_lm1 <- dlply(spp_df2, .(bio), function(x) lm(Y2 ~ dist, data = x))
 # lapply(Y2_lm1, summary)
-Y2_lm2 <- dlply(spp_df2, .(bio), function(x) lm(Y2 ~ annMean , data = x))
+Y2_lm2 <- dlply(spp_df2, .(bio), function(x) lm(Y2 ~ annMean, data = x))
 # lapply(Y2_lm2, summary)
 ```
 
@@ -374,9 +388,10 @@ Combine the data in a way that makes for easy plotting:
 spp_long <- spp_df %>%
   gather(beta, dissim, Y:Y2) %>%
   gather(metric, distance, c(dist, augMean:annMean))
-spp_long$metric = factor(spp_long$metric,
-                         levels = c('dist', 'augMean', 'febRange',
-                                    'febSD', 'augSD', 'annMean'))
+spp_long$metric = factor(
+  spp_long$metric,
+  levels = c('dist', 'augMean', 'febRange', 'febSD', 'augSD', 'annMean')
+)
 ```
 
 The repetitive portions of code needed to create each of the panels. I was too lazy to write neater and more concise code:
@@ -388,29 +403,38 @@ plt5a <- spp_long %>%
   ggplot(aes(x = distance, y = dissim, group = bio)) +
   geom_point(aes(colour = bio, shape = bio), size = 1.2, alpha = 0.8) +
   geom_point(aes(colour = bio, size = bio, alpha = bio, shape = bio)) +
-  geom_line(stat = "smooth", method = "lm", formula = y ~ x, alpha = 1.0,
-            linewidth = 0.6, colour = "black", aes(linetype = bio)) +
-  scale_linetype_manual(name = "Bioregion",
-                        values = c("dashed", "solid", "dotted",
-                                   "longdash", "blank")) +
-  scale_colour_brewer(name = "Bioregion",
-                      palette = "Set1") +
-  scale_shape_manual(name = "Bioregion",
-                     values = c(0, 19, 2, 5, 46)) +
-  scale_size_manual(name = "Bioregion",
-                    values = c(1.0, 1.2, 1.0, 1.0, 0.6)) +
-  scale_alpha_manual(name = "Bioregion",
-                     values = c(0.85, 1.0, 0.85, 0.85, 0.1)) +
+  geom_line(
+    stat = "smooth",
+    method = "lm",
+    formula = y ~ x,
+    alpha = 1.0,
+    linewidth = 0.6,
+    colour = "black",
+    aes(linetype = bio)
+  ) +
+  scale_linetype_manual(
+    name = "Bioregion",
+    values = c("dashed", "solid", "dotted", "longdash", "blank")
+  ) +
+  scale_colour_brewer(name = "Bioregion", palette = "Set1") +
+  scale_shape_manual(name = "Bioregion", values = c(0, 19, 2, 5, 46)) +
+  scale_size_manual(name = "Bioregion", values = c(1.0, 1.2, 1.0, 1.0, 0.6)) +
+  scale_alpha_manual(
+    name = "Bioregion",
+    values = c(0.85, 1.0, 0.85, 0.85, 0.1)
+  ) +
   xlab(expression(paste("Distance (km)"))) +
   ylab(expression(paste(beta[sim]))) +
   scale_y_continuous(limits = c(0, 0.75)) +
   scale_x_continuous(limits = c(0, 1000)) +
   theme_grey() +
-  theme(panel.grid.minor = element_line(colour = NA),
-        plot.title = element_text(hjust = 0, size = 10),
-        # legend.position = c(0.2, 0.7),
-        # legend.direction = "vertical",
-        aspect.ratio = 0.6) +
+  theme(
+    panel.grid.minor = element_line(colour = NA),
+    plot.title = element_text(hjust = 0, size = 10),
+    # legend.position = c(0.2, 0.7),
+    # legend.direction = "vertical",
+    aspect.ratio = 0.6
+  ) +
   ggtitle(expression(paste(beta[sim], " as a function of distance")))
 ```
 
@@ -421,10 +445,18 @@ plt5b <- spp_long %>%
   ggplot(aes(x = distance, y = dissim, group = bio)) +
   geom_point(aes(colour = bio, shape = bio), size = 1.2, alpha = 0.8) +
   # geom_point(aes(colour = bio, size = bio, alpha = bio, shape = bio)) +
-  geom_line(stat = "smooth", method = "lm", formula = y ~ x,
-            alpha = 1.0, linewidth = 0.6, colour = "black", aes(linetype = bio)) +
-  scale_linetype_manual(values = c("dashed", "solid", "dotted",
-                                   "longdash", "blank")) +
+  geom_line(
+    stat = "smooth",
+    method = "lm",
+    formula = y ~ x,
+    alpha = 1.0,
+    linewidth = 0.6,
+    colour = "black",
+    aes(linetype = bio)
+  ) +
+  scale_linetype_manual(
+    values = c("dashed", "solid", "dotted", "longdash", "blank")
+  ) +
   scale_colour_brewer(palette = "Set1") +
   scale_shape_manual(values = c(0, 19, 2, 5, 46)) +
   scale_size_manual(values = c(1.0, 1.2, 1.0, 1.0, 0.6)) +
@@ -434,16 +466,18 @@ plt5b <- spp_long %>%
   scale_y_continuous(limits = c(0, 0.75)) +
   scale_x_continuous(limits = c(0, 2)) +
   theme_grey() +
-  theme(panel.grid.minor = element_line(colour = NA),
-        plot.title = element_text(hjust = 0, size = 10),
-        legend.position = "none",
-        # legend.title = element_blank(),
-        legend.title = element_text(size = 8),
-        legend.text = element_text(size = 8),
-        legend.key = element_blank(),
-        legend.key.height = unit(.22, "cm"),
-        legend.background = element_blank(),
-        aspect.ratio = 0.6) +
+  theme(
+    panel.grid.minor = element_line(colour = NA),
+    plot.title = element_text(hjust = 0, size = 10),
+    legend.position = "none",
+    # legend.title = element_blank(),
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.key = element_blank(),
+    legend.key.height = unit(.22, "cm"),
+    legend.background = element_blank(),
+    aspect.ratio = 0.6
+  ) +
   ggtitle(expression(paste(beta[sim], " as a function of augMean")))
 ```
 
@@ -454,10 +488,18 @@ plt5c <- spp_long %>%
   ggplot(aes(x = distance, y = dissim, group = bio)) +
   geom_point(aes(colour = bio, shape = bio), size = 1.2, alpha = 0.8) +
   # geom_point(aes(colour = bio, size = bio, alpha = bio, shape = bio)) +
-  geom_line(stat = "smooth", method = "lm", formula = y ~ x,
-            alpha = 1.0, linewidth = 0.6, colour = "black", aes(linetype = bio)) +
-  scale_linetype_manual(values = c("dashed", "solid", "dotted",
-                                   "longdash", "blank")) +
+  geom_line(
+    stat = "smooth",
+    method = "lm",
+    formula = y ~ x,
+    alpha = 1.0,
+    linewidth = 0.6,
+    colour = "black",
+    aes(linetype = bio)
+  ) +
+  scale_linetype_manual(
+    values = c("dashed", "solid", "dotted", "longdash", "blank")
+  ) +
   scale_colour_brewer(palette = "Set1") +
   scale_shape_manual(values = c(0, 19, 2, 5, 46)) +
   scale_size_manual(values = c(1.0, 1.2, 1.0, 1.0, 0.6)) +
@@ -467,10 +509,12 @@ plt5c <- spp_long %>%
   scale_y_continuous(limits = c(0, 0.75)) +
   scale_x_continuous(limits = c(0, 4)) +
   theme_grey() +
-  theme(panel.grid.minor = element_line(colour = NA),
-        plot.title = element_text(hjust = 0, size = 10),
-        legend.position = "none",
-        aspect.ratio = 0.6) +
+  theme(
+    panel.grid.minor = element_line(colour = NA),
+    plot.title = element_text(hjust = 0, size = 10),
+    legend.position = "none",
+    aspect.ratio = 0.6
+  ) +
   ggtitle(expression(paste(beta[sim], " as a function of febRange")))
 ```
 
@@ -481,10 +525,18 @@ plt5d <- spp_long %>%
   ggplot(aes(x = distance, y = dissim, group = bio)) +
   geom_point(aes(colour = bio, shape = bio), size = 1.2, alpha = 0.8) +
   # geom_point(aes(colour = bio, size = bio, alpha = bio, shape = bio)) +
-  geom_line(stat = "smooth", method = "lm", formula = y ~ x,
-            alpha = 1.0, linewidth = 0.6, colour = "black", aes(linetype = bio)) +
-  scale_linetype_manual(values = c("dashed", "solid", "dotted",
-                                   "longdash", "blank")) +
+  geom_line(
+    stat = "smooth",
+    method = "lm",
+    formula = y ~ x,
+    alpha = 1.0,
+    linewidth = 0.6,
+    colour = "black",
+    aes(linetype = bio)
+  ) +
+  scale_linetype_manual(
+    values = c("dashed", "solid", "dotted", "longdash", "blank")
+  ) +
   scale_colour_brewer(palette = "Set1") +
   scale_shape_manual(values = c(0, 19, 2, 5, 46)) +
   scale_size_manual(values = c(1.0, 1.2, 1.0, 1.0, 0.6)) +
@@ -494,10 +546,12 @@ plt5d <- spp_long %>%
   scale_y_continuous(limits = c(0, 0.75)) +
   scale_x_continuous(limits = c(0, 3)) +
   theme_grey() +
-  theme(panel.grid.minor = element_line(colour = NA),
-        plot.title = element_text(hjust = 0, size = 10),
-        legend.position = "none",
-        aspect.ratio = 0.6) +
+  theme(
+    panel.grid.minor = element_line(colour = NA),
+    plot.title = element_text(hjust = 0, size = 10),
+    legend.position = "none",
+    aspect.ratio = 0.6
+  ) +
   ggtitle(expression(paste(beta[sim], " as a function of febSD")))
 ```
 
@@ -508,10 +562,18 @@ plt5e <- spp_long %>%
   ggplot(aes(x = distance, y = dissim, group = bio)) +
   geom_point(aes(colour = bio, shape = bio), size = 1.2, alpha = 0.8) +
   # geom_point(aes(colour = bio, size = bio, alpha = bio, shape = bio)) +
-  geom_line(stat = "smooth", method = "lm", formula = y ~ x,
-            alpha = 1.0, linewidth = 0.6, colour = "black", aes(linetype = bio)) +
-  scale_linetype_manual(values = c("dashed", "solid", "dotted",
-                                   "longdash", "blank")) +
+  geom_line(
+    stat = "smooth",
+    method = "lm",
+    formula = y ~ x,
+    alpha = 1.0,
+    linewidth = 0.6,
+    colour = "black",
+    aes(linetype = bio)
+  ) +
+  scale_linetype_manual(
+    values = c("dashed", "solid", "dotted", "longdash", "blank")
+  ) +
   scale_colour_brewer(palette = "Set1") +
   scale_shape_manual(values = c(0, 19, 2, 5, 46)) +
   scale_size_manual(values = c(1.0, 1.2, 1.0, 1.0, 0.6)) +
@@ -521,10 +583,12 @@ plt5e <- spp_long %>%
   scale_y_continuous(limits = c(0, 0.75)) +
   scale_x_continuous(limits = c(0, 3)) +
   theme_grey() +
-  theme(panel.grid.minor = element_line(colour = NA),
-        plot.title = element_text(hjust = 0, size = 10),
-        legend.position = "none",
-        aspect.ratio = 0.6) +
+  theme(
+    panel.grid.minor = element_line(colour = NA),
+    plot.title = element_text(hjust = 0, size = 10),
+    legend.position = "none",
+    aspect.ratio = 0.6
+  ) +
   ggtitle(expression(paste(beta[sim], " as a function of augSD")))
 ```
 
@@ -535,10 +599,18 @@ plt5f <- spp_long %>%
   ggplot(aes(x = distance, y = dissim, group = bio)) +
   geom_point(aes(colour = bio, shape = bio), size = 1.2, alpha = 0.8) +
   # geom_point(aes(colour = bio, size = bio, alpha = bio, shape = bio)) +
-  geom_line(stat = "smooth", method = "lm", formula = y ~ x,
-            alpha = 1.0, linewidth = 0.6, colour = "black", aes(linetype = bio)) +
-  scale_linetype_manual(values = c("dashed", "solid", "dotted",
-                                   "longdash", "blank")) +
+  geom_line(
+    stat = "smooth",
+    method = "lm",
+    formula = y ~ x,
+    alpha = 1.0,
+    linewidth = 0.6,
+    colour = "black",
+    aes(linetype = bio)
+  ) +
+  scale_linetype_manual(
+    values = c("dashed", "solid", "dotted", "longdash", "blank")
+  ) +
   scale_colour_brewer(palette = "Set1") +
   scale_shape_manual(values = c(0, 19, 2, 5, 46)) +
   scale_size_manual(values = c(1.0, 1.2, 1.0, 1.0, 0.6)) +
@@ -548,10 +620,12 @@ plt5f <- spp_long %>%
   scale_y_continuous(limits = c(0, 0.22)) +
   scale_x_continuous(limits = c(0, 1000)) +
   theme_grey() +
-  theme(panel.grid.minor = element_line(colour = NA),
-        plot.title = element_text(hjust = 0, size = 10),
-        legend.position = "none",
-        aspect.ratio = 0.6) +
+  theme(
+    panel.grid.minor = element_line(colour = NA),
+    plot.title = element_text(hjust = 0, size = 10),
+    legend.position = "none",
+    aspect.ratio = 0.6
+  ) +
   ggtitle(expression(paste(beta[sne], " as a function of distance")))
 ```
 
@@ -562,10 +636,18 @@ plt5g <- spp_long %>%
   ggplot(aes(x = distance, y = dissim, group = bio)) +
   geom_point(aes(colour = bio, shape = bio), size = 1.2, alpha = 0.8) +
   # geom_point(aes(colour = bio, size = bio, alpha = bio, shape = bio)) +
-  geom_line(stat = "smooth", method = "lm", formula = y~x, alpha = 1.0, linewidth = 0.6,
-            colour = "black",
-            aes(linetype = bio)) +
-  scale_linetype_manual(values = c("dashed", "solid", "dotted", "longdash", "blank")) +
+  geom_line(
+    stat = "smooth",
+    method = "lm",
+    formula = y ~ x,
+    alpha = 1.0,
+    linewidth = 0.6,
+    colour = "black",
+    aes(linetype = bio)
+  ) +
+  scale_linetype_manual(
+    values = c("dashed", "solid", "dotted", "longdash", "blank")
+  ) +
   scale_colour_brewer(palette = "Set1") +
   scale_shape_manual(values = c(0, 19, 2, 5, 46)) +
   scale_size_manual(values = c(1.0, 1.2, 1.0, 1.0, 0.6)) +
@@ -575,27 +657,31 @@ plt5g <- spp_long %>%
   scale_y_continuous(limits = c(0, 0.22)) +
   scale_x_continuous(limits = c(0, 2)) +
   theme_grey() +
-  theme(panel.grid.minor = element_line(colour = NA),
-        plot.title = element_text(hjust = 0, size = 10),
-        legend.position = "none",
-        aspect.ratio = 0.6) +
+  theme(
+    panel.grid.minor = element_line(colour = NA),
+    plot.title = element_text(hjust = 0, size = 10),
+    legend.position = "none",
+    aspect.ratio = 0.6
+  ) +
   ggtitle(expression(paste(beta[sne], " as a function of annMean")))
 ```
 
 ```{r fig-plt5h-ggplot-spp-long-aes}
 plt5h <- ggplot(spp_long, aes(x = distance, y = dissim)) +
   geom_blank() +
-  theme(plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.x = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks = element_blank(),
-        axis.line = element_blank())
+  theme(
+    plot.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()
+  )
 ```
 
 Assemble using the **cowplot** package:
@@ -605,21 +691,31 @@ Assemble using the **cowplot** package:
 #| fig-height: 10
 #| fig.align: center
 #| column: screen-inset-right
-
 library(cowplot)
 
 # turn off warnings...
-oldw <- getOption("warn") 
+oldw <- getOption("warn")
 options(warn = -1)
 
 l <- get_legend(plt5a)
 # pdf("Fig5.pdf", width = 9, height = 6.5)
 ggdraw() +
-  draw_plot(plot_grid(plt5a + theme(legend.position = 'none'), plt5b, plt5c,
-                      plt5d, plt5e, l,
-                      plt5f, plt5g, plt5h,
-                      ncol = 3, align = 'hv'),
-            width = 1.0)
+  draw_plot(
+    plot_grid(
+      plt5a + theme(legend.position = 'none'),
+      plt5b,
+      plt5c,
+      plt5d,
+      plt5e,
+      l,
+      plt5f,
+      plt5g,
+      plt5h,
+      ncol = 3,
+      align = 'hv'
+    ),
+    width = 1.0
+  )
 ```
 
 ## References
