@@ -1,6 +1,10 @@
 ---
 title: "9b: Detrended Correspondence Analysis (DCA)"
 subtitle: "Task E"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the answers"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -25,19 +29,121 @@ ggplot2::theme_set(
 
 ## Practice Task
 
-Work through these exercises after reading the [Detrended Correspondence Analysis](../DCA.qmd) chapter. The most useful thing a DCA reports is the **gradient length** in $\beta$-diversity standard-deviation units, so the task is built around extracting and using that number. Four exercises are hands-on calculations and two are short conceptual questions.
+Work through these exercises after reading the [Detrended Correspondence Analysis](../DCA.qmd) chapter. The most useful thing a DCA reports is the **gradient length** in $\beta$-diversity standard-deviation units, so the task is built around extracting and using that number. Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
 1. Run a DCA on the Doubs fish data with `decorana()` (remember to drop the empty site first); extract the axis lengths and report the length of the first DCA axis in SD units.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-e-q1
+library(tidyverse)
+library(vegan)
+
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
+spe <- spe[rowSums(spe) > 0, ] # drop the empty site
+
+dca_doubs <- decorana(spe)
+dca_doubs # the printout reports the axis lengths
+gl1 <- diff(range(scores(dca_doubs, display = "sites", choices = 1)))
+gl1 # first DCA axis = gradient length in SD units
+```
+
+The `decorana` printout gives an **Axis lengths** row; the first-axis length for the Doubs fish is **`r round(gl1, 2)` SD units**. That is a *long* gradient: end to end, the community turns over several times, so few species are shared between the upper and lower river. The length is the single most useful number DCA gives, and the rest of the task uses it.
+:::
+
 2. Plot the DCA site ordination beside the CA site ordination of the same data. Has detrending removed the arch? Has the spacing of the sites along axis 1 changed (the rescaling step)?
 
-3. Apply DCA to a second dataset with a different gradient length --- for example the dune meadow data (`data(dune)`) or the [bird communities along the elevation gradient in Yushan Mountain, Taiwan](https://www.davidzeleny.net/anadat-r/doku.php/en:data:ybirds) --- and report its first-axis gradient length.
+::: {.callout-note collapse="true"}
+## Show the answer
 
-4. Extract the DCA species scores and identify which species characterise each end of axis 1; relate them to the upstream-downstream gradient of the river.
+```{r}
+#| code-fold: false
+#| label: task-e-q2
+#| fig-width: 7
+#| fig-height: 4
+ca_doubs <- cca(spe)
+par(mfrow = c(1, 2))
+plot(ca_doubs, scaling = 1, display = "sites", main = "CA (arched)")
+plot(dca_doubs, display = "sites", main = "DCA (detrended)")
+```
+
+Two things change. **Detrending** removes the arch: in the CA the sites curve as a horseshoe, whereas in the DCA they fall along a much straighter first axis, because the quadratic distortion that CA forced into axis 2 has been taken out. **Rescaling** changes the spacing: DCA stretches and compresses axis 1 so that a unit of distance corresponds to a constant amount of species turnover (one SD), which is what makes the axis length interpretable as gradient length. The two corrections are the whole point of DCA over CA.
+:::
+
+3. Apply DCA to two further datasets --- the dune meadow data (`data(dune)`) and the [bird communities along the elevation gradient in Yushan Mountain, Taiwan](https://www.davidzeleny.net/anadat-r/doku.php/en:data:ybirds) --- report each first-axis gradient length, and produce the DCA biplot for each.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-e-q3
+#| fig-width: 7
+#| fig-height: 4
+# --- dune meadows ---
+data(dune)
+dca_dune <- decorana(dune)
+gl_dune <- diff(range(scores(dca_dune, display = "sites", choices = 1)))
+
+# --- Yushan birds ---
+ybirds_spe <- read.table(
+  here::here("data", "BCB743", "ybirds_spe.txt"),
+  header = TRUE, row.names = 1
+)
+ybirds_spe <- ybirds_spe[rowSums(ybirds_spe) > 0, ]
+dca_yush <- decorana(ybirds_spe)
+gl_yush <- diff(range(scores(dca_yush, display = "sites", choices = 1)))
+
+c(dune = round(gl_dune, 2), yushan = round(gl_yush, 2)) # first-axis gradient lengths (SD)
+
+par(mfrow = c(1, 2))
+plot(dca_dune, display = "sites", main = "Dune DCA")
+plot(dca_yush, display = "sites", main = "Yushan DCA")
+```
+
+Both datasets produce fairly long first-axis gradients --- the dune meadows about **`r round(gl_dune, 1)` SD** (turnover from wet, heavily managed meadows to dry, lightly managed ones) and the Yushan birds about **`r round(gl_yush, 1)` SD** (the elevation gradient) --- and the biplots show the sites spread along that first axis in each case. Reporting the number, rather than just plotting, is the habit to build: it tells you, before you choose an ordination, whether the community spans a long unimodal gradient (favouring CA/CCA) or a short, near-linear one (favouring PCA/RDA).
+:::
+
+4. Extract the DCA Doubs species scores and identify which species characterise each end of axis 1; relate them to the upstream-downstream gradient of the river.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-e-q4
+sp1 <- scores(dca_doubs, display = "species", choices = 1)
+sort(sp1)[1:5] # one end of axis 1
+sort(sp1, decreasing = TRUE)[1:5] # the other end
+```
+
+The species at the two extremes of DCA1 are the indicators of the two ends of the river: cold-water upper-reach species (trout, minnow, bullhead and their associates) sit at one end, and warm-water lowland cyprinids (breams and their associates) at the other. The first DCA axis is therefore the source-to-mouth gradient written in the fish, exactly as the environmental correlations and the CA both implied; the species scores simply name which taxa mark each end.
+:::
 
 5. Apply the gradient-length rule of thumb (below *ca.* 3 SD favours linear methods, PCA/RDA; above *ca.* 4 SD favours unimodal methods, CA/CCA). What does the Doubs gradient length recommend, and does that agree with the unimodal species responses seen in the [Correspondence Analysis](../CA.qmd) chapter?
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+With a first-axis length of **`r round(gl1, 2)` SD**, the Doubs fish gradient sits at the **long** end of the scale, so the rule of thumb (set out in [Using the Gradient Length to Choose a Method](../DCA.qmd#using-the-gradient-length-to-choose-a-method) in the DCA chapter) recommends unimodal methods (CA, CCA, or distance-based approaches) rather than linear ones (PCA, RDA on raw data). That agrees with the Correspondence Analysis chapter: the species showed clear unimodal, hump-shaped responses along the river, and the CA produced the arch that signals one long gradient. A PCA of the same species data would have imposed a linear model on inherently unimodal responses and produced a horseshoe artefact, so the diagnostic and the observed species behaviour point the same way.
+:::
+
 6. Given the well-known criticisms of DCA (instability of the detrending-by-segments algorithm), would you present a DCA ordination diagram in a publication, or use DCA only as a diagnostic for gradient length and ordinate with another method? Justify your answer.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+I would use DCA mainly as a **diagnostic** and ordinate with another method for display. The detrending-by-segments algorithm is sensitive to arbitrary choices (the number of segments, rescaling details), and it can introduce artefacts of its own, so the *configuration* of a DCA diagram is not always stable or reproducible. Its *gradient length*, however, is a robust and genuinely useful summary. The defensible workflow is therefore to run DCA to read the gradient length, use that to justify the family of methods (here unimodal/distance-based), and then present the ordination with a method whose geometry is well understood, such as CA, nMDS, or a distance-based ordination. DCA earns its place as a measuring tool, not as the final picture.
+:::
 
 ## Assessment Criteria
 

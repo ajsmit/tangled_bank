@@ -1,6 +1,10 @@
 ---
 title: "18: Generalised Linear Models (GLM)"
 subtitle: "Task L"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the answers"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -25,19 +29,120 @@ ggplot2::theme_set(
 
 ## Practice Task
 
-Work through these exercises after reading the [Generalised Linear Models](../glm.qmd) chapter. They use two **vegan** datasets that suit GLMs naturally: the oribatid mite counts (`data(mite); data(mite.env)`) for Poisson-family models, and the Sibbo island bird incidences (`data(sipoo); data(sipoo.map)`) for a binomial model. Four exercises are hands-on and two are conceptual.
+Work through these exercises after reading the [Generalised Linear Models](../glm.qmd) chapter. They use two **vegan** datasets that suit GLMs naturally: the oribatid mite counts (`data(mite); data(mite.env)`) for Poisson-family models, and the Sibbo island bird incidences (`data(sipoo); data(sipoo.map)`) for a binomial model. Four exercises are hands-on and two are conceptual. A worked answer is given under each exercise; try it yourself before opening it.
 
 1. Choose a reasonably common species in `mite` and fit a **Poisson GLM** of its count on the `mite.env` predictors `SubsDens`, `WatrCont` and `Topo`. Report the coefficients on both the link and the response scale (exponentiate), and interpret the sign of each.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-l-q1
+library(tidyverse)
+library(vegan)
+library(MASS)
+
+data(mite); data(mite.env)
+focal <- names(which.max(colSums(mite)))      # the most abundant species
+dat <- mite.env
+dat$y <- mite[[focal]]
+
+m_pois <- glm(y ~ SubsDens + WatrCont + Topo, data = dat, family = poisson)
+summary(m_pois)$coefficients
+exp(coef(m_pois))                              # multiplicative effect on the response (count) scale
+```
+
+The fitted species is `r focal` (the most abundant mite). On the **link** (log) scale the coefficients are additive; exponentiating moves them to the **response** (count) scale, where each becomes a multiplicative factor on the expected count. A positive log-coefficient (exponentiated value above 1) means the expected count rises with that predictor, a negative one (below 1) means it falls. For this mite the water-content term carries the strongest effect, consistent with moisture being the dominant gradient in this community.
+:::
+
 2. Check the model for **overdispersion** (compare the residual deviance to its degrees of freedom, or use `performance::check_overdispersion()`). If it is overdispersed, refit it as a **quasi-Poisson** and a **negative binomial** model (`MASS::glm.nb()`), and compare the standard errors and inferences with the Poisson fit.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-l-q2
+disp <- sum(residuals(m_pois, "pearson")^2) / m_pois$df.residual
+disp                                           # >> 1 indicates overdispersion
+
+m_qp <- glm(y ~ SubsDens + WatrCont + Topo, data = dat, family = quasipoisson)
+m_nb <- glm.nb(y ~ SubsDens + WatrCont + Topo, data = dat)
+
+# compare standard errors of the same coefficients across the three fits
+se <- function(m) summary(m)$coefficients[, "Std. Error"]
+round(cbind(poisson = se(m_pois), quasipoisson = se(m_qp), negbin = se(m_nb)), 3)
+```
+
+The dispersion statistic is **`r round(disp, 1)`** (far above 1), so the counts are strongly **overdispersed**: their variance greatly exceeds the Poisson assumption that variance equals the mean. The Poisson standard errors are therefore much too small, which makes predictors look more significant than they are. The quasi-Poisson and negative-binomial refits inflate the standard errors to reflect the extra variance (the negative binomial does so by estimating a dispersion parameter, here $\theta$ = **`r round(m_nb$theta, 2)`**), so several borderline "significant" Poisson terms become non-significant. The point estimates barely change; what changes, and what matters, is the honesty of the uncertainty.
+:::
 
 3. Using `sipoo`, compute each island's species **richness** and fit a Poisson (or negative binomial) GLM of richness on `log(area)` taken from `sipoo.map`. The slope on `log(area)` is the exponent $z$ of the species-area relationship $S = cA^{z}$; report it and comment on its magnitude relative to the typical range of $z \approx 0.2$--$0.35$.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-l-q3
+#| fig-width: 5
+#| fig-height: 3.5
+data(sipoo); data(sipoo.map)
+rich <- rowSums(sipoo, na.rm = TRUE)                       # bird species per island
+area <- sipoo.map[rownames(sipoo), "area"]
+
+sar <- glm(rich ~ log(area), family = poisson)
+coef(sar)["log(area)"]                                     # the species-area exponent z
+
+ggplot(tibble(area, rich), aes(area, rich)) +
+  geom_point() +
+  stat_smooth(method = "glm", method.args = list(family = poisson),
+              formula = y ~ log(x), se = TRUE) +
+  scale_x_log10() +
+  labs(x = "Island area (log scale)", y = "Bird species richness")
+```
+
+With a Poisson log link and `log(area)` as the predictor, the model is $\log S = \log c + z\,\log A$, so the slope is exactly the species-area exponent $z$ in $S = cA^{z}$. The estimated $z$ for the Sibbo islands is **`r round(coef(sar)[["log(area)"]], 2)`**, at or slightly above the upper end of the classic $0.2$--$0.35$ range, which is plausible for a true-island archipelago (isolated islands tend to have steeper species-area slopes than nested mainland samples). Richness rises with area, but with diminishing returns on the arithmetic scale, exactly the curvature the log link captures.
+:::
+
 4. Convert one moderately common `sipoo` bird species to presence/absence and fit a **logistic GLM** of its occurrence on `log(area)`. Report the odds ratio for a doubling of island area and the area at which the predicted probability of occurrence is 0.5.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-l-q4
+prev <- colSums(sipoo, na.rm = TRUE)
+fb <- names(which.min(abs(prev - nrow(sipoo) / 2)))       # species closest to 50% prevalence
+dfb <- na.omit(data.frame(pa = sipoo[[fb]], area = area))
+
+m_log <- glm(pa ~ log(area), data = dfb, family = binomial)
+b <- coef(m_log)
+c(species = fb,
+  OR_per_doubling = round(2^b["log(area)"], 2),           # odds multiply by this per doubling of area
+  area_p50 = round(exp(-b[1] / b["log(area)"]), 1))       # area where P(occurrence) = 0.5
+```
+
+The fitted species is `r fb`. The logit model is $\text{logit}(p) = \beta_0 + \beta_1\log(\text{area})$, so doubling the area multiplies the **odds** of occurrence by $2^{\beta_1}$ = **`r round(2^coef(m_log)[["log(area)"]], 2)`** (comfortably above 1, so larger islands are more likely to hold the species), and presence becomes more likely than absence ($p = 0.5$) above an island area of about **`r round(exp(-coef(m_log)[[1]] / coef(m_log)[["log(area)"]]), 1)`** units. This is island biogeography in a single GLM: occurrence probability rises smoothly with island area along an S-shaped (logistic) curve.
+:::
 
 5. Explain why a Poisson or negative-binomial GLM is more appropriate than ordinary least-squares regression for count data, and what overdispersion means both statistically and ecologically.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+Counts are non-negative integers whose variance grows with their mean, and they are often concentrated near zero. Ordinary least squares assumes the opposite, namely a continuous response with constant-variance, normally distributed errors, so it can predict impossible negative counts, it gives wrong standard errors when the variance is tied to the mean, and its residuals are heteroscedastic by construction. A Poisson GLM models the log of the mean count with a distribution defined only on the non-negative integers and with the mean-variance link built in. **Overdispersion** is when the data vary even more than Poisson allows (variance > mean). Statistically it means the Poisson standard errors are too small and significance is overstated; ecologically it usually reflects unmodelled heterogeneity, namely clumping, patchiness, or omitted environmental drivers, so that individuals are not distributed independently. The negative binomial adds a parameter to absorb that extra variance and restore honest inference.
+:::
+
 6. Explain the role of the **link function** in a GLM (log for counts, logit for binary data). Take one fitted coefficient from Exercises 1--4 and interpret it on both the link scale and the back-transformed response scale.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+The **link function** connects the linear predictor (a sum of $\beta x$ terms that can take any real value) to the mean of a response that is constrained, so that the model can be linear and additive on the link scale while respecting the bounds of the data on the response scale. The **log** link keeps counts positive (the mean is $e^{\eta}$, always > 0) and makes predictor effects multiplicative; the **logit** link keeps probabilities in $[0, 1]$ and makes effects multiplicative on the odds. Taking the water-content coefficient from the Poisson mite model in Exercise 1: on the **link** scale it is the change in log-expected-count per unit of water content (additive); back-transformed with `exp()` it is the **factor** by which the expected count is multiplied per unit increase in water content. The same coefficient, read on two scales, answers two questions: "is the effect positive?" (link scale) and "by how much does the count change?" (response scale).
+:::
 
 ## Assessment Criteria
 

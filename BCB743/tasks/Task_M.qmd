@@ -1,6 +1,10 @@
 ---
 title: "19: Generalised Additive Models (GAM)"
 subtitle: "Task M"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the answers"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -25,19 +29,98 @@ ggplot2::theme_set(
 
 ## Practice Task
 
-Work through these exercises after reading the [Generalised Additive Models](../gam.qmd) chapter, using the **vegan** oribatid mite data (`data(mite); data(mite.env)`), whose strong water-content gradient produces clearly nonlinear species responses. Four exercises are hands-on calculations and two are short conceptual questions.
+Work through these exercises after reading the [Generalised Additive Models](../gam.qmd) chapter, using the **vegan** oribatid mite data (`data(mite); data(mite.env)`), whose strong water-content gradient produces clearly nonlinear species responses. Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
-1. Choose a focal mite species and fit a Poisson GAM of its count on `s(WatrCont)` and `s(SubsDens)` with `mgcv::gam()`. Report the deviance explained and the estimated edf of each smooth.
+1. Choose a focal mite species and fit a GAM of its count on `s(WatrCont)` and `s(SubsDens)` with `mgcv::gam()`. These counts are overdispersed (as the [GLM task](Task_L.qmd) showed), so use a negative-binomial family, `family = nb()`, rather than Poisson. Report the deviance explained and the estimated edf of each smooth.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-m-q1
+library(tidyverse)
+library(vegan)
+library(mgcv)
+
+data(mite); data(mite.env)
+focal <- names(which.max(colSums(mite)))      # the most abundant species
+dat <- mite.env
+dat$y <- mite[[focal]]
+
+g1 <- gam(y ~ s(WatrCont) + s(SubsDens), data = dat, family = nb(), method = "REML")
+summary(g1)
+```
+
+The `summary` reports the **deviance explained** (**`r round(100 * summary(g1)$dev.expl, 1)`%** here) and, for each smooth, the **effective degrees of freedom** (edf). An edf near 1 means the term is essentially a straight line, while an edf well above 1 means a genuinely curved response: the water-content smooth takes an edf of **`r round(summary(g1)$s.table["s(WatrCont)", "edf"], 1)`**, clearly above 1, confirming that this mite responds nonlinearly to its environment. The negative-binomial family matters: a Poisson GAM on the same overdispersed counts forces the smooths to chase the excess variance and they end up far wigglier (edf near the basis limit), so `nb()` gives both honest standard errors and a more sensible amount of curvature.
+:::
 
 2. Plot the fitted smooths and describe the shape of the response to water content: is it monotonic, or unimodal (humped)?
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-m-q2
+#| fig-width: 7
+#| fig-height: 3.5
+par(mfrow = c(1, 2))
+plot(g1, shade = TRUE, residuals = TRUE)
+```
+
+The water-content smooth is clearly **nonlinear**: the expected count rises with moisture and is highest at the wet end of the gradient, a curved, saturating response that a straight line could not capture. For this particular species (the most abundant in the data) the curve is essentially **monotone-increasing** rather than a symmetric hump; it climbs steeply and then levels off near its peak. Other, less dominant mite species in the same dataset show clearer **unimodal** peaks in the middle of the gradient. The lesson is the same either way: the GAM lets the data choose the shape of the response rather than imposing a straight line or a fixed quadratic in advance.
+:::
+
 3. Check the basis dimension with `k.check()` (or `gam.check()`). If a smooth is under-smoothed, increase its `k` and refit, and report whether the conclusions change.
 
-4. Compare the GAM with the equivalent Poisson GLM (the same predictors as linear terms) by AIC and deviance explained. Does the added flexibility of the smooths justify its cost?
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-m-q3
+k.check(g1)                                    # is the basis dimension large enough?
+
+g2 <- gam(y ~ s(WatrCont, k = 15) + s(SubsDens, k = 15),
+          data = dat, family = nb(), method = "REML")
+c(edf_default = sum(summary(g1)$edf), edf_bigger_k = sum(summary(g2)$edf))
+```
+
+`k.check` reports, for each smooth, the basis dimension `k`, the realised edf, and a `p-value` from a test of whether residual structure remains that a larger basis could capture. A low `p-value` with edf close to `k` is the warning sign that the basis is too small. Here the realised edf sit comfortably below the default basis dimension, so the basis is adequate; increasing `k` and refitting changes the total edf and the fitted shapes only modestly, which confirms that the curvature is real rather than an artefact of too small a `k`. The penalty, not `k`, is doing the real smoothing.
+:::
+
+4. Compare the GAM with the equivalent negative-binomial GLM (the same predictors as linear terms) by AIC and deviance explained. Does the added flexibility of the smooths justify its cost?
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-m-q4
+glm_lin <- gam(y ~ WatrCont + SubsDens, data = dat, family = nb(), method = "REML")  # linear terms
+AIC(glm_lin, g1)
+c(dev_expl_glm = summary(glm_lin)$dev.expl, dev_expl_gam = summary(g1)$dev.expl)
+```
+
+The GAM has a clearly lower AIC (**`r round(AIC(g1), 1)`** vs **`r round(AIC(glm_lin), 1)`**) and a higher deviance explained than the linear-term model, and the difference is large enough to more than offset the extra effective parameters the smooths cost. The smooths therefore earn their complexity: the response to water content is genuinely curved, so forcing it to be linear leaves real structure unexplained. AIC is the right arbiter because it rewards fit while penalising the edf the GAM spends, so a GAM only "wins" when the nonlinearity is worth the flexibility.
+:::
 
 5. Explain what the effective degrees of freedom (edf) of a smooth represent, and how the smoothing penalty guards against overfitting.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+A smooth is built from a set of basis functions, and left unconstrained it could wiggle through every point. mgcv adds a **wiggliness penalty** to the fitting criterion that charges for curvature, and it chooses the penalty strength automatically (here by REML). The **effective degrees of freedom** measure how much wiggliness survives that penalty: an edf of 1 means the penalty has shrunk the term to a straight line, while a larger edf means the data justified a more flexible curve. So edf is not the number of basis functions but the *effective* complexity actually used. The penalty guards against overfitting because it makes added wiggliness costly: a curve only bends where the data clearly demand it, and noise that a high-dimensional basis could otherwise chase is penalised away. The basis dimension `k` only sets the *upper limit* on flexibility; the penalty decides how much of it is used. (This is also why the family matters: an overdispersed Poisson fit inflates the apparent signal and pushes the edf up, which is part of why `nb()` was used here.)
+:::
+
 6. Explain concurvity (the GAM analogue of collinearity) and why it complicates the interpretation of a model with several smooths.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+**Concurvity** is the smooth-term generalisation of collinearity. Collinearity is when one predictor is a near-linear combination of others; concurvity is when one smooth term can be approximated by a (possibly nonlinear) function of the other smooths. When two predictors vary together along the same gradient, as water content and substrate density do in the mite data, their smooths overlap in what they can explain, so the model cannot cleanly attribute the response to one rather than the other. The consequences mirror collinearity: the individual smooth estimates become unstable and their confidence bands widen, even though the model as a whole still predicts well. `mgcv::concurvity()` quantifies it, and the interpretive lesson is the same as for VIF in regression: with high concurvity, trust the joint fit and the overall response, but be cautious about reading too much into the shape of any single smooth in isolation.
+:::
 
 ## Assessment Criteria
 

@@ -1,6 +1,10 @@
 ---
 title: "14: Cluster Analysis"
 subtitle: "Task I"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the answers"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -25,19 +29,122 @@ ggplot2::theme_set(
 
 ## Practice Task
 
-Work through these exercises after reading the [Cluster Analysis](../cluster_analysis.qmd) chapter, using the WHO SDG data from the chapter and, for one exercise, the Doubs fish data. Four exercises are hands-on calculations and two are short conceptual questions.
+Work through these exercises after reading the [Cluster Analysis](../cluster_analysis.qmd) chapter, using the WHO SDG data from the chapter and, for one exercise, the Doubs fish data. Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
 1. On the WHO SDG data, compute a distance matrix and run `pam()` for k = 4, 5, and 6 clusters; show how the cluster membership changes.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-i-q1
+library(tidyverse)
+library(vegan)
+library(cluster)
+library(factoextra)
+
+sdg <- read.csv(here::here("data", "BCB743", "WHO", "SDG_complete.csv"))
+sdg_ind <- sdg |> select(starts_with("SDG"))
+rownames(sdg_ind) <- make.unique(as.character(sdg$Location))
+sdg_ind <- sdg_ind[complete.cases(sdg_ind), ]
+sdg_sc <- scale(sdg_ind)                     # standardise: indicators are on different scales
+d <- dist(sdg_sc)
+
+sapply(4:6, function(k) table(pam(d, k = k)$clustering))   # cluster sizes for k = 4, 5, 6
+```
+
+As k increases, `pam` does not simply re-shuffle countries; it splits an existing cluster into two. Going from four to five to six clusters subdivides the larger groups (typically the broad middle of the attainment gradient) into finer distinctions, while the extreme clusters (very high and very low attainment) stay relatively stable. The membership therefore nests: more clusters means more resolution within the same overall structure, not a different structure.
+:::
+
 2. Determine the optimal number of clusters with the silhouette and gap statistics (`factoextra::fviz_nbclust()`). What value of k do they suggest?
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-i-q2
+#| fig-width: 6
+#| fig-height: 3.5
+sil_w <- sapply(2:10, function(k) pam(sdg_sc, k)$silinfo$avg.width)   # avg silhouette per k
+opt_k <- (2:10)[which.max(sil_w)]
+opt_k                                                                # k maximising the silhouette
+
+fviz_nbclust(sdg_sc, pam, method = "silhouette") + labs(title = "Silhouette")
+fviz_nbclust(sdg_sc, pam, method = "gap_stat", nboot = 25) + labs(title = "Gap statistic")
+```
+
+The silhouette criterion (which favours compact, well-separated clusters) peaks at **k = `r opt_k`**, indicating that the strongest structure in the SDG data is a coarse split into a few broad attainment groups. The gap statistic, which compares within-cluster compactness to a null reference, often supports a similarly small k. The honest reading is that the data are dominated by one gradient (as the PCA showed), so only a few clusters are well supported; finer partitions are interpretive choices rather than sharp natural groupings.
+:::
 
 3. Repeat the clustering with `hclust()` (Ward linkage) and `kmeans()`, and compare the memberships with `pam()`. Are the results markedly different, and which method do you proceed with?
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-i-q3
+k <- 4
+cl_pam  <- pam(d, k = k)$clustering
+cl_hc   <- cutree(hclust(d, method = "ward.D2"), k = k)
+cl_km   <- kmeans(sdg_sc, centers = k, nstart = 25)$cluster
+
+table(pam = cl_pam, hclust = cl_hc)        # agreement between pam and Ward
+table(pam = cl_pam, kmeans = cl_km)        # agreement between pam and k-means
+```
+
+The cross-tabulations show that the three methods agree on the broad structure: most countries fall into corresponding clusters, with disagreement confined to the boundary cases between adjacent attainment groups (cluster labels are arbitrary, so read the tables as "do the same countries group together?"). That agreement is reassuring; it means the grouping is a property of the data, not of the algorithm. I would proceed with `pam`, because it works directly on the dissimilarity matrix, returns interpretable medoid countries as cluster exemplars, and is more robust to outliers than `kmeans`.
+:::
+
 4. Apply hierarchical clustering to the Doubs fish data (Bray-Curtis dissimilarity, Ward linkage), cut the dendrogram into clusters, and relate the resulting site groups to the upstream-downstream river gradient.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-i-q4
+#| fig-width: 6.5
+#| fig-height: 4
+load(here::here("data", "BCB743", "NEwR-2ed_code_data", "NEwR2-Data", "Doubs.RData"))
+spe <- spe[rowSums(spe) > 0, ]
+
+d_fish <- vegdist(spe, method = "bray")
+hc_fish <- hclust(d_fish, method = "ward.D2")
+grp <- cutree(hc_fish, k = 4)
+
+plot(hc_fish, labels = grp, main = "Doubs fish, Ward clustering (Bray-Curtis)")
+rect.hclust(hc_fish, k = 4, border = "red")
+```
+
+Cutting the dendrogram into four groups partitions the sites into contiguous stretches of the river: an upper-reach group, one or two middle-reach groups, and a lowland group. Because the underlying structure is a continuous upstream-downstream gradient, the clusters are essentially the gradient chopped into segments rather than sharply distinct community types. This is the Key Idea of the chapter made concrete: clustering imposes discrete boundaries on data that are really continuous, which is useful for producing a named classification but loses the gradient information an ordination would keep.
+:::
 
 5. Explain the difference between partitioning methods (`pam`, k-means) and hierarchical clustering, and how the linkage choice (single, complete, average, Ward) shapes the dendrogram.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+**Partitioning** methods (`pam`, k-means) divide the objects into a pre-specified number of non-overlapping groups by optimising a criterion (k-means minimises within-cluster sums of squares around means; `pam` minimises dissimilarity to medoids). You must choose k in advance, and there is no nested hierarchy. **Hierarchical** clustering instead builds a tree by successively merging the most similar objects/clusters, producing a dendrogram that you can cut at any level to get any number of clusters. The **linkage** rule sets how the distance between two clusters is defined and so shapes the tree: **single** linkage uses the nearest pair and tends to chain; **complete** uses the farthest pair and makes compact, equal-sized clusters; **average** is a compromise; and **Ward** merges the pair that least increases total within-cluster variance, giving compact, roughly spherical clusters that are popular for ecological data. Different linkages can produce quite different dendrograms from the same distance matrix, so the choice should be stated and justified.
+:::
+
 6. Describe the SDG cluster patterns: how does South Africa fare relative to comparator countries of your choice, and what socio-economic explanations might underlie the patterns you see globally and regionally?
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-i-q6
+cl <- pam(d, k = 4)$clustering
+focus <- c("South Africa", "Nigeria", "Germany", "Brazil", "Norway")
+cl[names(cl) %in% focus]
+```
+
+The clusters line up with the development gradient: high-income countries (Norway, Germany) fall in a high-attainment cluster, the poorest countries in a low-attainment one, and middle-income countries, including South Africa and Brazil, in intermediate groups. South Africa typically clusters with other upper-middle-income or transitional economies rather than with either extreme, reflecting a health profile shaped by a "double burden" of communicable and non-communicable disease, marked internal inequality, and a relatively well-resourced but unevenly accessed health system. Globally the pattern tracks income, governance, and historical context; regionally, countries sharing colonial histories, economic structures, and epidemiological transitions tend to cluster together. The clustering describes these groupings; it does not by itself explain them, which is where the socio-economic reasoning has to do the work.
+:::
 
 ## Assessment Criteria
 

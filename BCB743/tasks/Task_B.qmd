@@ -1,6 +1,10 @@
 ---
 title: "8a: Principal Component Analysis (PCA)"
 subtitle: "Task B"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the answers"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -25,19 +29,159 @@ ggplot2::theme_set(
 
 ## Practice Task
 
-Work through these exercises after reading the [Principal Component Analysis](../PCA.qmd) chapter, using the Doubs River environmental data. Four exercises are hands-on calculations and two are short conceptual questions.
+Work through these exercises after reading the [Principal Component Analysis](../PCA.qmd) chapter, using the Doubs River environmental data. Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
 1. Run a PCA on the Doubs **environmental** data (scaled); produce a biplot (scaling 2) and a screeplot, and report the variance explained by PC1 and PC2.
 
-2. Replicate the PCA on the environmental data of one external dataset --- the [bird communities along the elevation gradient in Yushan Mountain, Taiwan](https://www.davidzeleny.net/anadat-r/doku.php/en:data:ybirds) or the [alpine plant communities in Aravo, France](https://www.davidzeleny.net/anadat-r/doku.php/en:data:aravo) --- with a biplot, a screeplot, and the variance on the first two axes.
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-b-q1
+#| fig-width: 6
+#| fig-height: 5
+library(tidyverse)
+library(vegan)
+
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
+
+pca_env <- rda(env, scale = TRUE) # correlation PCA (variables standardised)
+
+var_expl <- round(100 * eigenvals(pca_env) / sum(eigenvals(pca_env)), 1)
+var_expl[1:2] # variance explained by PC1 and PC2 (%)
+
+biplot(pca_env, scaling = 2, main = "Doubs environment, PCA scaling 2")
+screeplot(pca_env, type = "lines", main = "Doubs PCA screeplot")
+```
+
+A correlation PCA (`scale = TRUE`) is appropriate because the 11 variables are measured in different units. **PC1 explains `r var_expl[[1]]`% of the variance and PC2 `r var_expl[[2]]`%, so the first two axes together capture `r var_expl[[1]] + var_expl[[2]]`%** --- a large fraction for an 11-variable table, and the screeplot shows the steep drop in eigenvalues after the first one or two axes. In the biplot the nutrient and load vectors (`pho`, `amm`, `nit`, `bod`) point one way and `ele`/`oxy` point the other, with the sites spread along PC1 from upstream to downstream: PC1 is the longitudinal river gradient re-expressed as a single composite axis.
+:::
+
+2. Replicate the PCA on the environmental data of two external datasets --- the [bird communities along the elevation gradient in Yushan Mountain, Taiwan](https://www.davidzeleny.net/anadat-r/doku.php/en:data:ybirds) and the [alpine plant communities in Aravo, France](https://www.davidzeleny.net/anadat-r/doku.php/en:data:aravo) --- each with a biplot, a screeplot, and the variance on the first two axes.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-b-q2
+#| fig-width: 6
+#| fig-height: 5
+# --- Yushan bird environmental data ---
+ybirds_env <- read.table(
+  here::here("data", "BCB743", "ybirds_env.txt"),
+  header = TRUE,
+  row.names = 1
+)
+ybirds_env_num <- ybirds_env |> select(where(is.numeric)) # keep numeric predictors
+
+pca_yb <- rda(ybirds_env_num, scale = TRUE)
+var_yb <- round(100 * eigenvals(pca_yb) / sum(eigenvals(pca_yb)), 1)
+var_yb[1:2] # variance explained by PC1 and PC2 (%), Yushan
+biplot(pca_yb, scaling = 2, main = "Yushan environment, PCA scaling 2")
+screeplot(pca_yb, bstick = TRUE, type = "lines", main = "Yushan screeplot")
+
+# --- Aravo alpine plant environmental data (from the ade4 package) ---
+data(aravo, package = "ade4")
+aravo_env_num <- aravo$env |> select(where(is.numeric)) # Aspect, Slope, PhysD, Snow
+
+pca_ar <- rda(aravo_env_num, scale = TRUE)
+var_ar <- round(100 * eigenvals(pca_ar) / sum(eigenvals(pca_ar)), 1)
+var_ar[1:2] # variance explained by PC1 and PC2 (%), Aravo
+biplot(pca_ar, scaling = 2, main = "Aravo environment, PCA scaling 2")
+screeplot(pca_ar, bstick = TRUE, type = "lines", main = "Aravo screeplot")
+```
+
+The Yushan environmental table is dominated by one axis, the **elevation** gradient: **PC1 explains `r var_yb[[1]]`% and PC2 `r var_yb[[2]]`%**, with elevation (`ELE`), slope, and vegetation-structure variables loading on PC1 and the 50 stations ordering from low to high elevation.
+
+The Aravo alpine data tell the same story on a smaller environmental table: **PC1 explains `r var_ar[[1]]`% and PC2 `r var_ar[[2]]`%**, separating sites mainly by snowmelt timing (`Snow`) and physical disturbance (`PhysD`), the principal gradients structuring alpine plant communities. In both cases a single dominant physical gradient organises most of the multivariate structure, so the first two axes summarise the table efficiently.
+:::
 
 3. Add the **broken-stick** criterion to the Doubs PCA (for example `vegan::screeplot(..., bstick = TRUE)` or `BiodiversityR::PCAsignificance()`). How many axes should be retained?
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-b-q3
+#| fig-width: 5
+#| fig-height: 3.5
+screeplot(
+  pca_env,
+  bstick = TRUE,
+  type = "lines",
+  main = "Doubs PCA: eigenvalues vs broken-stick"
+)
+```
+
+The broken-stick model is the variance an axis would capture if total variance were divided at random. An axis is worth interpreting only while its observed eigenvalue (the line/bars) exceeds the broken-stick expectation. For the Doubs environment that holds for the first one to two axes and no more, which matches the visual impression that essentially one dominant gradient, plus a weak second axis, carries the interpretable structure. Retaining further axes would be fitting noise.
+:::
+
 4. Overlay additional structure on the Doubs PCA: colour the sites by their upstream-downstream position, or fit a variable with `envfit()`, and interpret what the first axis represents.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-b-q4
+#| fig-width: 6
+#| fig-height: 5
+site_scores <- scores(pca_env, display = "sites", scaling = 2) |>
+  as.data.frame() |>
+  mutate(dfs = env$dfs) # distance from source = river position
+
+ggplot(site_scores, aes(PC1, PC2, colour = dfs)) +
+  geom_point(size = 2) +
+  scale_colour_viridis_c(name = "Distance\nfrom source") +
+  labs(title = "Doubs sites in PCA space, coloured by river position")
+
+# fit the environmental variables and overlay the significant ones on the ordination
+ef <- envfit(pca_env, env, permutations = 999)
+ordiplot(
+  pca_env,
+  display = "sites",
+  type = "text",
+  scaling = 2,
+  main = "Doubs PCA with envfit vectors"
+)
+plot(ef, p.max = 0.05, col = "blue") # add significant variables as arrows
+ef
+```
+
+Colouring the sites by distance from source shows a smooth progression along PC1 from headwater (dark) to lowland (light) sites. Fitting the environmental variables with `envfit()` and overlaying them on the ordination makes the same point with arrows: the significant vectors (distance from source, elevation, oxygen, and the nutrient and load variables) all align with PC1, and `dfs` in particular has a very high $r^2$ and a significant permutation $p$-value. This confirms quantitatively what the biplot suggested: the first principal component *is* the upstream-downstream position of the site, and every variable that loads on it does so because it changes with that position.
+:::
 
 5. With reference to the sampling design along the river, give the mechanistic, ecological reasons for the strongly correlated environmental variables revealed by the PCA.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+The sites are arranged in sequence from the source to the mouth, so position along the river is itself the dominant explanatory structure, and the variables are correlated because each tracks that position:
+
+- **Elevation and distance from source** fall and rise together because the channel descends as it lengthens.
+- **Discharge** grows downstream as tributaries accumulate, so it rises with distance from source.
+- **Nutrients and organic load** (`pho`, `nit`, `amm`, `bod`) accumulate in the lower reaches as the catchment integrates inputs, so they form a mutually correlated block.
+- **Dissolved oxygen** falls where organic load is high, opposing the nutrient block.
+
+None of these requires a direct pairwise mechanism. They are joint expressions of the longitudinal gradient, which is exactly why PCA can compress them into one or two axes.
+:::
+
 6. Why can a PCA (or any ordination) not explain all of the variation in a dataset, and why do we interpret only the first few components? What is represented by the later axes?
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+A PCA re-expresses *p* variables as *p* orthogonal components that together hold 100% of the variance, so in that arithmetic sense it does capture everything. The point is that the variance is not evenly spread. The first components concentrate the shared, structured variation (here the river gradient), while later components hold progressively weaker signals: local site idiosyncrasies, the unique part of single variables, measurement error, and noise. We interpret only the first few because they carry the coordinated, ecologically meaningful structure; the trailing axes are dominated by variation that is either unstructured or specific to one variable, so reading them invites over-interpretation of noise. The broken-stick and screeplot diagnostics in Exercise 3 are precisely the tools for drawing that line.
+:::
 
 ## Assessment Criteria
 

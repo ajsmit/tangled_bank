@@ -61,7 +61,7 @@ Detrended Correspondence Analysis (DCA) addresses these issues by removing the a
 A second step, **rescaling**, addresses the compression. DCA stretches and shrinks the segments of the first axis so that a unit of axis length corresponds to a constant amount of species turnover, measured in standard-deviation units of $\beta$-diversity. The compressed ends of the CA axis are pulled back out to an even spacing (@fig-dca-compression), so that equal distances on the axis represent equal amounts of compositional change.
 
 ```{r fig-dca-compression}
-#| fig-cap: "Why rescaling matters. On a CA axis (top), the ends of the gradient are compressed, so sites near the source and the mouth crowd together while the middle is stretched; equal distances on the axis do not represent equal compositional change. DCA rescales the axis (bottom) so that turnover is even along its length. The letters mark the same nine hypothetical sites in both rows."
+#| fig-cap: "Why rescaling has consequences. On a CA axis (top), the ends of the gradient are compressed, so sites near the source and the mouth crowd together while the middle is stretched; equal distances on the axis do not represent equal compositional change. DCA rescales the axis (bottom) so that turnover is even along its length. The letters mark the same nine hypothetical sites in both rows."
 #| fig-width: 6.8
 #| fig-height: 2.1
 #| code-fold: true
@@ -117,6 +117,29 @@ dca_plot <- ggplot(dca_sites, aes(x = DCA1, y = DCA2)) +
 
 ggarrange(ca_plot, dca_plot, ncol = 2, labels = "AUTO")
 ```
+
+## Using the Gradient Length to Choose a Method
+
+The first-axis gradient length is more than a description; it is a practical guide to *which* ordination method suits the data. A widely used **rule of thumb** reads the length of the first DCA axis in SD units of $\beta$-diversity:
+
+- **below *ca.* 3 SD**, the gradient is short, species responses are approximately monotonic over the sampled range, and **linear** methods (PCA, RDA) are appropriate;
+- **above *ca.* 4 SD**, the gradient is long, species turn over enough that responses are clearly unimodal, and **unimodal** methods (CA, CCA, or distance-based ordination) are preferable;
+- **between 3 and 4 SD**, the choice is not clear-cut, and it is worth fitting and comparing both families.
+
+The length comes straight from the `decorana` output (the **Axis lengths** row), or equivalently from the spread of the site scores along DCA1. The worked example below reads it for the dune meadows used above and, for contrast, for the Doubs fish.
+
+```{r}
+#| code-fold: true
+dune_len <- diff(range(scores(dca_result, display = "sites", choices = 1)))
+
+load(here::here("data", "BCB743", "NEwR-2ed_code_data", "NEwR2-Data", "Doubs.RData"))
+spe <- spe[rowSums(spe) > 0, ]
+doubs_len <- diff(range(scores(decorana(spe), display = "sites", choices = 1)))
+
+c(dune = round(dune_len, 2), doubs = round(doubs_len, 2))
+```
+
+The dune meadows span about `r round(dune_len, 1)` SD and the Doubs fish about `r round(doubs_len, 1)` SD. Both exceed 3 SD and approach 4, which places them in the range where unimodal methods are preferred. That is consistent with the arch CA produced for each and with the unimodal species responses seen in the [Correspondence Analysis](CA.qmd) chapter; a short gradient (below 3 SD) would instead have justified a linear PCA or RDA on the raw data. This single number turns the choice of ordination from a matter of habit into a decision the data can inform.
 
 ## Why DCA Is Rarely Used Today
 

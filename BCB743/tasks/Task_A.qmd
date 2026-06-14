@@ -1,6 +1,10 @@
 ---
 title: "5: Correlations and Associations"
 subtitle: "Task A"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the answers"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -25,19 +29,136 @@ ggplot2::theme_set(
 
 ## Practice Task
 
-Work through these exercises after reading the [Correlations and Associations](../correlations.qmd) chapter, using the Doubs River data (`spe` and `env`). Four exercises are hands-on calculations and two are short conceptual questions.
+Work through these exercises after reading the [Correlations and Associations](../correlations.qmd) chapter, using the Doubs River data (`spe` and `env`). Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
 1. Using the Doubs environmental data, compute the pairwise correlation matrix and display it as a correlation plot (for example with `corrplot::corrplot()` or `GGally::ggcorr()`).
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-a-q1
+#| fig-width: 6.5
+#| fig-height: 6.5
+#| out-width: "85%"
+library(tidyverse)
+library(vegan)
+library(corrplot)
+library(Hmisc)
+
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
+
+env_cor <- cor(env)
+corrplot(
+  env_cor,
+  method = "color",
+  type = "upper",
+  addCoef.col = "grey30",
+  number.cex = 0.55,
+  tl.cex = 0.8,
+  col = colorRampPalette(c("#1679a1", "white", "#f8766d"))(200)
+)
+```
+
+The matrix is dominated by one structure rather than many independent pairs. A block of nutrient and load variables (`pho`, `nit`, `amm`, `bod`) is mutually positive, the spatial variables (`dfs`, `dis`) rise together, and elevation (`ele`) opposes almost everything that increases downstream. This is the longitudinal source-to-mouth gradient expressing itself as correlation: the variables co-vary because they are all ordered by position along the river, not because each pair is mechanistically linked.
+:::
+
 2. Identify the two strongest positive and the two strongest negative *statistically significant* correlations among the environmental variables. Report each coefficient and its $p$-value (use `cor.test()`, or `Hmisc::rcorr()` / `psych::corr.test()` for the full matrix of $p$-values).
 
-3. Reproduce the species **association matrix** from the chapter: transpose the fish table so that species become the rows, then compute the among-species association (the `spp_assoc1` / `spp_assoc2` workflow). Visualise the result.
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-a-q2
+rc <- rcorr(as.matrix(env)) # Pearson r and p for every pair
+ut <- which(upper.tri(rc$r), arr.ind = TRUE)
+pairs <- tibble(
+  var1 = rownames(rc$r)[ut[, 1]],
+  var2 = colnames(rc$r)[ut[, 2]],
+  r = rc$r[ut],
+  p = rc$P[ut]
+)
+
+pairs |> filter(p < 0.05) |> slice_max(r, n = 2) # strongest positive
+pairs |> filter(p < 0.05) |> slice_min(r, n = 2) # strongest negative
+```
+
+The two strongest **positive** correlations are phosphate with ammonium (`pho`-`amm`, $r = 0.97$) and distance-from-source with discharge (`dfs`-`dis`, $r = 0.95$). The two strongest **negative** correlations are distance-from-source with elevation (`dfs`-`ele`, $r = -0.94$) and dissolved oxygen with biological oxygen demand (`oxy`-`bod`, $r = -0.84$). All four have $p$-values well below $10^{-8}$, so each pattern is consistent across the 30 sites. As the chapter cautions, those tiny $p$-values signal the coherence of the river gradient rather than four separable mechanisms: a single downstream ordering drives all of them (the mechanisms themselves are taken up in Exercise 5).
+:::
+
+3. Reproduce the species **association matrix** from the chapter: transpose the fish table so that species become the rows, then compute the among-species association (the `spe_assoc1` / `spe_assoc2` workflow). Visualise the result.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-a-q3
+spe_t <- t(spe) # species become the rows
+
+spe_assoc1 <- vegdist(spe_t, method = "jaccard") # abundance-weighted
+spe_assoc2 <- vegdist(spe_t, method = "jaccard", binary = TRUE) # presence-absence
+
+# six species spanning the river; binary distance (lower = stronger co-occurrence)
+gradient_spp <- c("Cogo", "Satr", "Phph", "Abbr", "Blbj", "Anan")
+round(as.matrix(spe_assoc2)[gradient_spp, gradient_spp], 2)
+```
+
+Transposing makes each **species** an observational unit, so `vegdist()` returns a $27 \times 27$ species-by-species Jaccard matrix; the value in each cell is a *dissimilarity*, so a low number means two species occupy nearly the same sites. The six-species block splits cleanly: the upper-river species (`Cogo`, `Satr`, `Phph`) co-occur with one another and exclude the lowland cyprinids (`Abbr`, `Blbj`, `Anan`), with `Cogo`-`Abbr` at the maximum distance of 1.00 (no shared site at all). The abundance-weighted `spe_assoc1` and the binary `spe_assoc2` differ because the first also responds to how abundances are distributed across shared sites, while the second isolates pure co-occurrence.
+:::
 
 4. Recompute the association on the **un-transposed** species table. What is being correlated now, how do the dimensions of the result differ, and why is this not what we want for a species association? Demonstrate with code.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-a-q4
+dim(spe) # 30 sites (rows) x 27 species
+dim(t(spe)) # 27 species (rows) x 30 sites
+
+site_assoc <- vegdist(spe, method = "jaccard") # NO transpose
+attr(site_assoc, "Size") # 30 -> a SITE x SITE matrix
+```
+
+`vegdist()` always treats the **rows** as the units to be compared. With the table transposed (Exercise 3) the rows are species, so the result is the species association we want. Without the transpose the rows are the 30 sites, so the calculation returns a $30 \times 30$ *site* dissimilarity matrix: it answers "how different are these two sites in composition?", not "how often do these two species co-occur?". The site matrix is perfectly valid, and it is exactly what ordination and clustering use later, but it is not a species association. (`vegdist` even warns about empty rows here, because two sites with no shared species have an undefined Jaccard value.)
+:::
+
 5. For the strongest environmental correlations you found in Exercise 2, give the mechanistic, ecological reason they covary along the upstream-downstream gradient of the Doubs River.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+All four correlations are by-products of the single longitudinal gradient that orders the Doubs from headwaters to mouth:
+
+- **`pho`-`amm` ($+0.97$):** phosphate and ammonium are both products of organic enrichment, which accumulates downstream as the catchment integrates its inputs; the two nutrients therefore rise together in the lower, more enriched reaches.
+- **`dfs`-`dis` ($+0.95$):** discharge grows with distance from source because tributaries progressively add water to the channel, so the further down the river, the more water it carries.
+- **`dfs`-`ele` ($-0.94$):** the river loses elevation as it runs downstream, so distance-from-source and altitude are near mirror images of each other.
+- **`oxy`-`bod` ($-0.84$):** as biological oxygen demand rises with organic load downstream, dissolved oxygen is consumed, so the two move in opposite directions.
+
+In every case the two variables are correlated because each is monotonically ordered by position along the river, not because one directly drives the other. This is why the correlation matrix is read as a diagnostic of collinearity, not as a set of mechanistic links.
+:::
+
 6. Explain what an *association matrix*, a *correlation matrix*, and a species *dissimilarity matrix* each represent and how they differ. What ecological insight does a species association matrix provide that a site-by-site dissimilarity matrix does not?
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+- A **correlation matrix** measures linear co-variation between continuous *variables* (here the environmental measurements). Each cell is a Pearson (or Spearman) coefficient on the measurement scale, ranging from $-1$ to $+1$.
+- A species **association matrix** measures the joint occurrence of *species* across sites. It is built by transposing the community table and applying a measure such as the Jaccard index, so each cell summarises how similarly two species are distributed, agnostic to the mechanism (shared habitat, common gradient response, or interaction).
+- A site **dissimilarity matrix** measures how different two *sites* (samples) are in composition, and it is the input to ordination and clustering.
+
+The first two are R-mode (relationships among variables or species); the third is Q-mode (relationships among samples). A species association matrix reveals groups of taxa that co-occur or replace one another along a gradient, recovering the source-to-mouth ordering written in the species themselves. A site dissimilarity matrix cannot show that directly: it tells you which sites resemble one another, but not which species drive the resemblance.
+:::
 
 ## Assessment Criteria
 

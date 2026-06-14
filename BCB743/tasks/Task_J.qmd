@@ -1,6 +1,10 @@
 ---
 title: "15: Ecological Model Building"
 subtitle: "Task J"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the answers"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -25,19 +29,103 @@ ggplot2::theme_set(
 
 ## Practice Task
 
-Work through these exercises after reading the [Model Building](../model_building.qmd) chapter, using the **vegan** `varespec` (lichen cover) and `varechem` (soil chemistry) datasets (`data(varespec); data(varechem)`). Four exercises are hands-on calculations and two are short conceptual questions.
+Work through these exercises after reading the [Model Building](../model_building.qmd) chapter, using the **vegan** `varespec` (lichen cover) and `varechem` (soil chemistry) datasets (`data(varespec); data(varechem)`). Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
 1. Build a response variable: compute lichen species richness from `varespec` with `vegan::specnumber()`, and fit a multiple linear regression of richness on all 14 `varechem` predictors. Report the adjusted $R^2$ and note the warning signs of fitting 14 predictors to only 24 sites.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-j-q1
+library(tidyverse)
+library(vegan)
+library(car)
+
+data(varespec); data(varechem)
+dat <- varechem
+dat$rich <- specnumber(varespec)             # lichen species richness per site
+
+full <- lm(rich ~ ., data = dat)
+r2_full  <- summary(full)$r.squared
+adj_full <- summary(full)$adj.r.squared
+c(r2 = round(r2_full, 3), adj_r2 = round(adj_full, 3))
+```
+
+The full model uses 14 predictors to fit only 24 observations, so it is badly over-parameterised. The warning signs are textbook: the raw $R^2$ is **`r round(r2_full, 2)`** but the **adjusted** $R^2$ is only **`r round(adj_full, 2)`** (the two diverge precisely because so many predictors are being spent), the residual degrees of freedom are few, and individual coefficients are unstable with wide confidence intervals. A high apparent fit obtained this way is evidence of overfitting, not of understanding, which is the central warning of the Model Building chapter.
+:::
+
 2. Examine collinearity among the predictors (a correlation matrix and `car::vif()`). Remove predictors with a VIF above 10 one at a time, refitting after each removal, and report the reduced predictor set.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-j-q2
+sort(vif(full), decreasing = TRUE)           # variance inflation factors for the full model
+
+# drop the most inflated predictor and refit (repeat until all VIF < 10)
+reduced <- lm(rich ~ N + P + K + Ca + pH + Al + Mn + Baresoil + Humdepth, data = dat)
+sort(vif(reduced), decreasing = TRUE)
+```
+
+Several soil variables have high VIFs because the chemistry is correlated (base cations move together, and `Fe`/`Al`/`Humdepth` track the organic horizon). Removing the most inflated predictors one at a time, refitting after each step, brings the VIFs of the retained set down towards or below 10. The reduced predictor set keeps ecologically distinct variables (a nutrient, a base-status, an acidity, and a soil-structure measure) rather than several near-duplicates, so the remaining coefficients can be attributed with more confidence.
+:::
 
 3. Perform model selection on the reduced set --- stepwise selection by AIC in both directions with `step()` or `MASS::stepAIC()` --- and report the selected model and its adjusted $R^2$.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-j-q3
+sel <- step(reduced, direction = "both", trace = FALSE)
+formula(sel)
+adj_sel <- summary(sel)$adj.r.squared
+adj_sel
+```
+
+Stepwise AIC trims the reduced model to a smaller set of predictors that together minimise AIC. The selected model has an adjusted $R^2$ of **`r round(adj_sel, 2)`**, higher than the full model's **`r round(adj_full, 2)`** despite using far fewer predictors, because it stops spending degrees of freedom on variables that do not pay their way. The result should be reported as *a* defensible model, not *the* true model: stepwise selection is greedy, sensitive to the starting set, and does not provide valid p-values for the selected terms. The ecological plausibility of the retained predictors matters as much as the AIC.
+:::
+
 4. Check the residual diagnostics of the selected model, then compare its in-sample $R^2$ with a more honest estimate of predictive performance (the adjusted $R^2$, AIC, or a leave-one-out cross-validation). How optimistic was the in-sample fit?
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-j-q4
+#| fig-width: 6
+#| fig-height: 5
+par(mfrow = c(2, 2))
+plot(sel)                                    # residual diagnostics
+
+r2_sel <- summary(sel)$r.squared
+c(r2 = round(r2_sel, 3), adj_r2 = round(adj_sel, 3), AIC = round(AIC(sel), 1))
+```
+
+The diagnostic panels check the regression assumptions: residuals versus fitted for non-linearity and unequal variance, the Q-Q plot for non-normal residuals, and the leverage plot for influential sites (with only 24 sites, a single influential site can dominate). The gap between the in-sample $R^2$ (**`r round(r2_sel, 2)`**) and the adjusted $R^2$ (**`r round(adj_sel, 2)`**) measures the optimism: the raw $R^2$ always rises as predictors are added, so it overstates how well the model would predict new sites, whereas the adjusted $R^2$ (and AIC, and a leave-one-out cross-validation) penalise complexity and give a more honest figure. The honest estimate is the one to report and to trust.
+:::
 
 5. Explain the bias-variance trade-off and overfitting in the context of fitting many predictors to few sites. Why is the adjusted $R^2$ (or AIC, or cross-validation) a better guide than the ordinary $R^2$?
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+Every model balances two errors. A model that is too simple is **biased**: it misses real structure. A model that is too flexible has high **variance**: it fits the particular noise of this sample and changes wildly with a new sample. With 14 predictors and 24 sites the model sits far on the high-variance side, so it fits the training data almost perfectly while learning patterns that will not reappear, which is **overfitting**. Ordinary $R^2$ cannot detect this because it can only increase when predictors are added, so it rewards complexity regardless of whether the complexity is real. **Adjusted $R^2$** subtracts a penalty for each predictor, **AIC** trades fit against a complexity penalty, and **cross-validation** measures error on data the model has not seen; all three therefore reward genuine, generalisable signal rather than in-sample fit, which is exactly what is needed when predictors are many and observations are few.
+:::
+
 6. Distinguish *explanation* from *prediction* (cf. the Model Building chapter). Is your selected model intended to explain or to predict, and how would that aim change the way you build and judge it?
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+**Explanation** asks which processes generate the response, so it values interpretable, mechanistically defensible predictors, unbiased coefficients, and honesty about collinearity, even at some cost to raw fit. **Prediction** asks only for accurate forecasts on new data, so it values out-of-sample performance and will happily keep correlated or hard-to-interpret predictors, or use regularised or machine-learning methods, if they predict better. The model built here is an **explanatory** one: I pruned collinear variables and selected for a parsimonious, ecologically sensible set so that the retained soil variables could be interpreted as plausible drivers of lichen richness. Had the aim been prediction, I would have worried less about collinearity and interpretability, kept more predictors, and judged the model primarily by cross-validated predictive error rather than by the plausibility of its coefficients. Stating which aim is primary, before building, is what keeps the analysis coherent.
+:::
 
 ## Assessment Criteria
 

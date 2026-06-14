@@ -1,6 +1,10 @@
 ---
 title: "9a: Correspondence Analysis (CA)"
 subtitle: "Task D"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the answers"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -25,19 +29,139 @@ ggplot2::theme_set(
 
 ## Practice Task
 
-Work through these exercises after reading the [Correspondence Analysis](../CA.qmd) chapter. Four exercises are hands-on calculations and two are short conceptual questions.
+Work through these exercises after reading the [Correspondence Analysis](../CA.qmd) chapter. Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
 1. Run a CA on the Doubs fish data (`vegan::cca(spe)`); produce biplots under scaling 1 and scaling 2, and report the inertia captured by the first two axes.
 
-2. Apply CA to an external dataset --- the [bird communities along the elevation gradient in Yushan Mountain, Taiwan](https://www.davidzeleny.net/anadat-r/doku.php/en:data:ybirds) or the [alpine plant communities in Aravo, France](https://www.davidzeleny.net/anadat-r/doku.php/en:data:aravo) --- and produce the ordination.
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-d-q1
+#| fig-width: 7
+#| fig-height: 4
+library(tidyverse)
+library(vegan)
+
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
+spe <- spe[rowSums(spe) > 0, ] # drop the empty site (CA needs non-empty rows)
+
+ca_doubs <- cca(spe)
+var_ca <- round(100 * eigenvals(ca_doubs) / sum(eigenvals(ca_doubs)), 1)
+var_ca[1:4] # % inertia per axis
+
+par(mfrow = c(1, 2))
+plot(ca_doubs, scaling = 1, main = "CA scaling 1 (sites)")
+plot(ca_doubs, scaling = 2, main = "CA scaling 2 (species)")
+```
+
+CA1 captures `r var_ca[[1]]`% of the total inertia and CA2 `r var_ca[[2]]`%. Both biplots show the characteristic **arch**: sites curve from one end to the other, with the upper-river species at one tip and the lowland species at the other. The first axis is again the upstream-downstream gradient, now recovered from the species data alone by weighted averaging.
+:::
+
+2. Apply CA to two external datasets --- the [bird communities along the elevation gradient in Yushan Mountain, Taiwan](https://www.davidzeleny.net/anadat-r/doku.php/en:data:ybirds) and the [alpine plant communities in Aravo, France](https://www.davidzeleny.net/anadat-r/doku.php/en:data:aravo) --- and produce the ordination for each.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-d-q2
+#| fig-width: 6
+#| fig-height: 5
+# --- Yushan birds ---
+ybirds_spe <- read.table(
+  here::here("data", "BCB743", "ybirds_spe.txt"),
+  header = TRUE,
+  row.names = 1
+)
+ybirds_spe <- ybirds_spe[rowSums(ybirds_spe) > 0, ]
+
+ca_yb <- cca(ybirds_spe)
+var_ca_yb <- round(100 * eigenvals(ca_yb) / sum(eigenvals(ca_yb)), 1)
+var_ca_yb[1:4]
+plot(ca_yb, scaling = 2, main = "Yushan birds, CA scaling 2")
+
+# --- Aravo alpine plants (from the ade4 package) ---
+data(aravo, package = "ade4")
+aravo_spe <- aravo$spe[rowSums(aravo$spe) > 0, ]
+
+ca_ar <- cca(aravo_spe)
+var_ca_ar <- round(100 * eigenvals(ca_ar) / sum(eigenvals(ca_ar)), 1)
+var_ca_ar[1:4]
+plot(ca_ar, scaling = 2, main = "Aravo alpine plants, CA scaling 2")
+```
+
+Both external communities give the same kind of CA structure. For the Yushan birds the 50 stations order along the first axis (CA1 = `r var_ca_yb[[1]]`% of the inertia), corresponding to the elevation gradient up the mountain, with bird species sorting from low- to high-elevation associates. The Aravo alpine plants behave similarly (CA1 = `r var_ca_ar[[1]]`%), their sites and species spreading along the dominant snowmelt and disturbance gradient of the alpine zone. In each case, as for the Doubs fish, CA recovers a strong unimodal gradient from a species table with many zeros.
+:::
 
 3. Fit environmental variables onto the Doubs CA with `envfit()`, and add a fitted smooth surface for one species with `ordisurf()`; overlay both on the biplot.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-d-q3
+#| fig-width: 6
+#| fig-height: 5
+env2 <- env[rownames(env) %in% rownames(spe), ] # align env with the non-empty sites
+
+fit <- envfit(ca_doubs ~ ele + oxy + bod + dfs, data = env2, permutations = 999)
+fit
+
+plot(
+  ca_doubs,
+  scaling = 2,
+  display = "sites",
+  main = "Doubs CA: envfit + ordisurf (Satr)"
+)
+plot(fit, col = "blue")
+ordisurf(ca_doubs, spe$Satr, add = TRUE, col = "forestgreen") # smooth surface for brown trout (Satr)
+```
+
+`envfit` projects each environmental variable as a vector whose length and $r^2$ measure how strongly it aligns with the ordination; here the gradient variables (elevation, oxygen, organic load, distance from source) are all highly significant and point along the first axis. The `ordisurf` contours add a fitted surface for one species (brown trout, `Satr`), showing that its abundance peaks in one region of the ordination and falls away from it, the hump-shaped (unimodal) response that motivates CA in the first place.
+:::
+
 4. Compare the scaling 1 (site-focused) and scaling 2 (species-focused) biplots of the Doubs CA. What does each emphasise, and what changes between them?
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-d-q4
+#| fig-width: 7
+#| fig-height: 4
+par(mfrow = c(1, 2))
+plot(ca_doubs, scaling = 1, main = "Scaling 1: site distances")
+plot(ca_doubs, scaling = 2, main = "Scaling 2: species relationships")
+```
+
+Both plots show the same arch, but the exact geometry they represent differs. **Scaling 1** scales the site scores by the axis eigenvalues, so distances *between sites* approximate their chi-square dissimilarities: use it to ask which sites resemble one another. **Scaling 2** scales the species scores instead, so the configuration *of species* (and species-site relationships, via the weighted-averaging interpretation) is the one read accurately: use it to ask which species characterise which part of the gradient. The choice is about which set of distances you want to be trustworthy in the picture.
+:::
 
 5. Explain the patterns in the CA biplot --- the arch (horseshoe), and how the joint plotting of sites and species follows from the weighted-averaging, unimodal basis of CA.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+CA places each site at the weighted average of its species' scores, and each species at the weighted average of the sites where it occurs. When species respond **unimodally** to one long gradient (each peaking somewhere and declining on both sides), this reciprocal averaging lays the sites out in gradient order along axis 1, and a species sits near the sites where it is most abundant. The **arch** appears because the second axis is forced to be uncorrelated with the first, and for a single dominant gradient the only structure left is a quadratic distortion of it, which bends the configuration into a curve. The arch is therefore a mathematical artefact of representing one curved gradient in two dimensions, not a second ecological pattern, which is exactly the problem detrending (DCA) tries to remove.
+:::
+
 6. When is CA preferred over PCA? Relate your answer to gradient length and to linear versus unimodal species responses.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+PCA assumes that variables vary **linearly** with the underlying axes, which suits continuous environmental measurements but not species abundances along a long gradient: a species that is present in the middle and absent at both ends cannot be described by a straight line, and PCA of such data produces the "horseshoe" distortion and treats joint absences as similarity. CA assumes **unimodal** responses and works on chi-square distances, so it handles the many zeros and the hump-shaped abundances of community data along long gradients. The practical rule, made quantitative by the DCA gradient length, is to prefer CA (or CCA) when the first-axis gradient is long (roughly above 3-4 SD units of turnover) and species responses are unimodal, and to prefer PCA (or RDA) when the gradient is short and responses are approximately linear.
+:::
 
 ## Assessment Criteria
 

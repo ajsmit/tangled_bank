@@ -97,7 +97,7 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-739d2f55e52258f397fc87d1143cf3b8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-c75e8ef1e2fb4f09c066c34ba1580f21.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-2dd16c781d19e5b9220511434c273081.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -373,6 +373,12 @@ window.Quarto = {
  <span class="menu-text">Course overview</span></a>
   </div>
 </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../BCB743/datasets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Datasets</span></a>
+  </div>
+</li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
@@ -596,7 +602,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2026/06/13</p>
+      <p class="date">2026/06/14</p>
     </div>
   </div>
   
@@ -669,8 +675,8 @@ window.Quarto = {
 </div>
 <p>Suppose two river sites share not a single species. Ecologically they could hardly be more different, and a dissimilarity measure such as Bray-Curtis records that difference exactly. PCA cannot ordinate a Bray-Curtis matrix: it is built on Euclidean distance, just as CA is built on <span class="math inline">\(\chi^2\)</span> distance, so each fixes the geometry in advance. Principal Coordinates Analysis (PCoA) removes that constraint. It takes a dissimilarity matrix, computed with whatever measure is ecologically appropriate, and finds the low-dimensional arrangement of sites that best preserves those dissimilarities. So, I shift from ordinating <em>variables</em> to ordinating <em>distances</em>, and that is the principle behind this chapter.</p>
 <p>PCoA is also known as Classical Multidimensional Scaling (MDS). It is an ordination technique used to analyse and represent multivariate data based on a (dis)similarity matrix. I use PCoA when it is necessary to specify dissimilarity measures other than Euclidean distance or <span class="math inline">\(\chi^2\)</span> distance, as in PCA, and CA, respectively.</p>
-<p>Unlike PCA and CA, which operate directly on the raw data matrix, PCoA takes a (dis)similarity matrix as input. This matrix can be calculated using various dissimilarity measures available in <strong>vegan</strong>’s <code>vegdist()</code> function, which may be necessary when my dataset includes quantitative, semi-quantitative, qualitative, and mixed variables. If the dissimilarities are Euclidean distances, PCoA results are equivalent to those obtained from PCA.</p>
-<p>That flexibility is what places PCoA in the wider ordination landscape. The choice of method follows from the kind of difference between sites that matters ecologically:</p>
+<p>Unlike PCA and CA, which operate directly on the raw data matrix, PCoA takes a (dis)similarity matrix as input. This matrix can be calculated using various dissimilarity measures available in <strong>vegan</strong>’s <code>vegdist()</code> function, which may be necessary when my dataset includes quantitative, semi-quantitative, qualitative, and mixed variables. If the dissimilarities are Euclidean distances among centred observations, PCoA results are equivalent to those obtained from PCA, up to ordinary differences in scaling, signs, and rotation.</p>
+<p>That flexibility is what places PCoA in the wider ordination landscape. The choice of method follows from the kind of difference between sites that is ecologically relevant:</p>
 <table class="caption-top table">
 <thead><tr class="header">
 <th style="text-align: left;">Situation</th>
@@ -716,7 +722,7 @@ Figure&nbsp;1: The PCoA workflow. The ecological decision is the choice of dissi
 </div>
 </div>
 <p>PCoA performs a dimensionality reduction on the (dis)similarity matrix, scaling the dissimilarities, and returning a set of points in a lower-dimensional space (typically 2D, or 3D). When plotted, the Euclidean distances between these points approximate the original dissimilarities, effectively representing the dissimilarities between objects as Euclidean distances in a lower-dimensional space. This representation can be helpful in visualising, and interpreting complex relationships in a more interpretable form.</p>
-<p>Conceptually, PCoA is similar to PCA and CA in that it aims to represent the relationships between objects in a lower-dimensional space. However, it differs in its approach to preserving distances. While PCA preserves Euclidean distances between objects and CA preserves <span class="math inline">\(\chi^2\)</span> distances, PCoA can preserve any (dis)similarity measure provided as input, and so it is more flexible for handling a greater range of data types.</p>
+<p>Conceptually, PCoA is similar to PCA and CA in that it aims to represent the relationships between objects in a lower-dimensional space. However, it differs in its approach to preserving distances. While PCA preserves Euclidean distances between objects and CA preserves <span class="math inline">\(\chi^2\)</span> distances, PCoA starts from whichever (dis)similarity measure is provided as input. If that dissimilarity is Euclidean, the full set of real axes can reproduce it exactly; if it is not Euclidean, PCoA gives the best real-coordinate representation and may report negative eigenvalues for the part that cannot be embedded.</p>
 <p>The cleanest way to hold the relationship in mind is that PCoA generalises the geometry of PCA. PCA is the special case of PCoA that you obtain when the chosen dissimilarity is Euclidean:</p>
 <table class="caption-top table">
 <thead><tr class="header">
@@ -742,8 +748,8 @@ Figure&nbsp;1: The PCoA workflow. The ecological decision is the choice of dissi
 </tr>
 </tbody>
 </table>
-<p>In PCoA, the eigenvalues represent the extent to which each principal coordinate axis captures the variability in the original dissimilarity matrix. The proportion of a given eigenvalue to the sum of all eigenvalues indicates the relative importance of each axis. Higher eigenvalues represent axes that capture more variance (or dissimilarity) in the data, helping identify the most significant gradients in the dataset.</p>
-<p>While earlier versions of PCoA in <strong>vegan</strong> did not provide information about the original variables, this limitation has been overcome in newer versions of the <code>capscale()</code> function.</p>
+<p>In PCoA, the eigenvalues represent the extent to which each principal coordinate axis captures the variability in the original dissimilarity matrix. The proportion of a given positive eigenvalue to the sum of positive eigenvalues indicates the relative importance of each real axis, but this proportion must be read carefully when the dissimilarity is non-Euclidean and negative eigenvalues are present. Higher positive eigenvalues represent axes that capture more of the embeddable structure in the data, helping identify the strongest gradients in the dataset.</p>
+<p>When <code>capscale()</code> is given a raw community table and a distance method, it can add species scores as weighted sums of the community matrix. If I instead supply only a precomputed dissimilarity matrix, that species information is no longer available from the input and the species scores are absent.</p>
 <section id="set-up-the-analysis-environment" class="level2"><h2 class="anchored" data-anchor-id="set-up-the-analysis-environment">Set-up the Analysis Environment</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -804,11 +810,11 @@ Eigenvalues for unconstrained axes:
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Why Is There a Negative (“Imaginary”) Eigenvalue?
+<span class="screen-reader-only">Note</span>Why Are There Negative (“Imaginary”) Eigenvalues?
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The printout reports a small <strong>Imaginary</strong> component (here about <span class="math inline">\(-0.30\)</span>, against a real total of about <span class="math inline">\(7.06\)</span>). This is expected, and is not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space; PCoA represents the part that will not embed as a few small negative eigenvalues. While the negatives stay small relative to the leading positive axes, the ordination on the first two or three axes is unaffected. One practical consequence is that the broken-stick test (<code>bstick()</code>) cannot be computed when negative eigenvalues are present, which is why the scree plot below is drawn by hand.</p>
+<p>The printout reports a small <strong>Imaginary</strong> component (here about <span class="math inline">\(-0.30\)</span>, against a real total of about <span class="math inline">\(7.06\)</span>). This is expected, and is not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space; PCoA represents the part that will not embed as negative eigenvalues. When the negative component is small relative to the leading positive axes, the ordination on the first two or three axes is usually still useful, but the proportions of variation need to be read with that limitation in mind. One practical consequence is that the broken-stick test (<code>bstick()</code>) cannot be computed when negative eigenvalues are present, which is why the scree plot below is drawn by hand.</p>
 </div>
 </div>
 <p>The <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> now produces output that should look familiar from PCA and CA, with the <strong>Species scores</strong> present because the raw table was supplied:</p>
@@ -1182,7 +1188,7 @@ Proportion Explained  0.001851 0.001004 0.0005723 0.0001843
 Cumulative Proportion 0.998239 0.999243 0.9998157 1.0000000</code></pre>
 </div>
 </div>
-<p><strong>Add the species back with <code>sppscores()</code>.</strong> When a precomputed matrix is unavoidable, for example a Gower matrix from another package (see <a href="#handling-mixed-variable-types">Handling Mixed Variable Types</a>, below), the species scores can be restored afterwards:</p>
+<p><strong>Add the species back with <code>sppscores()</code>.</strong> When a precomputed matrix is unavoidable, e.g.&nbsp;a Gower matrix from another package (see <a href="#handling-mixed-variable-types">Handling Mixed Variable Types</a>, below), the species scores can be restored afterwards:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>spe_pcoa <span class="ot">&lt;-</span> <span class="fu">capscale</span>(spe_bray <span class="sc">~</span> <span class="dv">1</span>)</span>
 <span id="cb23-2"><a href="#cb23-2"></a><span class="fu">sppscores</span>(spe_pcoa) <span class="ot">&lt;-</span> spe</span>
@@ -1219,7 +1225,7 @@ Cumulative Proportion 0.998239 0.999243 0.9998157 1.0000000</code></pre>
 </div>
 </div>
 </section><section id="handling-mixed-variable-types" class="level2"><h2 class="anchored" data-anchor-id="handling-mixed-variable-types">Handling Mixed Variable Types</h2>
-<p>The simplest way to handle mixed variable types is to use simply plot the factor variable of interest as a differently shaped or coloured symbol on the ordination diagram. I will demonstrate this with the seaweed dataset.</p>
+<p>The simplest way to handle mixed variable types is to plot the factor variable of interest as a differently shaped or coloured symbol on the ordination diagram. I will show this with the seaweed dataset.</p>
 <p>First, I construct an environmental dataset that contains some mixed variables by column binding a dataset of seawater temperatures, and a bioregional classification of the 58 coastal sections:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>bioreg <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(</span>
@@ -1397,7 +1403,7 @@ Cumulative Proportion 9.999e-01 9.999e-01 1.000e+00</code></pre>
 </section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2026,
   author = {Smit, A. J.},
   title = {10: {Principal} {Coordinate} {Analysis} {(PCoA)}},
-  date = {2026-06-13},
+  date = {2026-06-14},
   url = {https://tangledbank.netlify.app/BCB743/PCoA.html},
   langid = {en}
 }
@@ -1979,9 +1985,9 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb36-47"><a href="#cb36-47"></a></span>
 <span id="cb36-48"><a href="#cb36-48"></a>PCoA is also known as Classical Multidimensional Scaling (MDS). It is an ordination technique used to analyse and represent multivariate data based on a (dis)similarity matrix. I use PCoA when it is necessary to specify dissimilarity measures other than Euclidean distance or $\chi^2$ distance, as in PCA, and CA, respectively.</span>
 <span id="cb36-49"><a href="#cb36-49"></a></span>
-<span id="cb36-50"><a href="#cb36-50"></a>Unlike PCA and CA, which operate directly on the raw data matrix, PCoA takes a (dis)similarity matrix as input. This matrix can be calculated using various dissimilarity measures available in **vegan**'s <span class="in">`vegdist()`</span> function, which may be necessary when my dataset includes quantitative, semi-quantitative, qualitative, and mixed variables. If the dissimilarities are Euclidean distances, PCoA results are equivalent to those obtained from PCA.</span>
+<span id="cb36-50"><a href="#cb36-50"></a>Unlike PCA and CA, which operate directly on the raw data matrix, PCoA takes a (dis)similarity matrix as input. This matrix can be calculated using various dissimilarity measures available in **vegan**'s <span class="in">`vegdist()`</span> function, which may be necessary when my dataset includes quantitative, semi-quantitative, qualitative, and mixed variables. If the dissimilarities are Euclidean distances among centred observations, PCoA results are equivalent to those obtained from PCA, up to ordinary differences in scaling, signs, and rotation.</span>
 <span id="cb36-51"><a href="#cb36-51"></a></span>
-<span id="cb36-52"><a href="#cb36-52"></a>That flexibility is what places PCoA in the wider ordination landscape. The choice of method follows from the kind of difference between sites that matters ecologically:</span>
+<span id="cb36-52"><a href="#cb36-52"></a>That flexibility is what places PCoA in the wider ordination landscape. The choice of method follows from the kind of difference between sites that is ecologically relevant:</span>
 <span id="cb36-53"><a href="#cb36-53"></a></span>
 <span id="cb36-54"><a href="#cb36-54"></a><span class="pp">|</span> Situation <span class="pp">|</span> Suitable method <span class="pp">|</span></span>
 <span id="cb36-55"><a href="#cb36-55"></a><span class="pp">| :---</span> <span class="pp">| :---</span> <span class="pp">|</span></span>
@@ -2005,7 +2011,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb36-75"><a href="#cb36-75"></a></span>
 <span id="cb36-76"><a href="#cb36-76"></a>PCoA performs a dimensionality reduction on the (dis)similarity matrix, scaling the dissimilarities, and returning a set of points in a lower-dimensional space (typically 2D, or 3D). When plotted, the Euclidean distances between these points approximate the original dissimilarities, effectively representing the dissimilarities between objects as Euclidean distances in a lower-dimensional space. This representation can be helpful in visualising, and interpreting complex relationships in a more interpretable form.</span>
 <span id="cb36-77"><a href="#cb36-77"></a></span>
-<span id="cb36-78"><a href="#cb36-78"></a>Conceptually, PCoA is similar to PCA and CA in that it aims to represent the relationships between objects in a lower-dimensional space. However, it differs in its approach to preserving distances. While PCA preserves Euclidean distances between objects and CA preserves $\chi^2$ distances, PCoA can preserve any (dis)similarity measure provided as input, and so it is more flexible for handling a greater range of data types.</span>
+<span id="cb36-78"><a href="#cb36-78"></a>Conceptually, PCoA is similar to PCA and CA in that it aims to represent the relationships between objects in a lower-dimensional space. However, it differs in its approach to preserving distances. While PCA preserves Euclidean distances between objects and CA preserves $\chi^2$ distances, PCoA starts from whichever (dis)similarity measure is provided as input. If that dissimilarity is Euclidean, the full set of real axes can reproduce it exactly; if it is not Euclidean, PCoA gives the best real-coordinate representation and may report negative eigenvalues for the part that cannot be embedded.</span>
 <span id="cb36-79"><a href="#cb36-79"></a></span>
 <span id="cb36-80"><a href="#cb36-80"></a>The cleanest way to hold the relationship in mind is that PCoA generalises the geometry of PCA. PCA is the special case of PCoA that you obtain when the chosen dissimilarity is Euclidean:</span>
 <span id="cb36-81"><a href="#cb36-81"></a></span>
@@ -2016,9 +2022,9 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb36-86"><a href="#cb36-86"></a><span class="pp">|</span> needs the raw variables <span class="pp">|</span> a distance matrix is enough <span class="pp">|</span></span>
 <span id="cb36-87"><a href="#cb36-87"></a><span class="pp">|</span> a special case of distance ordination <span class="pp">|</span> the general distance ordination <span class="pp">|</span></span>
 <span id="cb36-88"><a href="#cb36-88"></a></span>
-<span id="cb36-89"><a href="#cb36-89"></a>In PCoA, the eigenvalues represent the extent to which each principal coordinate axis captures the variability in the original dissimilarity matrix. The proportion of a given eigenvalue to the sum of all eigenvalues indicates the relative importance of each axis. Higher eigenvalues represent axes that capture more variance (or dissimilarity) in the data, helping identify the most significant gradients in the dataset.</span>
+<span id="cb36-89"><a href="#cb36-89"></a>In PCoA, the eigenvalues represent the extent to which each principal coordinate axis captures the variability in the original dissimilarity matrix. The proportion of a given positive eigenvalue to the sum of positive eigenvalues indicates the relative importance of each real axis, but this proportion must be read carefully when the dissimilarity is non-Euclidean and negative eigenvalues are present. Higher positive eigenvalues represent axes that capture more of the embeddable structure in the data, helping identify the strongest gradients in the dataset.</span>
 <span id="cb36-90"><a href="#cb36-90"></a></span>
-<span id="cb36-91"><a href="#cb36-91"></a>While earlier versions of PCoA in **vegan** did not provide information about the original variables, this limitation has been overcome in newer versions of the <span class="in">`capscale()`</span> function.</span>
+<span id="cb36-91"><a href="#cb36-91"></a>When <span class="in">`capscale()`</span> is given a raw community table and a distance method, it can add species scores as weighted sums of the community matrix. If I instead supply only a precomputed dissimilarity matrix, that species information is no longer available from the input and the species scores are absent.</span>
 <span id="cb36-92"><a href="#cb36-92"></a></span>
 <span id="cb36-93"><a href="#cb36-93"></a><span class="fu">## Set-up the Analysis Environment</span></span>
 <span id="cb36-94"><a href="#cb36-94"></a></span>
@@ -2068,9 +2074,9 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb36-138"><a href="#cb36-138"></a><span class="in">```</span></span>
 <span id="cb36-139"><a href="#cb36-139"></a></span>
 <span id="cb36-140"><a href="#cb36-140"></a>::: {.callout-note appearance="simple"}</span>
-<span id="cb36-141"><a href="#cb36-141"></a><span class="fu">## Why Is There a Negative ("Imaginary") Eigenvalue?</span></span>
+<span id="cb36-141"><a href="#cb36-141"></a><span class="fu">## Why Are There Negative ("Imaginary") Eigenvalues?</span></span>
 <span id="cb36-142"><a href="#cb36-142"></a></span>
-<span id="cb36-143"><a href="#cb36-143"></a>The printout reports a small **Imaginary** component (here about $-0.30$, against a real total of about $7.06$). This is expected, and is not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space; PCoA represents the part that will not embed as a few small negative eigenvalues. While the negatives stay small relative to the leading positive axes, the ordination on the first two or three axes is unaffected. One practical consequence is that the broken-stick test (<span class="in">`bstick()`</span>) cannot be computed when negative eigenvalues are present, which is why the scree plot below is drawn by hand.</span>
+<span id="cb36-143"><a href="#cb36-143"></a>The printout reports a small **Imaginary** component (here about $-0.30$, against a real total of about $7.06$). This is expected, and is not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space; PCoA represents the part that will not embed as negative eigenvalues. When the negative component is small relative to the leading positive axes, the ordination on the first two or three axes is usually still useful, but the proportions of variation need to be read with that limitation in mind. One practical consequence is that the broken-stick test (<span class="in">`bstick()`</span>) cannot be computed when negative eigenvalues are present, which is why the scree plot below is drawn by hand.</span>
 <span id="cb36-144"><a href="#cb36-144"></a>:::</span>
 <span id="cb36-145"><a href="#cb36-145"></a></span>
 <span id="cb36-146"><a href="#cb36-146"></a>The <span class="in">`summary()`</span> now produces output that should look familiar from PCA and CA, with the **Species scores** present because the raw table was supplied:</span>
@@ -2333,7 +2339,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb36-403"><a href="#cb36-403"></a><span class="fu">summary</span>(spe_pcoa)</span>
 <span id="cb36-404"><a href="#cb36-404"></a><span class="in">```</span></span>
 <span id="cb36-405"><a href="#cb36-405"></a></span>
-<span id="cb36-406"><a href="#cb36-406"></a>**Add the species back with `sppscores()`.** When a precomputed matrix is unavoidable, for example a Gower matrix from another package (see <span class="co">[</span><span class="ot">Handling Mixed Variable Types</span><span class="co">](#handling-mixed-variable-types)</span>, below), the species scores can be restored afterwards:</span>
+<span id="cb36-406"><a href="#cb36-406"></a>**Add the species back with `sppscores()`.** When a precomputed matrix is unavoidable, e.g. a Gower matrix from another package (see <span class="co">[</span><span class="ot">Handling Mixed Variable Types</span><span class="co">](#handling-mixed-variable-types)</span>, below), the species scores can be restored afterwards:</span>
 <span id="cb36-407"><a href="#cb36-407"></a></span>
 <span id="cb36-408"><a href="#cb36-408"></a><span class="in">```{r code-spe-pcoa-capscale-spe-bray-2}</span></span>
 <span id="cb36-409"><a href="#cb36-409"></a>spe_pcoa <span class="ot">&lt;-</span> <span class="fu">capscale</span>(spe_bray <span class="sc">~</span> <span class="dv">1</span>)</span>
@@ -2345,7 +2351,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb36-415"><a href="#cb36-415"></a></span>
 <span id="cb36-416"><a href="#cb36-416"></a><span class="fu">## Handling Mixed Variable Types</span></span>
 <span id="cb36-417"><a href="#cb36-417"></a></span>
-<span id="cb36-418"><a href="#cb36-418"></a>The simplest way to handle mixed variable types is to use simply plot the factor variable of interest as a differently shaped or coloured symbol on the ordination diagram. I will demonstrate this with the seaweed dataset.</span>
+<span id="cb36-418"><a href="#cb36-418"></a>The simplest way to handle mixed variable types is to plot the factor variable of interest as a differently shaped or coloured symbol on the ordination diagram. I will show this with the seaweed dataset.</span>
 <span id="cb36-419"><a href="#cb36-419"></a></span>
 <span id="cb36-420"><a href="#cb36-420"></a>First, I construct an environmental dataset that contains some mixed variables by column binding a dataset of seawater temperatures, and a bioregional classification of the 58 coastal sections:</span>
 <span id="cb36-421"><a href="#cb36-421"></a></span>

@@ -1,6 +1,10 @@
 ---
 title: "8c: PCA of WHO SDGs"
 subtitle: "Task C"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the answers"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -25,19 +29,108 @@ ggplot2::theme_set(
 
 ## Practice Task
 
-Work through these exercises after reading the [PCA of WHO SDGs](../PCA_SDG_example.qmd) chapter, reusing the WHO SDG data loaded there. Four exercises are hands-on calculations and two are short conceptual questions.
+Work through these exercises after reading the [PCA of WHO SDGs](../PCA_SDG_example.qmd) chapter, reusing the WHO SDG data loaded there. Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
 1. Reproduce the PCA of the WHO SDG data from the chapter: load and scale the data, run the ordination (`vegan::rda()` or `prcomp()`), and produce the biplot.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-c-q1
+#| fig-width: 6.5
+#| fig-height: 5.5
+library(tidyverse)
+library(vegan)
+
+sdg <- read.csv(here::here("data", "BCB743", "WHO", "SDG_complete.csv"))
+sdg_ind <- sdg |> select(starts_with("SDG")) # the indicator columns
+rownames(sdg_ind) <- make.unique(as.character(sdg$Location))
+sdg_ind <- sdg_ind[complete.cases(sdg_ind), ] # keep countries with full records
+
+pca_sdg <- rda(sdg_ind, scale = TRUE) # correlation PCA (indicators standardised)
+
+plot(pca_sdg, scaling = 2, type = "n", main = "WHO SDG PCA (scaling 2)")
+points(pca_sdg, display = "sites", pch = 19, col = "grey70", cex = 0.5)
+text(pca_sdg, display = "species", col = "firebrick", cex = 0.55)
+```
+
+After dropping countries with missing indicators, the PCA runs on a standardised country-by-indicator matrix. The biplot shows the indicator arrows fanning out along PC1, with the countries (grey points) spread along the same axis. The first axis is a broad **attainment** gradient: indicators of good health outcomes point one way and indicators of burden or risk point the other, so a country's position along PC1 summarises where it sits on that composite scale.
+:::
+
 2. Produce a screeplot with the broken-stick criterion, report the variance explained by PC1 and PC2, and state how many components are worth interpreting.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-c-q2
+#| fig-width: 5
+#| fig-height: 3.5
+var_sdg <- round(100 * eigenvals(pca_sdg) / sum(eigenvals(pca_sdg)), 1)
+var_sdg[1:6] # % variance, first 6 axes
+screeplot(
+  pca_sdg,
+  bstick = TRUE,
+  type = "lines",
+  main = "SDG PCA: eigenvalues vs broken-stick"
+)
+```
+
+PC1 captures `r var_sdg[[1]]`% of the variance and PC2 `r var_sdg[[2]]`% (together `r var_sdg[[1]] + var_sdg[[2]]`%), so the data are strongly one-dimensional. The broken-stick comparison confirms that the first one or two axes exceed the random expectation, so interpretation should focus on PC1, with PC2 read only as a weak secondary addition. The many trailing axes carry indicator-specific variation and noise.
+:::
 
 3. Examine the variable loadings and identify which SDG indicators load most strongly on PC1 and on PC2. What does each axis represent?
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-c-q3
+loadings <- scores(pca_sdg, display = "species", choices = 1:2) |>
+  as.data.frame()
+loadings |> arrange(PC1) |> slice(c(1:5, (n() - 4):n())) # most negative & most positive on PC1
+```
+
+The indicators with the largest absolute PC1 loadings define the axis (the single strongest is `r rownames(loadings)[which.max(abs(loadings$PC1))]`): at one end sit indicators of poor health outcomes and high disease or mortality burden, and at the other end indicators of strong health-system performance and good outcomes. PC1 is therefore an overall health-and-development attainment gradient. PC2 is defined by a smaller set of indicators that distinguish countries with otherwise similar overall attainment, often separating a particular dimension (such as a specific disease burden or a financing measure) from the general pattern; it is a secondary contrast rather than a second major gradient.
+:::
+
 4. Locate South Africa and three or four comparator countries of your choice on the biplot, and describe where they sit relative to the axes.
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+```{r}
+#| code-fold: false
+#| label: task-c-q4
+focus <- c("South Africa", "Nigeria", "Germany", "Brazil", "Norway")
+site_sc <- scores(pca_sdg, display = "sites", choices = 1:2, scaling = 2) |>
+  as.data.frame() |>
+  rownames_to_column("country")
+site_sc |> filter(country %in% focus)
+```
+
+The comparator countries spread along PC1 in the order one would expect from their health systems: South Africa sits at PC1 = `r round(site_sc$PC1[site_sc$country == "South Africa"], 2)`, between Norway (`r round(site_sc$PC1[site_sc$country == "Norway"], 2)`) and Nigeria (`r round(site_sc$PC1[site_sc$country == "Nigeria"], 2)`) at the two ends of the attainment axis, with Brazil nearby. South Africa's score should be read against these neighbours rather than against any single raw indicator: countries close together on the biplot share a similar *multivariate* SDG profile, which is exactly the summary PCA is designed to give.
+:::
 
 5. Explain why the SDG indicators must be standardised (scaled) before PCA, and what would happen to the ordination if they were left on their original scales.
 
+::: {.callout-note collapse="true"}
+## Show the answer
+
+PCA decomposes variance, and variance depends on the measurement scale. The SDG indicators are recorded in incompatible units, namely percentages, rates per 100 000, monetary measures, and counts, so their raw variances differ by orders of magnitude. Without standardisation (here `scale = TRUE`, equivalent to a PCA on the correlation matrix), the indicators with the largest numerical spread would dominate the first axis for purely arithmetic reasons, and the ordination would describe which variable happens to be measured on the biggest scale rather than which countries are alike. Scaling each indicator to unit variance puts them on an equal footing so that the axes reflect shared structure across indicators.
+:::
+
 6. Interpret PC1 as an SDG-attainment gradient: what does a country's score on PC1 tell you, and what are the limitations of collapsing SDG attainment onto a single axis?
+
+::: {.callout-note collapse="true"}
+## Show the answer
+
+A country's PC1 score is a composite index: it places the country on the dominant axis of co-variation among the health indicators, so a high score means the country tends to score well across the bundle of correlated indicators that define the axis. That single number is a useful, defensible summary because the indicators are strongly correlated. Its limitations are real, though: collapsing many goals onto one axis hides **trade-offs** (a country may do well on some goals and poorly on others), it is sensitive to the **missing-data** decisions made before the PCA, it ignores **within-country inequality**, and the very choice to reduce attainment to one number embeds a value judgement about how the goals should be weighted. PC1 is a starting description, not a verdict.
+:::
 
 ## Assessment Criteria
 

@@ -47,9 +47,9 @@ Suppose two river sites share not a single species. Ecologically they could hard
 
 PCoA is also known as Classical Multidimensional Scaling (MDS). It is an ordination technique used to analyse and represent multivariate data based on a (dis)similarity matrix. I use PCoA when it is necessary to specify dissimilarity measures other than Euclidean distance or $\chi^2$ distance, as in PCA, and CA, respectively.
 
-Unlike PCA and CA, which operate directly on the raw data matrix, PCoA takes a (dis)similarity matrix as input. This matrix can be calculated using various dissimilarity measures available in **vegan**'s `vegdist()` function, which may be necessary when my dataset includes quantitative, semi-quantitative, qualitative, and mixed variables. If the dissimilarities are Euclidean distances, PCoA results are equivalent to those obtained from PCA.
+Unlike PCA and CA, which operate directly on the raw data matrix, PCoA takes a (dis)similarity matrix as input. This matrix can be calculated using various dissimilarity measures available in **vegan**'s `vegdist()` function, which may be necessary when my dataset includes quantitative, semi-quantitative, qualitative, and mixed variables. If the dissimilarities are Euclidean distances among centred observations, PCoA results are equivalent to those obtained from PCA, up to ordinary differences in scaling, signs, and rotation.
 
-That flexibility is what places PCoA in the wider ordination landscape. The choice of method follows from the kind of difference between sites that matters ecologically:
+That flexibility is what places PCoA in the wider ordination landscape. The choice of method follows from the kind of difference between sites that is ecologically relevant:
 
 | Situation | Suitable method |
 | :--- | :--- |
@@ -73,7 +73,7 @@ flowchart TD
 
 PCoA performs a dimensionality reduction on the (dis)similarity matrix, scaling the dissimilarities, and returning a set of points in a lower-dimensional space (typically 2D, or 3D). When plotted, the Euclidean distances between these points approximate the original dissimilarities, effectively representing the dissimilarities between objects as Euclidean distances in a lower-dimensional space. This representation can be helpful in visualising, and interpreting complex relationships in a more interpretable form.
 
-Conceptually, PCoA is similar to PCA and CA in that it aims to represent the relationships between objects in a lower-dimensional space. However, it differs in its approach to preserving distances. While PCA preserves Euclidean distances between objects and CA preserves $\chi^2$ distances, PCoA can preserve any (dis)similarity measure provided as input, and so it is more flexible for handling a greater range of data types.
+Conceptually, PCoA is similar to PCA and CA in that it aims to represent the relationships between objects in a lower-dimensional space. However, it differs in its approach to preserving distances. While PCA preserves Euclidean distances between objects and CA preserves $\chi^2$ distances, PCoA starts from whichever (dis)similarity measure is provided as input. If that dissimilarity is Euclidean, the full set of real axes can reproduce it exactly; if it is not Euclidean, PCoA gives the best real-coordinate representation and may report negative eigenvalues for the part that cannot be embedded.
 
 The cleanest way to hold the relationship in mind is that PCoA generalises the geometry of PCA. PCA is the special case of PCoA that you obtain when the chosen dissimilarity is Euclidean:
 
@@ -84,9 +84,9 @@ The cleanest way to hold the relationship in mind is that PCoA generalises the g
 | needs the raw variables | a distance matrix is enough |
 | a special case of distance ordination | the general distance ordination |
 
-In PCoA, the eigenvalues represent the extent to which each principal coordinate axis captures the variability in the original dissimilarity matrix. The proportion of a given eigenvalue to the sum of all eigenvalues indicates the relative importance of each axis. Higher eigenvalues represent axes that capture more variance (or dissimilarity) in the data, helping identify the most significant gradients in the dataset.
+In PCoA, the eigenvalues represent the extent to which each principal coordinate axis captures the variability in the original dissimilarity matrix. The proportion of a given positive eigenvalue to the sum of positive eigenvalues indicates the relative importance of each real axis, but this proportion must be read carefully when the dissimilarity is non-Euclidean and negative eigenvalues are present. Higher positive eigenvalues represent axes that capture more of the embeddable structure in the data, helping identify the strongest gradients in the dataset.
 
-While earlier versions of PCoA in **vegan** did not provide information about the original variables, this limitation has been overcome in newer versions of the `capscale()` function.
+When `capscale()` is given a raw community table and a distance method, it can add species scores as weighted sums of the community matrix. If I instead supply only a precomputed dissimilarity matrix, that species information is no longer available from the input and the species scores are absent.
 
 ## Set-up the Analysis Environment
 
@@ -136,9 +136,9 @@ spe_pcoa
 ```
 
 ::: {.callout-note appearance="simple"}
-## Why Is There a Negative ("Imaginary") Eigenvalue?
+## Why Are There Negative ("Imaginary") Eigenvalues?
 
-The printout reports a small **Imaginary** component (here about $-0.30$, against a real total of about $7.06$). This is expected, and is not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space; PCoA represents the part that will not embed as a few small negative eigenvalues. While the negatives stay small relative to the leading positive axes, the ordination on the first two or three axes is unaffected. One practical consequence is that the broken-stick test (`bstick()`) cannot be computed when negative eigenvalues are present, which is why the scree plot below is drawn by hand.
+The printout reports a small **Imaginary** component (here about $-0.30$, against a real total of about $7.06$). This is expected, and is not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space; PCoA represents the part that will not embed as negative eigenvalues. When the negative component is small relative to the leading positive axes, the ordination on the first two or three axes is usually still useful, but the proportions of variation need to be read with that limitation in mind. One practical consequence is that the broken-stick test (`bstick()`) cannot be computed when negative eigenvalues are present, which is why the scree plot below is drawn by hand.
 :::
 
 The `summary()` now produces output that should look familiar from PCA and CA, with the **Species scores** present because the raw table was supplied:
@@ -401,7 +401,7 @@ spe_pcoa
 summary(spe_pcoa)
 ```
 
-**Add the species back with `sppscores()`.** When a precomputed matrix is unavoidable, for example a Gower matrix from another package (see [Handling Mixed Variable Types](#handling-mixed-variable-types), below), the species scores can be restored afterwards:
+**Add the species back with `sppscores()`.** When a precomputed matrix is unavoidable, e.g. a Gower matrix from another package (see [Handling Mixed Variable Types](#handling-mixed-variable-types), below), the species scores can be restored afterwards:
 
 ```{r code-spe-pcoa-capscale-spe-bray-2}
 spe_pcoa <- capscale(spe_bray ~ 1)
@@ -413,7 +413,7 @@ summary(spe_pcoa)
 
 ## Handling Mixed Variable Types
 
-The simplest way to handle mixed variable types is to use simply plot the factor variable of interest as a differently shaped or coloured symbol on the ordination diagram. I will demonstrate this with the seaweed dataset.
+The simplest way to handle mixed variable types is to plot the factor variable of interest as a differently shaped or coloured symbol on the ordination diagram. I will show this with the seaweed dataset.
 
 First, I construct an environmental dataset that contains some mixed variables by column binding a dataset of seawater temperatures, and a bioregional classification of the 58 coastal sections:
 
