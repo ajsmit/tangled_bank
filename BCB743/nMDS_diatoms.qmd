@@ -141,6 +141,8 @@ spp.log <- decostand(spp, method = "log")
 spp.log.dis <- vegdist(spp.log, method = "bray")
 ```
 
+By default, `decostand(method = "log")` uses a base-2 logarithm. That choice is fine here because the purpose is to compress dominance before Bray-Curtis distances are calculated, but it should not be confused with a natural-log transformation.
+
 ### The predictors
 
 The content is described above. These variables are categorical, and they are not actually 'environmental' data, but their purpose in the analysis is analogous to true environmental data, namely they describe where the samples were taken from.
@@ -169,7 +171,7 @@ I will do an nMDS and PERMANOVA.
 
 Before doing the PERMANOVA (testing differences between means), first check to see if the dispersion is the same. See `?adonis2` for more on this.
 
-**Homogeneity of groups** `betadisper()` evaluates the differences in group homogeneities. I can view it as being analogous to Levene's test of the equality of variances. The null hypothesis evaluated is that the population variances are equal. Unfortunately I can only use one factor as an independent variable so it is not yet possible to look for interactions (species × size).
+**Homogeneity of groups** `betadisper()` evaluates the differences in group homogeneities. I can view it as being analogous to Levene's test of the equality of variances. The null hypothesis evaluated is that the multivariate dispersions (the average distance of group members to their group centroid) are equal across groups. Unfortunately I can only use one factor as an independent variable so it is not yet possible to look for interactions (species × size).
 
 So, I test the $H_{0}$ that the dispersion (variance) in diatom community structure does not differ between the two host species:
 
@@ -244,13 +246,14 @@ Do the nMDS and assemble the figures:
 
 ```{r code-spp-nmds-metamds-spp}
 spp.nmds <- metaMDS(
-  spp.log,
+  spp.log.dis,
   k = 2,
   trymax = 100,
   trace = 0,
-  distance = "bray",
-  wascores = TRUE
+  autotransform = FALSE,
+  wascores = FALSE
 )
+sppscores(spp.nmds) <- spp.log
 
 # not printed as it is too long...
 # scores(spp.nmds, display = "species")

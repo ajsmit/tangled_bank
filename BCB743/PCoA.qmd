@@ -86,7 +86,7 @@ The cleanest way to hold the relationship in mind is that PCoA generalises the g
 
 In PCoA, the eigenvalues represent the extent to which each principal coordinate axis captures the variability in the original dissimilarity matrix. The proportion of a given positive eigenvalue to the sum of positive eigenvalues indicates the relative importance of each real axis, but this proportion must be read carefully when the dissimilarity is non-Euclidean and negative eigenvalues are present. Higher positive eigenvalues represent axes that capture more of the embeddable structure in the data, helping identify the strongest gradients in the dataset.
 
-When `capscale()` is given a raw community table and a distance method, it can add species scores as weighted sums of the community matrix. If I instead supply only a precomputed dissimilarity matrix, that species information is no longer available from the input and the species scores are absent.
+When `capscale()` is given a raw community table and a distance method, it can add species scores as weighted averages of the site scores (wascores). If I instead supply only a precomputed dissimilarity matrix, that species information is no longer available from the input and the species scores are absent.
 
 ## Set-up the Analysis Environment
 
@@ -126,9 +126,9 @@ spe_bray <- vegdist(spe)
 
 <!-- The **vegan** function `cmdscale()` can be used for PCoA: -->
 
-The book *Numerical Ecology with R* uses a built-in function `cmdscale()` or the function `pcoa()` in **ape** for its PCoA calculation. The **vegan** function `capscale()` can also be used for PCoA, and this is the approach I take here. The 'CAP' in `capscale()` stands for 'Canonical Analysis of Principal Coordinates'. `capscale()` works differently from `rda()` or `cca()` in that I specify the input through a formula interface (see `?capscale`). To run a PCoA without constraints I put `1` on the right-hand side of the formula, which is why PCoA also offers constrained options, with the data on the left.
+The book *Numerical Ecology with R* uses a built-in function `cmdscale()` or the function `pcoa()` in **ape** for its PCoA calculation. The **vegan** function `capscale()` can also be used for PCoA, and this is the approach I take here. The 'CAP' in `capscale()` stands for 'Canonical Analysis of Principal Coordinates'. `capscale()` works differently from `rda()` or `cca()` in that I specify the input through a formula interface (see `?capscale`). To run a PCoA without constraints I put `1` on the right-hand side of the formula (the community data go on the left). The same interface also accepts predictors on the right, which is how `capscale()` performs *constrained* analysis (db-RDA).
 
-The cleanest way to run it is to hand `capscale()` the **raw species table** and let it compute the dissimilarities. Supplying the raw table lets the function add species scores (as weighted sums of the community matrix), so the ordination places species as well as sites; a precomputed matrix carries no species information, and the scores are then missing. I built `spe_bray` above to make the dissimilarity-first logic clear, but `capscale()` can construct it internally, which is what I do here:
+The cleanest way to run it is to hand `capscale()` the **raw species table** and let it compute the dissimilarities. Supplying the raw table lets the function add species scores (as weighted averages of the site scores, or wascores), so the ordination places species as well as sites; a precomputed matrix carries no species information, and the scores are then missing. I built `spe_bray` above to make the dissimilarity-first logic clear, but `capscale()` can construct it internally, which is what I do here:
 
 ```{r code-spe-pcoa-capscale-spe-distance}
 spe_pcoa <- capscale(spe ~ 1, distance = "bray")
@@ -138,7 +138,9 @@ spe_pcoa
 ::: {.callout-note appearance="simple"}
 ## Why Are There Negative ("Imaginary") Eigenvalues?
 
-The printout reports a small **Imaginary** component (here about $-0.30$, against a real total of about $7.06$). This is expected, and is not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space; PCoA represents the part that will not embed as negative eigenvalues. When the negative component is small relative to the leading positive axes, the ordination on the first two or three axes is usually still useful, but the proportions of variation need to be read with that limitation in mind. One practical consequence is that the broken-stick test (`bstick()`) cannot be computed when negative eigenvalues are present, which is why the scree plot below is drawn by hand.
+The printout reports a small **Imaginary** component (here about $-0.30$, against a real total of about $7.06$). This is expected, and is not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space; PCoA represents the part that will not embed as negative eigenvalues. When the negative component is small relative to the leading positive axes, the ordination on the first two or three axes is usually still useful, but the proportions of variation need to be read with that limitation in mind.
+
+If the negative component is large enough to affect interpretation, there are standard corrections. A square-root transformation of the dissimilarities can often make semi-metric distances closer to Euclidean. Cailliez and Lingoes corrections add constants so the corrected matrix has no negative eigenvalues; these are available through `ape::pcoa(correction = "cailliez")` or `ape::pcoa(correction = "lingoes")`, and base R's `cmdscale(add = TRUE)` applies a Cailliez-style additive correction. The correction should be reported because it changes the geometry being analysed. One practical consequence of leaving negative eigenvalues in place is that the broken-stick test (`bstick()`) cannot be computed, which is why the scree plot below is drawn by hand.
 :::
 
 The `summary()` now produces output that should look familiar from PCA and CA, with the **Species scores** present because the raw table was supplied:
@@ -243,8 +245,9 @@ round(sum(spe_pcoa$CA$eig[1:3]) / sum(spe_pcoa$CA$eig) * 100, 2)
 # Extract eigenvalues
 eigenvalues <- spe_pcoa$CA$eig
 
-# Calculate the proportion of variance explained
-variance_explained <- eigenvalues / sum(eigenvalues)
+# Calculate the proportion of positive ordination variance explained
+pos_eig <- eigenvalues[eigenvalues > 0]
+variance_explained <- pos_eig / sum(pos_eig)
 
 # Create a scree plot
 plot(

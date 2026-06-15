@@ -55,13 +55,13 @@ Every GLM has three parts:
 
 The common choices in ecology are:
 
-| Response | Distribution | Default link | Mean constrained to |
+| Response | Distribution | Typical link | Mean constrained to |
 | :--- | :--- | :--- | :--- |
 | Continuous, symmetric | Normal (Gaussian) | identity | all real numbers |
 | Counts | Poisson | log | $> 0$ |
 | Overdispersed counts | negative binomial | log | $> 0$ |
 | Presence-absence, proportions | binomial | logit | $[0, 1]$ |
-| Positive, right-skewed (e.g. biomass) | Gamma | log | $> 0$ |
+| Positive, right-skewed (e.g. biomass) | Gamma | log (R's default is inverse) | $> 0$ |
 
 Ordinary multiple regression is simply the GLM with a Normal distribution and an identity link, so a GLM is a generalisation rather than a different method.
 
@@ -144,7 +144,7 @@ negbin$theta # large theta => close to Poisson
 AIC(pois, negbin)
 ```
 
-Here $\theta$ is large and the negative binomial AIC barely improves on the Poisson, confirming that the overdispersion is mild and the conclusions do not change under that alternative. That is a good outcome which you can only establish it by checking it specifically. When the dispersion ratio is large (say above 2) and $\theta$ is small, the negative binomial standard errors are substantially wider than the Poisson ones, and reporting the Poisson model would be an error.
+Here $\theta$ is large and the negative binomial AIC does not improve on the Poisson, confirming that the overdispersion is mild and the conclusions do not change under that alternative. That is a good outcome, but one you can establish only by checking it specifically. When the dispersion ratio is large (say above 2) and $\theta$ is small, the negative binomial standard errors are substantially wider than the Poisson ones, and reporting the Poisson model would be an error.
 
 ::: {.callout-note appearance="simple"}
 ## Overdispersion is not the same as excess zeros
@@ -166,7 +166,7 @@ offset_mod <- glm(
 coef(summary(offset_mod))
 ```
 
-The model now describes the trout's expected *share* of the community: that share rises with elevation and falls with organic pollution, which places brown trout clearly in the clean, cool, upstream reaches. Because total abundance enters through the offset rather than as an ordinary predictor, its coefficient is not estimated; it simply rescales each site's expected count to its community size.
+The model now describes the trout's expected *share* of the community: that share rises with elevation and falls with organic pollution, which places brown trout clearly in the clean, cool, upstream reaches. Here `total` includes brown trout itself, so this is a proportional-abundance interpretation within the observed community total, not a model of trout relative to all *other* fish. Because total abundance enters through the offset rather than as an ordinary predictor, its coefficient is not estimated; it simply rescales each site's expected count to its community size.
 
 ## Logistic Regression for Presence-Absence
 
@@ -217,7 +217,7 @@ Both predictors are clearly significant by the likelihood-ratio test, which here
 
 ## Diagnostics for GLMs
 
-The residuals-vs-fitted method of linear models does not transfer cleanly to GLMs, because the residuals are expected to be heteroscedastic from the onset. Use **deviance residuals** and read the plots with that in mind:
+The residuals-vs-fitted method of linear models does not transfer cleanly to GLMs, because the residuals are expected to be heteroscedastic from the outset. Use **deviance residuals** and read the plots with that in mind:
 
 ```{r fig-glm-diagnostics}
 #| fig-width: 7

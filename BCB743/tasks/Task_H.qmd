@@ -31,7 +31,7 @@ ggplot2::theme_set(
 
 Work through these exercises after reading the [Distance-Based Redundancy Analysis](../constrained_ordination.qmd) chapter. It rehearses the workflow you will need for the [integrative project](../assessments/BCB743_integrative_assignment.qmd), here on the familiar Doubs and mite data. Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
-1. Using the Doubs fish data as the response and the Doubs environmental data as predictors, run a db-RDA with `capscale()` on a Bray-Curtis dissimilarity, constraining composition by a sensible subset of the environmental variables. Report the permutation test of the whole model (`anova(...)`), the adjusted $R^2$ (`RsquareAdj()`), and the proportion of total inertia that is constrained.
+1. Using the Doubs fish data as the response and the Doubs environmental data as predictors, run a db-RDA with `capscale()` on a Bray-Curtis dissimilarity, constraining composition by a sensible subset of the environmental variables. Report the permutation test of the whole model (`anova(...)`), the adjusted $R^2$ (`RsquareAdj()`), and the proportion of positive ordination inertia that is constrained.
 
 ::: {.callout-note collapse="true"}
 ## Show the answer
@@ -60,11 +60,13 @@ dbrda <- capscale(
 )
 anova(dbrda) # permutation test of the whole model
 adjR <- RsquareAdj(dbrda)$adj.r.squared
-prop_constr <- dbrda$CCA$tot.chi / dbrda$tot.chi
+dbrda_summary <- summary(dbrda)
+constrained_axes <- grepl("^CAP", colnames(dbrda_summary$cont$importance))
+prop_constr <- sum(dbrda_summary$cont$importance["Proportion Explained", constrained_axes])
 c(adj_R2 = round(adjR, 3), prop_constrained = round(prop_constr, 3))
 ```
 
-The whole-model permutation test is highly significant, so the environmental subset explains more of the fish composition than chance would. The adjusted $R^2$ is **`r round(adjR, 2)`** and the constrained inertia is **`r round(100 * prop_constr, 1)`%** of the total: a sizeable, real share of compositional variation is attributable to these measured gradients, with the rest left unconstrained (unmeasured drivers and noise).
+The whole-model permutation test is highly significant, so the environmental subset explains more of the fish composition than chance would. The adjusted $R^2$ is **`r round(adjR, 2)`** and the constrained inertia is **`r round(100 * prop_constr, 1)`%** of the positive ordination inertia: a sizeable, real share of compositional variation is attributable to these measured gradients, with the rest left unconstrained (unmeasured drivers and noise).
 :::
 
 2. Check multicollinearity among the predictors with `vif.cca()`. Remove predictors with a VIF above 10 one at a time, refitting after each removal, and report the final predictor set.

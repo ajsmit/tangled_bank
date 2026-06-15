@@ -96,7 +96,7 @@ dat <- data.frame(richness = specnumber(spe), env)
 head(dat)
 ```
 
-The environmental variables are distance from source (`dfs`), elevation (`ele`), slope (`slo`), discharge (`dis`), pH, hardness (`har`), and four water-quality measures: phosphate (`pho`), nitrate (`nit`), ammonium (`amm`), dissolved oxygen (`oxy`), and biological oxygen demand (`bod`). The [Correlations](correlations.qmd) chapter already showed that several of these are tightly correlated, because they are joint expressions of the same upstream-downstream gradient. That correlation is about to cause trouble.
+The environmental variables are distance from source (`dfs`), elevation (`ele`), slope (`slo`), discharge (`dis`), pH, hardness (`har`), and five water-quality measures: phosphate (`pho`), nitrate (`nit`), ammonium (`amm`), dissolved oxygen (`oxy`), and biological oxygen demand (`bod`). The [Correlations](correlations.qmd) chapter already showed that several of these are tightly correlated, because they are joint expressions of the same upstream-downstream gradient. That correlation is about to cause trouble.
 
 ## Fitting and Interpreting the Model
 
@@ -126,7 +126,7 @@ When predictors are correlated, their estimated coefficients become unstable: sm
 vif(full_model)
 ```
 
-Several predictors have excesive VIFs, with distance from source the worst offender, because elevation, discharge, and distance from source are essentially three measurements of position along the river. I prune the predictor set by removing the variable with the highest VIF, refitting, and repeating until every VIF falls below 10:
+Several predictors have excessive VIFs, with distance from source the worst offender, because elevation, discharge, and distance from source are essentially three measurements of position along the river. I prune the predictor set by removing the variable with the highest VIF, refitting, and repeating until every VIF falls below 10:
 
 ```{r code-vif-prune}
 preds <- c("ele", "slo", "oxy", "nit", "amm", "bod", "dfs", "dis")
@@ -247,6 +247,8 @@ A fitted model predicts the response at new predictor values, with intervals tha
 
 ```{r code-predict}
 new_site <- data.frame(ele = 300, oxy = 9, bod = 3)
+final_terms <- attr(terms(final_model), "term.labels")
+stopifnot(setequal(final_terms, names(new_site)))
 predict(final_model, new_site, interval = "confidence")
 ```
 

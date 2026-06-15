@@ -31,7 +31,7 @@ ggplot2::theme_set(
 
 Work through these exercises after reading the [Mixed Models](../mixed_models.qmd) chapter, using the **vegan** `pyrifos` dataset (`data(pyrifos)`) --- aquatic invertebrate communities from 12 mesocosm ditches sampled repeatedly over 11 weeks following insecticide (chlorpyrifos) dosing. Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
 
-1. Reconstruct the design factors (`ditch`, `week` and `dose`; see `?pyrifos`) and build a univariate response, for example total abundance (`rowSums(pyrifos)`) or richness (`vegan::specnumber(pyrifos)`). Fit a naive model that ignores ditch (an `lm()`, or a `glm()` for a count response, of the response on `dose`), and inspect the residuals for the repeated-measures structure.
+1. Reconstruct the design factors (`ditch`, `week` and `dose`; see `?pyrifos`) and build a univariate response, for example a summed log-abundance / community-size index (`rowSums(pyrifos)`) or richness (`vegan::specnumber(pyrifos)`). Fit a naive model that ignores ditch (an `lm()`, or a `glm()` for a count response, of the response on `dose`), and inspect the residuals for the repeated-measures structure.
 
 ::: {.callout-note collapse="true"}
 ## Show the answer
@@ -50,9 +50,9 @@ week  <- gl(11, 12, labels = c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24))
 dose  <- factor(rep(c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6), 11))
 ditch <- gl(12, 1, length = 132)
 
-dat <- tibble(total = rowSums(pyrifos), dose, week, ditch)   # pyrifos is ln-transformed abundance
+dat <- tibble(comm_index = rowSums(pyrifos), dose, week, ditch) # pyrifos is ln-transformed abundance
 
-naive <- lm(total ~ dose, data = dat)                        # ignores ditch
+naive <- lm(comm_index ~ dose, data = dat)                    # ignores ditch
 summary(naive)$coefficients
 ```
 
@@ -67,7 +67,7 @@ The 132 rows are 12 ditches each sampled at 11 weeks, so they are **not** indepe
 ```{r}
 #| code-fold: false
 #| label: task-n-q2
-mm <- lmer(total ~ dose + (1 | ditch), data = dat)
+mm <- lmer(comm_index ~ dose + (1 | ditch), data = dat)
 
 se_naive <- summary(naive)$coefficients[, "Std. Error"]
 se_mm    <- summary(mm)$coefficients[, "Std. Error"]
@@ -89,7 +89,7 @@ icc(mm)
 VarCorr(mm)                                    # the variance components behind the ICC
 ```
 
-The ICC is the between-ditch variance divided by the total (between-ditch plus residual within-ditch) variance, so it is the proportion of variation that lives *between* ditches rather than within them. The adjusted ICC here is only **`r round(performance::icc(mm)$ICC_adjusted, 2)`**, modest mainly because the large week-to-week swings in total abundance inflate the *within*-ditch variance. Even so the random effect matters: with eleven samples per ditch the design effect is roughly $1 + (n - 1)\times\text{ICC}$, which is why the dose standard error still grew by about a quarter in Exercise 2. The lesson is that a random effect can be necessary for honest inference even when the ICC itself is small, once each cluster is sampled many times.
+The ICC is the between-ditch variance divided by the total (between-ditch plus residual within-ditch) variance, so it is the proportion of variation that lives *between* ditches rather than within them. The adjusted ICC here is only **`r round(performance::icc(mm)$ICC_adjusted, 2)`**, modest mainly because the large week-to-week swings in the summed log-abundance index inflate the *within*-ditch variance. Even so the random effect matters: with eleven samples per ditch the design effect is roughly $1 + (n - 1)\times\text{ICC}$, which is why the dose standard error still grew by about a quarter in Exercise 2. The lesson is that a random effect can be necessary for honest inference even when the ICC itself is small, once each cluster is sampled many times.
 :::
 
 4. Add `week` to the model and test whether a `dose`-by-`week` interaction, or a random slope for week within ditch, is supported. Watch for and report any singular fits.
@@ -102,11 +102,11 @@ The ICC is the between-ditch variance divided by the total (between-ditch plus r
 #| label: task-n-q4
 dat$week_num <- as.numeric(as.character(dat$week))         # treat sampling time as continuous
 
-m_main <- lmer(total ~ dose + week_num + (1 | ditch), data = dat, REML = FALSE)
-m_int  <- lmer(total ~ dose * week_num + (1 | ditch), data = dat, REML = FALSE)
+m_main <- lmer(comm_index ~ dose + week_num + (1 | ditch), data = dat, REML = FALSE)
+m_int  <- lmer(comm_index ~ dose * week_num + (1 | ditch), data = dat, REML = FALSE)
 anova(m_main, m_int)                           # is the dose-by-time interaction supported?
 
-m_slope <- lmer(total ~ dose + week_num + (1 + week_num | ditch), data = dat)
+m_slope <- lmer(comm_index ~ dose + week_num + (1 + week_num | ditch), data = dat)
 isSingular(m_slope)                            # TRUE = the random-slope structure is unsupported
 ```
 
