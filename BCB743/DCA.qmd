@@ -1,6 +1,6 @@
 ---
 date: last-modified
-title: "9b: Detrended Correspondence Analysis (DCA)"
+title: "9: Detrended Correspondence Analysis (DCA)"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -47,16 +47,16 @@ library(ggpubr)
 :::
 
 
-Environmental gradients often support a turnover of species due to their unimodal distributions in response to environmental factors. As one moves along the gradient, contiguous sites become increasingly dissimilar. In long gradients, this can result in sites at opposite ends having no species in common. Consequently, at maximum distances between sites, I typically find completely distinct species compositions.
+Environmental gradients often support a turnover of species, since species have unimodal distributions in response to environmental factors. As one moves along the gradient, contiguous sites become increasingly dissimilar. Along a long gradient, the sites at opposite ends can share no species at all, so their compositions are entirely distinct.
 
-When plotted on a pair of Correspondence Analysis (CA) axes, this gradient is represented as an arch rather than a linear trend. This phenomenon leads to two major problems in CA:
+When plotted on a pair of Correspondence Analysis (CA) axes, this gradient appears as an arch rather than a linear trend. The arch creates two problems in CA:
 
 - The arch effect, caused by unimodal species response curves
 - The compression of the gradient ends
 
-Due to the arch effect, the second CA axis is often an artefact, and difficult to interpret ecologically. The compression issue means that the spacing of samples and species along the first axis may not correctly reflect the amount of change ($\beta$-diversity) along the primary gradient. However, the arch effect in CA is less severe than the horseshoe effect in Principal Component Analysis (PCA), and the samples are still ordered correctly relative to each other.
+Because of the arch effect, the second CA axis is often an artefact and difficult to interpret ecologically. The compression means that the spacing of samples and species along the first axis may not correctly reflect the amount of change ($\beta$-diversity) along the primary gradient. The arch effect in CA is milder than the horseshoe effect in Principal Component Analysis (PCA), and the samples remain ordered correctly relative to each other.
 
-Detrended Correspondence Analysis (DCA) addresses these issues by removing the arch effect through a process called detrending. This involves segmenting the first axis into equal intervals and adjusting the scores within each segment to remove systematic distortions caused by the arch effect. It maintains the use of $\chi^2$ distances while improving the interpretability of the ordination results.
+Detrended Correspondence Analysis (DCA) removes the arch effect through a process called detrending. Detrending segments the first axis into equal intervals and adjusts the scores within each segment to remove the systematic distortions the arch introduces. It keeps the $\chi^2$ distances while improving the interpretability of the ordination results.
 
 A second step, **rescaling**, addresses the compression. DCA stretches and shrinks the segments of the first axis so that a unit of axis length corresponds to a constant amount of species turnover, measured in standard-deviation units of $\beta$-diversity. The compressed ends of the CA axis are pulled back out to an even spacing (@fig-dca-compression), so that equal distances on the axis represent equal amounts of compositional change.
 
@@ -85,7 +85,7 @@ ggplot(comp, aes(x, row)) +
   theme(panel.grid = element_blank())
 ```
 
-To see detrending on real data I switch, for this chapter only, from the Doubs River to the **dune** meadow dataset that ships with **vegan**. The dune data show the arch more clearly than the Doubs fish data, so the contrast between CA and DCA is easier to see; the principle is identical. The arch is plain in the CA panel of @fig-ca-dca, where the sites lie along a curved locus, and the DCA panel shows the same sites with the arch removed.
+To see detrending on real data I switch, for this chapter only, from the Doubs River to the **dune** meadow dataset supplied with **vegan**. The dune data show the arch more clearly than the Doubs fish data, so the contrast between CA and DCA is easier to see. The principle is identical. The arch is plain in the CA panel of @fig-ca-dca, where the sites lie along a curved locus, and the DCA panel shows the same sites with the arch removed.
 
 ```{r fig-ca-dca, fig.height=4, fig.width=8}
 #| fig.align: center
@@ -120,13 +120,13 @@ ggarrange(ca_plot, dca_plot, ncol = 2, labels = "AUTO")
 
 ## Using the Gradient Length to Choose a Method
 
-The first-axis gradient length is more than a description; it is a practical guide to *which* ordination method suits the data. A widely used **rule of thumb** reads the length of the first DCA axis in SD units of $\beta$-diversity:
+The first-axis gradient length guides *which* ordination method suits the data. A widely used **rule of thumb** takes the length of the first DCA axis in SD units of $\beta$-diversity:
 
 - **below *ca.* 2 SD**, the gradient is short, species responses are approximately monotonic over the sampled range, and **linear** methods (PCA, RDA) are appropriate;
-- **above *ca.* 4 SD**, the gradient is long, species turn over enough that responses are clearly unimodal, and **unimodal** methods (CA, CCA, or distance-based ordination) are preferable;
-- **between 2 and 4 SD**, the choice is not clear-cut, and it is worth fitting and comparing both families.
+- **above *ca.* 4 SD**, the gradient is long, species turn over enough that responses are unimodal, and **unimodal** methods (CA, CCA, or distance-based ordination) are preferable;
+- **between 2 and 4 SD**, the choice is not clear-cut, and it is worth fitting and comparing both groups.
 
-The length comes straight from the `decorana` output (the **Axis lengths** row), or equivalently from the spread of the site scores along DCA1. The worked example below reads it for the dune meadows used above and, for contrast, for the Doubs fish.
+The length comes straight from the `decorana` output (the **Axis lengths** row), or equivalently from the spread of the site scores along DCA1. The worked example below computes it for the dune meadows used above and, for contrast, for the Doubs fish.
 
 ```{r}
 #| code-fold: true
@@ -139,13 +139,13 @@ doubs_len <- diff(range(scores(decorana(spe), display = "sites", choices = 1)))
 c(dune = round(dune_len, 2), doubs = round(doubs_len, 2))
 ```
 
-The dune meadows span about `r round(dune_len, 1)` SD and the Doubs fish about `r round(doubs_len, 1)` SD. Both sit in the ambiguous 2--4 SD band, near its upper end, so the responsible choice is to fit and compare both linear and unimodal families rather than declare one by rule. That is consistent with the arch CA produced for each and with the unimodal species responses seen in the [Correspondence Analysis](CA.qmd) chapter; a short gradient (below 2 SD) would instead have justified a linear PCA or RDA on the raw data with more confidence. This single number turns the choice of ordination from a matter of habit into a decision the data can inform.
+The dune meadows span about `r round(dune_len, 1)` SD and the Doubs fish about `r round(doubs_len, 1)` SD. Both fall in the ambiguous 2--4 SD band, near its upper end, so the responsible choice is to fit and compare both linear and unimodal groups rather than declare one by rule. That is consistent with the arch CA produced for each and with the unimodal species responses seen in the [Correspondence Analysis](CA.qmd) chapter. A short gradient (below 2 SD) would instead have justified a linear PCA or RDA on the raw data with more confidence. This single number turns the choice of ordination from a matter of habit into a decision the data can inform.
 
 ## Why DCA Is Rarely Used Today
 
 DCA was widely used in vegetation ecology through the 1980s and 1990s because it corrected two well-recognised artefacts of Correspondence Analysis, namely the arch effect and the compression of gradient ends. For a time it was among the most common ordination methods in the field.
 
-It is used far less now. Detrending and rescaling are algorithmic corrections rather than properties that follow from an ecological model, so the adjusted axes can be hard to interpret, and different software implementations can give slightly different results. The corrections also treat the symptom, the arch, rather than its cause, which is a linear geometry applied to unimodal data.
+It is used far less now. Detrending and rescaling are algorithmic corrections rather than properties that follow from an ecological model, so the adjusted axes can be hard to interpret, and different software implementations can give slightly different results. The corrections also address the arch itself rather than its cause, a linear geometry applied to unimodal data.
 
 Modern analyses more often prefer Principal Coordinates Analysis (PCoA), non-metric Multidimensional Scaling (nMDS), and the constrained methods. These begin from a distance measure the analyst chooses on ecological grounds, give axes that are easier to interpret, and connect more directly to hypothesis testing. I include DCA here because it has earned its place as a piece of methodological history.
 

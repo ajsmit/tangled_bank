@@ -1,6 +1,6 @@
 ---
 date: last-modified
-title: "11b: Community Analysis Case Study: Mayombo's Diatom Data"
+title: "12: Community Analysis Case Study: Mayombo's Diatom Data"
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -23,7 +23,7 @@ ggplot2::theme_set(
 )
 ```
 
-<!-- # Topic 11: Community analysis case study (Mayombo et al. 2019) -->
+<!-- # Topic 12: Community analysis case study (Mayombo et al. 2019) -->
 
 ::: callout-tip
 ## **Material Required for This Chapter**
@@ -36,7 +36,7 @@ ggplot2::theme_set(
 |                | Diatom environmental data                | [💾 `PB_diat_env.csv`](../data/BCB743/diatoms/PB_diat_env.csv)                           |
 :::
 
-Kelp forests are known to host a large biomass of epiphytic fauna and flora, including diatoms, which constitute the base of aquatic food webs and play an important role in the transfer of energy to higher trophic levels. Epiphytic diatom assemblages associated with two common species of South African kelps, *Ecklonia maxima* and *Laminaria pallida*, were investigated in this study. Primary blades of adult and juvenile thalli of both kelp species were sampled at False Bay in July 2017 and analysed using scanning electron microscopy. The diatom community data are here subjected to a suite of multivariate methods to show the structure of the diatom flora as a function of i) kelp species and ii) kelp size. Read @mayombo2019diatoms for more details and the findings of the research.
+Kelp forests host a large biomass of epiphytic fauna and flora, including diatoms, which form the base of aquatic food webs and transfer energy to higher trophic levels. This study investigated the epiphytic diatom assemblages associated with two common species of South African kelps, *Ecklonia maxima* and *Laminaria pallida*. Primary blades of adult and juvenile thalli of both kelp species were sampled at False Bay in July 2017 and analysed using scanning electron microscopy. The diatom community data are here subjected to a suite of multivariate methods to show the structure of the diatom flora as a function of i) kelp species and ii) kelp size. Read @mayombo2019diatoms for more details and the findings of the research.
 
 This chapter is less an nMDS tutorial than a worked case study in how a community-ecology analysis is built, from the sampling design through to species-level interpretation. The nMDS is one step in that sequence. The workflow runs from the species matrix to a statement about which diatoms drive any pattern (@fig-diatom-workflow), and each step answers a distinct question.
 
@@ -134,7 +134,7 @@ colnames(spp) <- str_replace(colnames(spp), "\\.spp", "")
 colnames(spp2) <- str_replace(colnames(spp2), "\\.spp", "")
 ```
 
-Logarithmic transformation as suggested by @anderson2006distance: $log_{b}(x) + 1$ for $x > 0$, where $b$ is the base of the logarithm; zeros are left as zeros. Higher bases give less weight to quantities and more to presences.
+Logarithmic transformation as suggested by @anderson2006distance, namely $log_{b}(x) + 1$ for $x > 0$, where $b$ is the base of the logarithm, with zeros left as zeros. Higher bases give less weight to quantities and more to presences.
 
 ```{r code-spp-log-decostand-spp}
 spp.log <- decostand(spp, method = "log")
@@ -145,7 +145,7 @@ By default, `decostand(method = "log")` uses a base-2 logarithm. That choice is 
 
 ### The predictors
 
-The content is described above. These variables are categorical, and they are not actually 'environmental' data, but their purpose in the analysis is analogous to true environmental data, namely they describe where the samples were taken from.
+The content is described above. These variables are categorical, and although not strictly 'environmental' data, they serve the same purpose in the analysis as true environmental data, namely they describe where the samples were taken from.
 
 ```{r code-env-tibble-read-csv}
 env <- tibble(
@@ -171,9 +171,9 @@ I will do an nMDS and PERMANOVA.
 
 Before doing the PERMANOVA (testing differences between means), first check to see if the dispersion is the same. See `?adonis2` for more on this.
 
-**Homogeneity of groups** `betadisper()` evaluates the differences in group homogeneities. I can view it as being analogous to Levene's test of the equality of variances. The null hypothesis evaluated is that the multivariate dispersions (the average distance of group members to their group centroid) are equal across groups. Unfortunately I can only use one factor as an independent variable so it is not yet possible to look for interactions (species × size).
+**Homogeneity of groups** `betadisper()` evaluates the differences in group homogeneities. I treat it as analogous to Levene's test of the equality of variances. The null hypothesis evaluated is that the multivariate dispersions (the average distance of group members to their group centroid) are equal across groups. Unfortunately I can only use one factor as an independent variable so it is not yet possible to look for interactions (species × size).
 
-So, I test the $H_{0}$ that the dispersion (variance) in diatom community structure does not differ between the two host species:
+I test the $H_{0}$ that the dispersion (variance) in diatom community structure does not differ between the two host species:
 
 ```{r code-mod-spp-with-env}
 (mod.spp <- with(env, betadisper(spp.log.dis, host_spp)))
@@ -212,9 +212,9 @@ It should be enough to do the `anova()`, above, though. You can safely ignore th
 
 ## PERMANOVA
 
-Permutational Multivariate Analysis of Variance (PERMANOVA; @anderson2013permanova) uses distance or dissimilarity matrices (Bray-Curtis dissimilarities in this example), whereas ANOSIM uses only ranks of the dissimilarities. The former therefore preserves more information and it is the recommended approach to test for differences between multivariate means. PERMANOVA also allows for variation partitioning and permits for more complex designs (multiple factors, nested factors, interactions, covariates, etc.). To this end, I use `adonis2()` to evaluate the differences in the group means, which makes it analogous to multivariate analysis of variance.
+Permutational Multivariate Analysis of Variance (PERMANOVA; @anderson2013permanova) uses distance or dissimilarity matrices (Bray-Curtis dissimilarities in this example), whereas ANOSIM uses only ranks of the dissimilarities. The former preserves more information and is the recommended approach to test for differences between multivariate means. PERMANOVA also allows for variation partitioning and permits more complex designs (multiple factors, nested factors, interactions, covariates, etc.). I use `adonis2()` to evaluate the differences in the group means, which makes it analogous to multivariate analysis of variance.
 
-Note that nestedness should be stated in the blocks (plants): "If you have a nested error structure, so that you do not want your data be shuffled over classes (blocks), you should define blocks in your permutation" (Jari Oksanen).
+Nestedness should be stated in the blocks (plants): "If you have a nested error structure, so that you do not want your data be shuffled over classes (blocks), you should define blocks in your permutation" (Jari Oksanen).
 
 ```{r code-perm-how-nperm}
 # the permutational structure captures the nesting of replicates within plant
@@ -233,14 +233,14 @@ The test returns `Pr(>F) = 1`, which looks alarming but follows directly from th
 ::: {.callout-note appearance="simple"}
 ## Why Is Pr(>F) Exactly 1?
 
-A *p*-value of 1 looks like a broken analysis, but here it is a logical consequence of the blocked permutation. Host species and host size are fixed properties of each whole plant, while the blocks restrict permutations to *within* each plant. Because every sample from a plant shares that plant's species and size, no within-plant shuffle can change the group labels: the model matrix is identical under every permutation, so every permuted *F* equals the observed *F*, and `Pr(>F)` comes out at exactly 1.
+A *p*-value of 1 looks like a broken analysis, but here it is a logical consequence of the blocked permutation. Host species and host size are fixed properties of each whole plant, while the blocks restrict permutations to *within* each plant. Because every sample from a plant shares that plant's species and size, no within-plant shuffle can change the group labels. The model matrix is identical under every permutation, so every permuted *F* equals the observed *F*, and `Pr(>F)` comes out at exactly 1.
 
-The defensible reading is therefore not "there is strong evidence of no effect" but "this design, with permutations correctly restricted to respect the nesting, cannot by itself test a treatment that is applied at the plant level." Properly testing the species or size effect would mean permuting whole plants between treatment groups, since the plant, not the subsample, is the true unit of replication. The two other results point the same way, and more interpretably: the dispersions are homogeneous (above) and the nMDS groups overlap broadly (below). Together they support the conclusion that the diatom assemblages do not separate clearly by host species or size.
+The defensible interpretation is not "there is strong evidence of no effect" but "this design, with permutations correctly restricted to respect the nesting, cannot by itself test a treatment that is applied at the plant level." Properly testing the species or size effect would mean permuting whole plants between treatment groups, since the plant, not the subsample, is the true unit of replication. The two other results point the same way, and more interpretably. The dispersions are homogeneous (above) and the nMDS groups overlap broadly (below). Together they support the conclusion that the diatom assemblages do not separate clearly by host species or size.
 :::
 
 ## nMDS
 
-The dispersion test and PERMANOVA asked, numerically, whether the groups differ. The nMDS now shows the community structure those tests were probing, so that the number and the picture can be read together. The two should agree: if the tests find no separation, the ordination should show overlapping groups.
+The dispersion test and PERMANOVA asked, numerically, whether the groups differ. The nMDS now shows the community structure those tests were probing, so the number and the picture can be considered together. The two should agree. If the tests find no separation, the ordination should show overlapping groups.
 
 Do the nMDS and assemble the figures:
 
@@ -362,19 +362,19 @@ par(opar)
 The two bottom panels are the ordinations to interpret, coloured by host species (left) and by host size (right). The spiders join each sample to its group centroid and the ellipses show each group's spread.
 
 - **The host-species groups overlap almost entirely.** Their centroids sit close together, differing by only about 0.1 on the first axis against a within-group spread of roughly 0.5, and the ellipses are nearly concentric.
-- **The adult and juvenile groups overlap to the same degree.** Neither host species nor host size carves out a distinct region of the ordination.
-- **The picture agrees with the tests.** Broad overlap is what homogeneous dispersions and a PERMANOVA that detects no difference would predict, so the visual and the numerical results tell one story.
-- **Read the broad pattern, not the fine detail.** The stress is about 0.19, in the "so-so" band, so the two-dimensional map is only a moderate summary of the full community structure. The species names placed by `orditorp()` mark roughly where each diatom is most abundant, and their exact positions should not be over-interpreted.
+- **The adult and juvenile groups overlap to the same degree.** Neither host species nor host size defines a distinct region of the ordination.
+- **The picture agrees with the tests.** Broad overlap is what homogeneous dispersions and a PERMANOVA that detects no difference would predict, so the visual and the numerical results agree.
+- **Interpret the broad pattern, not the fine detail.** The stress is about 0.19, in the usable range where only the broad pattern should be trusted, so the two-dimensional map is only a moderate summary of the full community structure. The species names placed by `orditorp()` mark roughly where each diatom is most abundant, and their exact positions should not be over-interpreted.
 
 ## Multivariate Abundance Using Generalised Linear Models
 
 ::: {.callout-note appearance="simple"}
 ## What manyglm Adds
 
-PERMANOVA asks whether the communities differ overall. It cannot say which taxa are associated with the difference. `manyglm()` fits a separate generalised linear model to each diatom species and tests them together, so it can identify the individual taxa whose abundances differ among groups. The two methods are complementary: first the community question, then the species question.
+PERMANOVA asks whether the communities differ overall. It cannot say which taxa are associated with the difference. `manyglm()` fits a separate generalised linear model to each diatom species and tests them together, so it can identify the individual taxa whose abundances differ among groups. The two methods are complementary, addressing first the community question and then the species question.
 :::
 
-What follows is an example of *model-based multivariate analysis*, an alternative to the distance-based methods used above. A full treatment is beyond this chapter; the aim here is to show the kind of question the method answers and to reproduce the analysis from @mayombo2019diatoms. For the underlying theory, see @wang2012mvabund and @wang2017mvabund.
+What follows is an example of *model-based multivariate analysis*, an alternative to the distance-based methods used above. A full treatment is beyond this chapter. The aim here is to show the kind of question the method answers and to reproduce the analysis from @mayombo2019diatoms. For the underlying theory, see @wang2012mvabund and @wang2017mvabund.
 
 ```{r code-library-mvabund}
 library(mvabund)

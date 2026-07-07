@@ -43,13 +43,13 @@ ggplot2::theme_set(
 * [Task F 1--6](tasks/Task_F.qmd)
 :::
 
-Suppose two river sites share not a single species. Ecologically they could hardly be more different, and a dissimilarity measure such as Bray-Curtis records that difference exactly. PCA cannot ordinate a Bray-Curtis matrix: it is built on Euclidean distance, just as CA is built on $\chi^2$ distance, so each fixes the geometry in advance. Principal Coordinates Analysis (PCoA) removes that constraint. It takes a dissimilarity matrix, computed with whatever measure is ecologically appropriate, and finds the low-dimensional arrangement of sites that best preserves those dissimilarities. So, I shift from ordinating *variables* to ordinating *distances*, and that is the principle behind this chapter.
+Suppose two river sites share not a single species. Ecologically they could hardly be more different, and a dissimilarity measure such as Bray-Curtis records that difference exactly. PCA cannot ordinate a Bray-Curtis matrix, because it is built on Euclidean distance, just as CA is built on $\chi^2$ distance. Each fixes the geometry in advance. Principal Coordinates Analysis (PCoA) removes that constraint. It takes a dissimilarity matrix, computed with whatever measure is ecologically appropriate, and finds the low-dimensional arrangement of sites that best preserves those dissimilarities. So, I shift from ordinating *variables* to ordinating *distances*, and that is the principle behind this chapter.
 
-PCoA is also known as Classical Multidimensional Scaling (MDS). It is an ordination technique used to analyse and represent multivariate data based on a (dis)similarity matrix. I use PCoA when it is necessary to specify dissimilarity measures other than Euclidean distance or $\chi^2$ distance, as in PCA, and CA, respectively.
+PCoA is also known as Classical Multidimensional Scaling (MDS). It analyses and represents multivariate data from a (dis)similarity matrix. I use PCoA when I need a dissimilarity measure other than the Euclidean distance of PCA or the $\chi^2$ distance of CA.
 
 Unlike PCA and CA, which operate directly on the raw data matrix, PCoA takes a (dis)similarity matrix as input. This matrix can be calculated using various dissimilarity measures available in **vegan**'s `vegdist()` function, which may be necessary when my dataset includes quantitative, semi-quantitative, qualitative, and mixed variables. If the dissimilarities are Euclidean distances among centred observations, PCoA results are equivalent to those obtained from PCA, up to ordinary differences in scaling, signs, and rotation.
 
-That flexibility is what places PCoA in the wider ordination landscape. The choice of method follows from the kind of difference between sites that is ecologically relevant:
+That flexibility is what gives PCoA its place among the ordination methods. The choice of method follows from the kind of difference between sites that is ecologically relevant:
 
 | Situation | Suitable method |
 | :--- | :--- |
@@ -58,7 +58,7 @@ That flexibility is what places PCoA in the wider ordination landscape. The choi
 | Any ecological distance, such as Bray-Curtis | PCoA |
 | Rank-order dissimilarities | nMDS |
 
-The workflow is always the same, so I build a dissimilarity matrix from the data, then ordinate the matrix (@fig-pcoa-workflow). The first step is where the ecology enters, since that is where you choose how two sites are to be compared.
+The workflow is always the same, so I build a dissimilarity matrix from the data, then ordinate the matrix (@fig-pcoa-workflow). The first step is the ecological one, since that is where you choose how two sites are to be compared.
 
 ```{mermaid}
 %%| label: fig-pcoa-workflow
@@ -71,11 +71,11 @@ flowchart TD
   D --> E["Ordination plot"]
 ```
 
-PCoA performs a dimensionality reduction on the (dis)similarity matrix, scaling the dissimilarities, and returning a set of points in a lower-dimensional space (typically 2D, or 3D). When plotted, the Euclidean distances between these points approximate the original dissimilarities, effectively representing the dissimilarities between objects as Euclidean distances in a lower-dimensional space. This representation can be helpful in visualising, and interpreting complex relationships in a more interpretable form.
+PCoA performs a dimensionality reduction on the (dis)similarity matrix, scaling the dissimilarities and returning a set of points in a lower-dimensional space (typically 2D or 3D). When plotted, the Euclidean distances between these points approximate the original dissimilarities, representing the dissimilarities between objects as Euclidean distances in a lower-dimensional space. This representation helps in visualising and interpreting complex relationships.
 
-Conceptually, PCoA is similar to PCA and CA in that it aims to represent the relationships between objects in a lower-dimensional space. However, it differs in its approach to preserving distances. While PCA preserves Euclidean distances between objects and CA preserves $\chi^2$ distances, PCoA starts from whichever (dis)similarity measure is provided as input. If that dissimilarity is Euclidean, the full set of real axes can reproduce it exactly; if it is not Euclidean, PCoA gives the best real-coordinate representation and may report negative eigenvalues for the part that cannot be embedded.
+PCoA resembles PCA and CA in aiming to represent the relationships between objects in a lower-dimensional space, and it differs in how it preserves distances. PCA preserves Euclidean distances between objects and CA preserves $\chi^2$ distances, whereas PCoA starts from whichever (dis)similarity measure is provided as input. If that dissimilarity is Euclidean, the full set of real axes can reproduce it exactly. If it is not Euclidean, PCoA gives the best real-coordinate representation and may report negative eigenvalues for the part that cannot be embedded.
 
-The cleanest way to hold the relationship in mind is that PCoA generalises the geometry of PCA. PCA is the special case of PCoA that you obtain when the chosen dissimilarity is Euclidean:
+PCoA generalises the geometry of PCA, which is the cleanest way to see the relationship. PCA is the special case of PCoA obtained when the chosen dissimilarity is Euclidean:
 
 | PCA | PCoA |
 | :--- | :--- |
@@ -84,7 +84,7 @@ The cleanest way to hold the relationship in mind is that PCoA generalises the g
 | needs the raw variables | a distance matrix is enough |
 | a special case of distance ordination | the general distance ordination |
 
-In PCoA, the eigenvalues represent the extent to which each principal coordinate axis captures the variability in the original dissimilarity matrix. The proportion of a given positive eigenvalue to the sum of positive eigenvalues indicates the relative importance of each real axis, but this proportion must be read carefully when the dissimilarity is non-Euclidean and negative eigenvalues are present. Higher positive eigenvalues represent axes that capture more of the embeddable structure in the data, helping identify the strongest gradients in the dataset.
+In PCoA, the eigenvalues represent the extent to which each principal coordinate axis captures the variability in the original dissimilarity matrix. The proportion of a given positive eigenvalue to the sum of positive eigenvalues indicates the relative importance of each real axis, but this proportion must be interpreted carefully when the dissimilarity is non-Euclidean and negative eigenvalues are present. Higher positive eigenvalues mark axes that capture more of the embeddable structure in the data, which helps identify the strongest gradients in the dataset.
 
 When `capscale()` is given a raw community table and a distance method, it can add species scores as weighted averages of the site scores (wascores). If I instead supply only a precomputed dissimilarity matrix, that species information is no longer available from the input and the species scores are absent.
 
@@ -116,7 +116,7 @@ spe <- dplyr::slice(spe, -8)
 
 ## Calculate a Suitable Dissimilarity Matrix
 
-You may or may not want to calculate a dissimilarity index upfront (see below). Here I calculate the Bray-Curtis dissimilarity which is appropriate for abundance data:
+You can calculate a dissimilarity index upfront, or leave it to the function (see below). Here I calculate the Bray-Curtis dissimilarity, which suits abundance data:
 
 ```{r code-spe-bray-vegdist-spe}
 spe_bray <- vegdist(spe)
@@ -138,9 +138,9 @@ spe_pcoa
 ::: {.callout-note appearance="simple"}
 ## Why Are There Negative ("Imaginary") Eigenvalues?
 
-The printout reports a small **Imaginary** component (here about $-0.30$, against a real total of about $7.06$). This is expected, and is not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space; PCoA represents the part that will not embed as negative eigenvalues. When the negative component is small relative to the leading positive axes, the ordination on the first two or three axes is usually still useful, but the proportions of variation need to be read with that limitation in mind.
+The printout reports a small **Imaginary** component (here about $-0.30$, against a real total of about $7.06$). This is expected, not a sign of error. Bray-Curtis, and most ecological dissimilarities, are not Euclidean, so they cannot be embedded perfectly in real coordinate space. PCoA represents the part that will not embed as negative eigenvalues. When the negative component is small relative to the leading positive axes, the ordination on the first two or three axes is usually still useful, but the proportions of variation need to be interpreted with that limitation in mind.
 
-If the negative component is large enough to affect interpretation, there are standard corrections. A square-root transformation of the dissimilarities can often make semi-metric distances closer to Euclidean. Cailliez and Lingoes corrections add constants so the corrected matrix has no negative eigenvalues; these are available through `ape::pcoa(correction = "cailliez")` or `ape::pcoa(correction = "lingoes")`, and base R's `cmdscale(add = TRUE)` applies a Cailliez-style additive correction. The correction should be reported because it changes the geometry being analysed. One practical consequence of leaving negative eigenvalues in place is that the broken-stick test (`bstick()`) cannot be computed, which is why the scree plot below is drawn by hand.
+If the negative component is large enough to affect interpretation, there are standard corrections. A square-root transformation of the dissimilarities can often make semi-metric distances closer to Euclidean. Cailliez and Lingoes corrections add constants so the corrected matrix has no negative eigenvalues. These are available through `ape::pcoa(correction = "cailliez")` or `ape::pcoa(correction = "lingoes")`, and base R's `cmdscale(add = TRUE)` applies a Cailliez-style additive correction. The correction should be reported because it changes the geometry being analysed. One practical consequence of leaving negative eigenvalues in place is that the broken-stick test (`bstick()`) cannot be computed, which is why the scree plot below is drawn by hand.
 :::
 
 The `summary()` now produces output that should look familiar from PCA and CA, with the **Species scores** present because the raw table was supplied:
@@ -151,7 +151,7 @@ summary(spe_pcoa)
 
 ### How to Read This PCoA
 
-The detailed plotting comes later; the result itself comes first. @fig-pcoa-interp redraws the ordination with the sites coloured from source to mouth and the most distinctive species labelled.
+The result itself comes first, the detailed plotting later. @fig-pcoa-interp redraws the ordination with the sites coloured from source to mouth and the most distinctive species labelled.
 
 ```{r fig-pcoa-interp}
 #| fig-cap: "An annotated PCoA (Bray-Curtis) of the Doubs fish data. Points are sites, coloured from the source (dark) to the mouth (yellow); green crosses are species, labelled where they sit away from the crowded centre. MDS1 orders the sites along the river, as the arrow shows."
@@ -212,24 +212,24 @@ ggplot(pcoa_sites, aes(MDS1, MDS2)) +
   coord_equal()
 ```
 
-The ecological interpretation is the gradient I have met throughout the module:
+The ecological interpretation is the gradient seen throughout the module:
 
 - **MDS1 has about 52% of the positive inertia**, so it is the dominant pattern.
 - **The sites fall along MDS1 in river order**, from the source at one end to the mouth at the other. The Bray-Curtis ordination recovers the river sequence from species composition alone.
-- **The two faunas separate along MDS1.** The upstream end holds cool-water trout-zone species, brown trout (`Satr`) and minnow (`Phph`) among them; the downstream end holds lowland species such as bleak (`Alal`), roach (`Ruru`), and ruffe (`Gyce`).
-- **MDS1 is therefore the upstream-to-downstream river gradient**, the same gradient recovered by the [PCA of the environmental data](PCA.qmd) and the [CA of the fish](CA.qmd). Fitting the environmental vectors (below) confirms it: dissolved oxygen points towards the trout end, and distance from source, nitrate, and organic load towards the lowland end.
+- **The two faunas separate along MDS1.** The upstream end has cool-water trout-zone species, brown trout (`Satr`) and minnow (`Phph`) among them; the downstream end has lowland species such as bleak (`Alal`), roach (`Ruru`), and ruffe (`Gyce`).
+- **MDS1 is therefore the upstream-to-downstream river gradient**, the same gradient recovered by the [PCA of the environmental data](PCA.qmd) and the [CA of the fish](CA.qmd). Fitting the environmental vectors (below) confirms it. Dissolved oxygen points towards the trout end, and distance from source, nitrate, and organic load towards the lowland end.
 
-The ecological story is the point of the analysis. Two other ways to call the function, and how to recover species scores when a precomputed matrix leaves them out, are given in a note further down.
+The ecological pattern is the point of the analysis. Two other ways to call the function, and how to recover species scores when a precomputed matrix leaves them out, are given in a note further down.
 
 ### Eigenvalues and How Many Axes to Retain
 
-I can unpack what is inside the results, and there I can see that I can access the eigenvalues as I did for PCA, and CA:
+I can look inside the results and access the eigenvalues, as I did for PCA and CA:
 
 ```{r code-str-spe-pcoa-not-shown, eval=FALSE}
 str(spe_pcoa) # not shown due to length of output
 ```
 
-The percentage inertia explained by the first three axes is therefore:
+The percentage inertia explained by the first three axes is:
 
 ```{r code-round-sum-spe-pcoa-ca}
 round(sum(spe_pcoa$CA$eig[1:3]) / sum(spe_pcoa$CA$eig) * 100, 2)
@@ -259,13 +259,13 @@ plot(
 )
 ```
 
-The scree plot (@fig-pcoa-screeplot) shows the proportion of variation explained by the PC axes. In this case, I will still only retain the first two axes. I selected these because after the 2nd PC, the proportion of variance explained by each additional PC is less than 10%, and the plot starts levelling off.
+The scree plot (@fig-pcoa-screeplot) shows the proportion of variation explained by the PC axes. I retain only the first two axes, since after the 2nd PC the proportion of variance explained by each additional PC is less than 10%, and the plot starts levelling off.
 
 See *Numerical Ecology with R* (pp. 140 to 145) for information about the interpretation of a PCoA and the ordination diagrams shown below.
 
 ## Ordination Diagrams
 
-I create the ordination diagrammes as before:
+I create the ordination diagrams as before:
 
 ```{r fig-pcoa-biplots}
 #| fig-width: 10
@@ -279,9 +279,9 @@ plot(spe_pcoa, scaling = 2, main = "PCoA fish abundances - biplot scaling 2")
 par(opar)
 ```
 
-Scaling 1 and scaling 2 is the same as in PCA and CA.
+Scaling 1 and scaling 2 are the same as in PCA and CA.
 
-The plots above work okay, but I can improve them. Note that you can also apply these improvements to PCA, and CA ordinations. Let me build plots from scratch:
+The plots above are serviceable, but I can improve them. The same improvements also apply to PCA and CA ordinations. Let me build plots from scratch:
 
 ```{r code-pcoa-ordiplots}
 #| fig-width: 10
@@ -392,7 +392,7 @@ par(opar)
 
 Above I gave `capscale()` the raw species table, which is the approach I recommend because it keeps the species scores. Two alternatives are worth knowing.
 
-**Supply a precomputed dissimilarity matrix.** If I hand `capscale()` the Bray-Curtis matrix I built earlier, the ordination of the sites is identical, but the **Species scores** are missing, since the function sees only the site-by-site distances and never the species themselves:
+**Supply a precomputed dissimilarity matrix.** If I hand `capscale()` the Bray-Curtis matrix I built earlier, the ordination of the sites is identical, but the **Species scores** are missing, since the function receives only the site-by-site distances and not the species themselves:
 
 ```{r code-spe-pcoa-capscale-spe-bray}
 # spe_pcoa <- cmdscale(spe_bray, k = nrow(spe) - 1, eig = TRUE)
@@ -418,7 +418,7 @@ summary(spe_pcoa)
 
 The simplest way to handle mixed variable types is to plot the factor variable of interest as a differently shaped or coloured symbol on the ordination diagram. I will show this with the seaweed dataset.
 
-First, I construct an environmental dataset that contains some mixed variables by column binding a dataset of seawater temperatures, and a bioregional classification of the 58 coastal sections:
+First, I construct an environmental dataset that contains some mixed variables by column binding a dataset of seawater temperatures and a bioregional classification of the 58 coastal sections:
 
 ```{r code-bioreg-read-csv-here}
 bioreg <- read.csv(
@@ -462,9 +462,9 @@ points(E_pcoa, "sites", pch = 21, cex = 1.75, col = col[E$bolton], bg = "white")
 text(E_pcoa, "sites", col = col[E$bolton], cex = 0.5)
 ```
 
-The arrangement of sites in the ordination diagram (@fig-pcoa-seaweed-env) is still only affected by `augMean`, `febRange`, `febSD`, and `augSD` and colour is used only to identify the sites by bioregion. Colour does not affect the outcome of the ordination, and yet I can already see that sites show a clear bioregional grouping. Please see the analysis of the [Mayombo diatom dataset](nMDS_diatoms.qmd) for additional approaches to deal with categorical variables that are presumed to be  influential. To formally account for bioregion in the ordination, I must take a different approach.
+The arrangement of sites in the ordination diagram (@fig-pcoa-seaweed-env) is still only affected by `augMean`, `febRange`, `febSD`, and `augSD` and colour is used only to identify the sites by bioregion. Colour does not affect the outcome of the ordination, and yet I can already see that sites show a clear bioregional grouping. Please see the analysis of the [Mayombo diatom dataset](nMDS_diatoms.qmd) for additional approaches to deal with categorical variables that are presumed to be influential. To formally account for bioregion in the ordination, I must take a different approach.
 
-The second option is to use a suitable dissimilarity metric. Numerical, nominal, ordinal, and binary variables can all be accommodated with the Gower distance. I do not use **vegan** for this, but rather the `daisy()` function in **cluster**.
+The second option is to use a suitable dissimilarity metric. Numerical, nominal, ordinal, and binary variables can all be accommodated with the Gower distance. For this I use the `daisy()` function in **cluster** rather than **vegan**.
 
 I calculate the Gower distances and proceed with the PCoA as before:
 
@@ -492,7 +492,7 @@ I can extract the various kinds of scores for manual plotting.
 
 ## Three Methods, Three Geometries
 
-PCA, CA, and PCoA all reduce dimensionality, and they differ in the geometry they preserve. PCA preserves Euclidean distances, CA preserves $\chi^2$ distances, and PCoA preserves whichever dissimilarity the analyst supplies. Because a Euclidean dissimilarity reduces PCoA to PCA, PCoA is the general method and the other two are particular choices of distance. This freedom to choose the distance on ecological grounds is what makes PCoA one of the most widely used ordination methods in community ecology, and it is the foundation for the distance-based methods that follow. The next chapter takes up [non-metric Multidimensional Scaling (nMDS)](nMDS.qmd), which starts from the same kind of dissimilarity matrix but abandons the eigenvalue machinery in favour of preserving the rank order of the distances.
+PCA, CA, and PCoA all reduce dimensionality, and they differ in the geometry they preserve. PCA preserves Euclidean distances, CA preserves $\chi^2$ distances, and PCoA preserves whichever dissimilarity the analyst supplies. Because a Euclidean dissimilarity reduces PCoA to PCA, PCoA is the general method and the other two are particular choices of distance. This freedom to choose the distance on ecological grounds is what makes PCoA one of the most widely used ordination methods in community ecology, and it is the foundation for the distance-based methods that follow. The next chapter takes up [non-metric Multidimensional Scaling (nMDS)](nMDS.qmd), which starts from the same kind of dissimilarity matrix but abandons the eigenvalue approach in favour of preserving the rank order of the distances.
 
 ## References
 

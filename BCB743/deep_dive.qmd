@@ -1,6 +1,6 @@
 ---
 date: last-modified
-title: "16: Deep Dive into Gradients"
+title: "19: Deep Dive into Gradients"
 format:
   html: default
 ---
@@ -44,7 +44,7 @@ In the previous chapter I looked at calculations involving biodiversity (specifi
 
 Let me do a deeper analysis and create a figure to show these findings. I regress $\beta_{\text{sør}}$ on the spatial distance between section pairs (see below) and on the environmental distance $\beta_{\text{E}}$ in each bioregion and use the magnitude of the slope (per 100 km) of this relationship as a metric of $\beta$-diversity or 'distance decay' of dissimilarity.
 
-What these lines of code do is recreate Figure 5 in @smit2017seaweeds. Please read the paper for an interpretation of this figure as this is critical for an understanding of the role that gradients play in structuring patterns of biodiversity.
+What these lines of code do is recreate Figure 5 in @smit2017seaweeds. Please read the paper for an interpretation of this figure, which is central to understanding how gradients structure patterns of biodiversity.
 
 ```{r code-library-tidyverse}
 ## Setting up the analysis environment
@@ -91,7 +91,7 @@ rbind(head(bioreg, 3), tail(bioreg, 3))
 
 ### The geographic distances
 
-Since the connectivity between sections is constrained by their location along a shoreline, I calculated the distances between sections not as 'as the crow flies' distances (e.g. Section 1 is not connected in a straight line to Section 58 because of the intervening land in-between), but as the great circle geodesic distances between each pair of sections along a 'route'. Travelling from **1** to **58** therefore requires visiting **2**, then **3**, and eventually all the way up to **58**. The total distance between a pair of arbitrary sections is thus the cumulative sum of the great circle distances between each consecutive pair of intervening sections along the route. These data are contained in `dists_mat.RData` (I prepared it earlier):
+The connectivity between sections is constrained by their location along a shoreline, so I calculated the distances not as 'as the crow flies' distances (e.g. Section 1 is not connected in a straight line to Section 58 because of the intervening land), but as the great circle geodesic distances between each pair of sections along a 'route'. Travelling from **1** to **58** therefore requires visiting **2**, then **3**, and eventually all the way up to **58**. The total distance between a pair of arbitrary sections is the cumulative sum of the great circle distances between each consecutive pair of intervening sections along the route. These data are contained in `dists_mat.RData` (I prepared it earlier):
 
 ```{r code-load-here-here-data-2}
 # load the distances matrix...
@@ -120,7 +120,7 @@ bioreg_mat[56:58, 53:58]
 bioreg_tri <- gdata::lowerTriangle(bioreg_mat, diag = FALSE)
 ```
 
-These integer ranges are an operationalisation for pairwise within-region comparisons in this analysis. They deliberately use non-overlapping blocks, so they differ slightly from the prose bioregion ranges used elsewhere, where transition zones overlap adjacent provinces (for example BMP 1--17 and B-ATZ 18--22).
+These integer ranges operationalise pairwise within-region comparisons in this analysis. They deliberately use non-overlapping blocks, so they differ slightly from the prose bioregion ranges used elsewhere, where transition zones overlap adjacent provinces (e.g. BMP 1--17 and B-ATZ 18--22).
 
 In `bioreg_._mat`, pairs of sites that do not fall within any of the bioregions are labelled 'out':
 
@@ -129,7 +129,7 @@ In `bioreg_._mat`, pairs of sites that do not fall within any of the bioregions 
 bioreg_mat[1:3, 53:58]
 ```
 
-I extract the slices (groups of rows) of the original species table into separate dataframes, one for each of the four bioregions:
+I extract the slices (groups of rows) of the environmental table into separate dataframes, one for each of the four bioregions:
 
 ```{r code-env-bmp-env}
 env_BMP <- env[1:16, ]
@@ -156,7 +156,7 @@ spp[1:10, 1:10]
 
 ## Calculate $\beta$-Diversity Indices
 
-Calculate $\beta$-diversity using the Sørensen index of dissimilarity. This is used throughout; binary Bray-Curtis is equivalent to Sørensen in **vegan**. I then extract the subdiagonal from this matrix of species dissimilarities. The subdiagonal refers to the elements immediately below the main diagonal. For a matrix $Y$ with elements $y_{ij}$, the subdiagonal elements are $y_{i, i+1}$.
+Calculate $\beta$-diversity using the Sørensen index of dissimilarity. This measure is used throughout, and binary Bray-Curtis is equivalent to Sørensen in **vegan**. I then extract the subdiagonal from this matrix of species dissimilarities. The subdiagonal refers to the elements immediately below the main diagonal. For a matrix $Y$ with elements $y_{ij}$, the subdiagonal elements are $y_{i, i+1}$.
 
 ```{r code-y-vegdist-spp-binary}
 # ---- Sorensen-index ----
@@ -352,7 +352,7 @@ write.csv(
 ```
 
 
-Do the various linear regressions of Sørensen dissimilarities ($\beta_\text{sør}$), turnover ($\beta_\text{sim}$) and nestedness-related $\beta$-diversity ($\beta_\text{sne}$) as a function of the various thermal distances. I only display the results of the linear regression for $Y1$ regressed on geographical distance, `dist`, but do all the calculations:
+Do the linear regressions of Sørensen dissimilarities ($\beta_\text{sør}$), turnover ($\beta_\text{sim}$) and nestedness-related $\beta$-diversity ($\beta_\text{sne}$) as a function of the thermal distances. I only display the results of the linear regression for $Y1$ regressed on geographical distance, `dist`, but do all the calculations:
 
 ```{r fn-y1-lm1-dlply-spp-df2-bio}
 # turnover...
@@ -376,7 +376,7 @@ Y2_lm2 <- dlply(spp_df2, .(bio), function(x) lm(Y2 ~ annMean, data = x))
 
 ## Make the Plots
 
-Now assemble **Figure 5.** in @smit2017seaweeds. It is a plot of pairwise (a) Sørensen dissimilarities ($\beta_\text{sør}$), (b) turnover (*β~sim~*) and (c) nestedness-related *β*-diversity (*β~sne~*) [*sensu* @baselga2010partitioning] as a function of distance between sections. Section pairs falling within individual bioregions are colour-coded; where the pairs include sections across different bioregions the symbols are coloured grey and labelled 'out'.
+Now assemble **Figure 5.** in @smit2017seaweeds. It is a plot of pairwise (a) Sørensen dissimilarities ($\beta_\text{sør}$), (b) turnover (*β~sim~*) and (c) nestedness-related *β*-diversity (*β~sne~*) [*sensu* @baselga2010partitioning] as a function of distance between sections. Section pairs falling within individual bioregions are colour-coded. Where the pairs include sections across different bioregions, the symbols are coloured grey and labelled 'out'.
 
 Combine the data in a way that makes for easy plotting:
 
@@ -391,7 +391,7 @@ spp_long$metric = factor(
 )
 ```
 
-The repetitive portions of code needed to create each of the panels. I was too lazy to write neater and more concise code:
+Each panel needs its own near-identical block of plotting code. I have kept it verbose rather than condensing it into something neater and more concise:
 
 ```{r fig-plt5a-spp-long}
 # sim as a function of geographic distance...
