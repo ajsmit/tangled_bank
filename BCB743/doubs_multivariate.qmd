@@ -4,6 +4,9 @@ title: "24: A Complete Multivariate Analysis of the Doubs River"
 format:
   html:
     code-link: false
+    code-fold: true
+execute:
+  code-fold: true
 ---
 
 ```{r code-brewing-opts, echo=FALSE}
@@ -45,7 +48,7 @@ fmt <- function(x, d = 2) formatC(x, format = "f", digits = d)
 | Type        | Name                     | Link                                                                          |
 | :--- | :--- | :--- |
 | **Data**    | The Doubs River data     | [💾 `Doubs.RData`](../data/BCB743/NEwR-2ed_code_data/NeWR2-Data/Doubs.RData)   |
-| **Packages**| vegan, adespatial, betapart, mvabund, MASS, gt | Install from CRAN before you start (see below)                |
+| **Packages**| vegan, adespatial, betapart, mvabund, MASS, gt, leaflet | Install from CRAN before you start (see below)                |
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -60,10 +63,78 @@ The Doubs analyses repeatedly recover the longitudinal river continuum, but the 
 
 Spatial structure enters through Moran eigenvector maps computed by `dbmem()`, also new to the module. The data-driven variable selection of `ordiR2step()` is then compared to a theory-driven alternative, which is a way of thinking rather than a function call. Everything else you have seen before, and I cross-reference the chapter where you have seen it.
 
+## Study Region
+
+The Doubs River rises in the Jura Mountains near Mouthe, follows the French-Swiss border for part of its upper and middle course, then turns west and south-west through Besancon and Dole before joining the Saone. The map in @fig-doubs-region is a geographic orientation map of the river region, not a plot of the sampling coordinates. The `spa` object in `Doubs.RData` contains local planar coordinates, so I use it later for spatial modelling rather than placing those points directly on a web map.
+
+```{r fig-doubs-region}
+#| label: fig-doubs-region
+#| fig-cap: "Topographic overview of the Doubs River region. The blue line is an approximate course drawn through major river landmarks to orient the study region."
+#| out-width: "100%"
+doubs_landmarks <- tibble::tribble(
+  ~place                , ~reach                      , ~lon  , ~lat   ,
+  "Mouthe"              , "Source region"             , 6.193 , 46.709 ,
+  "Pontarlier"          , "Upper Doubs"               , 6.355 , 46.904 ,
+  "Morteau"             , "Upper border reach"        , 6.607 , 47.057 ,
+  "Goumois"             , "French-Swiss border reach" , 6.953 , 47.263 ,
+  "Besancon"            , "Middle Doubs"              , 6.025 , 47.238 ,
+  "Dole"                , "Lower Doubs"               , 5.489 , 47.092 ,
+  "Verdun-sur-le-Doubs" , "Confluence with the Saone" , 5.023 , 46.897
+)
+
+leaflet::leaflet(doubs_landmarks, height = "430px") |>
+  leaflet::addProviderTiles(
+    leaflet::providers$Esri.WorldTopoMap,
+    options = leaflet::providerTileOptions(opacity = 0.95)
+  ) |>
+  leaflet::addPolylines(
+    lng = ~lon,
+    lat = ~lat,
+    color = "#2166ac",
+    weight = 4,
+    opacity = 0.9,
+    label = "Approximate Doubs River course"
+  ) |>
+  leaflet::addCircleMarkers(
+    lng = ~lon,
+    lat = ~lat,
+    radius = 5,
+    stroke = TRUE,
+    weight = 1,
+    color = "#111111",
+    fillColor = "#b2182b",
+    fillOpacity = 0.9,
+    popup = ~ paste0("<strong>", place, "</strong><br>", reach)
+  ) |>
+  leaflet::addLabelOnlyMarkers(
+    lng = ~lon,
+    lat = ~lat,
+    label = ~place,
+    labelOptions = leaflet::labelOptions(
+      noHide = TRUE,
+      direction = "auto",
+      textOnly = TRUE,
+      offset = c(6, 0),
+      style = list(
+        "font-size" = "11px",
+        "font-weight" = "600",
+        "text-shadow" = "0 0 3px #ffffff"
+      )
+    )
+  ) |>
+  leaflet::fitBounds(
+    lng1 = 4.85,
+    lat1 = 46.55,
+    lng2 = 7.10,
+    lat2 = 47.45
+  ) |>
+  leaflet::addScaleBar(position = "bottomleft")
+```
+
 ::: callout-note
 ## Packages you may need to install
 
-Beyond **vegan** and the **tidyverse**, this chapter uses **adespatial** (spatial eigenvectors and beta-diversity contributions), **betapart** (turnover and nestedness), **mvabund** (model-based multivariate GLMs), **MASS** (negative-binomial GLMs), and **gt** (tables). Install any you are missing with `install.packages(c("adespatial", "betapart", "mvabund", "gt"))`. **MASS** ships with R.
+Beyond **vegan** and the **tidyverse**, this chapter uses **leaflet** (interactive maps), **adespatial** (spatial eigenvectors and beta-diversity contributions), **betapart** (turnover and nestedness), **mvabund** (model-based multivariate GLMs), **MASS** (negative-binomial GLMs), and **gt** (tables). Install any you are missing with `install.packages(c("leaflet", "adespatial", "betapart", "mvabund", "gt"))`. **MASS** ships with R.
 :::
 
 ## Set-up the Analysis Environment
@@ -433,7 +504,7 @@ Along the clean part of the continuum the enrichment variables are correlated, w
 
 The interpretation is therefore a bit more complicated than it previously emerged in the earlier chapters. For a management question about nutrient control, DIN is the defensible predictor, and it loses little fit over the continuum. For describing the community that is actually present, oxygen is more than a proxy, and near the polluted sites it is a proximate stressor with a signal of its own. Statistical selection cannot arbitrate between these interpretations, because the variables are collinear over most of the river and diverge only at a handful of sites. The choice is an ecological judgement informed by the correlation structure, not an output of the algorithm. This is what the [constrained ordination chapter](constrained_ordination.qmd) means by *explanation is not causation*.
 
-## Beyond the Core Methods
+## Beyond the Core Ordination Methods
 
 The remaining methods fall outside the standard ordination workflow we have covered. Each re-examines the river-continuum interpretation from a point of view the ordinations do not cover, and several focus it by showing where the smooth-continuum picture breaks down.
 
@@ -545,6 +616,172 @@ mantel_tab |>
 ```
 
 The environment is much the stronger match ($r \approx 0.61$ against $0.32$ for geography), and it survives conditioning on space ($r \approx 0.56$) far better than space survives conditioning on environment ($r \approx 0.18$) (@tbl-mantel). This agrees in direction with the variation partitioning, though the two weight the environment differently, since the Mantel test uses the full eleven-variable distance while the partitioning used three selected predictors. Mantel tests are also known to be conservative, so I treat them as corroboration rather than as a separate estimate of effect size.
+
+### Clustering the river into reaches
+
+The preceding analyses describe the river as a long gradient interrupted by a short oxygen sag. A simple cluster analysis lets me turn that interpretation into an explicit reach partition. I use the three variables that the db-RDA selected, distance from source, oxygen, and BOD, because together they represent position along the river and the local pollution signal. I standardise them, compute Euclidean distances among sites, and use complete-linkage hierarchical clustering. This is not an independent causal test. It is a diagnostic grouping of sites under the same variables that explained the fish composition.
+
+```{r code-cluster}
+reach_vars <- c("dfs", "oxy", "bod")
+reach_hc <- hclust(dist(E[, reach_vars]), method = "complete")
+reach_raw <- cutree(reach_hc, k = 3)
+
+reach_lookup <- tibble(
+  raw = reach_raw,
+  dfs = site_dfs,
+  bod = env_matched$bod
+) |>
+  summarise(
+    mean_dfs = mean(dfs),
+    mean_bod = mean(bod),
+    .by = raw
+  )
+
+impacted_raw <- reach_lookup$raw[which.max(reach_lookup$mean_bod)]
+mouth_raw <- reach_lookup |>
+  filter(raw != impacted_raw) |>
+  slice_max(mean_dfs, n = 1) |>
+  pull(raw)
+upper_raw <- setdiff(reach_lookup$raw, c(impacted_raw, mouth_raw))
+
+reach_labels <- setNames(
+  c(
+    "Upper and pre-impact stretch",
+    "Impacted oxygen-sag stretch",
+    "Mouthward recovery stretch"
+  ),
+  c(upper_raw, impacted_raw, mouth_raw)
+)
+
+reach_dat <- tibble(
+  site = as.integer(rownames(spe)),
+  dfs = site_dfs,
+  oxy = env_matched$oxy,
+  bod = env_matched$bod,
+  richness = rowSums(spe > 0),
+  Reach = factor(
+    reach_labels[as.character(reach_raw)],
+    levels = c(
+      "Upper and pre-impact stretch",
+      "Impacted oxygen-sag stretch",
+      "Mouthward recovery stretch"
+    )
+  )
+)
+
+reach_colours <- c(
+  "Upper and pre-impact stretch" = "#2c7fb8",
+  "Impacted oxygen-sag stretch" = "#b2182b",
+  "Mouthward recovery stretch" = "#238b45"
+)
+
+site_span <- function(x) {
+  full <- seq(min(x), max(x))
+  missing <- setdiff(full, x)
+  span <- paste0(min(x), "-", max(x))
+  if (length(missing) == 0) {
+    span
+  } else {
+    paste0(span, " (site ", paste(missing, collapse = ", "), " omitted)")
+  }
+}
+
+reach_tab <- reach_dat |>
+  summarise(
+    Sites = site_span(site),
+    n = n(),
+    dfs_min = min(dfs),
+    dfs_max = max(dfs),
+    median_oxy = median(oxy),
+    max_bod = max(bod),
+    median_richness = median(richness),
+    .by = Reach
+  )
+```
+
+```{r fig-cluster-dendrogram}
+#| label: fig-cluster-dendrogram
+#| fig-cap: "Dendrogram from complete-linkage clustering of standardised distance from source, oxygen, and BOD. Rectangles mark the three-cluster solution used to define the reach groups."
+#| fig-width: 7
+#| fig-height: 4.5
+old_par <- par(mar = c(5, 4, 1, 1))
+plot(
+  reach_hc,
+  labels = paste0("S", reach_dat$site),
+  xlab = "",
+  sub = "",
+  ylab = "Euclidean distance",
+  main = ""
+)
+rect.hclust(
+  reach_hc,
+  k = 3,
+  border = c("#2c7fb8", "#b2182b", "#238b45")
+)
+par(old_par)
+```
+
+```{r tbl-cluster}
+#| label: tbl-cluster
+#| tbl-cap: "Three reach clusters from complete-linkage hierarchical clustering of standardised distance from source, oxygen, and BOD."
+reach_tab |>
+  gt_doubs(
+    note = "Clustering used `hclust(dist(scale(dfs, oxy, bod)), method = \"complete\")`; site 8 was omitted because it has no fish."
+  ) |>
+  cols_label(
+    n = "n",
+    dfs_min = "dfs min",
+    dfs_max = "dfs max",
+    median_oxy = "median oxygen",
+    max_bod = "max BOD",
+    median_richness = "median richness"
+  ) |>
+  fmt_number(
+    columns = c(dfs_min, dfs_max, median_oxy, max_bod, median_richness),
+    decimals = 1
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#fde0dd"),
+    locations = cells_body(
+      rows = Reach == "Impacted oxygen-sag stretch"
+    )
+  )
+```
+
+```{r fig-cluster}
+#| label: fig-cluster
+#| fig-cap: "Reach clusters along the river, shown against oxygen and BOD. The cluster analysis separates a broad upstream pre-impact stretch, the oxygen-sag reach, and the mouthward recovery stretch."
+#| fig-width: 6.5
+#| fig-height: 4.5
+#| code-fold: true
+reach_env_long <- reach_dat |>
+  dplyr::select(dfs, Reach, oxy, bod) |>
+  pivot_longer(
+    cols = c(oxy, bod),
+    names_to = "Variable",
+    values_to = "value"
+  ) |>
+  mutate(
+    Variable = recode(
+      Variable,
+      oxy = "Dissolved oxygen",
+      bod = "Biological oxygen demand"
+    )
+  )
+
+ggplot(reach_env_long, aes(dfs, value)) +
+  geom_line(aes(group = Variable), colour = "grey65", linewidth = 0.4) +
+  geom_point(aes(colour = Reach), size = 1.8) +
+  facet_wrap(~Variable, ncol = 1, scales = "free_y") +
+  scale_colour_manual(values = reach_colours) +
+  labs(
+    x = "Distance from source",
+    y = "Concentration",
+    colour = "Reach"
+  )
+```
+
+The three-cluster solution gives a clean, interpretable partition (@fig-cluster-dendrogram; @tbl-cluster). Sites 1 to 22 form an upper and pre-impact stretch. Sites 23 to 25 are separated as the impacted oxygen-sag stretch, where oxygen is lowest and BOD is highest. Sites 26 to 30 form the mouthward recovery stretch. In other words, clustering can recover the same three-part field interpretation: the river does not change only as a smooth continuum, because a short polluted reach interrupts the downstream sequence before the assemblage recovers toward the river mouth (@fig-cluster).
 
 ### Replacement or loss? Beta-diversity partitioning
 
@@ -779,11 +1016,20 @@ These conclusions are based on correlational evidence, so association is not mec
 ```{r code-session}
 #| code-fold: true
 sessioninfo::session_info(
-  pkgs = c("vegan", "adespatial", "betapart", "mvabund", "gt")
+  pkgs = c("vegan", "leaflet", "adespatial", "betapart", "mvabund", "gt")
 )$packages |>
   as_tibble() |>
   filter(
-    package %in% c("vegan", "adespatial", "betapart", "mvabund", "gt", "MASS")
+    package %in%
+      c(
+        "vegan",
+        "leaflet",
+        "adespatial",
+        "betapart",
+        "mvabund",
+        "gt",
+        "MASS"
+      )
   ) |>
   dplyr::select(package, loadedversion, source)
 ```
