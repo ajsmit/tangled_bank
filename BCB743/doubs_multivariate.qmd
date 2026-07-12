@@ -38,6 +38,36 @@ library(gt)
 
 # small helper used in inline text
 fmt <- function(x, d = 2) formatC(x, format = "f", digits = d)
+
+species_names <- c(
+  Cogo = "Bullhead",
+  Satr = "Brown trout",
+  Phph = "Minnow",
+  Babl = "Stone loach",
+  Thth = "Grayling",
+  Teso = "Souffia / Western vairone",
+  Chna = "Nase",
+  Pato = "Stone moroko",
+  Lele = "Sunbleak",
+  Sqce = "Chub",
+  Baba = "Barbel",
+  Albi = "Spirlin",
+  Gogo = "Gudgeon",
+  Eslu = "Pike",
+  Pefl = "Perch",
+  Rham = "Bitterling",
+  Legi = "Pumpkinseed",
+  Scer = "Rudd",
+  Cyca = "Crucian carp",
+  Titi = "Tench",
+  Abbr = "Common bream",
+  Icme = "Ide",
+  Gyce = "Ruffe",
+  Ruru = "Roach",
+  Blbj = "Silver bream",
+  Alal = "Bleak",
+  Anan = "Eel"
+)
 ```
 
 <!-- # Topic 24: A complete worked analysis -->
@@ -57,11 +87,11 @@ fmt <- function(x, d = 2) formatC(x, format = "f", digits = d)
 * Reproduce the workflow on the Doubs data, then repeat it on a dataset of your own choosing.
 :::
 
-Throughout the module the Doubs River fish survey has served as the standing example, examined one method at a time. Here I apply the whole sequence to it at once, from the first unconstrained ordination to methods from outside the core syllabus. Each method has its own chapter, so the interest here is where the methods agree, where they diverge, and what each one adds that the others miss.
+Throughout the module the Doubs River fish survey was used as an example, but we examined the dataset one method at a time. Here I apply the whole suite of functions to it at once, from the first unconstrained ordination to methods from outside the core syllabus. So, this is a synthesis chapter. The interest is where the methods agree, where they diverge, and what each one adds that the others miss.
 
 The Doubs analyses repeatedly recover the longitudinal river continuum, but the more revealing ecological structure is seen where that continuum breaks down. The chapter also shows that statistical procedures can summarise pattern efficiently, while causal insights must come from ecological interpretation.
 
-Spatial structure enters through Moran eigenvector maps computed by `dbmem()`, also new to the module. The data-driven variable selection of `ordiR2step()` is then compared to a theory-driven alternative, which is a way of thinking rather than a function call. Everything else you have seen before, and I cross-reference the chapter where you have seen it.
+Spatial structure is represented through Moran eigenvector maps computed by `dbmem()`, also new to the module. The data-driven variable selection of `ordiR2step()` is then compared to a theory-driven alternative, which is a way of thinking rather than a function call. Everything else you have seen before, and I cross-reference the chapter where you have seen it.
 
 ## Study Region
 
@@ -177,11 +207,8 @@ spe_hel <- decostand(spe, "hellinger") # Hellinger transform for RDA
 site_dfs <- env_matched$dfs # distance from source, the river order
 ```
 
-### A reusable table theme with gt
-
-The **gt** package builds tables the way **ggplot2** builds figures, by layering components onto a base object with the pipe. A raw `gt()` call already produces a clean HTML table, but setting a personalised style once upfront is worth considering. The helper below fixes the fonts, padding, and rules, and optionally attaches a source note. I apply it to every table in the chapter, as I would apply a `theme_*()` to every figure.
-
 ```{r code-gt-helper}
+#| echo: false
 gt_doubs <- function(df, note = NULL) {
   g <- df |>
     gt() |>
@@ -205,7 +232,7 @@ gt_doubs <- function(df, note = NULL) {
 }
 ```
 
-Let's start with the environmental table. Each variable has a minimum, median, and maximum, and a correlation with distance from source that shows how tightly it tracks the river order. I compute the summary with `dplyr`, then pipe it to `gt`. Notice `fmt_number()` for consistent decimals and `data_color()`, which shades the correlation column like a heatmap so that the sign and strength of each association can be seen at a glance.
+The first summary already shows the main structure of the river. Each environmental variable is reduced to its range and its correlation with distance from source, so the table asks, which measurements are really tracking the downstream axis?
 
 ```{r tbl-env-summary}
 #| label: tbl-env-summary
@@ -246,11 +273,11 @@ env_summary |>
   )
 ```
 
-The heatmap column shows the main pattern. Distance from source, flow, hardness, nitrate, and phosphate rise downstream; altitude, slope, and oxygen fall; pH barely moves. The eleven variables are eleven views of one downstream integration of geomorphology and chemistry rather than independent measurements. The rest of the chapter traces this gradient (and exceptions) through the fish.
+The heatmap column shows that distance from source, flow, hardness, nitrate, and phosphate rise downstream; altitude, slope, and oxygen fall; pH barely moves. The eleven variables all views of one downstream integration of geomorphology and chemistry rather; they don't seem to function as independent measurements. The rest of the chapter traces this gradient (and exceptions) through the fish.
 
 ## The Dominant Gradient: Unconstrained Ordinations
 
-I run each unconstrained ordination method here again and see if they agree. I fit the environmental PCA, the species CA (and its detrended form DCA), and the distance-based PCoA and nMDS.
+The first check is whether the dominant gradient is robust to the geometry of the analysis. Applying the ordination workflow developed earlier in the module gives four first axes to compare: environmental PCA, species CA, Bray-Curtis PCoA, and Bray-Curtis nMDS.
 
 ```{r code-unconstrained}
 set.seed(743)
@@ -267,7 +294,7 @@ spe_nmds <- metaMDS(
 ) # nMDS
 ```
 
-Each method reduces the data to axes under a different geometry. The test of a real gradient is whether the first axis of each ordination aligns with the physical river order. So, I extract the first-axis site scores from all four and correlate them with distance from source. Sign is arbitrary in ordination, so I take absolute correlations.
+The test: a real river gradient should align with distance from source no matter which geometry produced the axis. Because ordination signs are arbitrary, I compare absolute correlations.
 
 ```{r code-gradient-align}
 first_axis <- function(ord, dfs) {
@@ -344,7 +371,7 @@ DCA's first-axis length, `r fmt(dca_len)` standard-deviation units, is long, whi
 
 ## Constrained Ordination and Variable Selection
 
-The unconstrained methods describe the pattern, so with the constrained methods I test whether the measured environment can explain it. I fit all three constrained ordinations, RDA on Hellinger-transformed abundances, CCA on the raw table, and db-RDA on Bray-Curtis dissimilarity, and in each case I let `ordiR2step()` select variables by forward selection from the null model up to the full model. You've seen this approach in the [constrained ordination chapter](constrained_ordination.qmd). Here I run the three in parallel and compare what they keep.
+The unconstrained methods describe the pattern; the constrained methods ask whether the measured environment explains it. I run the three familiar constrained approaches in parallel, RDA, CCA, and db-RDA, and compare the variables retained by forward selection.
 
 ```{r code-constrained}
 set.seed(743)
@@ -380,9 +407,10 @@ dbrda_sel <- ordiR2step(
 )
 ```
 
-Before interpreting the models, I check them for collinearity. Variance inflation factors (`vif.cca()`) flag predictors that are redundant with the others, and the full models have VIFs in the hundreds because the river variables are correlated together. Forward selection brings them down to interpretable levels. The selected sets and their adjusted $R^2$ go into a `gt` table. I use `tab_style()` to shade the db-RDA row, the model I trust most for community data, and a helper to extract the selected variable names from each fitted object.
+The full models have severe collinearity, with VIFs in the hundreds because the river variables are correlated together. Forward selection reduces this redundancy to interpretable levels. The table compares the selected predictors, adjusted $R^2$, and the maximum VIF before and after selection.
 
 ```{r code-model-summary}
+#| echo: false
 selected_vars <- function(mod) {
   paste(all.vars(formula(mod))[-1], collapse = ", ")
 }
@@ -435,9 +463,11 @@ model_summary |>
 
 The three models converge (@tbl-model-summary). Each keeps a longitudinal-position variable (a proxy variable), `dfs` or `ele` (elevation, the altitude proxy in this dataset), together with `oxy` and a marker of organic loading. The maximum VIF falls from the hundreds in the full models to single digits after selection. The models agree that about half of the community variation is captured by three correlated descriptors of river position. The convergence has more weight than the small differences between the models.
 
+Notice a common theme that now runs through much of multivariate ecology: permutation tests. RDA, CCA, db-RDA, Mantel tests, LCBD tests, and manyGLM resampling all use permutations or resampling to check whether the observed structure is stronger than expected after rearranging the data under an appropriate null model. The details differ, but the logic is the same. We are not usually relying on closed-form normal theory; we are asking whether the community pattern survives comparison with many reordered versions of itself.
+
 ### Data-driven and theory-driven variable selection {#sec-selection}
 
-Here I stop and think, because the selected variables are easy to over-interpret. Forward selection is a statistical procedure, not an ecological hypothesis. It keeps whichever variables most raise adjusted $R^2$, and in these data that is `dfs` with `oxy` and `bod`. A mechanistic account of the same river starts elsewhere. Position sets the physical foundation, since altitude and distance from source drive temperature, slope, and discharge. Land use then enriches the water with dissolved inorganic nitrogen (DIN, namely nitrate plus ammonium) and phosphate. This nutrient load drives primary production and the supply of degradable organic matter, which raises biological oxygen demand, and the respiration that follows draws down oxygen. In this chain nutrients are the upstream driver and oxygen is a downstream consequence.
+This is an important part in the chapter, because the selected variables are easy to over-interpret. Forward selection is a statistical procedure so ecological theory is not involved anywhere. It keeps whichever variables most raise adjusted $R^2$, and in these data that is `dfs` with `oxy` and `bod`. A mechanistic account of the same river starts elsewhere. Position sets the physical foundation, since altitude and distance from source drive temperature, slope, and discharge. Land use then enriches the water with dissolved inorganic nitrogen (DIN, namely nitrate plus ammonium) and phosphate. This nutrient load drives primary production and the supply of degradable organic matter, which raises biological oxygen demand, and the respiration that follows draws down oxygen. In this chain nutrients are the upstream driver and oxygen is a downstream consequence.
 
 So if we want a *cause* rather than a *correlate*, we might prefer a nutrient variable over oxygen. I can put that intuition to a direct test by fitting the candidate models by hand and comparing them, which is a good habit whenever a stepwise algorithm returns a set of variables.
 
@@ -477,7 +507,7 @@ theory_compare |>
   )
 ```
 
-The numbers are instructive (@tbl-theory-compare). Distance from source alone reaches adjusted $R^2 \approx 0.37$. Adding nitrate raises it only to about 0.39, whereas adding oxygen and biological oxygen demand increases it to 0.54. The nutrient-loading models stabilise near 0.39 as well. Dropping the oxygen pair forfeits about 0.15 of adjusted $R^2$, a difference too large to ignore. Why does the nutrient model explain so much less, if nutrients are meant to drive the oxygen? The correlation heatmap explains why.
+Distance from source alone reaches adjusted $R^2 \approx 0.37$ (@tbl-theory-compare). Adding nitrate raises it only to about 0.39, whereas adding oxygen and biological oxygen demand increases it to 0.54. The nutrient-loading models stabilise near 0.39 as well. Dropping the oxygen pair forfeits about 0.15 of adjusted $R^2$, a difference too large to ignore. Why does the nutrient model explain so much less, if nutrients are meant to drive the oxygen? The correlation heatmap explains why.
 
 ```{r tbl-enrich-cor}
 #| label: tbl-enrich-cor
@@ -506,11 +536,11 @@ The interpretation is therefore a bit more complicated than it previously emerge
 
 ## Beyond the Core Ordination Methods
 
-The remaining methods fall outside the standard ordination workflow we have covered. Each re-examines the river-continuum interpretation from a point of view the ordinations do not cover, and several focus it by showing where the smooth-continuum picture breaks down.
+In the remaining methods I do not revisit the ordination workflow. I ask additional ecological question about the same result, viz., how much is space, where does the continuum break, is the change replacement or loss, which sites are distinctive, and do species-level models tell the same story?
 
 ### Separating environment from space with variation partitioning
 
-Sites that are far downstream are also far along the channel, so environment and space are structurally confounded. Variation partitioning (`varpart()`, which you've seen in the [seaweed appendix](two_oceans_appendices.qmd)) splits the community variation into a part explained uniquely by the environment, a part explained uniquely by spatial position, a part they share, and an unexplained remainder. I describe spatial position with a second-order polynomial of the site coordinates.
+Sites that are far downstream are also far along the channel, so environment and space are structurally confounded. Variation partitioning is useful here because the shared fraction is itself ecological evidence: in a single river, environmental change and geographic position are partly the same thing.
 
 ```{r code-varpart}
 space_poly <- with(
@@ -542,7 +572,7 @@ The pure environmental and pure spatial fractions are both small (adjusted $R^2 
 
 ### Spatial structure at multiple scales with MEM
 
-Variation partitioning treats space as a smooth trend. Moran eigenvector maps (MEMs) are more flexible (a new tool in this chapter). `dbmem()` turns the site coordinates into a set of orthogonal spatial variables, each describing pattern at its own scale, from a broad upstream-to-downstream trend in the first few to fine alternations between neighbouring reaches in the last. They are the spatial analogue of a Fourier basis, and I use them as predictors in the same way as the environmental variables.
+Variation partitioning treats space as a smooth trend. Moran eigenvector maps (MEMs) are more flexible and are new in this chapter. They describe spatial structure at multiple scales, from a broad upstream-to-downstream pattern to finer alternation among neighbouring reaches.
 
 ```{r code-mem}
 library(adespatial)
@@ -570,7 +600,7 @@ Forward selection keeps `r mem_vars` and reaches an adjusted $R^2$ of about `r f
 
 ### Comparing whole matrices with Mantel tests
 
-A Mantel test correlates two distance matrices directly, without first reducing either to axes (as in ordinations). I compare the fish Bray-Curtis dissimilarity with a Euclidean distance on the standardised environment, and with the geographic distance between sites. The partial Mantel then keeps one matrix constant while testing the other, which is the matrix-level version of the variation partitioning above.
+A Mantel test is the matrix-level counterpart of the previous section. It asks whether sites that are environmentally or geographically far apart are also far apart in fish composition, without first reducing the matrices to ordination axes.
 
 ```{r code-mantel}
 D_comm <- vegdist(spe, method = "bray")
@@ -617,9 +647,71 @@ mantel_tab |>
 
 The environment is much the stronger match ($r \approx 0.61$ against $0.32$ for geography), and it survives conditioning on space ($r \approx 0.56$) far better than space survives conditioning on environment ($r \approx 0.18$) (@tbl-mantel). This agrees in direction with the variation partitioning, though the two weight the environment differently, since the Mantel test uses the full eleven-variable distance while the partitioning used three selected predictors. Mantel tests are also known to be conservative, so I treat them as corroboration rather than as a separate estimate of effect size.
 
+### Where do environment and fish composition disagree?
+
+The environmental and fish ordinations are strongly concordant overall, but their local mismatches are especially informative. A symmetric Procrustes rotation superimposes the first two axes of the environmental PCA and the Bray-Curtis PCoA, while PROTEST asks whether that agreement is stronger than expected after permuting site identities.
+
+```{r code-procrustes}
+#| echo: false
+env_proc_scores <- scores(
+  env_pca,
+  display = "sites",
+  choices = 1:2
+)[keep, ]
+fish_proc_scores <- scores(
+  spe_pcoa,
+  display = "sites",
+  choices = 1:2
+)
+
+set.seed(743)
+proc_test <- protest(
+  env_proc_scores,
+  fish_proc_scores,
+  permutations = 999
+)
+proc_fit <- procrustes(
+  env_proc_scores,
+  fish_proc_scores,
+  symmetric = TRUE
+)
+
+proc_dat <- tibble(
+  site = as.integer(rownames(spe)),
+  dfs = site_dfs,
+  mismatch = residuals(proc_fit)
+)
+proc_top <- proc_dat |>
+  slice_max(mismatch, n = 5)
+```
+
+```{r fig-procrustes}
+#| label: fig-procrustes
+#| fig-cap: "Site-level mismatch after Procrustes rotation of the environmental PCA and fish-community PCoA. Large residuals mark sites whose fish composition departs most from the configuration expected from the first two environmental axes."
+#| fig-width: 6.5
+#| fig-height: 3.8
+#| echo: false
+ggplot(proc_dat, aes(dfs, mismatch)) +
+  geom_line(colour = "grey70", linewidth = 0.4) +
+  geom_point(aes(colour = mismatch), size = 1.8) +
+  geom_text_repel(
+    data = proc_top,
+    aes(label = paste("Site", site)),
+    size = 2.5,
+    min.segment.length = 0
+  ) +
+  scale_colour_viridis_c(option = "magma", direction = -1, guide = "none") +
+  labs(
+    x = "Distance from source",
+    y = "Procrustes residual"
+  )
+```
+
+The two configurations have a Procrustes correlation of `r fmt(proc_test$t0, 3)` ($p = `r fmt(proc_test$signif, 3)`$), so environmental position and fish composition share a strong two-dimensional structure. The residual profile adds information that the global coefficient hides (@fig-procrustes). Site 25 is the largest mismatch and lies at the downstream edge of the oxygen-sag reach; sites 1 and 5 are also conspicuous at the species-poor headwater end. They are diagnostic sites where the dominant environmental axes leave more community structure unexplained, and therefore the first places to investigate omitted habitat, connectivity, disturbance, or sampling effects.
+
 ### Clustering the river into reaches
 
-The preceding analyses describe the river as a long gradient interrupted by a short oxygen sag. A simple cluster analysis lets me turn that interpretation into an explicit reach partition. I use the three variables that the db-RDA selected, distance from source, oxygen, and BOD, because together they represent position along the river and the local pollution signal. I standardise them, compute Euclidean distances among sites, and use complete-linkage hierarchical clustering. This is not an independent causal test. It is a diagnostic grouping of sites under the same variables that explained the fish composition.
+The preceding analyses describe the river as a long gradient interrupted by a short oxygen sag, so I can use a cluster analysis to turn that pattern into a partition of river segments. This is an indicative/exploratory grouping of sites under the same position and oxygen-stress variables that explained the fish composition.
 
 ```{r code-cluster}
 reach_vars <- c("dfs", "oxy", "bod")
@@ -783,9 +875,97 @@ ggplot(reach_env_long, aes(dfs, value)) +
 
 The three-cluster solution gives a clean, interpretable partition (@fig-cluster-dendrogram; @tbl-cluster). Sites 1 to 22 form an upper and pre-impact stretch. Sites 23 to 25 are separated as the impacted oxygen-sag stretch, where oxygen is lowest and BOD is highest. Sites 26 to 30 form the mouthward recovery stretch. In other words, clustering can recover the same three-part field interpretation: the river does not change only as a smooth continuum, because a short polluted reach interrupts the downstream sequence before the assemblage recovers toward the river mouth (@fig-cluster).
 
+### Do the reaches support distinct fish assemblages?
+
+```{r code-reach-inference}
+#| echo: false
+reach_bray <- vegdist(spe, method = "bray")
+
+set.seed(743)
+reach_adonis <- adonis2(
+  reach_bray ~ Reach,
+  data = reach_dat,
+  permutations = 999
+)
+reach_beta <- betadisper(reach_bray, reach_dat$Reach)
+set.seed(743)
+reach_dispersion <- permutest(reach_beta, permutations = 999)
+
+reach_mv <- mvabund::mvabund(as.matrix(spe))
+reach_fit <- mvabund::manyglm(
+  reach_mv ~ Reach,
+  data = reach_dat,
+  family = "negative.binomial"
+)
+set.seed(743)
+reach_anova <- anova(
+  reach_fit,
+  p.uni = "adjusted",
+  nBoot = 999,
+  test = "LR",
+  show.time = "none"
+)
+
+reach_tests <- tibble(
+  Code = colnames(spe),
+  deviance = reach_anova$uni.test[2, ],
+  adjusted_p = reach_anova$uni.p[2, ]
+)
+
+reach_means <- as_tibble(spe) |>
+  mutate(Reach = reach_dat$Reach) |>
+  summarise(across(where(is.numeric), mean), .by = Reach) |>
+  mutate(
+    Reach = recode(
+      as.character(Reach),
+      "Upper and pre-impact stretch" = "Upper",
+      "Impacted oxygen-sag stretch" = "Oxygen sag",
+      "Mouthward recovery stretch" = "Recovery"
+    )
+  ) |>
+  pivot_longer(-Reach, names_to = "Code", values_to = "mean_abundance") |>
+  pivot_wider(names_from = Reach, values_from = mean_abundance)
+
+reach_species <- reach_tests |>
+  filter(adjusted_p <= 0.05) |>
+  arrange(desc(deviance)) |>
+  slice_head(n = 8) |>
+  mutate(Species = unname(species_names[Code]), .after = Code) |>
+  left_join(reach_means, by = "Code")
+```
+
+The river segment groups were defined from distance, oxygen, and BOD rather than from the fish table, so the fish provide a separate biological check. The Bray-Curtis PERMANOVA attributes `r fmt(100 * reach_adonis$R2[1], 1)`% of compositional variation to reach ($p = `r fmt(reach_adonis[["Pr(>F)"]][1], 3)`$). Dispersion also differs among reaches ($p = `r fmt(reach_dispersion$tab[1, "Pr(>F)"], 3)`$), however, so the PERMANOVA cannot be read as a pure shift in group centroids. The oxygen-sag group is both compositionally displaced and unusually species-poor.
+
+```{r tbl-reach-species}
+#| label: tbl-reach-species
+#| tbl-cap: "Species contributing most strongly to fish-assemblage differences among the three environmentally defined reaches."
+#| echo: false
+reach_species |>
+  dplyr::select(
+    Code,
+    Species,
+    Upper,
+    `Oxygen sag`,
+    Recovery,
+    adjusted_p
+  ) |>
+  gt_doubs(
+    note = "Mean observed abundance by reach; adjusted resampling p-values from a negative-binomial manyGLM. The table shows the eight largest species-level deviances among taxa with adjusted p <= 0.05."
+  ) |>
+  cols_label(adjusted_p = "adjusted p") |>
+  fmt_number(columns = c(Upper, `Oxygen sag`, Recovery), decimals = 1) |>
+  fmt_number(columns = adjusted_p, decimals = 3) |>
+  data_color(
+    columns = c(Upper, `Oxygen sag`, Recovery),
+    palette = c("#f7fbff", "#2171b5")
+  )
+```
+
+The negative-binomial manyGLM confirms an overall river segment effect ($p = `r fmt(reach_anova$table[["Pr(>Dev)"]][2], 3)`$) without relying on Bray-Curtis dispersion. The species results sharpen the interpretation (@tbl-reach-species): minnow, stone loach, and brown trout characterise the upper assemblage, whereas eel, ide, pumpkinseed, crucian carp, and ruffe rise in the recovery reach. None of the strongest differentiating taxa peaks in the oxygen-sag segment. Its identity is therefore defined mainly by assemblage depletion, not by a new set of specialist fishes, which anticipates the nestedness result in the next section.
+
 ### Replacement or loss? Beta-diversity partitioning
 
-I have repeatedly called the downstream change a *replacement* of species. Beta-diversity partitioning tests that word. Using **betapart**, I split the total multi-site dissimilarity into a balanced-turnover component, where a gain of one species is matched by a loss of another, and an abundance-gradient component, the nestedness-like part where one assemblage is a thinned version of another.
+I have repeatedly called the downstream change a *replacement* of species. Beta-diversity partitioning tests that word by separating balanced turnover from the abundance-gradient component, the nestedness-like part where one assemblage is a thinned version of another.
 
 ```{r code-betapart}
 library(betapart)
@@ -820,7 +1000,7 @@ Turnover dominates, at about 0.86 of the total against 0.14 for the abundance-gr
 
 ### Which sites and species are distinctive? LCBD and SCBD
 
-Local contributions to beta diversity (LCBD) rank the sites by how much each adds to the total variance of the community matrix, and species contributions (SCBD) do the same for the species (`beta.div()` in **adespatial**). A high-LCBD site is ecologically distinctive, and a permutation test shows whether its distinctiveness exceeds chance. This analysis identifies the pollution reach without any prior specification of where to look.
+Local contributions to beta diversity (LCBD) rank sites by how much each adds to the total community variation. A high-LCBD site is ecologically distinctive, and a permutation test shows whether its distinctiveness exceeds chance. This analysis identifies the pollution reach without any prior specification of where to look.
 
 ```{r code-lcbd}
 set.seed(743)
@@ -903,7 +1083,7 @@ p1 + p2 + plot_layout(guides = "collect")
 
 ### A model-based check with manyGLM
 
-Every distance-based method treats the count table through a dissimilarity index. `manyGLM()` in **mvabund**, which you've seen in the [diatom nMDS chapter](nMDS_diatoms.qmd), instead fits a negative-binomial GLM to each species and tests the predictors jointly by resampling, so it respects the mean-variance relationship of counts explicitly. It is a useful check that the ordination result does not depend on the Bray-Curtis geometry.
+Every distance-based method treats the count table through a dissimilarity index. `manyGLM()` instead fits a negative-binomial GLM to each species and tests the predictors jointly by resampling. It is a useful check that the ordination result does not depend on the Bray-Curtis geometry.
 
 ```{r code-manyglm}
 library(mvabund)
@@ -918,21 +1098,12 @@ Distance from source, BOD, and oxygen are each significant, and distance from so
 
 ### The shape of species responses
 
-The ordinations assume, through the $\chi^2$ and Bray-Curtis geometries, that species rise and fall along the gradient rather than climb without limit. I can check that directly by fitting each species against distance from source with a negative-binomial GLM (`glm.nb()` from the [GLM chapter](glm.qmd)) that has a linear and a quadratic term. A significant negative quadratic term is a unimodal response with an optimum inside the surveyed reach, and the optimum is the fitted peak.
+The ordinations assume, through the $\chi^2$ and Bray-Curtis geometries, that species rise and fall along the gradient rather than climb without limit. Species-level response models check that assumption directly. A significant negative quadratic term is a unimodal response with an optimum inside the surveyed reach, and the optimum is the fitted peak.
 
 ```{r code-response}
 library(MASS)
 focus <- c("Satr", "Cogo", "Thth", "Babl", "Baba", "Gogo", "Ruru", "Abbr")
-sp_names <- c(
-  Satr = "Brown trout",
-  Cogo = "Bullhead",
-  Thth = "Grayling",
-  Babl = "Stone loach",
-  Baba = "Barbel",
-  Gogo = "Gudgeon",
-  Ruru = "Roach",
-  Abbr = "Common bream"
-)
+sp_names <- species_names[focus]
 dfs <- env_matched$dfs
 
 response_tab <- map_dfr(focus, function(s) {
@@ -1005,11 +1176,59 @@ ggplot(pred, aes(dfs, fit)) +
   theme(strip.text = element_text(size = 6))
 ```
 
+::: {.callout-note appearance="simple"}
+## What additional data would allow
+
+The present data are a strong spatial snapshot, but some attractive advanced methods would answer questions the sampling design cannot support on its own.
+
+* **Fish traits would permit RLQ and fourth-corner analysis.** These would test whether temperature, flow, oxygen, and substrate filter body size, trophic guild, reproductive strategy, or habitat preference rather than only changing species identities.
+* **Repeated seasonal or annual surveys would permit joint species distribution models and multivariate trajectories.** They could separate persistent reach differences from year-to-year variation, estimate residual species associations, and test whether the oxygen-sag assemblage is stable or episodic.
+* **True river-network coordinates and along-channel distances would permit directional stream-network models.** The present planar coordinates cannot represent flow-connected versus flow-unconnected sites, tributary junctions, or asymmetric downstream dispersal.
+* **Reference reaches and before-after sampling would permit stronger impact inference.** A BACI design or an intervention-focused change-point model could distinguish the effect of an organic discharge from the natural downstream continuum more convincingly than this single-river correlation can.
+:::
+
+## A Decision Framework for Multivariate Analysis
+
+After 24 chapters, the important question is no longer *which function do I run?* but *which ecological question am I asking?* @fig-decision-framework summarises the usual route. Start with the biological object, decide whether the aim is description, explanation, grouping, uniqueness, or species-level response, and then choose the method whose assumptions match that aim.
+
+```{mermaid}
+%%| label: fig-decision-framework
+%%| fig-cap: "A practical decision framework for choosing among the multivariate methods used in the module."
+%%{init: {"flowchart": {"wrappingWidth": 420}}}%%
+flowchart TB
+  A["Start with the ecological question"] --> B
+
+  B["1. What is the response table?<br/><br/>Environmental variables → PCA<br/>Species community → continue downward"]
+  B -->|"For a community table"| C
+
+  C["2. Describe composition without predictors?<br/><br/>Short or linear gradient → Hellinger PCA or RDA<br/>Long or unimodal gradient → CA or DCA<br/>Dissimilarity-based analysis → PCoA or nMDS"]
+  C -->|"If explanation is required"| D
+
+  D["3. Explain composition with predictors?<br/><br/>Linear responses → RDA · Unimodal responses → CCA<br/>Dissimilarity-based response → db-RDA<br/>Environment and space overlap → variation partitioning and MEM"]
+  D -->|"For another analytical aim"| E
+
+  E["4. Compare or classify sites?<br/><br/>Compare configurations → Procrustes and PROTEST<br/>Test predefined groups → PERMANOVA plus dispersion<br/>Create groups → cluster analysis"]
+  E -->|"To locate ecological contributions"| F
+
+  F["5. Which sites or species make the pattern?<br/><br/>Distinctive sites or species → LCBD and SCBD<br/>Replacement versus abundance loss → beta-diversity partitioning<br/>Species-level inference → manyGLM or response GLMs"]
+
+  classDef start fill:#243447,color:#ffffff,stroke:#243447,stroke-width:2px;
+  classDef question fill:#eef6ff,color:#182536,stroke:#4f6f8f,stroke-width:1.5px;
+  classDef final fill:#f4f8f3,color:#182536,stroke:#568060,stroke-width:1.5px;
+  class A start;
+  class B,C,D,E question;
+  class F final;
+```
+
+The framework is deliberately not a recipe. Several methods may be defensible for the same dataset, as the Doubs example shows. The strongest analysis is usually the one in which several defensible methods answer neighbouring questions and converge on the same ecological interpretation.
+
 ## Synthesis: One Continuum and One Interruption
 
-These analyses show that the Doubs assemblage is organised primarily by a longitudinal river continuum. The upper sites are high, steep, cool reaches with near-saturated oxygen and little nutrient load, while the lower sites are further from source, warmer, harder, and more enriched. Every method in the chapter (unconstrained or constrained, distance-based or model-based) recovers that one axis as the dominant structure, and the fish follow it as an ordered replacement of trout-zone species by lowland cyprinids. The beta-diversity partition shows that replacement is largely comprised of turnover (about 0.86 of dissimilarity is turnover), and the response models show why (each species occupies a bounded stretch of the gradient).
+These analyses show that the Doubs assemblage is organised primarily by a longitudinal river continuum. The upper sites are high, steep, cool reaches with near-saturated oxygen and little nutrient load, while the lower sites are further from source, warmer, harder, and more enriched. Every unconstrained method recovered the same upstream-to-downstream gradient. Every constrained method selected variables describing river position and oxygen conditions. Every spatial analysis showed that environmental and geographic structure coincide along a river channel. Procrustes analysis then showed that the environmental and fish configurations are strongly aligned overall while exposing a small set of local mismatches. The model-based analyses confirmed that the broad pattern is a replacement of trout-zone species by lowland fishes, not only a change in a multivariate score.
 
-The continuum is not perfectly smooth, and the most valuable results show where the gradient is interrupted. A short river stretch at sites 23 to 25 has a strong organic-load signal with oxygen falling to 4 mg L^-1^ and BOD above 12, and the fauna there thins to a few tolerant species before recovering. That stretch is the reason oxygen and BOD survive forward selection where nitrate does not. It has the highest LCBD outside the headwater, it supplies most of the nestedness-like component of beta diversity, and it is visible as the richness minimum in @fig-lcbd. Overall, the analyses describe two overlaid gradients, a long physical-chemical continuum and a short, sharp oxygen sag, not the single monotonic trend the earlier chapters revealed.
+The continuum is not perfectly smooth, and the most valuable results show where the gradient is interrupted. A short river stretch at sites 23 to 25 has a strong organic-load signal with oxygen falling to 4 mg L^-1^ and BOD above 12, and the fauna there thins to a few tolerant species before recovering. That stretch is the reason oxygen and BOD survive forward selection where nitrate does not. It has the highest LCBD outside the headwater, it supplies most of the nestedness-like component of beta diversity, it forms its own reach in the cluster analysis, and it is visible as the richness minimum in @fig-lcbd. The reach-level manyGLM adds an important detail: the impacted reach has no distinctive specialist fauna among the strongest species responses; it is defined by the disappearance of both upper-river and recovering lowland taxa. Overall, the analyses describe two overlaid gradients, a long physical-chemical continuum and a short, sharp oxygen sag, not the single monotonic trend the earlier chapters revealed.
+
+The method families therefore fit together rather than compete. Ordination describes the dominant structure. Constrained ordination connects that structure to measured predictors. Spatial methods show why environment and geography cannot be cleanly separated in one river. Procrustes analysis tests whether two views of the sites agree and locates their exceptions. Clustering turns the interpretation into named reaches, while PERMANOVA, dispersion, and manyGLM test what those groups mean biologically. LCBD, beta-diversity partitioning, and species response models then move from the whole assemblage back to the sites and species that make the pattern biologically real.
 
 These conclusions are based on correlational evidence, so association is not mechanism, which is why the [selection argument](#sec-selection) did not name a single driver. The gradient is truncated at both ends, so the optima of the most downstream species are situated beyond the survey. Environment and space are confounded along a single channel, which is why the shared fraction of the variation partition is so large. These are properties of one river surveyed once, and they would be relaxed only by more rivers, more seasons, or experimental work.
 
