@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.11">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
 <meta name="author" content="A. J. Smit">
+
 <title>23. Quantile Regression – The Tangled Bank</title>
 <style>
 /* Default styles provided by pandoc.
@@ -58,6 +61,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 
+
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -81,7 +85,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap-2dd16c781d19e5b9220511434c273081.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
-<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": true,
   "collapse-after": 3,
@@ -105,13 +110,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SCYH68M489"></script><script type="text/plain" cookie-consent="tracking">
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SCYH68M489"></script>
+
+<script type="text/plain" cookie-consent="tracking">
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-SCYH68M489', { 'anonymize_ip': true});
-</script><script type="text/javascript" charset="UTF-8">
+</script>
+
+<script type="text/javascript" charset="UTF-8">
 document.addEventListener('DOMContentLoaded', function () {
 cookieconsent.run({
   "notice_banner_type":"headline",
@@ -126,10 +136,14 @@ cookieconsent.run({
 "language":"en"
   });
 });
-</script><style>html{ scroll-behavior: smooth; }</style>
-<!-- Site fonts + head metadata --><link rel="preconnect" href="https://fonts.googleapis.com">
+</script> 
+  
+<style>html{ scroll-behavior: smooth; }</style>
+<!-- Site fonts + head metadata -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&amp;family=Roboto+Slab:wght@400..700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=STIX+Two+Math&amp;display=swap">
+
 <script>
   window.MathJax = {
     output: {
@@ -139,10 +153,17 @@ cookieconsent.run({
       mtextInheritFont: true
     }
   };
-</script><!-- Light-only site: pin the colour scheme and address-bar chrome --><meta name="theme-color" content="#283747">
+</script>
+
+<!-- Light-only site: pin the colour scheme and address-bar chrome -->
+<meta name="theme-color" content="#283747">
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
-<script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml-nofont.js" type="text/javascript"></script><script type="text/javascript">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml-nofont.js" type="text/javascript"></script>
+
+<script type="text/javascript">
 const typesetMath = (el) => {
   if (window.MathJax) {
     // MathJax Typeset
@@ -167,16 +188,21 @@ const typesetMath = (el) => {
 window.Quarto = {
   typesetMath
 };
-</script><link rel="stylesheet" href="../../styles/biostats-callouts.css">
+</script>
+
+<link rel="stylesheet" href="../../styles/biostats-callouts.css">
 <meta property="og:title" content="23. Quantile Regression – The Tangled Bank">
 <meta property="og:description" content="Modelling the Whole Response Distribution">
 <meta property="og:image" content="https://tangledbank.netlify.app/BCB744/basic_stats/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==">
 <meta property="og:site_name" content="The Tangled Bank">
 </head>
+
 <body class="nav-sidebar floating nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">The Tangled Bank</span>
@@ -188,7 +214,7 @@ window.Quarto = {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -196,8 +222,8 @@ window.Quarto = {
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-undergraduate" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Undergraduate</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-undergraduate">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-undergraduate">    
+        <li>
     <a class="dropdown-item" href="../../BDC223/BDC223_index.html">
  <span class="dropdown-text">BDC223: Plant Ecophysiology</span></a>
   </li>  
@@ -206,13 +232,13 @@ window.Quarto = {
  <span class="dropdown-text">BDC334: Biogeography &amp; Global Ecology</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-honours-core" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Honours Core</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-honours-core">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-honours-core">    
+        <li>
     <a class="dropdown-item" href="../../BCB744/BCB744_index.html">
  <span class="dropdown-text">BCB744: Module Overview</span></a>
   </li>  
@@ -225,24 +251,24 @@ window.Quarto = {
  <span class="dropdown-text">BCB744: Biostatistics</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-electives" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Electives</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-electives">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-electives">    
+        <li>
     <a class="dropdown-item" href="../../BCB743/BCB743_index.html">
  <span class="dropdown-text">BCB743: Quantitative Ecology</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-ai--policy" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">AI &amp; Policy</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-ai--policy">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-ai--policy">    
+        <li>
     <a class="dropdown-item" href="../../docs/Combined Faculty AI Policy 15082025.pdf">
  <span class="dropdown-text">Faculty AI Policy</span></a>
   </li>  
@@ -259,13 +285,13 @@ window.Quarto = {
  <span class="dropdown-text">Evolving AI and Information Literacy</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-support" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Support</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-support">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-support">    
+        <li>
     <a class="dropdown-item" href="../../resources/general_resources_web.html">
  <span class="dropdown-text">General Web Resources</span></a>
   </li>  
@@ -286,10 +312,10 @@ window.Quarto = {
  <span class="dropdown-text">Buffer Data Extract</span></a>
   </li>  
     </ul>
-</li>
+  </li>
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
     <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
@@ -299,15 +325,15 @@ window.Quarto = {
 </i> 
  <span class="menu-text"></span>
     </a>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">
-<li>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">    
+        <li>
     <a class="dropdown-item" href="https://github.com/ajsmit/tangled_bank">
  <span class="dropdown-text">Source Code</span></a>
   </li>  
     </ul>
-</li>
+  </li>
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -316,7 +342,9 @@ window.Quarto = {
 </a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
@@ -327,17 +355,17 @@ window.Quarto = {
         <i class="bi bi-search"></i>
       </button>
     </div>
-  </nav><div id="quarto-announcement" data-announcement-id="d9fc74915cbe705deed34b7d2b65416c" class="alert alert-primary hidden">
-<i class="bi bi-info-circle quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p><strong>June 2026: updated Quantitative Ecology pages are going live in the week 8–12 June.</strong></p>
-</div>
-<i class="bi bi-x-lg quarto-announcement-action"></i>
-</div>
-</header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
       <a href="../../index.html" class="sidebar-logo-link">
-      <img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none"><img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none"></a>
+      <img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
@@ -346,7 +374,7 @@ window.Quarto = {
         </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
-<li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/BCB744_index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Course overview</span></a>
@@ -360,8 +388,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/intro_r/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Section overview</span></a>
@@ -494,7 +522,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
@@ -503,8 +531,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Section overview</span></a>
@@ -518,8 +546,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/01-statistical-landscape.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">1. The Statistical Landscape</span></a>
@@ -544,7 +572,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
@@ -553,8 +581,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/05-inference.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">5. Statistical Inference</span></a>
@@ -591,7 +619,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
@@ -600,8 +628,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/11-residuals-and-model-based-diagnostics.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">11. Residuals and Model-Based Diagnostics</span></a>
@@ -644,7 +672,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
@@ -653,8 +681,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/18-pseudoreplication.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">18. Pseudoreplication</span></a>
@@ -703,7 +731,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
@@ -712,15 +740,15 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/26-reproducible-workflow.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">26. Reproducible Workflow</span></a>
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
@@ -729,8 +757,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/27-subject-index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Subject Index</span></a>
@@ -761,7 +789,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
@@ -770,8 +798,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Module context</span></a>
@@ -790,40 +818,44 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
       </ul>
-</li>
+  </li>
     </ul>
-</div>
-</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#key-concepts" id="toc-key-concepts" class="nav-link active" data-scroll-target="#key-concepts"><span class="header-section-number">1</span> Key Concepts</a></li>
+  <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link active" data-scroll-target="#key-concepts"><span class="header-section-number">1</span> Key Concepts</a></li>
   <li><a href="#when-this-method-is-appropriate" id="toc-when-this-method-is-appropriate" class="nav-link" data-scroll-target="#when-this-method-is-appropriate"><span class="header-section-number">2</span> When This Method Is Appropriate</a></li>
   <li><a href="#nature-of-the-data-and-assumptions" id="toc-nature-of-the-data-and-assumptions" class="nav-link" data-scroll-target="#nature-of-the-data-and-assumptions"><span class="header-section-number">3</span> Nature of the Data and Assumptions</a></li>
   <li><a href="#the-core-equations" id="toc-the-core-equations" class="nav-link" data-scroll-target="#the-core-equations"><span class="header-section-number">4</span> The Core Equations</a></li>
   <li><a href="#r-functions" id="toc-r-functions" class="nav-link" data-scroll-target="#r-functions"><span class="header-section-number">5</span> R Functions</a></li>
-  <li>
-<a href="#example-1-blade-length-envelopes-in-laminaria-pallida" id="toc-example-1-blade-length-envelopes-in-laminaria-pallida" class="nav-link" data-scroll-target="#example-1-blade-length-envelopes-in-laminaria-pallida"><span class="header-section-number">6</span> Example 1: Blade-Length Envelopes in <em>Laminaria pallida</em></a>
+  <li><a href="#example-1-blade-length-envelopes-in-laminaria-pallida" id="toc-example-1-blade-length-envelopes-in-laminaria-pallida" class="nav-link" data-scroll-target="#example-1-blade-length-envelopes-in-laminaria-pallida"><span class="header-section-number">6</span> Example 1: Blade-Length Envelopes in <em>Laminaria pallida</em></a>
   <ul class="collapse">
-<li><a href="#example-dataset" id="toc-example-dataset" class="nav-link" data-scroll-target="#example-dataset"><span class="header-section-number">6.1</span> Example Dataset</a></li>
+  <li><a href="#example-dataset" id="toc-example-dataset" class="nav-link" data-scroll-target="#example-dataset"><span class="header-section-number">6.1</span> Example Dataset</a></li>
   <li><a href="#do-an-exploratory-data-analysis-eda" id="toc-do-an-exploratory-data-analysis-eda" class="nav-link" data-scroll-target="#do-an-exploratory-data-analysis-eda"><span class="header-section-number">6.2</span> Do an Exploratory Data Analysis (EDA)</a></li>
   <li><a href="#state-the-model-question-and-hypotheses" id="toc-state-the-model-question-and-hypotheses" class="nav-link" data-scroll-target="#state-the-model-question-and-hypotheses"><span class="header-section-number">6.3</span> State the Model Question and Hypotheses</a></li>
   <li><a href="#fit-the-models" id="toc-fit-the-models" class="nav-link" data-scroll-target="#fit-the-models"><span class="header-section-number">6.4</span> Fit the Models</a></li>
   <li><a href="#test-assumptions-check-diagnostics" id="toc-test-assumptions-check-diagnostics" class="nav-link" data-scroll-target="#test-assumptions-check-diagnostics"><span class="header-section-number">6.5</span> Test Assumptions / Check Diagnostics</a></li>
   <li><a href="#interpret-the-results" id="toc-interpret-the-results" class="nav-link" data-scroll-target="#interpret-the-results"><span class="header-section-number">6.6</span> Interpret the Results</a></li>
   <li><a href="#reporting" id="toc-reporting" class="nav-link" data-scroll-target="#reporting"><span class="header-section-number">6.7</span> Reporting</a></li>
-  </ul>
-</li>
+  </ul></li>
   <li><a href="#what-to-do-when-assumptions-fail-alternatives" id="toc-what-to-do-when-assumptions-fail-alternatives" class="nav-link" data-scroll-target="#what-to-do-when-assumptions-fail-alternatives"><span class="header-section-number">7</span> What to Do When Assumptions Fail / Alternatives</a></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
-  </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/23-quantile-regression.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/23-quantile-regression.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/index.html">Biostatistics</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/18-pseudoreplication.html">Part IV. Dependence and model extensions</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/23-quantile-regression.html">23. Quantile Regression</a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/index.html">Biostatistics</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/18-pseudoreplication.html">Part IV. Dependence and model extensions</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/23-quantile-regression.html">23. Quantile Regression</a></li></ol></nav>
+<div class="quarto-title">
 <div class="quarto-title-block"><div><h1 class="title">23. Quantile Regression</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 <p class="subtitle lead">Modelling the Whole Response Distribution</p>
 </div>
@@ -860,7 +892,10 @@ window.Quarto = {
   
 
 
-</header><div class="callout callout-style-simple callout-note callout-titled">
+</header>
+
+
+<div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -874,7 +909,7 @@ window.Quarto = {
 <li>why modelling only the mean can hide important ecological structure;</li>
 <li>what quantile regression estimates and how it differs from ordinary least squares;</li>
 <li>when quantile regression is appropriate, and what its assumptions are;</li>
-<li>how to fit, compare, and visualise quantile regressions in R with <code><a href="https://rdrr.io/pkg/quantreg/man/rq.html">quantreg::rq()</a></code>;</li>
+<li>how to fit, compare, and visualise quantile regressions in R with <code>quantreg::rq()</code>;</li>
 <li>how to interpret lower, median, and upper quantile slopes biologically;</li>
 <li>how to report a quantile regression analysis in journal style.</li>
 </ul>
@@ -905,23 +940,19 @@ window.Quarto = {
 <li>outliers make mean-based summaries unstable;</li>
 <li>the ecological question is about constraints, limits, or heterogeneous responses rather than only about the average trend.</li>
 </ul>
-<section id="key-concepts" class="level1" data-number="1"><h1 data-number="1">
-<span class="header-section-number">1</span> Key Concepts</h1>
+<section id="key-concepts" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Key Concepts</h1>
 <ul>
-<li>
-<strong>Quantile regression models conditional quantiles</strong>, not the conditional mean.</li>
-<li>
-<strong>Quantiles</strong> divide a distribution into cumulative proportions such as the 10th, 50th, or 90th percentile.</li>
-<li>
-<strong>The median is the 0.5 quantile</strong>, so median regression is a special case of quantile regression.</li>
-<li>
-<strong>Tau (<span class="math inline">\(\tau\)</span>)</strong> denotes the target quantile and ranges from 0 to 1.</li>
-<li>
-<strong>Inference can differ across quantiles</strong>, meaning that the same predictor may be weak at the lower boundary but strong at the upper boundary.</li>
-<li>
-<strong>Quantile regression is robust to heteroscedasticity</strong> and does not require normally distributed residuals in the way ordinary least squares does.</li>
-</ul></section><section id="when-this-method-is-appropriate" class="level1" data-number="2"><h1 data-number="2">
-<span class="header-section-number">2</span> When This Method Is Appropriate</h1>
+<li><strong>Quantile regression models conditional quantiles</strong>, not the conditional mean.</li>
+<li><strong>Quantiles</strong> divide a distribution into cumulative proportions such as the 10th, 50th, or 90th percentile.</li>
+<li><strong>The median is the 0.5 quantile</strong>, so median regression is a special case of quantile regression.</li>
+<li><strong>Tau (<span class="math inline">\(\tau\)</span>)</strong> denotes the target quantile and ranges from 0 to 1.</li>
+<li><strong>Inference can differ across quantiles</strong>, meaning that the same predictor may be weak at the lower boundary but strong at the upper boundary.</li>
+<li><strong>Quantile regression is robust to heteroscedasticity</strong> and does not require normally distributed residuals in the way ordinary least squares does.</li>
+</ul>
+</section>
+<section id="when-this-method-is-appropriate" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> When This Method Is Appropriate</h1>
 <p>Quantile regression is useful when:</p>
 <ul>
 <li>the response spread changes along the predictor gradient;</li>
@@ -931,8 +962,9 @@ window.Quarto = {
 <li>the same predictor may affect slow-growing, average, and high-performing organisms differently.</li>
 </ul>
 <p>Quantile regression is not a substitute for every nonlinear or hierarchical model. If the relationship is curved, use polynomial or additive extensions where needed. If the data are clustered by site, year, or individual, the dependence structure is still important and should not be ignored just because the model is quantile-based.</p>
-</section><section id="nature-of-the-data-and-assumptions" class="level1" data-number="3"><h1 data-number="3">
-<span class="header-section-number">3</span> Nature of the Data and Assumptions</h1>
+</section>
+<section id="nature-of-the-data-and-assumptions" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Nature of the Data and Assumptions</h1>
 <p>Quantile regression is more flexible than ordinary least squares, but it is not assumption-free.</p>
 <p>The main requirements are:</p>
 <ol type="1">
@@ -943,8 +975,9 @@ window.Quarto = {
 </ol>
 <p>Unlike ordinary least squares, quantile regression does <strong>not</strong> assume normally distributed residuals or constant variance. In fact, it is most useful exactly when spread changes with the predictor.</p>
 <p>What we need to consider is model form. If the relationship is curved, then a straight-line quantile model may be inadequate. It is also important to check that fitted quantile lines do not behave implausibly or cross in the range of interest.</p>
-</section><section id="the-core-equations" class="level1" data-number="4"><h1 data-number="4">
-<span class="header-section-number">4</span> The Core Equations</h1>
+</section>
+<section id="the-core-equations" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> The Core Equations</h1>
 <p>For a simple linear quantile regression, the conditional quantile of the response can be written as:</p>
 <p><span id="eq-qr"><span class="math display">\[Q_{Y}(\tau \mid X) = \beta_{0}(\tau) + \beta_{1}(\tau)X \tag{1}\]</span></span></p>
 <p>In <a href="#eq-qr" class="quarto-xref">Equation&nbsp;1</a>, <span class="math inline">\(Q_{Y}(\tau \mid X)\)</span> is the <span class="math inline">\(\tau\)</span>-th conditional quantile of the response, <span class="math inline">\(\beta_{0}(\tau)\)</span> is the intercept for that quantile, and <span class="math inline">\(\beta_{1}(\tau)\)</span> is the slope for that quantile. The principle idea is that the coefficients are allowed to change with <span class="math inline">\(\tau\)</span>.</p>
@@ -953,9 +986,10 @@ window.Quarto = {
 <p>where the check-loss function is:</p>
 <p><span id="eq-rho"><span class="math display">\[\rho_{\tau}(u) = u\left[\tau - I(u &lt; 0)\right] \tag{3}\]</span></span></p>
 <p>You do not need to memorise <a href="#eq-check" class="quarto-xref">Equation&nbsp;2</a> and <a href="#eq-rho" class="quarto-xref">Equation&nbsp;3</a>, but they explain why quantile regression behaves differently from mean regression. Residuals above and below the fitted line are weighted differently depending on the target quantile. For the median, positive and negative residuals are weighted equally; for the 90th quantile, underprediction is penalised more strongly than overprediction.</p>
-</section><section id="r-functions" class="level1" data-number="5"><h1 data-number="5">
-<span class="header-section-number">5</span> R Functions</h1>
-<p>The main function is <code><a href="https://rdrr.io/pkg/quantreg/man/rq.html">quantreg::rq()</a></code>.</p>
+</section>
+<section id="r-functions" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> R Functions</h1>
+<p>The main function is <code>quantreg::rq()</code>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">rq</span>(y <span class="sc">~</span> x, <span class="at">tau =</span> <span class="fl">0.5</span>, <span class="at">data =</span> df)                     <span class="co"># median regression</span></span>
 <span id="cb1-2"><a href="#cb1-2"></a><span class="fu">rq</span>(y <span class="sc">~</span> x, <span class="at">tau =</span> <span class="fl">0.9</span>, <span class="at">data =</span> df)                     <span class="co"># upper quantile</span></span>
@@ -963,12 +997,12 @@ window.Quarto = {
 <span id="cb1-4"><a href="#cb1-4"></a><span class="fu">summary</span>(model, <span class="at">se =</span> <span class="st">"nid"</span>)                          <span class="co"># coefficient summaries</span></span>
 <span id="cb1-5"><a href="#cb1-5"></a><span class="fu">anova</span>(model_multi_tau)                              <span class="co"># compare slopes across quantiles</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The syntax is similar to <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code>, which makes quantile regression easy to adopt once you are comfortable with ordinary regression.</p>
-</section><section id="example-1-blade-length-envelopes-in-laminaria-pallida" class="level1" data-number="6"><h1 data-number="6">
-<span class="header-section-number">6</span> Example 1: Blade-Length Envelopes in <em>Laminaria pallida</em>
-</h1>
-<section id="example-dataset" class="level2" data-number="6.1"><h2 data-number="6.1" class="anchored" data-anchor-id="example-dataset">
-<span class="header-section-number">6.1</span> Example Dataset</h2>
+<p>The syntax is similar to <code>lm()</code>, which makes quantile regression easy to adopt once you are comfortable with ordinary regression.</p>
+</section>
+<section id="example-1-blade-length-envelopes-in-laminaria-pallida" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Example 1: Blade-Length Envelopes in <em>Laminaria pallida</em></h1>
+<section id="example-dataset" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="example-dataset"><span class="header-section-number">6.1</span> Example Dataset</h2>
 <p>We use the <code>laminaria.csv</code> dataset from the course data folder. These data come from a morphometric sampling campaign on the kelp <em>Laminaria pallida</em> at 13 sites along the Cape Peninsula, spanning the west coast and False Bay regions. The sampled plants were large adult kelps, and several blade and stipe measurements were recorded for each individual.</p>
 <p>Here we focus on the relationship between <code>stipe_length</code> and <code>blade_length</code>.</p>
 <p>The biological question is simply, <strong>does increasing stipe length shift the whole distribution of blade length in the same way, or is the effect stronger for the upper envelope of blade length than for the lower envelope?</strong></p>
@@ -1429,14 +1463,17 @@ window.Quarto = {
   height: 0px !important;
 }
 </style>
+
 <table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
 <caption>A subset of the <code>laminaria.csv</code> data used in the quantile-regression example.</caption>
-<thead><tr class="gt_col_headings header">
+<thead>
+<tr class="gt_col_headings header">
 <th id="region" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">region</th>
 <th id="site" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">site</th>
 <th id="blade_length" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">blade_length</th>
 <th id="stipe_length" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">stipe_length</th>
-</tr></thead>
+</tr>
+</thead>
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_left" headers="region">WC</td>
@@ -1500,11 +1537,13 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
+
 </div>
 </div>
 </div>
-</section><section id="do-an-exploratory-data-analysis-eda" class="level2" data-number="6.2"><h2 data-number="6.2" class="anchored" data-anchor-id="do-an-exploratory-data-analysis-eda">
-<span class="header-section-number">6.2</span> Do an Exploratory Data Analysis (EDA)</h2>
+</section>
+<section id="do-an-exploratory-data-analysis-eda" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="do-an-exploratory-data-analysis-eda"><span class="header-section-number">6.2</span> Do an Exploratory Data Analysis (EDA)</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>laminaria <span class="sc">|&gt;</span></span>
 <span id="cb3-2"><a href="#cb3-2"></a>  <span class="fu">summarise</span>(</span>
@@ -1524,34 +1563,41 @@ window.Quarto = {
 </div>
 </div>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">ggplot</span>(laminaria, <span class="fu">aes</span>(<span class="at">x =</span> stipe_length, <span class="at">y =</span> blade_length)) <span class="sc">+</span></span>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">ggplot</span>(laminaria, <span class="fu">aes</span>(<span class="at">x =</span> stipe_length, <span class="at">y =</span> blade_length)) <span class="sc">+</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.65</span>) <span class="sc">+</span></span>
 <span id="cb5-3"><a href="#cb5-3"></a>  <span class="fu">labs</span>(</span>
 <span id="cb5-4"><a href="#cb5-4"></a>    <span class="at">x =</span> <span class="st">"Stipe length (cm)"</span>,</span>
 <span id="cb5-5"><a href="#cb5-5"></a>    <span class="at">y =</span> <span class="st">"Blade length (cm)"</span></span>
 <span id="cb5-6"><a href="#cb5-6"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details><div class="cell-output-display">
+</details>
+<div class="cell-output-display">
 <div id="fig-laminaria-scatter" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-laminaria-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-laminaria-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="23-quantile-regression_files/figure-html/fig-laminaria-scatter-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Blade length as a function of stipe length in adult Laminaria pallida collected across 13 sites."><img src="23-quantile-regression_files/figure-html/fig-laminaria-scatter-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-laminaria-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: Blade length as a function of stipe length in adult <em>Laminaria pallida</em> collected across 13 sites.
-</figcaption></figure>
+</figcaption>
+</figure>
 </div>
 </div>
 </div>
 <p>The scatterplot in <a href="#fig-laminaria-scatter" class="quarto-xref">Figure&nbsp;1</a> does not suggest a single, uniform linear effect. Blade length generally increases with stipe length, but the spread also changes across the predictor range. In particular, the upper edge of the point cloud steepens more strongly than the lower edge. That is exactly the kind of pattern for which quantile regression is useful.</p>
-</section><section id="state-the-model-question-and-hypotheses" class="level2" data-number="6.3"><h2 data-number="6.3" class="anchored" data-anchor-id="state-the-model-question-and-hypotheses">
-<span class="header-section-number">6.3</span> State the Model Question and Hypotheses</h2>
+</section>
+<section id="state-the-model-question-and-hypotheses" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="state-the-model-question-and-hypotheses"><span class="header-section-number">6.3</span> State the Model Question and Hypotheses</h2>
 <p>We want to know whether stipe length affects the lower, median, and upper parts of the blade-length distribution differently.</p>
 <p>For any fitted quantile, a useful hypothesis pair is:</p>
 <p><span class="math display">\[H_{0}: \beta_{1}(\tau) = 0\]</span> <span class="math display">\[H_{a}: \beta_{1}(\tau) \ne 0\]</span></p>
 <p>This asks whether stipe length has any association with blade length at the chosen quantile.</p>
 <p>Because the chapter is about comparing quantiles, we also care about whether the slopes differ among quantiles:</p>
 <p><span class="math display">\[H_{0}: \beta_{1}(0.1) = \beta_{1}(0.5) = \beta_{1}(0.9)\]</span> <span class="math display">\[H_{a}: \text{not all quantile slopes are equal}\]</span></p>
-</section><section id="fit-the-models" class="level2" data-number="6.4"><h2 data-number="6.4" class="anchored" data-anchor-id="fit-the-models">
-<span class="header-section-number">6.4</span> Fit the Models</h2>
+</section>
+<section id="fit-the-models" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="fit-the-models"><span class="header-section-number">6.4</span> Fit the Models</h2>
 <p>We fit one ordinary least squares regression for comparison, and then three quantile regressions for the 10th, 50th, and 90th quantiles.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>fit_ols <span class="ot">&lt;-</span> <span class="fu">lm</span>(blade_length <span class="sc">~</span> stipe_length, <span class="at">data =</span> laminaria)</span>
@@ -2039,9 +2085,11 @@ Figure&nbsp;1: Blade length as a function of stipe length in adult <em>Laminaria
   height: 0px !important;
 }
 </style>
+
 <table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
 <caption>Coefficient summaries for the ordinary least squares fit and the 0.1, 0.5, and 0.9 quantile-regression fits.</caption>
-<thead><tr class="gt_col_headings header">
+<thead>
+<tr class="gt_col_headings header">
 <th id="term" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">term</th>
 <th id="estimate" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">estimate</th>
 <th id="std_error" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">std_error</th>
@@ -2049,7 +2097,8 @@ Figure&nbsp;1: Blade length as a function of stipe length in adult <em>Laminaria
 <th id="p_value" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">p_value</th>
 <th id="model" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">model</th>
 <th id="Value" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Value</th>
-</tr></thead>
+</tr>
+</thead>
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_left" headers="term">(Intercept)</td>
@@ -2125,6 +2174,7 @@ Figure&nbsp;1: Blade length as a function of stipe length in adult <em>Laminaria
 </tr>
 </tbody>
 </table>
+
 </div>
 </div>
 </div>
@@ -2143,12 +2193,15 @@ Joint Test of Equality of Slopes: tau in {  0.1 0.5 0.9  }
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
-</section><section id="test-assumptions-check-diagnostics" class="level2" data-number="6.5"><h2 data-number="6.5" class="anchored" data-anchor-id="test-assumptions-check-diagnostics">
-<span class="header-section-number">6.5</span> Test Assumptions / Check Diagnostics</h2>
+</section>
+<section id="test-assumptions-check-diagnostics" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="test-assumptions-check-diagnostics"><span class="header-section-number">6.5</span> Test Assumptions / Check Diagnostics</h2>
 <p>Quantile regression does not require homoscedasticity or normal residuals, so diagnostics focus more on whether the fitted lines are sensible and whether the model form is adequate.</p>
 <p>The first check is visual: do the fitted quantile lines follow the structure of the data, and do they avoid pathological crossing?</p>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>line_df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>line_df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
 <span id="cb10-2"><a href="#cb10-2"></a>  <span class="at">model =</span> <span class="fu">c</span>(<span class="st">"Mean (OLS)"</span>, <span class="st">"tau = 0.1"</span>, <span class="st">"tau = 0.5"</span>, <span class="st">"tau = 0.9"</span>),</span>
 <span id="cb10-3"><a href="#cb10-3"></a>  <span class="at">intercept =</span> <span class="fu">c</span>(<span class="fu">coef</span>(fit_ols)[<span class="dv">1</span>], <span class="fu">coef</span>(fit_rq10)[<span class="dv">1</span>], <span class="fu">coef</span>(fit_rq50)[<span class="dv">1</span>], <span class="fu">coef</span>(fit_rq90)[<span class="dv">1</span>]),</span>
 <span id="cb10-4"><a href="#cb10-4"></a>  <span class="at">slope =</span> <span class="fu">c</span>(<span class="fu">coef</span>(fit_ols)[<span class="dv">2</span>], <span class="fu">coef</span>(fit_rq10)[<span class="dv">2</span>], <span class="fu">coef</span>(fit_rq50)[<span class="dv">2</span>], <span class="fu">coef</span>(fit_rq90)[<span class="dv">2</span>])</span>
@@ -2183,20 +2236,25 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <span id="cb10-33"><a href="#cb10-33"></a>    <span class="at">x =</span> <span class="st">"Stipe length (cm)"</span>,</span>
 <span id="cb10-34"><a href="#cb10-34"></a>    <span class="at">y =</span> <span class="st">"Blade length (cm)"</span></span>
 <span id="cb10-35"><a href="#cb10-35"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details><div class="cell-output-display">
+</details>
+<div class="cell-output-display">
 <div id="fig-qr-lines" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-qr-lines-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-qr-lines-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="23-quantile-regression_files/figure-html/fig-qr-lines-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Ordinary least squares and quantile-regression fits for the 10th, 50th, and 90th quantiles."><img src="23-quantile-regression_files/figure-html/fig-qr-lines-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-qr-lines-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: Ordinary least squares and quantile-regression fits for the 10th, 50th, and 90th quantiles.
-</figcaption></figure>
+</figcaption>
+</figure>
 </div>
 </div>
 </div>
 <p>The second useful check is whether the fitted slope itself changes smoothly across a wider range of quantiles.</p>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>tau_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="at">by =</span> <span class="fl">0.1</span>)</span>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>tau_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="at">by =</span> <span class="fl">0.1</span>)</span>
 <span id="cb11-2"><a href="#cb11-2"></a></span>
 <span id="cb11-3"><a href="#cb11-3"></a>slope_grid <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(</span>
 <span id="cb11-4"><a href="#cb11-4"></a>  tau_grid,</span>
@@ -2223,20 +2281,24 @@ Figure&nbsp;2: Ordinary least squares and quantile-regression fits for the 10th,
 <span id="cb11-25"><a href="#cb11-25"></a>    <span class="at">x =</span> <span class="fu">expression</span>(tau),</span>
 <span id="cb11-26"><a href="#cb11-26"></a>    <span class="at">y =</span> <span class="st">"Estimated slope"</span></span>
 <span id="cb11-27"><a href="#cb11-27"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details><div class="cell-output-display">
+</details>
+<div class="cell-output-display">
 <div id="fig-qr-slopes" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-qr-slopes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-qr-slopes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="23-quantile-regression_files/figure-html/fig-qr-slopes-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Estimated slope of blade length on stipe length across quantiles from 0.1 to 0.9."><img src="23-quantile-regression_files/figure-html/fig-qr-slopes-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-qr-slopes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;3: Estimated slope of blade length on stipe length across quantiles from 0.1 to 0.9.
-</figcaption></figure>
+</figcaption>
+</figure>
 </div>
 </div>
 </div>
 <p>In this example the fitted lines do not cross in the observed data range, and the slope increases steadily towards the upper quantiles. That is consistent with a biologically meaningful quantile effect rather than a numerical artefact.</p>
-</section><section id="interpret-the-results" class="level2" data-number="6.6"><h2 data-number="6.6" class="anchored" data-anchor-id="interpret-the-results">
-<span class="header-section-number">6.6</span> Interpret the Results</h2>
+</section>
+<section id="interpret-the-results" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="interpret-the-results"><span class="header-section-number">6.6</span> Interpret the Results</h2>
 <p>The ordinary least squares fit gives the average change in blade length with stipe length. In these data that mean slope is positive, but it understates what is happening at the upper edge of the distribution.</p>
 <p>The quantile regressions show that the relationship is not constant across the response distribution. This is clearest in <a href="#fig-qr-lines" class="quarto-xref">Figure&nbsp;2</a> and is reinforced by the slope-by-quantile summary in <a href="#fig-qr-slopes" class="quarto-xref">Figure&nbsp;3</a>:</p>
 <ul>
@@ -2247,8 +2309,9 @@ Figure&nbsp;3: Estimated slope of blade length on stipe length across quantiles 
 <p>This means that longer stipes are associated with modest increases in blade length near the lower boundary of the data, but much larger increases near the upper boundary. In other words, stipe length is a much stronger predictor of the <strong>longest</strong> blades than of the <strong>shortest</strong> blades.</p>
 <p>The joint quantile comparison must also be considered. The quantile ANOVA indicates that the slopes are not all the same across <span class="math inline">\(\tau = 0.1\)</span>, <span class="math inline">\(0.5\)</span>, and <span class="math inline">\(0.9\)</span> (<code>F = 4.34</code>, <code>p &lt; 0.05</code>), and gives formal statistical support to what the figure already suggests visually.</p>
 <p>Biologically, the result reveals that increasing stipe length appears to raise the upper potential for blade elongation more strongly than it shifts the lower end of the distribution. That is the kind of edge-case ecological pattern that mean ordinary least squares regression can hide; it is visible directly in <a href="#fig-qr-lines" class="quarto-xref">Figure&nbsp;2</a>.</p>
-</section><section id="reporting" class="level2" data-number="6.7"><h2 data-number="6.7" class="anchored" data-anchor-id="reporting">
-<span class="header-section-number">6.7</span> Reporting</h2>
+</section>
+<section id="reporting" class="level2" data-number="6.7">
+<h2 data-number="6.7" class="anchored" data-anchor-id="reporting"><span class="header-section-number">6.7</span> Reporting</h2>
 <div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2267,15 +2330,19 @@ Figure&nbsp;3: Estimated slope of blade length on stipe length across quantiles 
 <p>The quantile regression reveals a biologically important pattern that would be muted in a mean-only analysis. Stipe length appears to influence the upper potential for blade development more strongly than the lower end of the blade-length distribution. This suggests that while longer stipes may permit greater blade elongation, shorter blades can still occur across much of the stipe-length range, presumably because other unmeasured factors also constrain morphology.</p>
 </div>
 </div>
-</section></section><section id="what-to-do-when-assumptions-fail-alternatives" class="level1" data-number="7"><h1 data-number="7">
-<span class="header-section-number">7</span> What to Do When Assumptions Fail / Alternatives</h1>
+</section>
+</section>
+<section id="what-to-do-when-assumptions-fail-alternatives" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> What to Do When Assumptions Fail / Alternatives</h1>
 <ul>
 <li>If the fitted straight quantile lines are clearly inadequate, extend the model with polynomial terms or quantile smoothers rather than forcing a linear form.</li>
 <li>If quantile lines cross implausibly, reduce model complexity and inspect whether sparse data at extreme predictor values are driving the problem.</li>
 <li>If observations are not independent because of repeated measures, sites, or years, then the dependence structure must be addressed explicitly; ordinary <code>rq()</code> is not enough.</li>
 <li>If the scientific question is still about the conditional mean, ordinary least squares remains simpler and easier to interpret.</li>
-</ul></section><section id="summary" class="level1" data-number="8"><h1 data-number="8">
-<span class="header-section-number">8</span> Summary</h1>
+</ul>
+</section>
+<section id="summary" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Summary</h1>
 <ul>
 <li>Quantile regression models the response distribution more completely than mean regression.</li>
 <li>It is especially useful for wedge-shaped ecological data and for questions about limits or constraints.</li>
@@ -2287,7 +2354,9 @@ Figure&nbsp;3: Estimated slope of blade length on stipe length across quantiles 
 
 <!-- -->
 
-</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2026,
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2026,
   author = {Smit, A. J.},
   title = {23. {Quantile} {Regression}},
   date = {2026-04-07},
@@ -2297,7 +2366,8 @@ Figure&nbsp;3: Estimated slope of blade length on stipe length across quantiles 
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-smit2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Smit AJ (2026) 23. Quantile Regression. <a href="https://tangledbank.netlify.app/BCB744/basic_stats/23-quantile-regression.html">https://tangledbank.netlify.app/BCB744/basic_stats/23-quantile-regression.html.
 </a>
-</div></div></section></div></main><!-- /main --><script>
+</div></div></section></div></main> <!-- /main -->
+<script>
 document.addEventListener("DOMContentLoaded", function () {
   const sidebar = document.querySelector("#quarto-sidebar");
   const titleBlock = document.querySelector(".quarto-title-block");
@@ -2355,7 +2425,8 @@ document.addEventListener("DOMContentLoaded", function () {
     pdfIcon +
     '<span>PDF</span></a>';
 });
-</script><script id="quarto-html-after-body" type="application/javascript">
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -2812,7 +2883,9 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
-  </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
       <a href="../../BCB744/basic_stats/22-nonlinear-regression.html" class="pagination-link" aria-label="22. Nonlinear Regression">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">22. Nonlinear Regression</span>
       </a>          
@@ -3209,7 +3282,8 @@ document.addEventListener("DOMContentLoaded", function () {
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <p>© 2026, AJ Smit</p>
 </div>   
@@ -3220,7 +3294,8 @@ document.addEventListener("DOMContentLoaded", function () {
       &nbsp;
     </div>
   </div>
-</footer><script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+</footer>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
 (function() {
   let previousOnload = window.onload;
   window.onload = () => {
@@ -3252,6 +3327,8 @@ document.addEventListener("DOMContentLoaded", function () {
   
 })();
           </script>
+
+
 
 
 <script src="../../site_libs/quarto-html/zenscroll-min.js"></script>

@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.11">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
 <meta name="author" content="A. J. Smit">
 <meta name="dcterms.date" content="2026-03-19">
 <meta name="description" content="This vignette demonstrates an example workflow for extracting chlorophyll-a data at the point localities where whales were sighted.">
+
 <title>Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-a Data – The Tangled Bank</title>
 <style>
 /* Default styles provided by pandoc.
@@ -60,6 +63,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 
+
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -80,7 +84,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-739d2f55e52258f397fc87d1143cf3b8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-2dd16c781d19e5b9220511434c273081.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../site_libs/bootstrap/bootstrap-2dd16c781d19e5b9220511434c273081.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": true,
   "collapse-after": 3,
@@ -104,13 +109,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SCYH68M489"></script><script type="text/plain" cookie-consent="tracking">
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SCYH68M489"></script>
+
+<script type="text/plain" cookie-consent="tracking">
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-SCYH68M489', { 'anonymize_ip': true});
-</script><script type="text/javascript" charset="UTF-8">
+</script>
+
+<script type="text/javascript" charset="UTF-8">
 document.addEventListener('DOMContentLoaded', function () {
 cookieconsent.run({
   "notice_banner_type":"headline",
@@ -125,10 +135,14 @@ cookieconsent.run({
 "language":"en"
   });
 });
-</script><style>html{ scroll-behavior: smooth; }</style>
-<!-- Site fonts + head metadata --><link rel="preconnect" href="https://fonts.googleapis.com">
+</script> 
+  
+<style>html{ scroll-behavior: smooth; }</style>
+<!-- Site fonts + head metadata -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&amp;family=Roboto+Slab:wght@400..700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=STIX+Two+Math&amp;display=swap">
+
 <script>
   window.MathJax = {
     output: {
@@ -138,18 +152,26 @@ cookieconsent.run({
       mtextInheritFont: true
     }
   };
-</script><!-- Light-only site: pin the colour scheme and address-bar chrome --><meta name="theme-color" content="#283747">
+</script>
+
+<!-- Light-only site: pin the colour scheme and address-bar chrome -->
+<meta name="theme-color" content="#283747">
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
+
+
 <meta property="og:title" content="Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-a Data – The Tangled Bank">
 <meta property="og:description" content="This vignette demonstrates an example workflow for extracting chlorophyll-a data at the point localities where whales were sighted.">
 <meta property="og:image" content="https://tangledbank.netlify.app/vignettes/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==">
 <meta property="og:site_name" content="The Tangled Bank">
 </head>
+
 <body class="nav-sidebar floating nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">The Tangled Bank</span>
@@ -161,7 +183,7 @@ cookieconsent.run({
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -169,8 +191,8 @@ cookieconsent.run({
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-undergraduate" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Undergraduate</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-undergraduate">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-undergraduate">    
+        <li>
     <a class="dropdown-item" href="../BDC223/BDC223_index.html">
  <span class="dropdown-text">BDC223: Plant Ecophysiology</span></a>
   </li>  
@@ -179,13 +201,13 @@ cookieconsent.run({
  <span class="dropdown-text">BDC334: Biogeography &amp; Global Ecology</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-honours-core" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Honours Core</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-honours-core">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-honours-core">    
+        <li>
     <a class="dropdown-item" href="../BCB744/BCB744_index.html">
  <span class="dropdown-text">BCB744: Module Overview</span></a>
   </li>  
@@ -198,24 +220,24 @@ cookieconsent.run({
  <span class="dropdown-text">BCB744: Biostatistics</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-electives" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Electives</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-electives">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-electives">    
+        <li>
     <a class="dropdown-item" href="../BCB743/BCB743_index.html">
  <span class="dropdown-text">BCB743: Quantitative Ecology</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-ai--policy" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">AI &amp; Policy</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-ai--policy">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-ai--policy">    
+        <li>
     <a class="dropdown-item" href="../docs/Combined Faculty AI Policy 15082025.pdf">
  <span class="dropdown-text">Faculty AI Policy</span></a>
   </li>  
@@ -232,13 +254,13 @@ cookieconsent.run({
  <span class="dropdown-text">Evolving AI and Information Literacy</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-support" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Support</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-support">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-support">    
+        <li>
     <a class="dropdown-item" href="../resources/general_resources_web.html">
  <span class="dropdown-text">General Web Resources</span></a>
   </li>  
@@ -259,10 +281,10 @@ cookieconsent.run({
  <span class="dropdown-text">Buffer Data Extract</span></a>
   </li>  
     </ul>
-</li>
+  </li>
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
     <a class="nav-link" href="../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
@@ -272,15 +294,15 @@ cookieconsent.run({
 </i> 
  <span class="menu-text"></span>
     </a>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">
-<li>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">    
+        <li>
     <a class="dropdown-item" href="https://github.com/ajsmit/tangled_bank">
  <span class="dropdown-text">Source Code</span></a>
   </li>  
     </ul>
-</li>
+  </li>
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -289,7 +311,9 @@ cookieconsent.run({
 </a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
@@ -300,17 +324,17 @@ cookieconsent.run({
         <i class="bi bi-search"></i>
       </button>
     </div>
-  </nav><div id="quarto-announcement" data-announcement-id="d9fc74915cbe705deed34b7d2b65416c" class="alert alert-primary hidden">
-<i class="bi bi-info-circle quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p><strong>June 2026: updated Quantitative Ecology pages are going live in the week 8–12 June.</strong></p>
-</div>
-<i class="bi bi-x-lg quarto-announcement-action"></i>
-</div>
-</header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
       <a href="../index.html" class="sidebar-logo-link">
-      <img src="../images/my_tree_hex.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none"><img src="../images/my_tree_hex.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none"></a>
+      <img src="../images/my_tree_hex.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../images/my_tree_hex.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
@@ -319,7 +343,7 @@ cookieconsent.run({
         </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
-<li class="sidebar-item sidebar-item-section">
+        <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
  <span class="menu-text">Web Resources</span></a>
@@ -327,8 +351,8 @@ cookieconsent.run({
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../resources/general_resources_web.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">General Web Resources</span></a>
@@ -347,7 +371,7 @@ cookieconsent.run({
   </div>
 </li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
@@ -356,8 +380,8 @@ cookieconsent.run({
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../vignettes/netCDF_dates.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Dates From netCDF Files: Two Approaches</span></a>
@@ -430,7 +454,7 @@ cookieconsent.run({
   </div>
 </li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
@@ -439,8 +463,8 @@ cookieconsent.run({
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../vignettes/README_Lengau.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Using Lengau</span></a>
@@ -459,25 +483,31 @@ cookieconsent.run({
   </div>
 </li>
       </ul>
-</li>
+  </li>
     </ul>
-</div>
-</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#load-libraries" id="toc-load-libraries" class="nav-link active" data-scroll-target="#load-libraries"><span class="header-section-number">1</span> Load Libraries</a></li>
+  <li><a href="#load-libraries" id="toc-load-libraries" class="nav-link active" data-scroll-target="#load-libraries"><span class="header-section-number">1</span> Load Libraries</a></li>
   <li><a href="#load-the-whale-sightings-data" id="toc-load-the-whale-sightings-data" class="nav-link" data-scroll-target="#load-the-whale-sightings-data"><span class="header-section-number">2</span> Load the Whale Sightings Data</a></li>
   <li><a href="#reading-chlorophyll-a-from-csv-rdata" id="toc-reading-chlorophyll-a-from-csv-rdata" class="nav-link" data-scroll-target="#reading-chlorophyll-a-from-csv-rdata"><span class="header-section-number">3</span> Reading chlorophyll-<em>a</em> from CSV (RData)</a></li>
   <li><a href="#reading-chlorophyll-a-from-netcdf-alternative" id="toc-reading-chlorophyll-a-from-netcdf-alternative" class="nav-link" data-scroll-target="#reading-chlorophyll-a-from-netcdf-alternative"><span class="header-section-number">4</span> Reading chlorophyll-<em>a</em> from netCDF (Alternative)</a></li>
   <li><a href="#processing" id="toc-processing" class="nav-link" data-scroll-target="#processing"><span class="header-section-number">5</span> Processing</a></li>
   <li><a href="#make-a-function-to-apply" id="toc-make-a-function-to-apply" class="nav-link" data-scroll-target="#make-a-function-to-apply"><span class="header-section-number">6</span> Make a Function to Apply</a></li>
-  </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/vignettes/chl_localisation.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/vignettes/chl_localisation.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../vignettes/netCDF_dates.html">Vignettes</a></li><li class="breadcrumb-item"><a href="../vignettes/chl_localisation.html">Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-<em>a</em> Data</a></li></ol></nav><div class="quarto-title">
+<main class="content column-body" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../vignettes/netCDF_dates.html">Vignettes</a></li><li class="breadcrumb-item"><a href="../vignettes/chl_localisation.html">Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-<em>a</em> Data</a></li></ol></nav>
+<div class="quarto-title">
 <div class="quarto-title-block"><div><h1 class="title">Spatial Localisation, Subsetting, and Aggregation of the Chlorophyll-<em>a</em> Data</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 <p class="subtitle lead">An Example Analysis and Workflow</p>
 </div>
@@ -519,10 +549,13 @@ cookieconsent.run({
   
 
 
-</header><p>This analysis uses the chlorophyll<em>a</em> data downloaded in <a href="../vignettes/chl_ERDDAP.html">Retrieving Chlorophyll-a Data from ERDDAP Servers</a>.</p>
+</header>
+
+
+<p>This analysis uses the chlorophyll<em>a</em> data downloaded in <a href="../vignettes/chl_ERDDAP.html">Retrieving Chlorophyll-a Data from ERDDAP Servers</a>.</p>
 <p>The purpose of this analysis is to extract chlorophyll-<em>a</em> (chl-<em>a</em>) data collocated with the position of whale sightings. The geographical locality of each whale sighting is used to define a centre point in the gridded chl-<em>a</em> dataset. This centre point is then expanded by a specified radius, and all the pixels located within the expanded area’s bounding box are then aggregated along the latitude and longitude dimensions. This is repeated for each whale sighting since the start of the chl-<em>a</em> record time period (i.e.&nbsp;since 2003-01-01).</p>
-<section id="load-libraries" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="load-libraries">
-<span class="header-section-number">1</span> Load Libraries</h2>
+<section id="load-libraries" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="load-libraries"><span class="header-section-number">1</span> Load Libraries</h2>
 <p>I use <strong>tidyverse</strong> (of course) for basic data processing, <strong>lubridate</strong> for date calculations (specifically the ceiling of a pre-defined time interval such as week), and <strong>stars</strong> and <strong>sf</strong> for some specific geographical computations.</p>
 <div class="cell" data-warnings="false">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -533,8 +566,9 @@ cookieconsent.run({
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># devtools::session_info()</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section><section id="load-the-whale-sightings-data" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="load-the-whale-sightings-data">
-<span class="header-section-number">2</span> Load the Whale Sightings Data</h2>
+</section>
+<section id="load-the-whale-sightings-data" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="load-the-whale-sightings-data"><span class="header-section-number">2</span> Load the Whale Sightings Data</h2>
 <p>These data are provided as CSV file and are easy to load:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="co"># sightings</span></span>
@@ -550,8 +584,9 @@ cookieconsent.run({
 <pre><code>[1] "2022-05-07 15:41:51 UTC"</code></pre>
 </div>
 </div>
-</section><section id="reading-chlorophyll-a-from-csv-rdata" class="level2" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="reading-chlorophyll-a-from-csv-rdata">
-<span class="header-section-number">3</span> Reading chlorophyll-<em>a</em> from CSV (RData)</h2>
+</section>
+<section id="reading-chlorophyll-a-from-csv-rdata" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="reading-chlorophyll-a-from-csv-rdata"><span class="header-section-number">3</span> Reading chlorophyll-<em>a</em> from CSV (RData)</h2>
 <p>Next I load the chlorophyll-<em>a</em> data. These data were downloaded as flat CSV file and stored in a more compact RData file. See <code>1_ERDDAP_download.html</code> for information about the download process.</p>
 <p>It is important that we are clear about the start times (especially) of the sightings dataset.</p>
 <div class="cell">
@@ -577,8 +612,9 @@ cookieconsent.run({
 <span id="cb6-20"><a href="#cb6-20"></a><span class="co"># min(chl_df$date_ceiling); max(chl_df$date_ceiling)</span></span>
 <span id="cb6-21"><a href="#cb6-21"></a><span class="co"># class(chl_df$date_ceiling)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section><section id="reading-chlorophyll-a-from-netcdf-alternative" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="reading-chlorophyll-a-from-netcdf-alternative">
-<span class="header-section-number">4</span> Reading chlorophyll-<em>a</em> from netCDF (Alternative)</h2>
+</section>
+<section id="reading-chlorophyll-a-from-netcdf-alternative" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="reading-chlorophyll-a-from-netcdf-alternative"><span class="header-section-number">4</span> Reading chlorophyll-<em>a</em> from netCDF (Alternative)</h2>
 <p>Note that we can also download (in <code>1_ERDDAP_download.html</code>) the data in netCDF format, and load the netCDF directly as a <strong>stars</strong> object. In the future I’ll probably go this route because I like the convenience of netCDF. An example workflow is provided for the netCDF approach, but the subsequent analysis proceeds with the data loaded from CSV.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>chl_nc <span class="ot">&lt;-</span></span>
@@ -605,8 +641,9 @@ cookieconsent.run({
 <span id="cb7-22"><a href="#cb7-22"></a>chl_st1 <span class="ot">&lt;-</span> <span class="fu">st_set_dimensions</span>(chl_st1, <span class="at">which =</span> <span class="st">"time"</span>,</span>
 <span id="cb7-23"><a href="#cb7-23"></a>                             <span class="at">values =</span> dates)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section><section id="processing" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="processing">
-<span class="header-section-number">5</span> Processing</h2>
+</section>
+<section id="processing" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="processing"><span class="header-section-number">5</span> Processing</h2>
 <p>Both the sightings and chlorophyll-<em>a</em> data have a date/time vector comprised of daily dates. But will they align after we calculate the weekly data?</p>
 <p>The chlorophyll-<em>a</em> data are available since 2002-12-29 and the whale sighting data since much earlier. I will use 2003-01-01 as the date from which to calculate the date ceiling and thus align the datasets along the time dimension. Note that I also calculated the weekly chl-<em>a</em> medians.</p>
 <p>I convert the dataframe to a <strong>stars</strong> object and do all subsequent calculations (subsetting, cropping, etc.) there. This seems to be a bit faster than working in a dataframe.</p>
@@ -700,8 +737,9 @@ cookieconsent.run({
 <span id="cb15-7"><a href="#cb15-7"></a>chl_conc[<span class="dv">1</span>,<span class="dv">3</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now I know how to do the data extraction and processing for one line in the <code>sights</code> dataset. The next trick is to do it line by line for the whole <code>sights</code> dataset, i.e.&nbsp;once for each whale sighting.</p>
-</section><section id="make-a-function-to-apply" class="level2" data-number="6"><h2 data-number="6" class="anchored" data-anchor-id="make-a-function-to-apply">
-<span class="header-section-number">6</span> Make a Function to Apply</h2>
+</section>
+<section id="make-a-function-to-apply" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="make-a-function-to-apply"><span class="header-section-number">6</span> Make a Function to Apply</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="co"># for testing (legacy code)</span></span>
 <span id="cb16-2"><a href="#cb16-2"></a></span>
@@ -802,7 +840,9 @@ cookieconsent.run({
 
 <!-- -->
 
-</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit,
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit,
   author = {Smit, A. J.},
   title = {Spatial {Localisation,} {Subsetting,} and {Aggregation} of
     the {Chlorophyll-*a*} {Data}},
@@ -814,7 +854,8 @@ cookieconsent.run({
 Smit AJ Spatial Localisation, Subsetting, and Aggregation of the
 Chlorophyll-*a* Data. <a href="https://tangledbank.netlify.app/vignettes/chl_localisation.html">https://tangledbank.netlify.app/vignettes/chl_localisation.html.
 </a>
-</div></div></section></div></main><!-- /main --><script>
+</div></div></section></div></main> <!-- /main -->
+<script>
 document.addEventListener("DOMContentLoaded", function () {
   const sidebar = document.querySelector("#quarto-sidebar");
   const titleBlock = document.querySelector(".quarto-title-block");
@@ -872,7 +913,8 @@ document.addEventListener("DOMContentLoaded", function () {
     pdfIcon +
     '<span>PDF</span></a>';
 });
-</script><script id="quarto-html-after-body" type="application/javascript">
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -1329,7 +1371,9 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
-  </script><nav class="page-navigation column-body"><div class="nav-page nav-page-previous">
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
       <a href="../vignettes/chl_sightings.html" class="pagination-link" aria-label="Plotting the Whale Sightings and Chlorophyll-*a* Concentrations">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Plotting the Whale Sightings and Chlorophyll-<em>a</em> Concentrations</span>
       </a>          
@@ -1762,7 +1806,8 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb23-420"><a href="#cb23-420"></a>calculations provided within this script.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <p>© 2026, AJ Smit</p>
 </div>   
@@ -1774,6 +1819,8 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
   </div>
 </footer>
+
+
 
 
 <script src="../site_libs/quarto-html/zenscroll-min.js"></script>

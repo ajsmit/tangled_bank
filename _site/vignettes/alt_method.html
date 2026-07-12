@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.11">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
 <meta name="author" content="AJ Smit and Robert W Schlegel">
 <meta name="dcterms.date" content="2026-03-19">
 <meta name="description" content="This vignette demonstrates an alternative method for downloading NOAA OISST data (using a python script) and preparing and detecting marine heatwaves.">
+
 <title>Downloading and Preparing NOAA OISST Data: Python + CDO – The Tangled Bank</title>
 <style>
 /* Default styles provided by pandoc.
@@ -60,6 +63,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 
+
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -83,7 +87,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/bootstrap/bootstrap-2dd16c781d19e5b9220511434c273081.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
-<link href="../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
+<link href="../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": true,
   "collapse-after": 3,
@@ -107,13 +112,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SCYH68M489"></script><script type="text/plain" cookie-consent="tracking">
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SCYH68M489"></script>
+
+<script type="text/plain" cookie-consent="tracking">
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-SCYH68M489', { 'anonymize_ip': true});
-</script><script type="text/javascript" charset="UTF-8">
+</script>
+
+<script type="text/javascript" charset="UTF-8">
 document.addEventListener('DOMContentLoaded', function () {
 cookieconsent.run({
   "notice_banner_type":"headline",
@@ -128,10 +138,14 @@ cookieconsent.run({
 "language":"en"
   });
 });
-</script><style>html{ scroll-behavior: smooth; }</style>
-<!-- Site fonts + head metadata --><link rel="preconnect" href="https://fonts.googleapis.com">
+</script> 
+  
+<style>html{ scroll-behavior: smooth; }</style>
+<!-- Site fonts + head metadata -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&amp;family=Roboto+Slab:wght@400..700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=STIX+Two+Math&amp;display=swap">
+
 <script>
   window.MathJax = {
     output: {
@@ -141,9 +155,14 @@ cookieconsent.run({
       mtextInheritFont: true
     }
   };
-</script><!-- Light-only site: pin the colour scheme and address-bar chrome --><meta name="theme-color" content="#283747">
+</script>
+
+<!-- Light-only site: pin the colour scheme and address-bar chrome -->
+<meta name="theme-color" content="#283747">
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
+
+
 <meta property="og:title" content="Downloading and Preparing NOAA OISST Data: Python + CDO – The Tangled Bank">
 <meta property="og:description" content="This vignette demonstrates an alternative method for downloading NOAA OISST data (using a python script) and preparing and detecting marine heatwaves.">
 <meta property="og:image" content="https://tangledbank.netlify.app/images/sst_in_oisst-avhrr-v02r01.19810901.png">
@@ -152,10 +171,13 @@ cookieconsent.run({
 <meta property="og:image:height" content="704">
 <meta property="og:image:width" content="1040">
 </head>
+
 <body class="nav-sidebar floating nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">The Tangled Bank</span>
@@ -167,7 +189,7 @@ cookieconsent.run({
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -175,8 +197,8 @@ cookieconsent.run({
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-undergraduate" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Undergraduate</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-undergraduate">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-undergraduate">    
+        <li>
     <a class="dropdown-item" href="../BDC223/BDC223_index.html">
  <span class="dropdown-text">BDC223: Plant Ecophysiology</span></a>
   </li>  
@@ -185,13 +207,13 @@ cookieconsent.run({
  <span class="dropdown-text">BDC334: Biogeography &amp; Global Ecology</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-honours-core" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Honours Core</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-honours-core">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-honours-core">    
+        <li>
     <a class="dropdown-item" href="../BCB744/BCB744_index.html">
  <span class="dropdown-text">BCB744: Module Overview</span></a>
   </li>  
@@ -204,24 +226,24 @@ cookieconsent.run({
  <span class="dropdown-text">BCB744: Biostatistics</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-electives" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Electives</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-electives">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-electives">    
+        <li>
     <a class="dropdown-item" href="../BCB743/BCB743_index.html">
  <span class="dropdown-text">BCB743: Quantitative Ecology</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-ai--policy" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">AI &amp; Policy</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-ai--policy">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-ai--policy">    
+        <li>
     <a class="dropdown-item" href="../docs/Combined Faculty AI Policy 15082025.pdf">
  <span class="dropdown-text">Faculty AI Policy</span></a>
   </li>  
@@ -238,13 +260,13 @@ cookieconsent.run({
  <span class="dropdown-text">Evolving AI and Information Literacy</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-support" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Support</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-support">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-support">    
+        <li>
     <a class="dropdown-item" href="../resources/general_resources_web.html">
  <span class="dropdown-text">General Web Resources</span></a>
   </li>  
@@ -265,10 +287,10 @@ cookieconsent.run({
  <span class="dropdown-text">Buffer Data Extract</span></a>
   </li>  
     </ul>
-</li>
+  </li>
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
     <a class="nav-link" href="../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
@@ -278,15 +300,15 @@ cookieconsent.run({
 </i> 
  <span class="menu-text"></span>
     </a>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">
-<li>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">    
+        <li>
     <a class="dropdown-item" href="https://github.com/ajsmit/tangled_bank">
  <span class="dropdown-text">Source Code</span></a>
   </li>  
     </ul>
-</li>
+  </li>
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -295,7 +317,9 @@ cookieconsent.run({
 </a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
@@ -306,17 +330,17 @@ cookieconsent.run({
         <i class="bi bi-search"></i>
       </button>
     </div>
-  </nav><div id="quarto-announcement" data-announcement-id="d9fc74915cbe705deed34b7d2b65416c" class="alert alert-primary hidden">
-<i class="bi bi-info-circle quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p><strong>June 2026: updated Quantitative Ecology pages are going live in the week 8–12 June.</strong></p>
-</div>
-<i class="bi bi-x-lg quarto-announcement-action"></i>
-</div>
-</header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
       <a href="../index.html" class="sidebar-logo-link">
-      <img src="../images/my_tree_hex.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none"><img src="../images/my_tree_hex.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none"></a>
+      <img src="../images/my_tree_hex.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../images/my_tree_hex.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
@@ -325,7 +349,7 @@ cookieconsent.run({
         </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
-<li class="sidebar-item sidebar-item-section">
+        <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
  <span class="menu-text">Web Resources</span></a>
@@ -333,8 +357,8 @@ cookieconsent.run({
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../resources/general_resources_web.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">General Web Resources</span></a>
@@ -353,7 +377,7 @@ cookieconsent.run({
   </div>
 </li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
@@ -362,8 +386,8 @@ cookieconsent.run({
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../vignettes/netCDF_dates.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Dates From netCDF Files: Two Approaches</span></a>
@@ -436,7 +460,7 @@ cookieconsent.run({
   </div>
 </li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
@@ -445,8 +469,8 @@ cookieconsent.run({
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../vignettes/README_Lengau.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Using Lengau</span></a>
@@ -465,24 +489,30 @@ cookieconsent.run({
   </div>
 </li>
       </ul>
-</li>
+  </li>
     </ul>
-</div>
-</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a></li>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a></li>
   <li><a href="#subsetting-using-a-python-script" id="toc-subsetting-using-a-python-script" class="nav-link" data-scroll-target="#subsetting-using-a-python-script"><span class="header-section-number">2</span> Subsetting Using a Python Script</a></li>
-  <li><a href="#combine-daily-netcdfs-into-an-%C3%BCber-netcdf-using-cdo" id="toc-combine-daily-netcdfs-into-an-über-netcdf-using-cdo" class="nav-link" data-scroll-target="#combine-daily-netcdfs-into-an-%C3%BCber-netcdf-using-cdo"><span class="header-section-number">3</span> Combine Daily netCDFs into an üBer netCDF Using CDO</a></li>
+  <li><a href="#combine-daily-netcdfs-into-an-über-netcdf-using-cdo" id="toc-combine-daily-netcdfs-into-an-über-netcdf-using-cdo" class="nav-link" data-scroll-target="#combine-daily-netcdfs-into-an-über-netcdf-using-cdo"><span class="header-section-number">3</span> Combine Daily netCDFs into an üBer netCDF Using CDO</a></li>
   <li><a href="#extract-sst-data-using-tidync-and-parallel-process-individual-slices" id="toc-extract-sst-data-using-tidync-and-parallel-process-individual-slices" class="nav-link" data-scroll-target="#extract-sst-data-using-tidync-and-parallel-process-individual-slices"><span class="header-section-number">4</span> Extract SST Data Using <code>tidync</code>, and Parallel Process Individual ‘Slices’</a></li>
   <li><a href="#apply-the-slice-and-detect-functions" id="toc-apply-the-slice-and-detect-functions" class="nav-link" data-scroll-target="#apply-the-slice-and-detect-functions"><span class="header-section-number">5</span> Apply the Slice and Detect Functions</a></li>
-  </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/vignettes/alt_method.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/vignettes/alt_method.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../vignettes/netCDF_dates.html">Vignettes</a></li><li class="breadcrumb-item"><a href="../vignettes/alt_method.html">Downloading and Prep: Python + CDO</a></li></ol></nav><div class="quarto-title">
+<main class="content column-body" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../vignettes/netCDF_dates.html">Vignettes</a></li><li class="breadcrumb-item"><a href="../vignettes/alt_method.html">Downloading and Prep: Python + CDO</a></li></ol></nav>
+<div class="quarto-title">
 <div class="quarto-title-block"><div><h1 class="title">Downloading and Preparing NOAA OISST Data: Python + CDO</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 <p class="subtitle lead">Marine Heatwaves and Cold Spells as per Hobday Et Al (2016) and Schlegel Et Al (2017).</p>
 </div>
@@ -515,25 +545,30 @@ cookieconsent.run({
   
 
 
-</header><section id="overview" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="overview">
-<span class="header-section-number">1</span> Overview</h2>
+</header>
+
+
+<section id="overview" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1</span> Overview</h2>
 <p>In this vignette we shall look at retrieving and processing the <a href="https://journals.ametsoc.org/doi/full/10.1175/2007JCLI1824.1">Reynolds Optimally Interpolated Sea Surface Temperature</a> (OISST), which is a global data set of Advanced Very High Resolution Radiometer (AVHRR) derived SSTs at a daily resolution, starting on 1 September 1981. The source of the data is the <a href="https://podaac.jpl.nasa.gov/">Physical Oceanography Distributed Active Archive Centre (PODAAC)</a>.</p>
 <p>Several steps are involved:</p>
 <ul>
 <li>Retrieving the data using a python script</li>
 <li>Using CDO to combine the daily files into an über netCDF</li>
-<li>Extracting the giant netCDF using <code>tidync</code>
-</li>
+<li>Extracting the giant netCDF using <code>tidync</code></li>
 <li>Creating longitude slices</li>
 <li>Detecting MHWs in each slice in parallel</li>
 </ul>
 <div class="quarto-figure quarto-figure-center">
-<figure class="figure"><p><a href="../images/sst_in_oisst-avhrr-v02r01.19810901.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. OISST data plotted on a Gnomonic Cubed Sphere projection thanks to Panoply—the similarity with certain religious iconography is purely coincidental."><img src="../images/sst_in_oisst-avhrr-v02r01.19810901.png" class="img-fluid figure-img" style="width:100.0%" alt="Figure 1. OISST data plotted on a Gnomonic Cubed Sphere projection thanks to Panoply—the similarity with certain religious iconography is purely coincidental."></a></p>
-<figcaption><strong>Figure 1.</strong> OISST data plotted on a Gnomonic Cubed Sphere projection thanks to <a href="https://www.giss.nasa.gov/tools/panoply/">Panoply</a>—the similarity with certain religious iconography is purely coincidental.</figcaption></figure>
+<figure class="figure">
+<p><a href="../images/sst_in_oisst-avhrr-v02r01.19810901.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. OISST data plotted on a Gnomonic Cubed Sphere projection thanks to Panoply—the similarity with certain religious iconography is purely coincidental."><img src="../images/sst_in_oisst-avhrr-v02r01.19810901.png" class="img-fluid figure-img" style="width:100.0%" alt="Figure 1. OISST data plotted on a Gnomonic Cubed Sphere projection thanks to Panoply—the similarity with certain religious iconography is purely coincidental."></a></p>
+<figcaption><strong>Figure 1.</strong> OISST data plotted on a Gnomonic Cubed Sphere projection thanks to <a href="https://www.giss.nasa.gov/tools/panoply/">Panoply</a>—the similarity with certain religious iconography is purely coincidental.</figcaption>
+</figure>
 </div>
 <p>Each global, daily file is around 8.3Mb, so they add up to a large amount of data when a time series of at least 30 years duration is downloaded. A time series of at least 30 years is needed for heatwave detection. Currently I have 13,216 of these global files, and this amounts to ~108Gb of total disk space. Since not everyone will need all of these data, we shall subset the data using a python script prior to downloading them.</p>
-</section><section id="subsetting-using-a-python-script" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="subsetting-using-a-python-script">
-<span class="header-section-number">2</span> Subsetting Using a Python Script</h2>
+</section>
+<section id="subsetting-using-a-python-script" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="subsetting-using-a-python-script"><span class="header-section-number">2</span> Subsetting Using a Python Script</h2>
 <p>To do the subsetting and bring the data to your local computer/server, you will need access to <strong>python &gt;3.7</strong> with <strong>numpy</strong>. Make sure it is installed on your system and visible on the system PATH.</p>
 <p>&lt;&lt;&lt; — check python version — &gt;&gt;&gt;</p>
 <p>Create a folder on your server where all the data will be received, for example: <code>/path/to/your/data/netCDF</code>.</p>
@@ -552,8 +587,9 @@ cookieconsent.run({
 <p>The spatial extent is for a region around southern Africa that has both the Benguela and Agulhas Current in it; we select files starting in 1981-09-01 and going up to 2022-02-28. The short name is the name mentioned on the <a href="https://podaac.jpl.nasa.gov/dataset/AVHRR_OI-NCEI-L4-GLOB-v2.0">Reynolds OISST data website</a>—substituting this name for any of the other SST datasets on that website <em>should</em> then permit the retrieval of other data sets (e.g.&nbsp;the <a href="https://podaac.jpl.nasa.gov/dataset/MUR-JPL-L4-GLOB-v4.1">MUR data’s</a> short name is MUR-JPL-L4-GLOB-v4.1). This website seems to be down frequently, so try a couple of times if it does not work the first time.</p>
 <p>Adjust any of these parameters to taste in order to define the spatial extent and the time period as required by your study.</p>
 <p>If everything works according to plan, a bunch of data will now be downloaded. This might take several hours. There will be one netCDF file for each day of the study period. In later steps we shall combine them into one netCDF file, and then do some further processing to extract the marine heatwaves.</p>
-</section><section id="combine-daily-netcdfs-into-an-über-netcdf-using-cdo" class="level2" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="combine-daily-netcdfs-into-an-über-netcdf-using-cdo">
-<span class="header-section-number">3</span> Combine Daily netCDFs into an üBer netCDF Using CDO</h2>
+</section>
+<section id="combine-daily-netcdfs-into-an-über-netcdf-using-cdo" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="combine-daily-netcdfs-into-an-über-netcdf-using-cdo"><span class="header-section-number">3</span> Combine Daily netCDFs into an üBer netCDF Using CDO</h2>
 <p>The approach taken here sequentially slices the combined über netCDF and then detects marine heatwaves in parallel within each ‘slice.’</p>
 <p>To make a giant netCDF, I use the <a href="https://code.mpimet.mpg.de/projects/cdo">Climate Data Operators</a> (CDO) command in the terminal:</p>
 <p><code>&gt; cdo mergetime *.nc OISST_combined.nc</code></p>
@@ -563,11 +599,14 @@ cookieconsent.run({
 <ul>
 <li>netCDF: 30 Gb, or</li>
 <li>csv and db file: ~97 Gb each</li>
-</ul></section><section id="extract-sst-data-using-tidync-and-parallel-process-individual-slices" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="extract-sst-data-using-tidync-and-parallel-process-individual-slices">
-<span class="header-section-number">4</span> Extract SST Data Using <code>tidync</code>, and Parallel Process Individual ‘Slices’</h2>
-<p>I use <code><a href="https://docs.ropensci.org/tidync/reference/tidync.html">tidync::tidync()</a></code> to sequentially select small slices that fit into memory and process each in parallel using <code>plyr::ldapply()</code>. Someday I’ll replace the <code>plyr</code> function with something newer as this package is sadly no longer maintained. Maybe one of the <code>map()</code> family of functions in the <strong>purrr</strong> package? The ‘width’ of a slice can be scaled with the amount of memory, and the subsequent parallel processing to detect the events within each slice scales with the number of CPU cores.</p>
-</section><section id="apply-the-slice-and-detect-functions" class="level2" data-number="5"><h2 data-number="5" class="anchored" data-anchor-id="apply-the-slice-and-detect-functions">
-<span class="header-section-number">5</span> Apply the Slice and Detect Functions</h2>
+</ul>
+</section>
+<section id="extract-sst-data-using-tidync-and-parallel-process-individual-slices" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="extract-sst-data-using-tidync-and-parallel-process-individual-slices"><span class="header-section-number">4</span> Extract SST Data Using <code>tidync</code>, and Parallel Process Individual ‘Slices’</h2>
+<p>I use <code>tidync::tidync()</code> to sequentially select small slices that fit into memory and process each in parallel using <code>plyr::ldapply()</code>. Someday I’ll replace the <code>plyr</code> function with something newer as this package is sadly no longer maintained. Maybe one of the <code>map()</code> family of functions in the <strong>purrr</strong> package? The ‘width’ of a slice can be scaled with the amount of memory, and the subsequent parallel processing to detect the events within each slice scales with the number of CPU cores.</p>
+</section>
+<section id="apply-the-slice-and-detect-functions" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="apply-the-slice-and-detect-functions"><span class="header-section-number">5</span> Apply the Slice and Detect Functions</h2>
 <p>Here is a set of steps that does the job for me:</p>
 <div class="cell" data-layout-align="center">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Load packages -----------------------------------------------------------</span></span>
@@ -648,7 +687,9 @@ cookieconsent.run({
 
 <!-- -->
 
-</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit,
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit,
   author = {Smit, A. J. and Smit and Robert W Schlegel, AJ},
   title = {Downloading and {Preparing} {NOAA} {OISST} {Data:} {Python} +
     {CDO}},
@@ -660,7 +701,8 @@ cookieconsent.run({
 Smit AJ, Smit and Robert W Schlegel A Downloading and Preparing NOAA
 OISST Data: Python + CDO. <a href="https://tangledbank.netlify.app/vignettes/alt_method.html">https://tangledbank.netlify.app/vignettes/alt_method.html.
 </a>
-</div></div></section></div></main><!-- /main --><script>
+</div></div></section></div></main> <!-- /main -->
+<script>
 document.addEventListener("DOMContentLoaded", function () {
   const sidebar = document.querySelector("#quarto-sidebar");
   const titleBlock = document.querySelector(".quarto-title-block");
@@ -718,7 +760,8 @@ document.addEventListener("DOMContentLoaded", function () {
     pdfIcon +
     '<span>PDF</span></a>';
 });
-</script><script id="quarto-html-after-body" type="application/javascript">
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -1175,7 +1218,9 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
-  </script><nav class="page-navigation column-body"><div class="nav-page nav-page-previous">
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
       <a href="../vignettes/chl_ERDDAP.html" class="pagination-link" aria-label="Retrieving Chlorophyll-a Data from ERDDAP Servers">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Retrieving Chlorophyll-a Data from ERDDAP Servers</span>
       </a>          
@@ -1358,7 +1403,8 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb3-170"><a href="#cb3-170"></a>Please let me know if there are issues with the scripts, or if you have suggesations about how to improve them.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <p>© 2026, AJ Smit</p>
 </div>   
@@ -1369,7 +1415,8 @@ document.addEventListener("DOMContentLoaded", function () {
       &nbsp;
     </div>
   </div>
-</footer><script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+</footer>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
 (function() {
   let previousOnload = window.onload;
   window.onload = () => {
@@ -1401,6 +1448,8 @@ document.addEventListener("DOMContentLoaded", function () {
   
 })();
           </script>
+
+
 
 
 <script src="../site_libs/quarto-html/zenscroll-min.js"></script>

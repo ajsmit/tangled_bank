@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.11">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
 <meta name="author" content="A. J. Smit">
+
 <title>13. Polynomial Regression – The Tangled Bank</title>
 <style>
 /* Default styles provided by pandoc.
@@ -58,6 +61,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 
+
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -81,7 +85,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/bootstrap/bootstrap-2dd16c781d19e5b9220511434c273081.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
-<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": true,
   "collapse-after": 3,
@@ -105,13 +110,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SCYH68M489"></script><script type="text/plain" cookie-consent="tracking">
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SCYH68M489"></script>
+
+<script type="text/plain" cookie-consent="tracking">
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-SCYH68M489', { 'anonymize_ip': true});
-</script><script type="text/javascript" charset="UTF-8">
+</script>
+
+<script type="text/javascript" charset="UTF-8">
 document.addEventListener('DOMContentLoaded', function () {
 cookieconsent.run({
   "notice_banner_type":"headline",
@@ -126,10 +136,14 @@ cookieconsent.run({
 "language":"en"
   });
 });
-</script><style>html{ scroll-behavior: smooth; }</style>
-<!-- Site fonts + head metadata --><link rel="preconnect" href="https://fonts.googleapis.com">
+</script> 
+  
+<style>html{ scroll-behavior: smooth; }</style>
+<!-- Site fonts + head metadata -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&amp;family=Roboto+Slab:wght@400..700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=STIX+Two+Math&amp;display=swap">
+
 <script>
   window.MathJax = {
     output: {
@@ -139,10 +153,17 @@ cookieconsent.run({
       mtextInheritFont: true
     }
   };
-</script><!-- Light-only site: pin the colour scheme and address-bar chrome --><meta name="theme-color" content="#283747">
+</script>
+
+<!-- Light-only site: pin the colour scheme and address-bar chrome -->
+<meta name="theme-color" content="#283747">
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
-<script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml-nofont.js" type="text/javascript"></script><script type="text/javascript">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml-nofont.js" type="text/javascript"></script>
+
+<script type="text/javascript">
 const typesetMath = (el) => {
   if (window.MathJax) {
     // MathJax Typeset
@@ -167,16 +188,21 @@ const typesetMath = (el) => {
 window.Quarto = {
   typesetMath
 };
-</script><link rel="stylesheet" href="../../styles/biostats-callouts.css">
+</script>
+
+<link rel="stylesheet" href="../../styles/biostats-callouts.css">
 <meta property="og:title" content="13. Polynomial Regression – The Tangled Bank">
 <meta property="og:description" content="Curvature Within the Linear Model Framework">
 <meta property="og:image" content="https://tangledbank.netlify.app/BCB744/basic_stats/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==">
 <meta property="og:site_name" content="The Tangled Bank">
 </head>
+
 <body class="nav-sidebar floating nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">The Tangled Bank</span>
@@ -188,7 +214,7 @@ window.Quarto = {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -196,8 +222,8 @@ window.Quarto = {
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-undergraduate" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Undergraduate</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-undergraduate">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-undergraduate">    
+        <li>
     <a class="dropdown-item" href="../../BDC223/BDC223_index.html">
  <span class="dropdown-text">BDC223: Plant Ecophysiology</span></a>
   </li>  
@@ -206,13 +232,13 @@ window.Quarto = {
  <span class="dropdown-text">BDC334: Biogeography &amp; Global Ecology</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-honours-core" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Honours Core</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-honours-core">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-honours-core">    
+        <li>
     <a class="dropdown-item" href="../../BCB744/BCB744_index.html">
  <span class="dropdown-text">BCB744: Module Overview</span></a>
   </li>  
@@ -225,24 +251,24 @@ window.Quarto = {
  <span class="dropdown-text">BCB744: Biostatistics</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-electives" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Electives</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-electives">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-electives">    
+        <li>
     <a class="dropdown-item" href="../../BCB743/BCB743_index.html">
  <span class="dropdown-text">BCB743: Quantitative Ecology</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-ai--policy" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">AI &amp; Policy</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-ai--policy">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-ai--policy">    
+        <li>
     <a class="dropdown-item" href="../../docs/Combined Faculty AI Policy 15082025.pdf">
  <span class="dropdown-text">Faculty AI Policy</span></a>
   </li>  
@@ -259,13 +285,13 @@ window.Quarto = {
  <span class="dropdown-text">Evolving AI and Information Literacy</span></a>
   </li>  
     </ul>
-</li>
+  </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-support" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Support</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-support">
-<li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-support">    
+        <li>
     <a class="dropdown-item" href="../../resources/general_resources_web.html">
  <span class="dropdown-text">General Web Resources</span></a>
   </li>  
@@ -286,10 +312,10 @@ window.Quarto = {
  <span class="dropdown-text">Buffer Data Extract</span></a>
   </li>  
     </ul>
-</li>
+  </li>
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
     <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
@@ -299,15 +325,15 @@ window.Quarto = {
 </i> 
  <span class="menu-text"></span>
     </a>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">
-<li>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">    
+        <li>
     <a class="dropdown-item" href="https://github.com/ajsmit/tangled_bank">
  <span class="dropdown-text">Source Code</span></a>
   </li>  
     </ul>
-</li>
+  </li>
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -316,7 +342,9 @@ window.Quarto = {
 </a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
@@ -327,17 +355,17 @@ window.Quarto = {
         <i class="bi bi-search"></i>
       </button>
     </div>
-  </nav><div id="quarto-announcement" data-announcement-id="d9fc74915cbe705deed34b7d2b65416c" class="alert alert-primary hidden">
-<i class="bi bi-info-circle quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p><strong>June 2026: updated Quantitative Ecology pages are going live in the week 8–12 June.</strong></p>
-</div>
-<i class="bi bi-x-lg quarto-announcement-action"></i>
-</div>
-</header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
       <a href="../../index.html" class="sidebar-logo-link">
-      <img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none"><img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none"></a>
+      <img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../../images/my_tree_hex.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
@@ -346,7 +374,7 @@ window.Quarto = {
         </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
-<li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/BCB744_index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Course overview</span></a>
@@ -360,8 +388,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/intro_r/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Section overview</span></a>
@@ -494,7 +522,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
@@ -503,8 +531,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Section overview</span></a>
@@ -518,8 +546,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/01-statistical-landscape.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">1. The Statistical Landscape</span></a>
@@ -544,7 +572,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
@@ -553,8 +581,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/05-inference.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">5. Statistical Inference</span></a>
@@ -591,7 +619,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
@@ -600,8 +628,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 show">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/11-residuals-and-model-based-diagnostics.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">11. Residuals and Model-Based Diagnostics</span></a>
@@ -644,7 +672,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
@@ -653,8 +681,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/18-pseudoreplication.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">18. Pseudoreplication</span></a>
@@ -703,7 +731,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
@@ -712,15 +740,15 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/26-reproducible-workflow.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">26. Reproducible Workflow</span></a>
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
@@ -729,8 +757,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/basic_stats/27-subject-index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Subject Index</span></a>
@@ -761,7 +789,7 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
@@ -770,8 +798,8 @@ window.Quarto = {
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">
-<li class="sidebar-item">
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../BCB744/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Module context</span></a>
@@ -790,48 +818,50 @@ window.Quarto = {
   </div>
 </li>
       </ul>
-</li>
+  </li>
       </ul>
-</li>
+  </li>
     </ul>
-</div>
-</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#important-concepts" id="toc-important-concepts" class="nav-link active" data-scroll-target="#important-concepts"><span class="header-section-number">1</span> Important Concepts</a></li>
+  <li><a href="#important-concepts" id="toc-important-concepts" class="nav-link active" data-scroll-target="#important-concepts"><span class="header-section-number">1</span> Important Concepts</a></li>
   <li><a href="#when-this-method-is-appropriate" id="toc-when-this-method-is-appropriate" class="nav-link" data-scroll-target="#when-this-method-is-appropriate"><span class="header-section-number">2</span> When This Method Is Appropriate</a></li>
-  <li>
-<a href="#nature-of-the-data-and-assumptions" id="toc-nature-of-the-data-and-assumptions" class="nav-link" data-scroll-target="#nature-of-the-data-and-assumptions"><span class="header-section-number">3</span> Nature of the Data and Assumptions</a>
+  <li><a href="#nature-of-the-data-and-assumptions" id="toc-nature-of-the-data-and-assumptions" class="nav-link" data-scroll-target="#nature-of-the-data-and-assumptions"><span class="header-section-number">3</span> Nature of the Data and Assumptions</a>
   <ul class="collapse">
-<li><a href="#requirements-before-fitting" id="toc-requirements-before-fitting" class="nav-link" data-scroll-target="#requirements-before-fitting"><span class="header-section-number">3.1</span> Requirements Before Fitting</a></li>
+  <li><a href="#requirements-before-fitting" id="toc-requirements-before-fitting" class="nav-link" data-scroll-target="#requirements-before-fitting"><span class="header-section-number">3.1</span> Requirements Before Fitting</a></li>
   <li><a href="#assumptions-to-check-after-fitting" id="toc-assumptions-to-check-after-fitting" class="nav-link" data-scroll-target="#assumptions-to-check-after-fitting"><span class="header-section-number">3.2</span> Assumptions to Check After Fitting</a></li>
   <li><a href="#assumptiondiagnostic-mapping" id="toc-assumptiondiagnostic-mapping" class="nav-link" data-scroll-target="#assumptiondiagnostic-mapping"><span class="header-section-number">3.3</span> Assumption–Diagnostic Mapping</a></li>
-  </ul>
-</li>
+  </ul></li>
   <li><a href="#the-core-equations" id="toc-the-core-equations" class="nav-link" data-scroll-target="#the-core-equations"><span class="header-section-number">4</span> The Core Equations</a></li>
   <li><a href="#the-fitting-rule" id="toc-the-fitting-rule" class="nav-link" data-scroll-target="#the-fitting-rule"><span class="header-section-number">5</span> The Fitting Rule</a></li>
   <li><a href="#implementation" id="toc-implementation" class="nav-link" data-scroll-target="#implementation"><span class="header-section-number">6</span> Implementation</a></li>
-  <li>
-<a href="#example-co_2-uptake-and-curved-response" id="toc-example-co_2-uptake-and-curved-response" class="nav-link" data-scroll-target="#example-co_2-uptake-and-curved-response"><span class="header-section-number">7</span> Example: CO<span class="math inline">\(_2\)</span> Uptake and Curved Response</a>
+  <li><a href="#example-co_2-uptake-and-curved-response" id="toc-example-co_2-uptake-and-curved-response" class="nav-link" data-scroll-target="#example-co_2-uptake-and-curved-response"><span class="header-section-number">7</span> Example: CO<span class="math inline">\(_2\)</span> Uptake and Curved Response</a>
   <ul class="collapse">
-<li><a href="#example-dataset" id="toc-example-dataset" class="nav-link" data-scroll-target="#example-dataset"><span class="header-section-number">7.1</span> Example Dataset</a></li>
+  <li><a href="#example-dataset" id="toc-example-dataset" class="nav-link" data-scroll-target="#example-dataset"><span class="header-section-number">7.1</span> Example Dataset</a></li>
   <li><a href="#do-an-exploratory-data-analysis-eda" id="toc-do-an-exploratory-data-analysis-eda" class="nav-link" data-scroll-target="#do-an-exploratory-data-analysis-eda"><span class="header-section-number">7.2</span> Do an Exploratory Data Analysis (EDA)</a></li>
   <li><a href="#state-the-model-question" id="toc-state-the-model-question" class="nav-link" data-scroll-target="#state-the-model-question"><span class="header-section-number">7.3</span> State the Model Question</a></li>
   <li><a href="#fit-the-model" id="toc-fit-the-model" class="nav-link" data-scroll-target="#fit-the-model"><span class="header-section-number">7.4</span> Fit the Model</a></li>
   <li><a href="#test-assumptions" id="toc-test-assumptions" class="nav-link" data-scroll-target="#test-assumptions"><span class="header-section-number">7.5</span> Test Assumptions</a></li>
   <li><a href="#interpret-the-results" id="toc-interpret-the-results" class="nav-link" data-scroll-target="#interpret-the-results"><span class="header-section-number">7.6</span> Interpret the Results</a></li>
   <li><a href="#reporting" id="toc-reporting" class="nav-link" data-scroll-target="#reporting"><span class="header-section-number">7.7</span> Reporting</a></li>
-  </ul>
-</li>
+  </ul></li>
   <li><a href="#what-to-do-when-assumptions-fail" id="toc-what-to-do-when-assumptions-fail" class="nav-link" data-scroll-target="#what-to-do-when-assumptions-fail"><span class="header-section-number">8</span> What to Do When Assumptions Fail</a></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">9</span> Summary</a></li>
-  </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/13-polynomial-regression.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB744/basic_stats/13-polynomial-regression.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/index.html">Biostatistics</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/11-residuals-and-model-based-diagnostics.html">Part III. Regression and model building</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/13-polynomial-regression.html">13. Polynomial Regression</a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/index.html">Biostatistics</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/11-residuals-and-model-based-diagnostics.html">Part III. Regression and model building</a></li><li class="breadcrumb-item"><a href="../../BCB744/basic_stats/13-polynomial-regression.html">13. Polynomial Regression</a></li></ol></nav>
+<div class="quarto-title">
 <div class="quarto-title-block"><div><h1 class="title">13. Polynomial Regression</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
 <p class="subtitle lead">Curvature Within the Linear Model Framework</p>
 </div>
@@ -868,7 +898,10 @@ window.Quarto = {
   
 
 
-</header><div class="callout callout-style-simple callout-note callout-titled">
+</header>
+
+
+<div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -881,8 +914,8 @@ window.Quarto = {
 <ul>
 <li>why polynomial regression remains linear in its parameters while capturing curved responses;</li>
 <li>how to read residual curvature as a diagnostic signal that motivates polynomial terms;</li>
-<li>how to fit and compare polynomial models with <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code>;</li>
-<li>how <code><a href="https://rdrr.io/r/stats/poly.html">poly()</a></code> differs from raw powers, and when each is preferable;</li>
+<li>how to fit and compare polynomial models with <code>lm()</code>;</li>
+<li>how <code>poly()</code> differs from raw powers, and when each is preferable;</li>
 <li>how to interpret the fitted curve biologically, including direction, turning points, and extrapolation limits;</li>
 <li>how to report a polynomial regression consistently with earlier chapters.</li>
 </ul>
@@ -907,8 +940,8 @@ window.Quarto = {
 <p>As established in <a href="../../BCB744/basic_stats/11-residuals-and-model-based-diagnostics.html">Chapter 11</a>, every observed response can be decomposed as <span class="math inline">\(Y_i = \hat{Y}_i + e_i\)</span>, where <span class="math inline">\(\hat{Y}_i\)</span> is what the current model predicts and <span class="math inline">\(e_i\)</span> is what it fails to explain. If those residuals retain a systematic curved pattern, the model is leaving structure behind. Polynomial regression addresses that by adding powers of the predictor to the mean structure.</p>
 <p>The fitted curve may look nonlinear on a scatter plot, but the model remains linear in its coefficients. So, this means ordinary least squares, standard errors, confidence intervals, and the residual diagnostic plots from Chapter 11 all remain valid without modification.</p>
 <p>Below, I work through when and why to add polynomial terms, how to choose the lowest-order model that removes residual structure, and how to interpret the resulting curve in biological terms.</p>
-<section id="important-concepts" class="level1" data-number="1"><h1 data-number="1">
-<span class="header-section-number">1</span> Important Concepts</h1>
+<section id="important-concepts" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Important Concepts</h1>
 <p>Polynomial regression modifies the mean structure of the linear model without changing the fitting procedure. A <strong>quadratic term</strong> (<span class="math inline">\(X^2\)</span>) allows one bend in the response. A <strong>cubic term</strong> (<span class="math inline">\(X^3\)</span>) allows a second bend, but interpretation becomes harder and sensitivity to individual observations increases.</p>
 <p>Two constraints apply throughout. <strong>Hierarchy</strong> requires that if <span class="math inline">\(X^2\)</span> is in the model then <span class="math inline">\(X\)</span> must also be included; if <span class="math inline">\(X^3\)</span> is included then <span class="math inline">\(X\)</span> and <span class="math inline">\(X^2\)</span> must also be included. Removing lower-order terms distorts the model geometry and is rarely defensible biologically. <strong>Parsimony</strong> requires that the polynomial degree should be as low as possible while still accounting for the residual structure observed in the simpler model.</p>
 <div class="callout callout-style-default callout-important callout-titled">
@@ -923,10 +956,12 @@ window.Quarto = {
 <div class="callout-body-container callout-body">
 <p>Before reading the “When This Method Is Appropriate” section, classify each relationship below as likely requiring (a) a straight-line model, (b) a polynomial model, or (c) a mechanistic nonlinear model. Be prepared to justify your choice.</p>
 <table class="caption-top table">
-<thead><tr class="header">
+<thead>
+<tr class="header">
 <th>Biological relationship</th>
 <th>Most likely model</th>
-</tr></thead>
+</tr>
+</thead>
 <tbody>
 <tr class="odd">
 <td>Body length increases roughly proportionally with age in juvenile fish over a short growth window</td>
@@ -949,51 +984,51 @@ window.Quarto = {
 <p>Discuss: what feature of the data or underlying biology pushes you toward a polynomial rather than a straight line?</p>
 </div>
 </div>
-</section><section id="when-this-method-is-appropriate" class="level1" data-number="2"><h1 data-number="2">
-<span class="header-section-number">2</span> When This Method Is Appropriate</h1>
+</section>
+<section id="when-this-method-is-appropriate" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> When This Method Is Appropriate</h1>
 <p>Polynomial regression is appropriate when:</p>
 <ul>
 <li>a straight-line model leaves clear curvature in the residual-versus-fitted plot;</li>
 <li>the biological relationship is smooth and continuous rather than step-like or threshold-driven;</li>
 <li>no mechanistic equation is available, but a curved descriptive model is needed;</li>
-<li>the analysis should remain within the <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code> workflow.</li>
+<li>the analysis should remain within the <code>lm()</code> workflow.</li>
 </ul>
 <p>If the biology implies a specific process, such as a Michaelis-Menten uptake curve or an exponential growth model, a <a href="../../BCB744/basic_stats/22-nonlinear-regression.html">mechanistic nonlinear model</a> fits that expectation more directly and extrapolates more sensibly. If the curvature is complex and cannot be well described by low-order powers, a <a href="../../BCB744/basic_stats/21-generalised-additive-models.html">generalised additive model</a> is preferable. Low-order polynomials occupy a useful middle ground because they are more flexible than a straight line and less assumption-laden than a mechanistic model. I have seldom needed to apply one in real-life biological applications, however.</p>
-</section><section id="nature-of-the-data-and-assumptions" class="level1" data-number="3"><h1 data-number="3">
-<span class="header-section-number">3</span> Nature of the Data and Assumptions</h1>
-<section id="requirements-before-fitting" class="level2" data-number="3.1"><h2 data-number="3.1" class="anchored" data-anchor-id="requirements-before-fitting">
-<span class="header-section-number">3.1</span> Requirements Before Fitting</h2>
+</section>
+<section id="nature-of-the-data-and-assumptions" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Nature of the Data and Assumptions</h1>
+<section id="requirements-before-fitting" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="requirements-before-fitting"><span class="header-section-number">3.1</span> Requirements Before Fitting</h2>
 <p>Polynomial regression uses ordinary least squares and inherits the same data requirements as simple linear regression:</p>
 <ol type="1">
-<li>
-<strong>A defensible response-predictor structure.</strong> There should be a theoretical or biological reason to treat one variable as the response and the other as the predictor.</li>
-<li>
-<strong>Independence of observations.</strong> Each measured value of the response must be independent of the others. Repeated measurements, clustered sampling, or temporal dependence require a different modelling approach.</li>
-<li>
-<strong>Continuous predictor.</strong> The predictor must take values along a continuum over which the polynomial curve can be defined.</li>
-<li>
-<strong>Continuous response.</strong> The response should be continuous. Counts or proportions require a different model family.</li>
-</ol></section><section id="assumptions-to-check-after-fitting" class="level2" data-number="3.2"><h2 data-number="3.2" class="anchored" data-anchor-id="assumptions-to-check-after-fitting">
-<span class="header-section-number">3.2</span> Assumptions to Check After Fitting</h2>
+<li><strong>A defensible response-predictor structure.</strong> There should be a theoretical or biological reason to treat one variable as the response and the other as the predictor.</li>
+<li><strong>Independence of observations.</strong> Each measured value of the response must be independent of the others. Repeated measurements, clustered sampling, or temporal dependence require a different modelling approach.</li>
+<li><strong>Continuous predictor.</strong> The predictor must take values along a continuum over which the polynomial curve can be defined.</li>
+<li><strong>Continuous response.</strong> The response should be continuous. Counts or proportions require a different model family.</li>
+</ol>
+</section>
+<section id="assumptions-to-check-after-fitting" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="assumptions-to-check-after-fitting"><span class="header-section-number">3.2</span> Assumptions to Check After Fitting</h2>
 <p>After the model is fitted, residuals are used to check whether the assumptions hold:</p>
 <ol type="1">
-<li>
-<strong>Linearity of residuals.</strong> Adding polynomial terms should reduce or remove curvature in the residual-versus-fitted plot. If curvature persists, a higher-order term, a different transformation, or a more flexible model may be needed.</li>
-<li>
-<strong>Constant variance.</strong> The spread of residuals should be roughly uniform across the fitted range. High-order polynomial terms can amplify variance at the extremes of the predictor, making heteroscedasticity more likely there.</li>
-<li>
-<strong>Approximate normality of residuals.</strong> The Q-Q plot should not show systematic departures. High-degree polynomial terms increase sensitivity to extreme observations, so outliers warrant closer attention as model complexity increases.</li>
-<li>
-<strong>Independence.</strong> Residuals should not retain temporal, spatial, or other structured patterns. The check is the same as in Chapter 12: inspect residuals against order, time, or space if those structures are plausible.</li>
-</ol></section><section id="assumptiondiagnostic-mapping" class="level2" data-number="3.3"><h2 data-number="3.3" class="anchored" data-anchor-id="assumptiondiagnostic-mapping">
-<span class="header-section-number">3.3</span> Assumption–Diagnostic Mapping</h2>
+<li><strong>Linearity of residuals.</strong> Adding polynomial terms should reduce or remove curvature in the residual-versus-fitted plot. If curvature persists, a higher-order term, a different transformation, or a more flexible model may be needed.</li>
+<li><strong>Constant variance.</strong> The spread of residuals should be roughly uniform across the fitted range. High-order polynomial terms can amplify variance at the extremes of the predictor, making heteroscedasticity more likely there.</li>
+<li><strong>Approximate normality of residuals.</strong> The Q-Q plot should not show systematic departures. High-degree polynomial terms increase sensitivity to extreme observations, so outliers warrant closer attention as model complexity increases.</li>
+<li><strong>Independence.</strong> Residuals should not retain temporal, spatial, or other structured patterns. The check is the same as in Chapter 12: inspect residuals against order, time, or space if those structures are plausible.</li>
+</ol>
+</section>
+<section id="assumptiondiagnostic-mapping" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="assumptiondiagnostic-mapping"><span class="header-section-number">3.3</span> Assumption–Diagnostic Mapping</h2>
 <p>The same assumption-to-diagnostic mapping used in Chapter 12 applies here:</p>
 <table class="caption-top table">
-<thead><tr class="header">
+<thead>
+<tr class="header">
 <th>Assumption</th>
 <th>Main diagnostic</th>
 <th>Visual signal to watch for</th>
-</tr></thead>
+</tr>
+</thead>
 <tbody>
 <tr class="odd">
 <td>Linearity</td>
@@ -1027,7 +1062,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <code><a href="https://rdrr.io/r/base/AsIs.html">I()</a></code> wrapper in R formulas is easy to forget. Run the two lines below and compare what each one actually fits:</p>
+<p>The <code>I()</code> wrapper in R formulas is easy to forget. Run the two lines below and compare what each one actually fits:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">data</span>(<span class="st">"CO2"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2"></a>co2_df <span class="ot">&lt;-</span> <span class="fu">subset</span>(CO2, Treatment <span class="sc">==</span> <span class="st">"chilled"</span> <span class="sc">&amp;</span> Type <span class="sc">==</span> <span class="st">"Quebec"</span>)</span>
 <span id="cb1-3"><a href="#cb1-3"></a></span>
@@ -1039,35 +1074,40 @@ window.Quarto = {
 <span id="cb1-9"><a href="#cb1-9"></a></span>
 <span id="cb1-10"><a href="#cb1-10"></a><span class="fu">summary</span>(fit_a)</span>
 <span id="cb1-11"><a href="#cb1-11"></a><span class="fu">summary</span>(fit_b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>How many terms appear in the coefficient table for each model? Why does <code>conc^2</code> without <code><a href="https://rdrr.io/r/base/AsIs.html">I()</a></code> not add a squared term? What does <code>conc^2</code> mean to R’s formula parser?</p>
+<p>How many terms appear in the coefficient table for each model? Why does <code>conc^2</code> without <code>I()</code> not add a squared term? What does <code>conc^2</code> mean to R’s formula parser?</p>
 </div>
 </div>
-</section></section><section id="the-core-equations" class="level1" data-number="4"><h1 data-number="4">
-<span class="header-section-number">4</span> The Core Equations</h1>
+</section>
+</section>
+<section id="the-core-equations" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> The Core Equations</h1>
 <p>What polynomial regression changes is the mean structure. The errors <span class="math inline">\(\varepsilon_i\)</span> and the least-squares fitting rule remain unchanged. A cubic polynomial model is:</p>
 <p><span id="eq-poly"><span class="math display">\[Y_i = \alpha + \beta_1X_i + \beta_2X_i^2 + \beta_3X_i^3 + \varepsilon_i \tag{1}\]</span></span></p>
 <p>In <a href="#eq-poly" class="quarto-xref">Equation&nbsp;1</a>, curvature results from the powers of <span class="math inline">\(X\)</span>, but the model is still linear in the coefficients <span class="math inline">\(\alpha, \beta_1, \beta_2, \beta_3\)</span>. A quadratic model omits the cubic term. A straight-line model omits both higher-order terms. The hierarchy of models is nested, which means nested-model ANOVA can be used to compare them.</p>
 <p>The observed residuals <span class="math inline">\(e_i = Y_i - \hat{Y}_i\)</span> estimate the unobserved errors <span class="math inline">\(\varepsilon_i\)</span> and remain the objects used for all diagnostic checks, exactly as in Chapter 11.</p>
-</section><section id="the-fitting-rule" class="level1" data-number="5"><h1 data-number="5">
-<span class="header-section-number">5</span> The Fitting Rule</h1>
+</section>
+<section id="the-fitting-rule" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> The Fitting Rule</h1>
 <p>Ordinary least squares minimises the residual sum of squares:</p>
 <p><span class="math display">\[\text{RSS} = \sum_{i=1}^{n}(Y_i - \hat{Y}_i)^2\]</span></p>
-<p>This criterion is identical to what <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code> applies in simple linear regression. Adding polynomial terms to the model formula simply changes which <span class="math inline">\(\hat{Y}_i\)</span> is computed.</p>
-</section><section id="implementation" class="level1" data-number="6"><h1 data-number="6">
-<span class="header-section-number">6</span> Implementation</h1>
-<p>The model is still fitted with <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code>:</p>
+<p>This criterion is identical to what <code>lm()</code> applies in simple linear regression. Adding polynomial terms to the model formula simply changes which <span class="math inline">\(\hat{Y}_i\)</span> is computed.</p>
+</section>
+<section id="implementation" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Implementation</h1>
+<p>The model is still fitted with <code>lm()</code>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">I</span>(x<span class="sc">^</span><span class="dv">2</span>), <span class="at">data =</span> df)                       <span class="co"># quadratic</span></span>
 <span id="cb2-2"><a href="#cb2-2"></a><span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="fu">I</span>(x<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(x<span class="sc">^</span><span class="dv">3</span>), <span class="at">data =</span> df)              <span class="co"># cubic</span></span>
 <span id="cb2-3"><a href="#cb2-3"></a><span class="fu">lm</span>(y <span class="sc">~</span> <span class="fu">poly</span>(x, <span class="at">degree =</span> <span class="dv">3</span>), <span class="at">data =</span> df)              <span class="co"># orthogonal polynomial basis</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p><strong>The <code><a href="https://rdrr.io/r/base/AsIs.html">I()</a></code> wrapper.</strong> R’s formula language assigns special meaning to <code>^</code>. So, <code>x^2</code> inside a formula means the interaction of <code>x</code> with itself, not the arithmetic square of <code>x</code>. The <code><a href="https://rdrr.io/r/base/AsIs.html">I()</a></code> function (“as-is”) suppresses that special interpretation and forces R to evaluate the expression inside as ordinary arithmetic. Writing <code>I(x^2)</code> therefore passes the squared values of <code>x</code> as a new predictor column, which is what the polynomial model requires.</p>
-<p><strong>Raw powers versus <code><a href="https://rdrr.io/r/stats/poly.html">poly()</a></code>.</strong> When <code>I(x^2)</code> and <code>I(x^3)</code> are used directly, the model terms are highly correlated with each other and with <code>x</code>, especially when <code>x</code> is not centred near zero. This collinearity inflates coefficient standard errors and can make the individual estimates hard to interpret or numerically unstable. The <code><a href="https://rdrr.io/r/stats/poly.html">poly()</a></code> function constructs orthogonal polynomial contrasts that are uncorrelated by design. Coefficient estimates from <code><a href="https://rdrr.io/r/stats/poly.html">poly()</a></code> are therefore more numerically stable, and model-comparison statistics are unaffected by the correlation structure. For teaching and biological interpretation, raw powers are usually easier to explain; for numerical reliability, especially at higher degrees, <code><a href="https://rdrr.io/r/stats/poly.html">poly()</a></code> is preferable.</p>
+<p><strong>The <code>I()</code> wrapper.</strong> R’s formula language assigns special meaning to <code>^</code>. So, <code>x^2</code> inside a formula means the interaction of <code>x</code> with itself, not the arithmetic square of <code>x</code>. The <code>I()</code> function (“as-is”) suppresses that special interpretation and forces R to evaluate the expression inside as ordinary arithmetic. Writing <code>I(x^2)</code> therefore passes the squared values of <code>x</code> as a new predictor column, which is what the polynomial model requires.</p>
+<p><strong>Raw powers versus <code>poly()</code>.</strong> When <code>I(x^2)</code> and <code>I(x^3)</code> are used directly, the model terms are highly correlated with each other and with <code>x</code>, especially when <code>x</code> is not centred near zero. This collinearity inflates coefficient standard errors and can make the individual estimates hard to interpret or numerically unstable. The <code>poly()</code> function constructs orthogonal polynomial contrasts that are uncorrelated by design. Coefficient estimates from <code>poly()</code> are therefore more numerically stable, and model-comparison statistics are unaffected by the correlation structure. For teaching and biological interpretation, raw powers are usually easier to explain; for numerical reliability, especially at higher degrees, <code>poly()</code> is preferable.</p>
 <p><strong>Centring.</strong> Centring <span class="math inline">\(X\)</span> before computing powers (<em>i.e.</em>, replacing <span class="math inline">\(X\)</span> with <span class="math inline">\((X - \bar{X})\)</span>) reduces the correlation between <span class="math inline">\(X\)</span> and <span class="math inline">\(X^2\)</span> when using raw powers, and makes the intercept interpretable as the predicted response at the mean predictor value. When the predictor is far from zero and spans a wide range, centring is worth the small additional step.</p>
-</section><section id="example-co_2-uptake-and-curved-response" class="level1" data-number="7"><h1 data-number="7">
-<span class="header-section-number">7</span> Example: CO<span class="math inline">\(_2\)</span> Uptake and Curved Response</h1>
-<section id="example-dataset" class="level2" data-number="7.1"><h2 data-number="7.1" class="anchored" data-anchor-id="example-dataset">
-<span class="header-section-number">7.1</span> Example Dataset</h2>
+</section>
+<section id="example-co_2-uptake-and-curved-response" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Example: CO<span class="math inline">\(_2\)</span> Uptake and Curved Response</h1>
+<section id="example-dataset" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="example-dataset"><span class="header-section-number">7.1</span> Example Dataset</h2>
 <p>I use the <code>CO2</code> dataset from base R. These are measurements of carbon dioxide uptake by chilled Quebec grass plants (<em>Echinochloa crus-galli</em>) across increasing ambient CO<span class="math inline">\(_2\)</span> concentrations. Uptake is expected to rise steeply at low concentrations and then decelerate as the carboxylation system approaches saturation, so a straight-line model is likely to underfit the relationship.</p>
 <p>A researcher seriously studying this system would fit a rectangular hyperbola (the Michaelis-Menten model) because the kinetics of Rubisco carboxylation are well characterised and that functional form applies sensibly. Here I use a polynomial instead, purely to demonstrate the method on a dataset where curvature is visible and unambiguous. The polynomial model is adequate as a descriptive approximation within the observed concentration range but should not be used for extrapolation or for inferring kinetic parameters. The first ten rows of the filtered dataset are shown in <a href="#tbl-co2-data" class="quarto-xref">Table&nbsp;1</a>.</p>
 <div class="cell">
@@ -1076,9 +1116,11 @@ window.Quarto = {
 <span id="cb3-3"><a href="#cb3-3"></a></span>
 <span id="cb3-4"><a href="#cb3-4"></a><span class="fu">gt</span>(<span class="fu">head</span>(co2_df, <span class="dv">10</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div id="tbl-co2-data" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-co2-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-co2-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: A subset of the <code>CO2</code> dataset showing chilled Quebec plants used in the polynomial-regression example.
-</figcaption><div aria-describedby="tbl-co2-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+</figcaption>
+<div aria-describedby="tbl-co2-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
 <div id="arasfuljdh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>#arasfuljdh table {
@@ -1529,14 +1571,17 @@ Table&nbsp;1: A subset of the <code>CO2</code> dataset showing chilled Quebec pl
   height: 0px !important;
 }
 </style>
+
 <table class="gt_table cell caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
-<thead><tr class="gt_col_headings header">
+<thead>
+<tr class="gt_col_headings header">
 <th id="Plant" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Plant</th>
 <th id="Type" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Type</th>
 <th id="Treatment" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Treatment</th>
 <th id="conc" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">conc</th>
 <th id="uptake" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">uptake</th>
-</tr></thead>
+</tr>
+</thead>
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_center" headers="Plant">Qc1</td>
@@ -1610,6 +1655,7 @@ Table&nbsp;1: A subset of the <code>CO2</code> dataset showing chilled Quebec pl
 </tr>
 </tbody>
 </table>
+
 </div>
 </div>
 </div>
@@ -1648,8 +1694,9 @@ Table&nbsp;1: A subset of the <code>CO2</code> dataset showing chilled Quebec pl
 </ol>
 </div>
 </div>
-</section><section id="do-an-exploratory-data-analysis-eda" class="level2" data-number="7.2"><h2 data-number="7.2" class="anchored" data-anchor-id="do-an-exploratory-data-analysis-eda">
-<span class="header-section-number">7.2</span> Do an Exploratory Data Analysis (EDA)</h2>
+</section>
+<section id="do-an-exploratory-data-analysis-eda" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="do-an-exploratory-data-analysis-eda"><span class="header-section-number">7.2</span> Do an Exploratory Data Analysis (EDA)</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>co2_df <span class="sc">|&gt;</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">summarise</span>(</span>
@@ -1667,18 +1714,23 @@ Table&nbsp;1: A subset of the <code>CO2</code> dataset showing chilled Quebec pl
 </div>
 </div>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">ggplot</span>(co2_df, <span class="fu">aes</span>(<span class="at">x =</span> conc, <span class="at">y =</span> uptake)) <span class="sc">+</span></span>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">ggplot</span>(co2_df, <span class="fu">aes</span>(<span class="at">x =</span> conc, <span class="at">y =</span> uptake)) <span class="sc">+</span></span>
 <span id="cb7-2"><a href="#cb7-2"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.75</span>) <span class="sc">+</span></span>
 <span id="cb7-3"><a href="#cb7-3"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(CO[<span class="dv">2</span>]<span class="sc">~</span>concentration<span class="sc">~</span>(mL<span class="sc">~</span>L<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})),</span>
 <span id="cb7-4"><a href="#cb7-4"></a>       <span class="at">y =</span> <span class="fu">expression</span>(CO[<span class="dv">2</span>]<span class="sc">~</span>uptake<span class="sc">~</span>(µmol<span class="sc">~</span>m<span class="sc">^</span>{<span class="sc">-</span><span class="dv">2</span>}<span class="sc">~</span>s<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details><div class="cell-output-display">
+</details>
+<div class="cell-output-display">
 <div id="fig-co2-scatter" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-co2-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-co2-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="13-polynomial-regression_files/figure-html/fig-co2-scatter-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: CO_2 uptake in chilled Quebec plants across concentration levels. The pattern is positive but clearly decelerating."><img src="13-polynomial-regression_files/figure-html/fig-co2-scatter-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-co2-scatter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: CO<span class="math inline">\(_2\)</span> uptake in chilled Quebec plants across concentration levels. The pattern is positive but clearly decelerating.
-</figcaption></figure>
+</figcaption>
+</figure>
 </div>
 </div>
 </div>
@@ -1686,12 +1738,14 @@ Figure&nbsp;1: CO<span class="math inline">\(_2\)</span> uptake in chilled Quebe
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-lin-resid-motivation" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-lin-resid-motivation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lin-resid-motivation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="13-polynomial-regression_files/figure-html/fig-lin-resid-motivation-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Residual-versus-fitted plot for the straight-line model. The curved smooth line confirms that the linear mean structure is insufficient."><img src="13-polynomial-regression_files/figure-html/fig-lin-resid-motivation-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lin-resid-motivation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: Residual-versus-fitted plot for the straight-line model. The curved smooth line confirms that the linear mean structure is insufficient.
-</figcaption></figure>
+</figcaption>
+</figure>
 </div>
 </div>
 </div>
@@ -1708,14 +1762,16 @@ Now sketch (on paper or digitally) the shape you would expect the residuals to s
 
 Does your sketch match the actual plot? This arc shape is the diagnostic signal that motivates adding a quadratic term. Explain why the arc implies that a polynomial extension would be an improvement.
 ::: -->
-</section><section id="state-the-model-question" class="level2" data-number="7.3"><h2 data-number="7.3" class="anchored" data-anchor-id="state-the-model-question">
-<span class="header-section-number">7.3</span> State the Model Question</h2>
+</section>
+<section id="state-the-model-question" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="state-the-model-question"><span class="header-section-number">7.3</span> State the Model Question</h2>
 <p>The central question is whether adding polynomial terms to the mean structure removes the residual curvature observed above. Polynomial terms are tools for improving model specification, not primarily for testing isolated coefficients.</p>
 <p>One useful formal check is whether the quadratic coefficient differs from zero:</p>
 <p><span class="math display">\[H_{0}: \beta_2 = 0\]</span> <span class="math display">\[H_{a}: \beta_2 \ne 0\]</span></p>
 <p>If <span class="math inline">\(\beta_2 = 0\)</span> cannot be rejected, the data offer no evidence for the quadratic shape. That test should be read alongside the model comparison statistics and the diagnostic plots, not in isolation.</p>
-</section><section id="fit-the-model" class="level2" data-number="7.4"><h2 data-number="7.4" class="anchored" data-anchor-id="fit-the-model">
-<span class="header-section-number">7.4</span> Fit the Model</h2>
+</section>
+<section id="fit-the-model" class="level2" data-number="7.4">
+<h2 data-number="7.4" class="anchored" data-anchor-id="fit-the-model"><span class="header-section-number">7.4</span> Fit the Model</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>mod_lin  <span class="ot">&lt;-</span> <span class="fu">lm</span>(uptake <span class="sc">~</span> conc, <span class="at">data =</span> co2_df)</span>
 <span id="cb8-2"><a href="#cb8-2"></a>mod_quad <span class="ot">&lt;-</span> <span class="fu">lm</span>(uptake <span class="sc">~</span> conc <span class="sc">+</span> <span class="fu">I</span>(conc<span class="sc">^</span><span class="dv">2</span>), <span class="at">data =</span> co2_df)</span>
@@ -1835,8 +1891,9 @@ mod_cub   5 113.8378</code></pre>
 </ol>
 </div>
 </div>
-</section><section id="test-assumptions" class="level2" data-number="7.5"><h2 data-number="7.5" class="anchored" data-anchor-id="test-assumptions">
-<span class="header-section-number">7.5</span> Test Assumptions</h2>
+</section>
+<section id="test-assumptions" class="level2" data-number="7.5">
+<h2 data-number="7.5" class="anchored" data-anchor-id="test-assumptions"><span class="header-section-number">7.5</span> Test Assumptions</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>quad_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(mod_quad)</span>
 <span id="cb19-2"><a href="#cb19-2"></a></span>
@@ -1858,17 +1915,22 @@ BP = 1.3941, df = 2, p-value = 0.498</code></pre>
 </div>
 </div>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))</span>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))</span>
 <span id="cb23-2"><a href="#cb23-2"></a><span class="fu">plot</span>(mod_quad)</span>
 <span id="cb23-3"><a href="#cb23-3"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details><div class="cell-output-display">
+</details>
+<div class="cell-output-display">
 <div id="fig-quad-diagnostics" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-quad-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-quad-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="13-polynomial-regression_files/figure-html/fig-quad-diagnostics-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Standard diagnostics for the quadratic model."><img src="13-polynomial-regression_files/figure-html/fig-quad-diagnostics-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quad-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;3: Standard diagnostics for the quadratic model.
-</figcaption></figure>
+</figcaption>
+</figure>
 </div>
 </div>
 </div>
@@ -1885,11 +1947,13 @@ Figure&nbsp;3: Standard diagnostics for the quadratic model.
 <div class="callout-body-container callout-body">
 <p>Examine the four diagnostic panels in <a href="#fig-quad-diagnostics" class="quarto-xref">Figure&nbsp;3</a> for the quadratic model. For each panel, write one sentence describing what you see and whether it raises any concern:</p>
 <table class="caption-top table">
-<thead><tr class="header">
+<thead>
+<tr class="header">
 <th>Panel</th>
 <th>What you see</th>
 <th>Concern?</th>
-</tr></thead>
+</tr>
+</thead>
 <tbody>
 <tr class="odd">
 <td>Residuals vs Fitted</td>
@@ -1916,10 +1980,13 @@ Figure&nbsp;3: Standard diagnostics for the quadratic model.
 <p>Then compare the quadratic model diagnostics with what you would expect from the straight-line model (recall <a href="#fig-lin-resid-motivation" class="quarto-xref">Figure&nbsp;2</a>). Has the quadratic term resolved the main diagnostic problem? Is there any remaining issue worth noting?</p>
 </div>
 </div>
-</section><section id="interpret-the-results" class="level2" data-number="7.6"><h2 data-number="7.6" class="anchored" data-anchor-id="interpret-the-results">
-<span class="header-section-number">7.6</span> Interpret the Results</h2>
+</section>
+<section id="interpret-the-results" class="level2" data-number="7.6">
+<h2 data-number="7.6" class="anchored" data-anchor-id="interpret-the-results"><span class="header-section-number">7.6</span> Interpret the Results</h2>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>co2_pred <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">conc =</span> <span class="fu">seq</span>(<span class="fu">min</span>(co2_df<span class="sc">$</span>conc), <span class="fu">max</span>(co2_df<span class="sc">$</span>conc), <span class="at">length.out =</span> <span class="dv">200</span>)) <span class="sc">|&gt;</span></span>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>co2_pred <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">conc =</span> <span class="fu">seq</span>(<span class="fu">min</span>(co2_df<span class="sc">$</span>conc), <span class="fu">max</span>(co2_df<span class="sc">$</span>conc), <span class="at">length.out =</span> <span class="dv">200</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb24-2"><a href="#cb24-2"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb24-3"><a href="#cb24-3"></a>    <span class="at">linear =</span> <span class="fu">predict</span>(mod_lin, <span class="at">newdata =</span> <span class="fu">cur_data</span>()),</span>
 <span id="cb24-4"><a href="#cb24-4"></a>    <span class="at">quadratic =</span> <span class="fu">predict</span>(mod_quad, <span class="at">newdata =</span> <span class="fu">cur_data</span>()),</span>
@@ -1934,14 +2001,17 @@ Figure&nbsp;3: Standard diagnostics for the quadratic model.
 <span id="cb24-13"><a href="#cb24-13"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(CO[<span class="dv">2</span>]<span class="sc">~</span>concentration<span class="sc">~</span>(mL<span class="sc">~</span>L<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})),</span>
 <span id="cb24-14"><a href="#cb24-14"></a>       <span class="at">y =</span> <span class="fu">expression</span>(CO[<span class="dv">2</span>]<span class="sc">~</span>uptake<span class="sc">~</span>(µmol<span class="sc">~</span>m<span class="sc">^</span>{<span class="sc">-</span><span class="dv">2</span>}<span class="sc">~</span>s<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})),</span>
 <span id="cb24-15"><a href="#cb24-15"></a>       <span class="at">colour =</span> <span class="st">"Model"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details><div class="cell-output-display">
+</details>
+<div class="cell-output-display">
 <div id="fig-poly-fits" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-poly-fits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-poly-fits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="13-polynomial-regression_files/figure-html/fig-poly-fits-1.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Linear, quadratic, and cubic polynomial fits to the CO_2 uptake data."><img src="13-polynomial-regression_files/figure-html/fig-poly-fits-1.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-poly-fits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;4: Linear, quadratic, and cubic polynomial fits to the CO<span class="math inline">\(_2\)</span> uptake data.
-</figcaption></figure>
+</figcaption>
+</figure>
 </div>
 </div>
 </div>
@@ -1969,8 +2039,9 @@ Figure&nbsp;4: Linear, quadratic, and cubic polynomial fits to the CO<span class
 <p>Be systematic. First, identify the <strong>direction of curvature</strong>: is the response accelerating (concave up) or decelerating (concave down) across the predictor range? For this dataset the response is decelerating because uptake increases with CO<span class="math inline">\(_2\)</span> concentration but at a diminishing rate. Second, identify any <strong>turning point</strong> in the fitted curve. A quadratic model has at most one turning point. We see in the curve here that it does not reverse within the observed concentration range, so the relationship remains monotonically positive throughout. Third, relate the shape to a <strong>biological process</strong>. You’d mention that the deceleration is consistent with a carboxylation system that saturates as substrate availability increases, matching the biochemistry of C3 carbon fixation.</p>
 <p>Inference applies within the observed predictor range, from the lowest to the highest CO<span class="math inline">\(_2\)</span> concentration in the dataset. Polynomial curves can behave erratically outside that range. A quadratic function will eventually reverse direction, and a cubic will eventually diverge. So, extrapolation beyond the data requires explicit biological justification and should be treated with caution.</p>
 <p>Note also that the scale of the predictor affects the slope interpretation. Concentration here is measured in µL/L. A one-unit increase in concentration corresponds to a very small change in the predictor. Rescaling to a biologically natural unit (for example, hundreds of µL/L) would produce larger, easier-to-state coefficients without changing the fitted curve.</p>
-</section><section id="reporting" class="level2" data-number="7.7"><h2 data-number="7.7" class="anchored" data-anchor-id="reporting">
-<span class="header-section-number">7.7</span> Reporting</h2>
+</section>
+<section id="reporting" class="level2" data-number="7.7">
+<h2 data-number="7.7" class="anchored" data-anchor-id="reporting"><span class="header-section-number">7.7</span> Reporting</h2>
 <div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1986,23 +2057,28 @@ Figure&nbsp;4: Linear, quadratic, and cubic polynomial fits to the CO<span class
 <p><strong>Results</strong></p>
 <p>The straight-line model left clear curvature in the residual-versus-fitted plot, indicating that the linear mean structure was insufficient. Adding a quadratic term substantially improved fit (nested-model comparison: <span class="math inline">\(p &lt; 0.001\)</span>) and removed the residual arc. The cubic extension provided no meaningful additional improvement relative to the quadratic model. The selected quadratic model described a positive and decelerating relationship (<a href="#fig-poly-fits" class="quarto-xref">Figure&nbsp;4</a>): CO<span class="math inline">\(_2\)</span> uptake increased with concentration across the observed range but at a diminishing rate, consistent with substrate saturation of the carboxylation system. The model should be interpreted within the observed concentration range.</p>
 <p><strong>Discussion</strong></p>
-<p>A quadratic polynomial provided a parsimonious descriptive model of the concentration-uptake relationship while retaining the <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code> workflow. The fitted curve is biologically plausible as a first-order approximation of carboxylase saturation, though a mechanistic Michaelis-Menten model would be preferred where the process is to be characterised precisely or extrapolation is required.</p>
+<p>A quadratic polynomial provided a parsimonious descriptive model of the concentration-uptake relationship while retaining the <code>lm()</code> workflow. The fitted curve is biologically plausible as a first-order approximation of carboxylase saturation, though a mechanistic Michaelis-Menten model would be preferred where the process is to be characterised precisely or extrapolation is required.</p>
 </div>
 </div>
-</section></section><section id="what-to-do-when-assumptions-fail" class="level1" data-number="8"><h1 data-number="8">
-<span class="header-section-number">8</span> What to Do When Assumptions Fail</h1>
+</section>
+</section>
+<section id="what-to-do-when-assumptions-fail" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> What to Do When Assumptions Fail</h1>
 <p>Diagnostic outcomes point to different remedies depending on what they show.</p>
 <p>If the quadratic model still leaves residual curvature, fitting the cubic extension is the next step. If curvature persists at degree three (or if the degree required to describe the pattern is becoming ridiculously high) the pattern is probably too complex for polynomial terms and a <a href="../../BCB744/basic_stats/21-generalised-additive-models.html">generalised additive model</a> is better. A GAM estimates the smooth relationship from the data directly without committing to a polynomial form, which makes it more robust to complex or irregular curvature.</p>
 <p>If the biology provides a specific mechanistic expectation (<em>e.g.</em>, for example, Michaelis-Menten kinetics, logistic population growth, or a Gompertz growth curve) a <a href="../../BCB744/basic_stats/22-nonlinear-regression.html">nonlinear model</a> embeds that structure directly and extrapolates in a biologically sensible way. Now, the interpretable, biologically-relevant model parameters also become available, such as <span class="math inline">\(V_{max}\)</span> and <span class="math inline">\(K_s\)</span> for the Michaelis-Menten model. Polynomial approximations should not substitute for mechanistic models when the process is understood.</p>
 <p>If the residual spread increases markedly at the extremes of the predictor range (a pattern that high-degree polynomials can amplify), consider whether a response transformation (log or square root) stabilises variance before adding polynomial terms. If variance is still unstable after transformation, weighted least squares or a generalised linear model with an appropriate variance function may be needed.</p>
-</section><section id="summary" class="level1" data-number="9"><h1 data-number="9">
-<span class="header-section-number">9</span> Summary</h1>
+</section>
+<section id="summary" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Summary</h1>
 <p>Polynomial regression extends simple linear regression to curved responses by adding powers of the predictor to the mean structure. The fitting method, inferential tools, and diagnostic workflow remain unchanged. The choice of polynomial degree should be driven by residual diagnostics, in other words, fit the linear model first, inspect the residual-versus-fitted plot, and add polynomial terms only as long as they remove structure from the residuals. Model comparison using nested ANOVA and AIC supports that decision. Interpretation focuses on the shape of the fitted curve, such as the direction, turning points (if present), and biological plausibility, rather than on individual coefficient values. The fitted curve applies within the observed predictor range; extrapolation from polynomial models requires care.</p>
 
 
 <!-- -->
 
-</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2026,
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2026,
   author = {Smit, A. J.},
   title = {13. {Polynomial} {Regression}},
   date = {2026-04-07},
@@ -2012,7 +2088,8 @@ Figure&nbsp;4: Linear, quadratic, and cubic polynomial fits to the CO<span class
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-smit2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Smit AJ (2026) 13. Polynomial Regression. <a href="https://tangledbank.netlify.app/BCB744/basic_stats/13-polynomial-regression.html">https://tangledbank.netlify.app/BCB744/basic_stats/13-polynomial-regression.html.
 </a>
-</div></div></section></div></main><!-- /main --><script>
+</div></div></section></div></main> <!-- /main -->
+<script>
 document.addEventListener("DOMContentLoaded", function () {
   const sidebar = document.querySelector("#quarto-sidebar");
   const titleBlock = document.querySelector(".quarto-title-block");
@@ -2070,7 +2147,8 @@ document.addEventListener("DOMContentLoaded", function () {
     pdfIcon +
     '<span>PDF</span></a>';
 });
-</script><script id="quarto-html-after-body" type="application/javascript">
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -2527,7 +2605,9 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
   });
-  </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
       <a href="../../BCB744/basic_stats/12-simple-linear-regression.html" class="pagination-link" aria-label="12. Simple Linear Regression">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">12. Simple Linear Regression</span>
       </a>          
@@ -2983,7 +3063,8 @@ document.addEventListener("DOMContentLoaded", function () {
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <p>© 2026, AJ Smit</p>
 </div>   
@@ -2994,7 +3075,8 @@ document.addEventListener("DOMContentLoaded", function () {
       &nbsp;
     </div>
   </div>
-</footer><script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+</footer>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
 (function() {
   let previousOnload = window.onload;
   window.onload = () => {
@@ -3026,6 +3108,8 @@ document.addEventListener("DOMContentLoaded", function () {
   
 })();
           </script>
+
+
 
 
 <script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
