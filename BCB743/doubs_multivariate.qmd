@@ -294,6 +294,122 @@ spe_nmds <- metaMDS(
 ) # nMDS
 ```
 
+The two-dimensional configurations in @fig-unconstrained show what those
+first-axis summaries compress. Sites are coloured by their distance from the
+source, so a smooth colour transition across an ordination indicates recovery
+of the longitudinal river gradient. DCA is included here because its axis
+length is used below to diagnose the long species-turnover gradient, even
+though it is not part of the four-method correlation comparison.
+
+```{r fig-unconstrained}
+#| label: fig-unconstrained
+#| fig-cap: "Site configurations from each unconstrained ordination. Numbers identify sampling sites and colour shows distance from the source. PCA uses all 30 sites; the species ordinations exclude fishless site 8."
+#| fig-width: 8
+#| fig-height: 10.8
+#| out-width: "100%"
+#| code-fold: true
+site_ordination_panel <- function(
+  ord,
+  title,
+  dfs,
+  labels,
+  axis_names = NULL,
+  scaling = 1
+) {
+  xy <- as.data.frame(scores(
+    ord,
+    display = "sites",
+    choices = 1:2,
+    scaling = scaling
+  ))
+  names(xy)[1:2] <- c("Axis1", "Axis2")
+  xy$dfs <- dfs
+  xy$site <- labels
+
+  if (is.null(axis_names)) {
+    axis_names <- colnames(scores(
+      ord,
+      display = "sites",
+      choices = 1:2,
+      scaling = scaling
+    ))[1:2]
+  }
+
+  ggplot(xy, aes(Axis1, Axis2, colour = dfs)) +
+    geom_hline(yintercept = 0, colour = "grey88", linewidth = 0.3) +
+    geom_vline(xintercept = 0, colour = "grey88", linewidth = 0.3) +
+    geom_point(size = 1.7) +
+    geom_text_repel(
+      aes(label = site),
+      size = 2.2,
+      max.overlaps = Inf,
+      min.segment.length = 0,
+      show.legend = FALSE
+    ) +
+    scale_colour_viridis_c(option = "viridis", name = "Distance\nfrom source") +
+    labs(title = title, x = axis_names[1], y = axis_names[2]) +
+    theme(
+      plot.title = element_text(face = "bold", size = 9),
+      legend.position = "right"
+    )
+}
+
+p_pca <- site_ordination_panel(
+  env_pca,
+  "Environmental PCA",
+  env$dfs,
+  seq_len(nrow(env))
+)
+p_ca <- site_ordination_panel(
+  spe_ca,
+  "Correspondence analysis",
+  site_dfs,
+  rownames(spe)
+)
+p_dca <- site_ordination_panel(
+  spe_dca,
+  "Detrended correspondence analysis",
+  site_dfs,
+  rownames(spe)
+)
+p_pcoa <- site_ordination_panel(
+  spe_pcoa,
+  "Bray-Curtis PCoA",
+  site_dfs,
+  rownames(spe)
+)
+
+nmds_xy <- as.data.frame(spe_nmds$points[, 1:2])
+names(nmds_xy) <- c("Axis1", "Axis2")
+nmds_xy$dfs <- site_dfs
+nmds_xy$site <- rownames(spe)
+p_nmds <- ggplot(nmds_xy, aes(Axis1, Axis2, colour = dfs)) +
+  geom_hline(yintercept = 0, colour = "grey88", linewidth = 0.3) +
+  geom_vline(xintercept = 0, colour = "grey88", linewidth = 0.3) +
+  geom_point(size = 1.7) +
+  geom_text_repel(
+    aes(label = site),
+    size = 2.2,
+    max.overlaps = Inf,
+    min.segment.length = 0,
+    show.legend = FALSE
+  ) +
+  scale_colour_viridis_c(option = "viridis", name = "Distance\nfrom source") +
+  labs(
+    title = paste0("Bray-Curtis nMDS (stress = ", fmt(spe_nmds$stress, 3), ")"),
+    x = "NMDS1",
+    y = "NMDS2"
+  ) +
+  theme(
+    plot.title = element_text(face = "bold", size = 9),
+    legend.position = "right"
+  )
+
+wrap_plots(p_pca, p_ca, p_dca, p_pcoa, p_nmds, ncol = 2) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+```
+
 The test: a real river gradient should align with distance from source no matter which geometry produced the axis. Because ordination signs are arbitrary, I compare absolute correlations.
 
 ```{r code-gradient-align}
@@ -405,6 +521,93 @@ dbrda_sel <- ordiR2step(
   R2scope = TRUE,
   trace = FALSE
 )
+```
+
+The selected ordinations are shown in @fig-constrained. Here the arrows are the
+predictors retained by forward selection, and the sites are again coloured by
+distance from source. Arrow direction shows increasing values; arrow length is
+scaled within each panel for legibility and should not be compared across
+methods.
+
+```{r fig-constrained}
+#| label: fig-constrained
+#| fig-cap: "Selected RDA, CCA, and Bray-Curtis db-RDA ordinations. Points are sampling sites, colour indicates distance from the source, and arrows show the environmental variables retained by forward selection."
+#| fig-width: 9
+#| fig-height: 3.7
+#| out-width: "100%"
+#| code-fold: true
+constrained_panel <- function(ord, title) {
+  site_xy <- as.data.frame(scores(
+    ord,
+    display = "sites",
+    choices = 1:2,
+    scaling = 2
+  ))
+  names(site_xy)[1:2] <- c("Axis1", "Axis2")
+  site_xy$dfs <- site_dfs
+  site_xy$site <- rownames(spe)
+
+  bp_xy <- as.data.frame(scores(
+    ord,
+    display = "bp",
+    choices = 1:2,
+    scaling = 2
+  ))
+  names(bp_xy)[1:2] <- c("Axis1", "Axis2")
+  bp_xy$variable <- rownames(bp_xy)
+
+  arrow_multiplier <- 0.75 *
+    min(
+      diff(range(site_xy$Axis1)) / diff(range(bp_xy$Axis1)),
+      diff(range(site_xy$Axis2)) / diff(range(bp_xy$Axis2))
+    )
+  bp_xy <- bp_xy |>
+    mutate(
+      Axis1 = Axis1 * arrow_multiplier,
+      Axis2 = Axis2 * arrow_multiplier
+    )
+
+  axis_names <- colnames(scores(
+    ord,
+    display = "sites",
+    choices = 1:2,
+    scaling = 2
+  ))[1:2]
+
+  ggplot(site_xy, aes(Axis1, Axis2)) +
+    geom_hline(yintercept = 0, colour = "grey88", linewidth = 0.3) +
+    geom_vline(xintercept = 0, colour = "grey88", linewidth = 0.3) +
+    geom_point(aes(colour = dfs), size = 1.7) +
+    geom_segment(
+      data = bp_xy,
+      aes(x = 0, y = 0, xend = Axis1, yend = Axis2),
+      inherit.aes = FALSE,
+      arrow = arrow(length = unit(1.5, "mm")),
+      colour = "#b2182b",
+      linewidth = 0.45
+    ) +
+    geom_text_repel(
+      data = bp_xy,
+      aes(Axis1, Axis2, label = variable),
+      inherit.aes = FALSE,
+      colour = "#b2182b",
+      fontface = "bold",
+      size = 2.5,
+      min.segment.length = 0
+    ) +
+    scale_colour_viridis_c(option = "viridis", name = "Distance\nfrom source") +
+    labs(title = title, x = axis_names[1], y = axis_names[2]) +
+    theme(plot.title = element_text(face = "bold", size = 9))
+}
+
+wrap_plots(
+  constrained_panel(rda_sel, "Selected RDA"),
+  constrained_panel(cca_sel, "Selected CCA"),
+  constrained_panel(dbrda_sel, "Selected db-RDA"),
+  nrow = 1
+) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
 ```
 
 The full models have severe collinearity, with VIFs in the hundreds because the river variables are correlated together. Forward selection reduces this redundancy to interpretable levels. The table compares the selected predictors, adjusted $R^2$, and the maximum VIF before and after selection.
@@ -594,6 +797,20 @@ mem_vars <- selected_vars(mem_sel)
 mem_r2 <- RsquareAdj(mem_sel)$adj.r.squared
 mem_vars
 mem_r2
+```
+
+@fig-mem-ordination displays the spatial RDA itself. The arrows show the
+selected spatial eigenvectors, while the colour gradient reveals whether their
+combined configuration represents the broad river continuum or finer-scale
+departures from it.
+
+```{r fig-mem-ordination}
+#| label: fig-mem-ordination
+#| fig-cap: "RDA of fish composition constrained by the forward-selected Moran eigenvector maps. Points are sampling sites, colour indicates distance from the source, and arrows show the selected spatial eigenvectors."
+#| fig-width: 5.5
+#| fig-height: 4.2
+#| code-fold: true
+constrained_panel(mem_sel, "Selected MEM-based RDA")
 ```
 
 Forward selection keeps `r mem_vars` and reaches an adjusted $R^2$ of about `r fmt(mem_r2)`. The fish assemblage is spatially structured, and the broad-scale MEMs have the same longitudinal signal as distance from source. MEMs do not implicate an environmental cause. They quantify the scale at which structure exists, which is a useful addition to the variation partitioning above and a standard starting point to spatial community ecology.

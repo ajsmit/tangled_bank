@@ -55,7 +55,7 @@ Almost everything in BCB743 is about inference. We start from a site-by-species 
 
 A simulator reverses that relationship. In **spesim** you set the number of species, their relative abundances, their optima along one or more environmental gradients, the spatial structure, and the sampling design. The package then returns the same objects you would collect in the field, namely a site-by-species abundance matrix and a per-quadrat environmental table. Because you specified the species assembly process (thus far according to only a few options), you can ask the question that observational data rarely answer directly, namely *did the method recover the structure I imposed?* [@legendre2012numerical; @borcard2011numerical].
 
-Below, I will work through five examples. Each simulates a community with a method taught elsewhere in the module, and ends with a comparison between what the method produces and what we know to be true.
+Below, I will work through six examples. Each simulates a community with a method taught elsewhere in the module, and ends with a comparison between what the method produces and what we know to be true.
 
 ## Installing and loading spesim
 
@@ -585,7 +585,7 @@ plot_design <- function(res, design) {
 wrap_plots(imap(runs, ~ plot_design(.x$res, .y)), ncol = 3, guides = "collect")
 ```
 
-The correlations are no longer all high, and the two transects are why. Both are a single line of quadrats on the same domain, differing only in bearing, yet the transect that crosses the isotherms recovers the gradient almost perfectly while the one that runs along an isotherm barely recovers it at all. The temperature range each samples explains the gap, since crossing the isotherms spans nearly the whole gradient, whereas following an isotherm keeps temperature almost constant, so little signal is left for the ordination to find. The other four designs differ in effort rather than orientation. Random and tiled honour the full request of 30 quadrats, while the systematic grid and the Voronoi design place fewer once the domain boundary has clipped the grid and thinned the centres, and they sample a narrower slice of the range as a result. The moral is expensive to learn in the field and cheap to learn here, namely that the design, and even the direction in which a transect is walked, determines what you can learn from the data before a single organism is counted.
+The correlations are no longer all high, and the two transects are why. Both are a single line of quadrats on the same domain, differing only in bearing, yet the transect that crosses the isotherms recovers the gradient almost perfectly while the one that runs along an isotherm barely recovers it at all. The gap is explained by the temperature range sampled by each, since crossing the isotherms spans nearly the whole gradient, whereas following an isotherm keeps temperature almost constant, so little signal is left for the ordination to find. The other four designs differ in effort rather than orientation. Random and tiled can accommodate the full request of 30 quadrats, while the systematic grid and the Voronoi design place fewer once the domain boundary has clipped the grid and thinned the centres, and they sample a narrower portion of the range as a result. This lesson would be expensive to learn in the field---the design, and even the direction in which a transect is set-out, determines what you can learn from the data before you set foot in the field.
 
 ### What each design does to the diagnostic panels
 
@@ -707,13 +707,263 @@ p_occ <- ggplot(occ, aes(Occupancy, TotalAbundance, colour = design)) +
 
 Across the panels, the two transects stay distinct. The one laid along an isotherm (pink) misses four of the twenty species, so its species–area and rarefaction curves plateau below the rest, and its distance–decay is nearly flat, because neighbouring quadrats at the same temperature share much the same community. The one laid across the isotherms (purple) shows the steepest distance–decay of all, since walking along it crosses the whole temperature range. The Voronoi design (yellow), with only six widely spaced quadrats, samples the fewest individuals and is lowest on the rank–abundance curve, yet that same wide spacing lets its species–area curve rise the fastest. Occupancy and abundance remain correlated in every design, the common species being both abundant and widespread, but in the designs that visit fewer sites the points crowd near the origin. The point of the panel is that the community rank–abundance, namely the dashed curve, is fixed, while everything computed from the sample changes with the design. Choosing how to sample is choosing which of these diagnostics you will be able to trust.
 
+## Example 6: reading three gradients off one community
+
+The earlier examples used a single gradient. Real communities respond to several at once, and the newer **spesim** gradient shapes let us build a landscape with structure that a straight plane cannot hold. Here the landscape has three features, namely a **hill** whose elevation falls away from a central peak, a **temperature** gradient that warms towards the east, and **rainfall** that wraps around the hill as a windward-wet, leeward-dry crescent, the orographic pattern of a real range. Twenty-four species sort along the three gradients, eight on each. The question is whether an ordination can recover all three imprints at once, and whether the sampling design decides which of them we can see.
+
+```{r ex6-build}
+#| output: false
+# rainfall wraps the hill: wettest on the windward (south-west) mid-slopes,
+# driest in the north-east rain shadow
+rain_fn <- function(x, y) {
+  cx <- 0.5
+  cy <- 0.5
+  ang <- atan2(y - cy, x - cx)
+  rad <- sqrt((x - cx)^2 + (y - cy)^2)
+  0.5 + 0.5 * cos(ang - (-3 * pi / 4)) * exp(-((rad - 0.30)^2) / (2 * 0.13^2))
+}
+
+landscape <- function(
+  scheme,
+  angle = NULL,
+  n_per_transect = NULL,
+  seed = 2026L
+) {
+  P <- load_config(system.file(
+    "examples/spesim_init_basic.txt",
+    package = "spesim"
+  ))
+  spp <- LETTERS[1:24]
+  P$N_SPECIES <- 24L
+  P$N_INDIVIDUALS <- 6000L
+  P$SEED <- seed
+  P$ENV_DRIVERS <- c("temperature", "elevation", "rainfall")
+  P$ENV_SHAPE <- list(
+    elevation = "radial",
+    temperature = "planar",
+    rainfall = "custom"
+  )
+  P$ENV_SHAPE_PARAMS <- list(
+    elevation = list(centre = c(0.5, 0.5)), # the hill
+    temperature = list(bearing = 90), # warmer to the east
+    rainfall = list(fn = rain_fn) # wraps the hill
+  )
+  P$ENV_AUTOCORR_RANGE <- 0.10 # realistic small-scale texture
+  P$ENV_BOUND <- "rescale"
+
+  # eight species sort along each gradient
+  P$GRADIENT_SPECIES <- spp
+  P$GRADIENT_ASSIGNMENTS <- c(
+    rep("elevation", 8),
+    rep("temperature", 8),
+    rep("rainfall", 8)
+  )
+  P$GRADIENT_OPTIMA <- setNames(rep(seq(0.15, 0.85, length.out = 8), 3), spp)
+  P$GRADIENT_TOLERANCE <- 0.11
+
+  P$SAMPLING_SCHEME <- scheme
+  P$N_QUADRATS <- 40L
+  if (!is.null(angle)) {
+    P$N_TRANSECTS <- 1L
+    P$N_QUADRATS_PER_TRANSECT <- n_per_transect
+    P$TRANSECT_ANGLE <- angle
+  }
+  spesim_run(P, write_outputs = FALSE, seed = seed, quiet = TRUE)
+}
+
+ref <- landscape("systematic") # the shared community, sampled on a grid
+```
+
+```{r fig-ex6-fields}
+#| fig-cap: "The three environmental fields of Example 6. Elevation is a radial hill, temperature a plane that warms eastwards, and rainfall an orographic crescent that wraps the hill, wettest on the south-west slopes and driest in the north-east. White lines are contours; a small autocorrelated residual is added to each."
+#| fig-format: png
+#| fig-dpi: 150
+#| fig-width: 9.2
+#| fig-height: 3.2
+#| out-width: "100%"
+env <- ref$env_gradients
+show_field <- function(v, title) {
+  ggplot(env, aes(x, y, fill = .data[[v]])) +
+    geom_raster() +
+    geom_contour(
+      aes(z = .data[[v]]),
+      colour = "white",
+      linewidth = 0.2,
+      bins = 8
+    ) +
+    scale_fill_viridis_c(option = "mako", end = 0.9, name = NULL) +
+    coord_equal() +
+    labs(title = title, x = NULL, y = NULL) +
+    theme(axis.text = element_blank(), axis.ticks = element_blank())
+}
+show_field("elevation", "Elevation (the hill)") |
+  show_field("temperature", "Temperature") |
+  show_field("rainfall", "Rainfall")
+```
+
+To test recovery we fit a distance-based redundancy analysis (db-RDA), constraining the community by the three known per-quadrat gradients. On the systematic sample the three together explain a modest but significant share of the community variation.
+
+```{r ex6-dbrda}
+species <- setdiff(colnames(ref$abund_matrix), "site")
+Y <- as.matrix(ref$abund_matrix[, species])
+keep <- rowSums(Y) > 0
+Y <- Y[keep, ]
+E <- calculate_quadrat_environment(
+  ref$env_gradients,
+  ref$quadrats,
+  st_crs(ref$domain)
+)
+E <- E[match(ref$abund_matrix$site[keep], E$site), ]
+
+dbrda <- capscale(
+  Y ~ temperature_C + elevation_m + rainfall_mm,
+  data = E,
+  distance = "bray",
+  add = TRUE
+)
+round(RsquareAdj(dbrda)$adj.r.squared, 3)
+```
+
+```{r fig-ex6-biplot}
+#| fig-cap: "db-RDA of the systematic sample, constrained by the three gradients. Arrows are the fitted environmental vectors; points are quadrats coloured by their elevation. The three arrows point in distinct directions, so each gradient leaves a separable imprint on the community, and the elevation arrow aligns with the colour trend along the first axis."
+#| fig-width: 5.2
+#| fig-height: 4.0
+#| out-width: "72%"
+sites <- as.data.frame(scores(dbrda, display = "sites", scaling = 2))
+sites$elevation_m <- E$elevation_m
+arrows <- as.data.frame(scores(dbrda, display = "bp", scaling = 2)) * 2.2
+arrows$label <- c("temperature", "elevation", "rainfall")
+
+ggplot(sites, aes(CAP1, CAP2)) +
+  geom_hline(yintercept = 0, colour = "grey85") +
+  geom_vline(xintercept = 0, colour = "grey85") +
+  geom_point(aes(colour = elevation_m), size = 2) +
+  scale_colour_viridis_c(option = "mako", end = 0.9, name = "Elevation (m)") +
+  geom_segment(
+    data = arrows,
+    aes(0, 0, xend = CAP1, yend = CAP2),
+    arrow = arrow(length = unit(0.18, "cm")),
+    linewidth = 0.4
+  ) +
+  geom_text(
+    data = arrows,
+    aes(CAP1, CAP2, label = label),
+    size = 2.8,
+    vjust = -0.5
+  ) +
+  coord_equal() +
+  labs(x = "db-RDA axis 1", y = "db-RDA axis 2")
+```
+
+The three arrows separate cleanly, so the ordination reads all three gradients from the one community. That success depends on the sample. To show how, we hold the community fixed and sample it five ways, then measure how strongly each gradient aligns with an unconstrained ordination of that sample, using `vegan::envfit`.
+
+```{r ex6-designs}
+#| output: false
+recover <- function(res) {
+  sc <- setdiff(colnames(res$abund_matrix), "site")
+  Y <- as.matrix(res$abund_matrix[, sc])
+  keep <- rowSums(Y) > 0
+  Y <- Y[keep, ]
+  E <- calculate_quadrat_environment(
+    res$env_gradients,
+    res$quadrats,
+    st_crs(res$domain)
+  )
+  E <- E[match(res$abund_matrix$site[keep], E$site), ]
+  ord <- rda(decostand(Y, "hellinger"))
+  ef <- envfit(
+    ord,
+    E[, c("elevation_m", "temperature_C", "rainfall_mm")],
+    permutations = 199
+  )
+  tibble(
+    realised = nrow(Y),
+    elevation = round(ef$vectors$r[["elevation_m"]], 2),
+    temperature = round(ef$vectors$r[["temperature_C"]], 2),
+    rainfall = round(ef$vectors$r[["rainfall_mm"]], 2)
+  )
+}
+
+designs6 <- list(
+  list(label = "random", scheme = "random"),
+  list(label = "systematic", scheme = "systematic"),
+  list(label = "tiled", scheme = "tiled"),
+  list(label = "transect (W–E)", scheme = "transect", angle = 90, n = 20),
+  list(label = "transect (S–N)", scheme = "transect", angle = 0, n = 20)
+)
+
+runs6 <- lapply(designs6, function(d) {
+  res <- landscape(
+    d$scheme,
+    angle = d$angle %||% NULL,
+    n_per_transect = d$n %||% NULL
+  )
+  list(
+    label = d$label,
+    res = res,
+    metrics = cbind(design = d$label, recover(res))
+  )
+})
+comparison6 <- bind_rows(lapply(runs6, `[[`, "metrics"))
+```
+
+```{r ex6-table}
+#| echo: false
+if (has_gt) {
+  comparison6 |>
+    gt::gt() |>
+    gt::cols_label(design = "Sampling design", realised = "Realised") |>
+    gt::tab_spanner(
+      label = "envfit r² (gradient recovery)",
+      columns = c(elevation, temperature, rainfall)
+    ) |>
+    gt::tab_header(
+      title = "One three-gradient community, five sampling designs"
+    )
+} else {
+  knitr::kable(comparison6)
+}
+```
+
+```{r fig-ex6-designs}
+#| fig-cap: "Each design's quadrats over the rainfall field. The two transects place the same 20 quadrats but on different lines: the west-to-east transect crosses the wet-to-dry contrast, while the south-to-north transect runs along it, at nearly constant rainfall."
+#| fig-width: 8.6
+#| fig-height: 6.0
+#| out-width: "100%"
+plot_rain <- function(res, design) {
+  ggplot() +
+    geom_raster(
+      data = res$env_gradients,
+      aes(x, y, fill = rainfall),
+      alpha = 0.9
+    ) +
+    scale_fill_viridis_c(option = "mako", end = 0.9, name = "Rainfall") +
+    geom_sf(data = res$domain, fill = NA, colour = "grey30", linewidth = 0.3) +
+    geom_sf(data = res$quadrats, fill = NA, colour = "black", linewidth = 0.4) +
+    coord_sf(expand = FALSE) +
+    labs(title = design, x = NULL, y = NULL) +
+    theme(
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      plot.title = element_text(size = 8)
+    )
+}
+wrap_plots(
+  lapply(runs6, function(r) plot_rain(r$res, r$label)),
+  ncol = 3,
+  guides = "collect"
+)
+```
+
+The rainfall column shows the sharpest lesson. The two transects place the same twenty quadrats and differ only in bearing, yet the west-to-east transect recovers rainfall while the south-to-north transect, running along a line of nearly constant rainfall, is blind to it. Elevation survives in every design because the hill is radial and any line that crosses the domain climbs and descends it. The two-dimensional designs, namely random, systematic and tiled, recover all three gradients because they cover the plane the wrapping rainfall lives on. One caution reads straight off the `realised` column: a single transect of twenty quadrats can report a high alignment for a gradient it happens to run along, and that number is less trustworthy than the same value from a design that spreads forty quadrats across the domain, because a short, one-dimensional sample overfits. Recovering an environmental imprint is as much about where the quadrats sit as about how many there are.
+
 ## Using spesim in the module
 
-In all five examples we do the same thing, namely test a method on data whose structure we know before trusting it on data whose structure is hidden. That habit is the reason a simulator belongs in a course about inference. With that habit, the horseshoe, the arch, the gradient-length rule, the SAD, and the question of sampling effort become results a student can generate, vary, and check, rather than claims in a textbook.
+In all six examples we test a method on data whose structure we know before trusting it on data whose structure is hidden. This is why a simulator belongs in a course about inference. With the simulator, the horseshoe, the arch, the gradient-length rule, the SAD, and the question of sampling effort become results you can vary, and check, rather than assume claims in the BCB743 online textbook as fact.
 
 A natural way to use the package is to reproduce a result from an earlier chapter on simulated data, then change one setting and predict what will happen before re-running. Lengthen or shorten the gradient and watch the horseshoe appear or vanish. Narrow the species tolerances and watch the constrained ordination tighten. Switch the sampling scheme and watch the recovered gradient range shift. Each change is a small, controlled experiment on a method you will later apply to the Doubs river network, the seaweed coastline, and your own project data [@nekola1999distance; @gotelli2013measuring].
 
-Two cautions from the [overview page](spesim.qmd) apply here as well. **spesim** is a single-time-point synthetic generator, not a mechanistic ecosystem model, so it simulates neither demography nor succession nor observation error. A simulation shows only that a method behaves as expected on the structure you imposed. It cannot show how the same method behaves on the messier structure of real communities. Used with those limits in mind, the package is a controlled teaching and testing instrument, namely a community whose generating process you specified, and a way to see for yourself what each method in BCB743 can and cannot recover.
+Two cautions from the [overview page](spesim.qmd) apply here as well. **spesim** is a single-time-point synthetic generator (*i.e.*, it does not simulate temporal dynamics, spatial processes, or community assembly mechanisms) so it simulates neither demography nor succession nor observation error. A simulation shows only that a method behaves as expected on the structure you imposed. It cannot show how the same method behaves on the messier structure of real communities. Used with those limits in mind, the package is a controlled learning and testing instrument, namely a community whose generating process you specified in accordance with your ecosystem theory knowledge, and a way to see for yourself what each method in BCB743 can and cannot recover.
 
 ## References
 
