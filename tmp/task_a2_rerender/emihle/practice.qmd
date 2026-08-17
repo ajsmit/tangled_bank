@@ -1,0 +1,207 @@
+---
+title: "Ecoevidence Doubs River Data Set"
+subtitle: "Package Test"
+format:
+  html:
+    toc: true
+    code-fold: false
+    embed-resources: true
+execute:
+  warning: true
+  message: false
+---
+
+```{r}
+#| label: setup
+
+# install.packages(c("ade4", "vegan", "adespatial", "betapart"))
+
+library(ade4)
+library(vegan)
+library(adespatial)
+library(betapart)
+
+set.seed(2026)
+```
+
+```{r}
+#| label: inspect-doubs
+
+data(doubs, package = "ade4")
+
+names(doubs)
+
+str(doubs, max.level = 1)
+
+?doubs
+```
+This vignette demonstrates a typical ecological analysis workflow using the **ecoevidence** package. The Doubs River dataset, distributed with the **ade4** package, contains fish community data, environmental variables, and spatial coordinates collected from 30 sampling sites along the Doubs River in France.
+
+```{r}
+# Doubs River Workflow
+## Load required packages
+ warning=FALSE
+library(ecoevidence)
+library(ade4)
+library(vegan)
+library(adespatial)
+library(betapart)
+
+set.seed(2026)
+```
+
+## Load the Doubs River dataset
+
+The Doubs River dataset is included in the **ade4** package and provides four data objects:
+
+- **fish** – fish species abundance matrix
+- **env** – environmental variables
+- **xy** – spatial coordinates
+- **species** – taxonomic information for each fish species
+
+```{r load-data}
+data(doubs, package = "ade4")
+```
+
+## Inspect the dataset
+
+Before beginning an analysis, it is good practice to inspect the structure of the dataset.
+
+```{r inspect-data}
+names(doubs)
+str(doubs, max.level = 1)
+```
+
+## Extract the data components
+
+For clarity, extract each component into a separate object.
+
+```{r extract-data}
+fish <- doubs$fish
+environment <- doubs$env
+coordinates <- doubs$xy
+species_info <- doubs$species
+```
+
+Inspect their dimensions.
+
+```{r dimensions}
+dim(fish)
+dim(environment)
+dim(coordinates)
+dim(species_info)
+```
+
+Preview the first few observations.
+
+```{r preview}
+head(fish)
+head(environment)
+head(coordinates)
+head(species_info)
+```
+
+## Create an EcoStudy object
+
+The `observe()` function creates an **EcoStudy** object that stores the community, environmental, and spatial data together for subsequent analyses.
+
+```{r create-study}
+study <- ecoevidence::observe(
+  species = doubs$fish,
+  environment = doubs$env
+)
+```
+## Summarise the study
+
+The `eco_summary()` function provides a concise overview of the ecological dataset, including key characteristics of the species, environmental, and spatial data stored within the `EcoStudy` object.
+
+```{r}
+eco_summary(study)
+
+```
+```{r}
+eco_nmds(study)
+```
+Hypothesis Test
+```{r}
+hyp1 <- eco_hypothesis(
+
+    name = "Altitude shapes fish communities",
+
+    response = "species",
+
+    predictor = "alt"
+
+)
+
+hyp1
+```
+```{r}
+test <- eco_test(study, hyp1)
+
+test
+```
+```{r}
+eco_test
+```
+
+```{r}
+test1 <- eco_test(study, hyp1)
+
+str(test1)
+```
+```{r}
+test1$fitted
+
+test1$statistics
+```
+
+Does altitude influence fish community composition?
+
+```{r}
+hyp1 <- eco_hypothesis(
+  name = "Altitude shapes fish communities",
+  response = "species",
+  predictor = "alt"
+)
+
+test1 <- eco_test(study, hyp1)
+
+test1
+```
+
+Does water pH change with altitude?
+
+```{r}
+hyp2 <- eco_hypothesis(
+  name = "Altitude influences pH",
+  response = "pH",
+  predictor = "alt"
+)
+
+test2 <- eco_test(study, hyp2)
+
+test2
+```
+
+Does dissolved oxygen vary with altitude?
+
+```{r}
+hyp3 <- eco_hypothesis(
+  name = "Altitude influences dissolved oxygen",
+  response = "oxy",
+  predictor = "alt"
+)
+
+test3 <- eco_test(study, hyp3)
+
+test3
+```
+ECOSCORE Test
+```{r}
+score1 <- eco_score(test1)
+
+score1
+```
+
+
