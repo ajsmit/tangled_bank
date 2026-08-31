@@ -1,5 +1,5 @@
-import * as tabsets from "./tabsets/tabsets.js";
 import "/scripts/hypothesis-comments.js";
+import * as tabsets from "./tabsets/tabsets.js";
 
 const sectionChanged = new CustomEvent("quarto-sectionChanged", {
   detail: {},
