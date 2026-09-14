@@ -18,6 +18,8 @@ keywords:
   - Nutrient uptake
   - Michaelis-Menten kinetics
   - Algal nutrition
+resources:
+  - animations/nutrient_uptake/poster.jpg
 ---
 
 ```{r code-library-tidyverse}
@@ -44,9 +46,26 @@ library(tidyverse)
 
 ## Algal Nutrient Uptake Experiments {#sec-ex1}
 
+::: callout-tip
+## Follow the nitrogen
+
+The animation below follows one nitrate pulse from the flask, through a depletion curve, to the Michaelis–Menten relationship. Pause at the prediction questions. The [walk-through below](#sec-follow-nitrogen) explains the calculations and connects the moving points to the uptake process.
+:::
+
+<video controls preload="metadata" playsinline width="100%" poster="animations/nutrient_uptake/poster.jpg" aria-label="Follow the nitrogen: a BDC223 animation of nitrate uptake by seaweed">
+<source src="animations/nutrient_uptake/nutrient_uptake.mp4" type="video/mp4">
+Your browser cannot play this video. <a href="animations/nutrient_uptake/nutrient_uptake.mp4">Download the animation</a> and use the written walk-through below.
+</video>
+
+[Download the animation](animations/nutrient_uptake/nutrient_uptake.mp4) · [Illustrative measurements](animations/nutrient_uptake/illustrative_samples.csv)
+
+The animation has on-screen explanations and no audio. Its numbers are illustrative, chosen to match the scale of the worked example in this lecture. They are not measurements from a particular species.
+
 The uptake process of nitrogen by algae can be measured *in situ* or under controlled conditions in the laboratory. Nutrient uptake is often determined by measuring the disappearance of a nutrient from the culture medium over a time interval after the addition of the alga. These experiments allow the calculation of *depletion curves*, and from the depletion curve the *uptake kinetics* can be determined.
 
-To do this, we may us two types of experiments: **multiple flask** experiments and **perturbation** experiments. The fundamental concept underlying both methods is to introduce a known quantity of nutrients (termed the substrate) into a flask or a series of flasks and then measure the rate of nutrient uptake ($V$) at different substrate concentrations ($[S]$). We calculate the nutrient uptake rate as the change in nutrient concentration in the flask over a predefined time interval ($V = \Delta [S]/\Delta t$). Consequently, both experiments generate data that relate the nutrient uptake rate to the corresponding substrate concentration. The primary difference between the two methods lies in the experimental setup and the data analysis.
+To do this, we use two types of experiments: **multiple flask** experiments and **perturbation** experiments. In both, a known amount of nutrient (the substrate) is introduced into the water. We measure the decrease in its concentration over a timed interval, convert that decrease into an amount using the water volume, and divide by the algal mass and elapsed time. This gives a positive uptake rate, $V$, for a corresponding substrate concentration, $[S]$. The primary difference between the methods lies in the experimental setup and the data analysis.
+
+The [Blender film, Measuring a changing uptake rate](L08c-nutrients_visualised.qmd#sec-measuring-uptake), develops the same numerical example as the Manim animation above. It adds a comparison of the two experimental designs, a biomass intervention and a separate demonstration of sampling losses. Use its worked questions to check the distinction between concentration, amount and rate.
 
 ## [Multiple Flask Method]{.my-highlight}
 
@@ -127,17 +146,17 @@ This represents the total amount of nitrogen removed from the water by the algal
 To determine how much nutrient was taken up per unit mass of algae, divide the total nutrient uptake by the biomass of algae in the flask (*e.g.*, 4.5 g):
 
 $$
-\text{Nutrient uptake rate} = \frac{105.75 \, \mu g \, N}{4.5 \, g} = 23.5 \, \mu g \, N/g
+\text{N taken up per gram} = \frac{105.75 \, \mu g \, N}{4.5 \, g} = 23.5 \, \mu g \, N/g
 $$
 
-This gives the nutrient uptake rate in terms of μg of nutrient per gram of algal biomass over the incubation period of 20 minutes.
+This is the amount taken up per gram during the 20-minute incubation. Divide by elapsed time to obtain a rate.
 
 #### Step 5: calculate the nutrient uptake rate per hour
 
-If the experiment lasted 20 minutes, but the uptake rate needs to be expressed on an hourly basis, multiply the rate by 3 (since there are three 20-minute intervals in an hour):
+If the experiment lasted 20 minutes, but the uptake rate needs to be expressed on an hourly basis, multiply this amount per gram by 3 h⁻¹ (because 20 minutes is one third of an hour):
 
 $$
-\text{Nutrient uptake rate per hour} = 23.5 \, \mu g \, N/g \times 3 = 70.50 \, \mu g \, N/g/hr
+\text{Nutrient uptake rate per hour} = 23.5 \, \mu g \, N/g \times 3\,\mathrm{h^{-1}} = 70.50 \, \mu g \, N/g/hr
 $$
 
 ### Final workflow for calculating nutrient uptake rate
@@ -148,7 +167,7 @@ $$
    $$
 2. **Convert concentrations to mass of nutrient** (*e.g.*, μg N) using the molecular mass and flask volume:
    $$
-   \text{Mass of nutrient} = [S] \times \text{MM of nutrient}
+   \text{Mass of nutrient} = [S] \times \Omega \times \text{MM of nutrient}
    $$
 3. **Calculate the amount of nutrient taken up** by the algae:
    $$
@@ -156,11 +175,11 @@ $$
    $$
 4. **Normalise the nutrient uptake by the algal biomass**:
    $$
-   \text{Nutrient uptake rate} = \frac{\Delta \text{Mass of nutrient}}{\text{Algal biomass}}
+   \text{N taken up per gram} = \frac{\Delta \text{Mass of nutrient}}{\text{Algal biomass}}
    $$
-5. **Convert the nutrient uptake rate to an hourly rate**, if necessary:
+5. **Divide the amount per gram by elapsed time**, using $\Delta t$ in minutes to obtain an hourly rate:
    $$
-   \text{Nutrient uptake rate (hourly)} = \text{Nutrient uptake rate} \times \frac{60}{\Delta t}
+   \text{Nutrient uptake rate (hourly)} = \text{N taken up per gram} \times \frac{60}{\Delta t}
    $$
 
 
@@ -182,7 +201,7 @@ $$
 
 # Define the model function
 mm_fun <- function(S, Vmax, Km) {
-  Vmax * S / (Km + S)
+    Vmax * S / (Km + S)
 }
 
 generate_data <- function(
@@ -194,42 +213,42 @@ generate_data <- function(
   Km_vec_sd,
   Vmax_vec_sd
 ) {
-  # Define the substrate concentrations
-  concentrations <- conc_vec
+    # Define the substrate concentrations
+    concentrations <- conc_vec
 
-  # Create a dataframe with the specified structure
-  data <- expand.grid(
-    trt = paste("Treatment", 1:n_trt),
-    S = concentrations,
-    rep = 1:n_rep
-  ) |>
-    arrange(trt, S, rep)
-
-  # Add Km and Vmax values
-  set.seed(13)
-  data <- data |>
-    group_by(trt) |>
-    mutate(
-      Km = rnorm(
-        n(),
-        mean = Km_vec[as.numeric(str_extract(trt, "\\d+"))],
-        sd = Km_vec_sd[as.numeric(str_extract(trt, "\\d+"))]
-      ),
-      Vmax = rnorm(
-        n(),
-        mean = Vmax_vec[as.numeric(str_extract(trt, "\\d+"))],
-        sd = Vmax_vec_sd[as.numeric(str_extract(trt, "\\d+"))]
-      )
+    # Create a dataframe with the specified structure
+    data <- expand.grid(
+        trt = paste("Treatment", 1:n_trt),
+        S = concentrations,
+        rep = 1:n_rep
     ) |>
-    ungroup() |>
-    mutate(
-      V = mm_fun(S, Vmax, Km),
-      rep = as.factor(rep),
-      trt = as.factor(trt)
-    ) |>
-    select(-Km, -Vmax)
+        arrange(trt, S, rep)
 
-  return(data)
+    # Add Km and Vmax values
+    set.seed(13)
+    data <- data |>
+        group_by(trt) |>
+        mutate(
+            Km = rnorm(
+                n(),
+                mean = Km_vec[as.numeric(str_extract(trt, "\\d+"))],
+                sd = Km_vec_sd[as.numeric(str_extract(trt, "\\d+"))]
+            ),
+            Vmax = rnorm(
+                n(),
+                mean = Vmax_vec[as.numeric(str_extract(trt, "\\d+"))],
+                sd = Vmax_vec_sd[as.numeric(str_extract(trt, "\\d+"))]
+            )
+        ) |>
+        ungroup() |>
+        mutate(
+            V = mm_fun(S, Vmax, Km),
+            rep = as.factor(rep),
+            trt = as.factor(trt)
+        ) |>
+        select(-Km, -Vmax)
+
+    return(data)
 }
 
 # Example usage
@@ -243,13 +262,13 @@ Vmax_vec_sd <- c(0.7, 1.3, 0.9) # Vmax SD for each treatment
 
 # Generate the data for one treatment
 mf_data <- generate_data(
-  n_trt = 1,
-  n_rep,
-  conc_vec,
-  Km_vec,
-  Vmax_vec,
-  Km_vec_sd,
-  Vmax_vec_sd
+    n_trt = 1,
+    n_rep,
+    conc_vec,
+    Km_vec,
+    Vmax_vec,
+    Km_vec_sd,
+    Vmax_vec_sd
 )
 ```
 
@@ -285,7 +304,7 @@ Once the experimental data have been collected, the next step is to calculate th
 
 #### Step 1: calculate the change in nutrient concentration ($\delta [S]$)
 
-To determine how much nutrient has been taken up during a specific time interval (*e.g.*, the first 5 minutes of the experiment, *i.e.*, $\Delta_t = 0$), subtract the nutrient concentration at the end of the interval from the concentration at the start:
+To determine how much nutrient has been taken up during a specific time interval (*e.g.*, the first 5 minutes, for which $\Delta t = 5\;\mathrm{min}$), subtract the nutrient concentration at the end of the interval from the concentration at the start:
 
 $$
 \Delta [S] = [S_{\text{start}}] - [S_{\text{end}}]
@@ -334,17 +353,17 @@ This represents the total amount of nitrogen removed from the water by the algal
 To determine how much nitrogen was taken up per unit mass of algae, divide the total nitrogen uptake by the algal biomass (*e.g.*, 4.5 g):
 
 $$
-\text{Nutrient uptake rate} = \frac{25.92 \, \mu g \, N}{4.5 \, g} = 5.76 \, \mu g \, N/g
+\text{N taken up per gram} = \frac{25.92 \, \mu g \, N}{4.5 \, g} = 5.76 \, \mu g \, N/g
 $$
 
-This gives the nitrogen uptake rate in terms of μg of nitrogen per gram of algal biomass over the 5-minute interval.
+This is the amount taken up per gram during the five-minute interval. Divide by elapsed time to obtain a rate.
 
 #### Step 5: calculate the nutrient uptake rate per hour
 
-Since the uptake was allowed to proceed for 5 minutes over the first interval, but you may want to express the uptake rate per hour, multiply the uptake rate by 12 (since there are twelve 5-minute intervals in one hour):
+Divide the amount taken up per gram by $5/60\;\mathrm{h}$ to obtain an hourly rate. This is equivalent to multiplying by $12\;\mathrm{h^{-1}}$:
 
 $$
-\text{Nutrient uptake rate per hour} = 5.76 \, \mu g \, N/g \times 12 = 69.12 \, \mu g \, N/g/hr
+\text{Nutrient uptake rate per hour} = 5.76 \, \mu g \, N/g \times 12\,\mathrm{h^{-1}} = 69.12 \, \mu g \, N/g/hr
 $$
 
 This uptake rate relates to the specific time interval and can be used to track changes in $[V]$ over time. In this example, this uptake rate relates to the first 5 minutes of the experiment. The average $[S]$ during this intervals was $(25 \, \mu M + 21.3 \, \mu M)/2 = 23.15 \, \mu M$.
@@ -359,7 +378,7 @@ Repeat these steps for each remaining intervals and express $[V]$ relative the t
    $$
 2. **Convert concentrations to mass of nutrient** using the molecular mass and flask volume:
    $$
-   \text{Mass of nutrient} = [S] \times \text{MM of nutrient}
+   \text{Mass of nutrient} = [S] \times \Omega \times \text{MM of nutrient}
    $$
 3. **Calculate the amount of nutrient taken up** by the algae during the time interval:
    $$
@@ -367,11 +386,11 @@ Repeat these steps for each remaining intervals and express $[V]$ relative the t
    $$
 4. **Normalise the nutrient uptake by the algal biomass**:
    $$
-   \text{Nutrient uptake rate} = \frac{\Delta \text{Mass of nutrient}}{\text{Algal biomass}}
+   \text{N taken up per gram} = \frac{\Delta \text{Mass of nutrient}}{\text{Algal biomass}}
    $$
-5. **Convert the nutrient uptake rate to an hourly rate**, if necessary:
+5. **Divide the amount per gram by elapsed time**, using $\Delta t$ in minutes to obtain an hourly rate:
    $$
-   \text{Nutrient uptake rate (hourly)} = \text{Nutrient uptake rate} \times \frac{60}{\Delta t}
+   \text{Nutrient uptake rate (hourly)} = \text{N taken up per gram} \times \frac{60}{\Delta t}
    $$
 
 
@@ -388,23 +407,129 @@ The important differences between the multiple flask and perturbation experiment
 
 Our choice between multiple flask and perturbation experiments depends on our research questions and experimental constraints. In both methods, we must consider all sources of error and variability, such as measurement error, the type of nutrient, the physiological state of the alga, the light intensity, the experimental temperature, and other variables that might affect the uptake response.
 
+## Follow the Nitrogen: Reading the Animation {#sec-follow-nitrogen}
+
+### First, keep track of where the nitrogen is
+
+Imagine a piece of seaweed in $0.50\;\mathrm{L}$ of well-mixed seawater. Its fresh mass is $4.5\;\mathrm{g}$. Add a small volume of concentrated nitrate solution to bring the external concentration to $25\;\mu\mathrm{mol\,N\,L^{-1}}$. This is the perturbation: a sudden change in the supply of nitrogen.
+
+The gold dots represent parcels of nitrate-N in the water. Follow them into the seaweed. Their disappearance from the water is accompanied by an increase in the nitrogen held inside the tissue, where it may be stored or assimilated. Uptake does not require an immediately visible increase in the size of the seaweed.
+
+There are initially $25\times0.50=12.5\;\mu\mathrm{mol}$ of added N in the flask. We keep a balance of this added nitrogen:
+
+$$
+N_{\mathrm{water}}(t)+U(t)=12.5\;\mu\mathrm{mol\,N},
+\qquad U(t)=\Omega\,[S_0-S(t)].
+$$
+
+Here, $U(t)$ is the **amount taken up since the pulse**, and $\Omega$ is the water volume in litres. The seaweed already contained nitrogen before the experiment. That pre-existing nitrogen is outside this balance of the newly added pulse.
+
+### Then read the depletion curve
+
+The horizontal axis is time. The vertical axis is the concentration still in the water, $S$. Each new measurement extends the depletion curve. A steep decline means that a large amount of nitrogen has left the water during that interval. A shallow decline means that less has left over the same amount of time.
+
+In the animation, the no-seaweed control remains at $25\;\mu\mathrm{mol\,L^{-1}}$. This is what we would expect if the experimental conditions cause no other removal of dissolved N. In a real experiment, compare that control with the seaweed flask before attributing all disappearance to the seaweed. Microbial uptake, adsorption, nutrient release and sampling losses can complicate the balance.
+
+### Turn a slope into an uptake rate
+
+The depletion slope is negative because $S$ falls with time. We report uptake as a positive quantity by using $S_{\mathrm{start}}-S_{\mathrm{end}}$. For a five-minute interval, with concentrations in $\mu\mathrm{mol\,N\,L^{-1}}$:
+
+$$
+\overline V
+=\frac{(S_{\mathrm{start}}-S_{\mathrm{end}})\,\Omega}{M\,(5/60)}
+\quad\left[\mu\mathrm{mol\,N\,g^{-1}\,h^{-1}}\right].
+$$
+
+The volume converts concentration into an amount, $M$ standardises that amount per gram of seaweed, and $5/60$ expresses the interval in hours. Keep those three operations in mind. They tell you what each part of the calculation is doing.
+
+This expression assumes that the water volume is effectively constant over the interval and that the concentration change has been attributed appropriately to uptake. If sample withdrawals appreciably reduce volume, use the remaining volume for the following interval and account for the exported nutrient in the overall inventory. The [sampling example](L08c-nutrients_visualised.qmd#change-biomass-then-account-for-sampling) shows why loss of nitrogen from the flask is not always uptake.
+
+| Interval | Start $S$ | End $S$ | Mean of endpoint concentrations | Mean uptake rate $\overline V$ |
+|:--|--:|--:|--:|--:|
+| 0–5 min | 25.00 | 21.30 | 23.15 | 4.93 |
+| 30–35 min | 5.54 | 3.43 | 4.48 | 2.81 |
+
+Concentrations are in $\mu\mathrm{mol\,N\,L^{-1}}$. Rates are in $\mu\mathrm{mol\,N\,g^{-1}\,h^{-1}}$, using fresh mass. These are rounded values from the animation's model. The first rate is about $69.1\;\mu\mathrm{g\,N\,g^{-1}\,h^{-1}}$ after multiplying by $14.0067\;\mu\mathrm{g\,N}$ per $\mu\mathrm{mol\,N}$, consistent with the worked example above.
+
+### Move each interval onto the $V$–$S$ graph
+
+Take the first pair, approximately $(23.15,\;4.93)$. Plot the concentration horizontally and the uptake rate vertically. Repeat for the next interval. You are now constructing a different graph from the same experiment.
+
+Watch the order in which the points appear. The early intervals lie towards the upper right, where both concentration and rate are high. Later intervals appear further left and lower down. **Time carries us from right to left along this curve during depletion.** Although we conventionally read an increasing concentration axis from left to right, the flask is losing nitrate as the experiment proceeds.
+
+The midpoint of the two endpoint concentrations is a convenient approximation to the concentration experienced over a short interval. The calculated rate is also an interval average. It therefore sits close to, rather than necessarily exactly on, the instantaneous Michaelis–Menten curve. Very long intervals can hide substantial changes in rate.
+
+### Separate an amount from a rate
+
+During the replay, the green curve shows accumulated uptake, $U(t)$. It rises as nitrogen enters the seaweed. Its slope becomes shallower as uptake slows. Near the end of the experiment, the seaweed has acquired almost all of the added nitrogen, while its **current uptake rate** is very low.
+
+The moving tangents connect these observations. With time expressed in hours,
+
+$$
+V(t)=-\frac{\Omega}{M}\frac{\mathrm dS}{\mathrm dt}
+=\frac{1}{M}\frac{\mathrm dU}{\mathrm dt}.
+$$
+
+If time is expressed in minutes, multiply the right-hand expressions by 60 to report an hourly rate. A high point on the accumulated-uptake curve means that much N has already been taken up. A steep tangent means that uptake is currently fast.
+
+### Explain the bend, then test your explanation
+
+The animation uses $V_{\max}=6\;\mu\mathrm{mol\,N\,g^{-1}\,h^{-1}}$ and $K_s=5\;\mu\mathrm{mol\,N\,L^{-1}}$. At $S=K_s$, the uptake rate is $3$, half of $V_{\max}$. This occurs about $31.2$ minutes into this particular experiment. $K_s$ is a concentration, so it does not itself tell us how many minutes an experiment will take.
+
+At low external concentration, nutrient arrival restricts uptake. The membrane sketch shows sites spending time waiting. When nitrate is abundant, the finite capacity of transport and subsequent processing becomes increasingly important. Doubling $S$ from $25$ to $50$ raises the modelled rate from $5.00$ to only $5.45$. The rate approaches $V_{\max}$ asymptotically. A saturating curve alone does not identify the detailed transport mechanism.
+
+At very low $S$, $V\approx\alpha S$, where $\alpha=V_{\max}/K_s$. This initial slope describes uptake responsiveness when nitrate is scarce. Compare $V_{\max}$ as well as $K_s$ when comparing algae: a smaller $K_s$ alone does not guarantee a larger absolute uptake rate if their capacities differ.
+
+Now predict the second pulse. If we restore the nitrate concentration to $25$, while keeping the uptake system unchanged, the point returns up and right along the same $V$–$S$ curve. The next depletion segment becomes steep again. The accumulated amount already taken up remains in the seaweed. This intervention tests the explanation that the first slowdown resulted from declining external supply.
+
+::: callout-note
+## What we have held constant
+
+This illustration assumes fixed water volume, algal fresh mass, mixing, temperature, light, $V_{\max}$ and $K_s$, with no other N inputs or losses between pulses. Sampling removes a negligible volume. In real experiments, account for the water and nutrients removed in samples, and measure controls and replicate flasks. Internal storage, nutritional history and regulation can also change uptake capacity during a run. A failure to recover after the second pulse would give us a reason to investigate those processes.
+
+The nitrate example is consistent with the rate-saturating response described for *Gracilaria gracilis* in [Smit (2002)](../docs/Smit_2002.pdf), which also shows why water movement and the seaweed's nutritional history matter. The animation's parameter values are illustrative.
+:::
+
+::: callout-tip
+## Pause and explain
+
+1. A depletion curve becomes almost horizontal. What has happened to the external concentration and to the uptake rate? What additional evidence would you need before concluding that the seaweed had stopped functioning?
+2. Late in the experiment, accumulated uptake is high but uptake rate is low. Explain how both statements can be true.
+3. Double the seaweed mass while holding water volume, initial $S$, and uptake parameters per gram constant. Predict the initial depletion slope, the initial rate **per gram**, and the total amount of pulse N eventually available for uptake.
+4. After a second nitrate pulse, uptake remains slow. Suggest an explanation and an experiment that would distinguish it from low external nutrient supply.
+:::
+
+<details>
+<summary>Check your reasoning</summary>
+
+1. In this model, external N is nearly depleted and uptake is slow. A no-seaweed control helps identify other losses. A second pulse tests whether uptake can recover when supply is restored.
+2. The accumulated amount records the history of uptake. Its slope gives the current rate, which can be small after most available N has already entered the seaweed.
+3. The initial concentration decline doubles in magnitude because twice as much seaweed removes N. The initial rate per gram remains the same at the same $S$. The flask still contains only $12.5\;\mu\mathrm{mol}$ of added N, so doubling biomass does not double this available amount.
+4. For example, internal N stores may now suppress further uptake, or the incubation conditions may have changed. Compare the response with fresh tissue under matched light, temperature and mixing, and measure internal N if storage is your explanation. State the result you would expect under each explanation.
+
+</details>
+
 ## The Michaelis-Menten Model
 
-We apply the Michaelis-Menten model (@eq-mm) to data from multiple flask and perturbation experiments to characterise nutrient uptake. Applied to algae, this model assumes an irreversible uptake process that saturates at high substrate concentrations. It effectively quantifies key characteristics of the nutrient uptake system, including the maximum uptake rate and the algae's affinity for the nutrient.
+We apply the Michaelis–Menten model (@eq-mm) to data from multiple flask and perturbation experiments when a saturating concentration response describes nutrient uptake under the experimental conditions. It estimates limiting capacity and half-saturation. The fitted curve does not, by itself, establish irreversibility or identify the membrane's energy-coupling mechanism.
 
 The Michaelis-Menten equation is given by:
 
 $$V_i = \frac{V_{max} \cdot [S_i]}{K_m + [S_i]} + \epsilon_i$$ {#eq-mm}
 
+Here $K_m$ denotes the half-saturation concentration, written $K_s$ in Lecture 8a and the animation. We use $K_s$ for the whole-alga uptake response. It is an operational half-saturation parameter, and need not be a direct measure of molecular binding affinity.
+
+The [Blender film on capacity and concentration](L08c-nutrients_visualised.qmd#sec-capacity-concentration) shows how uptake-site occupancy can produce this relationship. That film maintains concentration at the membrane; here we measure changing concentration in the flask. Surface and bulk concentrations need not be equal when external delivery is restrictive.
+
 Where:
 
 -   $V_i$ is the uptake rate at the $i$-th observation,
--   $V_{max}$ is the maximum nutrient uptake rate achieved,
+-   $V_{max}$ is the limiting uptake rate approached at high substrate concentration,
 -   $[S_i]$ is the substrate concentration at the $i$-th observation,
 -   $K_m$ is the Michaelis constant, which represents the substrate concentration at which the uptake rate is half of $V_{max}$, and
--   $\epsilon_i$ is the error term at the $i$-th observation. and
+-   $\epsilon_i$ is the error term at the $i$-th observation.
 
-The two parameters of the Michaelis-Menten model are rooted in theory and have ecophysiological interpretations. $K_m$ is a measure of the alga's affinity for the nutrient and is determined by the kinetic constants governing the formation and dissociation of the enzyme-substrate complex responsible for taking up the nutrient; lower values indicate a higher affinity. $V_{max}$ represents the maximum capacity of the alga to utilise the nutrient.
+Both parameters have ecophysiological interpretations. $V_{max}$ represents the uptake capacity per unit algal mass under the experimental conditions. The half-saturation concentration tells us the external concentration needed to attain half of that capacity. For whole-alga uptake, this response can reflect nutrient delivery to the surface as well as transport and processing within the tissue. The initial slope, $\alpha=V_{max}/K_s$, is the useful comparison of absolute uptake responsiveness at low nutrient concentration.
 
 ## Data Analysis: Fitting the Michaelis-Menten Model with Nonlinear Regression
 
