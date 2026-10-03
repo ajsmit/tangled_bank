@@ -10,16 +10,8 @@ format:
     date-modified-title: "Last updated"
     number-sections: true
     page-layout: article
-#   typst:
-#     fontsize: 12pt
-#     hyphenate: true
-#     lang: en
-#     mainfont: "Minion Pro"
-#     section-numbering: 1.1.1.1
-#     toc: true
-  docx:
-    toc: true
-    toc-depth: 2
+params:
+  hide_answers: false
 ---
 
 
@@ -39,8 +31,8 @@ format:
 ## Data for This Lab
 - The Barro Colorado Island Tree Counts data [@condit2002beta] -- load **vegan** and load the data with `data(BCI)`
 - The Oribatid mite data [@borcard1992partialling; @borcard1994environmental] -- load **vegan** and load the data with `data(mite)`
-- The seaweed species data [@smit2017seaweeds] -- [`SeaweedSpp.csv`](../data/BDC334/seaweed/SeaweedSpp.csv)
-- The Doubs River species data [@verneaux1973cours; @borcard2011numerical] -- [`DoubsSpe.csv`](../data/BDC334/DoubsSpe.csv)
+- The seaweed species data [@smit2017seaweeds] -- [`SeaweedSpp.csv`](../data/BCB743/seaweed/SeaweedSpp.csv)
+- The Doubs River species data [@verneaux1973cours; @borcard2011numerical] -- [`DoubsSpe.csv`](../data/BCB743/DoubsSpe.csv)
 :::
 
 ::: callout-tip
@@ -73,15 +65,15 @@ library(vegan)
 ```
 
 ```{r fn-data-bci-data-contained}
-#library(vegan) # already loaded
-#library(tidyverse) # already loaded
+# library(vegan) # already loaded
+# library(tidyverse) # already loaded
 data(BCI) # data contained within vegan
 
 # make a head-tail function
 ht <- function(d) rbind(head(d, 7), tail(d, 7))
 
 # Lets look at a portion of the data:
-ht(BCI)[1:7,1:7]
+ht(BCI)[1:7, 1:7]
 ```
 
 ## Practical A. Species-Abundance Distribution {#sec-lab04-sad}
@@ -101,9 +93,9 @@ The first formulation of this pattern was developed by @fisher1943relation, who 
 # take one random sample of a row (site):
 # for this website's purpose, this function ensure the same random
 # sample is drawn each time the web page is recreated
-set.seed(13) 
+set.seed(13)
 k <- sample(nrow(BCI), 1)
-fish <- fisherfit(BCI[k,])
+fish <- fisherfit(BCI[k, ])
 fish
 plot(fish)
 ```
@@ -115,7 +107,7 @@ Building on this foundation, @preston1948commonness introduced an alternative fo
 #| fig-width: 6
 #| fig-height: 4
 
-pres <- prestondistr(BCI[k,])
+pres <- prestondistr(BCI[k, ])
 pres
 plot(pres)
 ```
@@ -127,7 +119,7 @@ A further step was taken by @whittaker1965dominance, who reformulated SADs as **
 #| fig-width: 6
 #| fig-height: 4
 
-rad <- radfit(BCI[k,])
+rad <- radfit(BCI[k, ])
 rad
 plot(rad)
 ```
@@ -197,21 +189,23 @@ library(ggpubr)
 # A function for counts:
 # count number of non-zero elements per column
 count_fun <- function(x) {
-  length(x[x > 0])
+    length(x[x > 0])
 }
 
 BCI_OA <- data.frame(
-  occ = apply(BCI, MARGIN = 2, count_fun),
-  ab  = apply(BCI, MARGIN = 2, function(x) mean(x[x > 0]))
+    occ = apply(BCI, MARGIN = 2, count_fun),
+    ab  = apply(BCI, MARGIN = 2, function(x) mean(x[x > 0]))
 )
 
-ggplot(BCI_OA, aes(x = ab, y = occ/max(occ))) +
-  geom_point(colour = "indianred3") +
-  scale_x_log10() +
-  # scale_y_log10() +
-  labs(title = "Barro Colorado Island Tree Counts",
-     x = "Log (abundance)", y = "Occupancy") +
-  theme_linedraw()
+ggplot(BCI_OA, aes(x = ab, y = occ / max(occ))) +
+    geom_point(colour = "indianred3") +
+    scale_x_log10() +
+    # scale_y_log10() +
+    labs(
+        title = "Barro Colorado Island Tree Counts",
+        x = "Log (abundance)", y = "Occupancy"
+    ) +
+    theme_linedraw()
 ```
 
 ### Calculate the OAR from a site × species table
@@ -246,9 +240,11 @@ sp2 <- specaccum(BCI, "random")
 
 # par(mfrow = c(2,2), mar = c(4,2,2,1))
 # par(mfrow = c(1,2))
-plot(sp1, ci.type = "polygon", col = "indianred4", lwd = 2, ci.lty = 0,
-     ci.col = "steelblue2", main = "Default: exact",
-     ylab = "No. of species")
+plot(sp1,
+    ci.type = "polygon", col = "indianred4", lwd = 2, ci.lty = 0,
+    ci.col = "steelblue2", main = "Default: exact",
+    ylab = "No. of species"
+)
 ```
 
 ```{r fig-accum2}
@@ -281,11 +277,15 @@ Species accumulation curves can also be calculated with the `alpha.accum()` func
 library(BAT)
 BCI.acc <- alpha.accum(BCI, prog = FALSE)
 
-par(mfrow = c(1,2))
-plot(BCI.acc[,2], BCI.acc[,17], col = "indianred",
-     xlab = "Individuals", ylab = "Chao1P")
-plot(BCI.acc[,2], slope(BCI.acc)[,17], col = "indianred",
-     xlab = "Individuals", ylab = "Slope")
+par(mfrow = c(1, 2))
+plot(BCI.acc[, 2], BCI.acc[, 17],
+    col = "indianred",
+    xlab = "Individuals", ylab = "Chao1P"
+)
+plot(BCI.acc[, 2], slope(BCI.acc)[, 17],
+    col = "indianred",
+    xlab = "Individuals", ylab = "Slope"
+)
 ```
 
 ### Calculating a species accumulation curve from scratch
@@ -338,17 +338,21 @@ This resampling distinction is what sets rarefaction apart from **species accumu
 
 # Example provided in ?vegan::rarefy
 # observed number of species per row (site)
-S <- specnumber(BCI) 
+S <- specnumber(BCI)
 
 # calculate total no. individuals sampled per row, and find the minimum
 (raremax <- min(rowSums(BCI)))
 
 Srare <- rarefy(BCI, raremax, se = FALSE)
-par(mfrow = c(1,2))
-plot(S, Srare, col = "indianred3",
-     xlab = "Sample size\n(observed no. of individuals)", ylab = "No. species found")
-rarecurve(BCI, step = 20, sample = raremax, col = "indianred3", cex = 0.6,
-          xlab = "Sample size\n(observed no. of individuals)", ylab = "No. species found")
+par(mfrow = c(1, 2))
+plot(S, Srare,
+    col = "indianred3",
+    xlab = "Sample size\n(observed no. of individuals)", ylab = "No. species found"
+)
+rarecurve(BCI,
+    step = 20, sample = raremax, col = "indianred3", cex = 0.6,
+    xlab = "Sample size\n(observed no. of individuals)", ylab = "No. species found"
+)
 ```
 
 We can also use the [**iNEXT**](https://github.com/JohnsonHsieh/iNEXT) package for rarefaction curves. From the package's [Introduction Vignette](https://cran.r-project.org/web/packages/iNEXT/vignettes/Introduction.html):
@@ -359,7 +363,7 @@ We can also use the [**iNEXT**](https://github.com/JohnsonHsieh/iNEXT) package f
 #| fig-height: 4
 library(iNEXT)
 
-# transpose the BCI data: 
+# transpose the BCI data:
 BCI_t <- list(BCI = t(BCI))
 
 BCI_out <- iNEXT(BCI_t, q = c(0, 1, 2), datatype = "incidence_raw")
@@ -433,7 +437,9 @@ B) A recipe for the analysis of distance decay relationships can be found in our
 ## Exercises {#sec-lab04-exercises}
 (To be reviewed by BCB743 student but not for marks)
 
-1. Produce the following figures for the species data indicated in [square brackets]:
+**Total: 14 marks for BDC334 students. Only the calculations, figures and specified labels are marked; the explanations and ecological interpretations are not marked.**
+
+1. **(/ 12; 3 per figure)** Produce the following figures for the species data indicated in [square brackets]:
     a. species-abundance distribution [mite];
     b. occupancy-abundance curves [mite];
     c. species-area curves [seaweed]---note, do not use the **BAT** package's `alpha.accum()` function as your computer might fall over;
@@ -441,10 +447,190 @@ B) A recipe for the analysis of distance decay relationships can be found in our
 
     Answer each under its own heading. For each, also explain briefly what the purpose of the analysis is (i.e. what ecological insights might be provided), and describe the findings of your own analysis as well as any ecological implications that you might be able to detect.
 
-2. Find the most dominant species in the Doubs River dataset.
+2. **(/ 2)** Find the most dominant species in the Doubs River dataset, using the sum of each species' abundance scores across all sites.
 
 3. Discuss how elevation, depth, or latitudinal gradients are similar in many aspects to distance decay relationships.
 :::
+
+`r if (params$hide_answers) "::: {.content-hidden}"`
+
+::: {.callout-tip appearance="simple"}
+## Model answers: Tasks 1--3
+
+### 1.a Species-abundance distribution of mites
+
+**Marking: 3 marks, allocated to the following objectively verifiable components.**
+
+- ✓ **1 mark:** correctly derive the abundance vector and species frequencies for the stated sampling unit.
+- ✓ **1 mark:** plot the corresponding species-abundance distribution with all values represented correctly.
+- ✓ **1 mark:** use readable axes identifying abundance and the number of species (or rank and abundance for a rank-abundance curve).
+
+The model below pools all 70 sites. A correctly calculated distribution for an explicitly identified single site, or a rank-abundance representation with appropriate axes, is also acceptable. The ecological explanation is not marked.
+
+```{r lab4-answer-mite-summary}
+data(mite)
+mite_totals <- colSums(mite)
+mite_summary <- data.frame(
+    sites = nrow(mite),
+    species = sum(mite_totals > 0),
+    individuals = sum(mite)
+)
+knitr::kable(mite_summary)
+sad_frequency <- as.data.frame(table(mite_totals[mite_totals > 0]))
+names(sad_frequency) <- c("abundance", "species_frequency")
+sad_frequency$abundance <- as.numeric(as.character(sad_frequency$abundance))
+```
+
+```{r fig-lab4-answer-mite-sad}
+#| fig-cap: "Species-abundance distribution of mites pooled across 70 sites. Each point gives the number of species with a particular total abundance."
+ggplot(sad_frequency, aes(abundance, species_frequency)) +
+    geom_point(colour = "indianred3") +
+    scale_x_log10() +
+    labs(
+        x = "Total abundance across 70 sites (log10 scale)",
+        y = "Number of species"
+    ) +
+    theme_linedraw()
+```
+
+The pooled assemblage contains **9,800 individuals and 35 species**. The most abundant species is **LCIL**, with **2,468 individuals**; ONOV and SUCT have 1,209 and 1,187 respectively. The distribution describes the balance of rarity and dominance within the specified assemblage. It does not identify the processes that caused that balance. Pooling sites can also hide differences among local assemblages.
+
+### 1.b Occupancy-abundance relationship of mites
+
+**Marking: 3 marks.**
+
+- ✓ **1 mark:** calculate occupancy from non-zero records and mean abundance using occupied sites only.
+- ✓ **1 mark:** correctly plot all 35 species using the calculated values.
+- ✓ **1 mark:** label both axes, including whether occupancy is a count or a proportion, and indicate the abundance scale.
+
+Either axis orientation is acceptable. For proportional occupancy, divide by **70 sites**, not by the largest observed occupancy unless that value is also 70.
+
+```{r lab4-answer-mite-oar-data}
+mite_occupancy <- colSums(mite > 0)
+mite_oa <- data.frame(
+    species = colnames(mite),
+    occupancy_count = mite_occupancy,
+    occupancy = mite_occupancy / nrow(mite),
+    mean_local_abundance = mite_totals / mite_occupancy
+)
+knitr::kable(mite_oa[mite_oa$species == "LCIL", ],
+    digits = 3,
+    row.names = FALSE
+)
+```
+
+```{r fig-lab4-answer-mite-oar}
+#| fig-cap: "Occupancy and mean abundance in occupied sites for all 35 mite species."
+ggplot(mite_oa, aes(mean_local_abundance, occupancy)) +
+    geom_point(colour = "indianred3") +
+    scale_x_log10() +
+    scale_y_continuous(limits = c(0, 1)) +
+    labs(
+        x = "Mean abundance in occupied sites (log10 scale)",
+        y = "Proportion of 70 sites occupied"
+    ) +
+    theme_linedraw()
+```
+
+LCIL occurs in **55 of 70 sites** (occupancy **0.786**) and has mean local abundance **44.873**. Across species, occupancy tends to increase with mean local abundance. This describes spatial commonness and local abundance; it does not, on its own, establish niche breadth or distinguish habitat filtering from dispersal and detection effects. These interpretations are not marked.
+
+### 1.c Species accumulation of seaweeds
+
+**Marking: 3 marks.**
+
+- ✓ **1 mark:** correctly accumulate recorded species across coastal sections, with the identifier excluded from the species matrix.
+- ✓ **1 mark:** plot the calculated accumulation curve, ending at **846 species across 58 sections**.
+- ✓ **1 mark:** use readable axes identifying the number of sections sampled and cumulative species richness.
+
+```{r lab4-answer-seaweed-accum-data}
+seaweed_lab4 <- read.csv(
+    here::here("data", "BCB743", "seaweed", "SeaweedSpp.csv"),
+    row.names = 1
+)
+# Remove the unrecorded species from the calculation.
+seaweed_recorded <- seaweed_lab4[, colSums(seaweed_lab4 > 0) > 0]
+seaweed_accum <- specaccum(seaweed_recorded, method = "exact")
+knitr::kable(data.frame(
+    sections = seaweed_accum$sites[c(1, 10, 30, 58)],
+    expected_richness = seaweed_accum$richness[c(1, 10, 30, 58)]
+), digits = 3)
+```
+
+```{r fig-lab4-answer-seaweed-accum}
+#| fig-cap: "Exact sample-based species accumulation across the 58 seaweed coastal sections."
+plot(seaweed_accum,
+    ci.type = "polygon", col = "indianred4",
+    ci.col = "steelblue2", lwd = 2,
+    xlab = "Number of coastal sections sampled",
+    ylab = "Expected cumulative species richness"
+)
+```
+
+Expected richness is **259.241** at one section, **645.454** at ten sections, **771.343** at thirty sections and **846** at all 58 sections. The file has 847 species columns, but `ANTNEM` contains no recorded presences. A randomised accumulation curve is also acceptable; intermediate estimates vary with the permutations, but the endpoint does not.
+
+The curve describes the discovery of species as sections are added. Its horizontal axis is sampling effort, not measured habitat area: without comparable section areas it should not be labelled as area in square kilometres. The decreasing rate of addition does not demonstrate that every species on the coast has been detected. The purpose, interpretation and ecological implications are not marked.
+
+### 1.d Individual-based rarefaction of mites
+
+**Marking: 3 marks.**
+
+- ✓ **1 mark:** use the mite abundance counts to calculate individual-based rarefaction for the sites.
+- ✓ **1 mark:** correctly plot the site curves over sample sizes no greater than each site's observed number of individuals.
+- ✓ **1 mark:** label the axes as individuals sampled and expected species richness.
+
+```{r lab4-answer-mite-rarefaction-data}
+mite_raremax <- min(rowSums(mite))
+mite_rarefied <- rarefy(mite, sample = mite_raremax)
+knitr::kable(data.frame(
+    minimum_individuals = mite_raremax,
+    minimum_rarefied_richness = min(mite_rarefied),
+    maximum_rarefied_richness = max(mite_rarefied)
+), digits = 3)
+```
+
+```{r fig-lab4-answer-mite-rarefaction}
+#| fig-cap: "Individual-based rarefaction curves for the 70 mite sites. The vertical line indicates the common sample size of eight individuals."
+rarecurve(mite,
+    step = 10, sample = mite_raremax,
+    col = "indianred3", label = FALSE,
+    xlab = "Number of individuals sampled",
+    ylab = "Expected species richness"
+)
+```
+
+Observed sample sizes range from **8 to 781 individuals**. At the common sample size of eight individuals, expected richness ranges from **1.542 to 6.137 species**. Rarefaction permits comparisons at equal numbers of individuals, but eight individuals provide little information about rarer species. It standardises the observed samples rather than guaranteeing equal completeness or identifying ecological mechanisms. The explanations and interpretations are not marked.
+
+### 2. The dominant species in the Doubs River data
+
+**Marking: 2 marks.**
+
+- ✓ **1 mark:** identify **Babl** (stone loach, *Barbatula barbatula*) as the species with the largest pooled abundance score.
+- ✓ **1 mark:** report its summed score of **73**, calculated across all 30 sites with the site identifier excluded.
+
+```{r lab4-answer-doubs-dominant}
+doubs_species_lab4 <- read.csv(
+    here::here("data", "BCB743", "DoubsSpe.csv"),
+    row.names = 1
+)
+doubs_totals_lab4 <- sort(colSums(doubs_species_lab4), decreasing = TRUE)
+knitr::kable(data.frame(
+    species = names(doubs_totals_lab4)[1:5],
+    pooled_abundance_score = unname(doubs_totals_lab4[1:5])
+), row.names = FALSE)
+```
+
+The next highest pooled scores are **Phph = 68**, **Ruru = 63**, and **Satr = Alal = 57**. Here, dominance means the largest sum of the supplied abundance scores. It need not identify the dominant species at each site, the largest biomass, or the species with the largest ecological effect. The value 73 is a pooled score, not necessarily a count of 73 fish.
+
+### 3. Gradients and distance decay
+
+**No marks are assigned to this discussion.**
+
+Distance decay describes increasing compositional dissimilarity, or decreasing similarity, as separation increases. Elevation, depth and latitude can coincide with changes in temperature, light, pressure, oxygen, moisture or habitat. Species with different tolerances may replace one another along these environmental gradients, producing compositional changes that resemble geographic distance decay. In the Doubs River, downstream separation also covaries with river conditions, so geographic and environmental explanations can be difficult to separate.
+
+Organisms respond to the associated conditions rather than necessarily to the coordinate itself. Geographic separation may additionally reduce dispersal, while barriers and history can contribute to the pattern. A gradient need not produce a smooth or monotonic response, and a distance-decay curve alone cannot establish which mechanism operates. Comparing compositional dissimilarity with both environmental and geographic distances, and considering spatial dependence, would help evaluate these alternatives.
+:::
+
+`r if (params$hide_answers) ":::"`
 
 :::{.callout-important}
 ## Submission Instructions
