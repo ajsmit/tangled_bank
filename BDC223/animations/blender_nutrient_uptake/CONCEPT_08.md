@@ -4,7 +4,7 @@ Film 8 completes another part of the nine-film nutrient-uptake suite.
 
 - [Film](concept_08_physiological_environment.mp4): 3:20, 1920 × 1080, 30 fps, H.264; written explanations, no audio.
 - [Native Blender project](concept_08_physiological_environment.blend), [captions](concept_08.vtt), [poster](concept_08_poster.jpg).
-- [Lecture explanation and eight practice questions with answers](../../L08c-nutrients_visualised.qmd#sec-physiological-environment).
+- [Lecture explanation and eight practice questions with answers](../../L09c-nutrients_visualised.qmd#sec-physiological-environment).
 - [Model table](concept_08_model.json), [model checks](concept_08_model_checks.json), [native checks](concept_08_asset_checks.json), [production verification](concept_08_verification.json).
 
 ## Sequence and narration

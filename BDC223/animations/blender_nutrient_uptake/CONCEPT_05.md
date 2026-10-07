@@ -6,11 +6,11 @@ The fifth BDC223 film follows nitrate from a finite water reservoir into the sea
 
 - [Film](concept_05_measuring_uptake.mp4): 3:24, 1920 × 1080, 30 fps, H.264. Written explanations; no audio.
 - [Editable Blender project](concept_05_measuring_uptake.blend): an animated flask and a separate row of five matched flasks.
-- [Lecture explanation and eight practice questions with answers](../../L08c-nutrients_visualised.qmd#sec-measuring-uptake).
+- [Lecture explanation and eight practice questions with answers](../../L09c-nutrients_visualised.qmd#sec-measuring-uptake).
 - [Captions](concept_05.vtt), [poster](concept_05_poster.jpg) and narration notes below.
 - [Illustrative five-minute intervals](concept_05_illustrative_samples.csv), [model and event data](concept_05_model.json), [model checks](concept_05_model_checks.json), [native checks](concept_05_asset_checks.json) and [production verification](concept_05_verification.json).
 
-This uses the existing Lecture 8b Manim example's parameters, including its fresh-mass basis. It can be used alongside that film. Concept 4's separate dry-mass capacity example is not numerically interchangeable with this one.
+This uses the existing Lecture 9b Manim example's parameters, including its fresh-mass basis. It can be used alongside that film. Concept 4's separate dry-mass capacity example is not numerically interchangeable with this one.
 
 | Viewing time | Teaching point | Suggested pause |
 |---|---|---|
@@ -102,7 +102,7 @@ The local production scripts, dependencies and reproduction instructions are kep
 
 ## Lecture integration and sources
 
-The companion adds eight practice questions and their answers. Lecture 8a now distinguishes the two control treatments, corrects the claim that a raw concentration slope is already V, and links sampling losses to the nutrient inventory. Lecture 8b links this film and explains when its constant-volume interval calculation applies. Original slide images and the existing Manim film are retained.
+The companion adds eight practice questions and their answers. Lecture 9a now distinguishes the two control treatments, corrects the claim that a raw concentration slope is already V, and links sampling losses to the nutrient inventory. Lecture 9b links this film and explains when its constant-volume interval calculation applies. Original slide images and the existing Manim film are retained.
 
 The experimental context is [Smit (2002), Nitrogen uptake by Gracilaria gracilis](https://doi.org/10.1515/BOT.2002.019). Its nitrate response and perturbation experiments motivate the lesson; the film's parameters are illustrative. All artwork and calculations were constructed for this teaching suite.
 

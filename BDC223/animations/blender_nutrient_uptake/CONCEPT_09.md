@@ -4,7 +4,7 @@ Film 9 completes another part of the nine-film nutrient-uptake suite.
 
 - [Film](concept_09_enrichment_and_oxygen.mp4): 3:20, 1920 × 1080, 30 fps, H.264; written explanations, no audio.
 - [Native Blender project](concept_09_enrichment_and_oxygen.blend), [captions](concept_09.vtt), [poster](concept_09_poster.jpg).
-- [Lecture explanation and eight practice questions with answers](../../L08c-nutrients_visualised.qmd#sec-enrichment-oxygen).
+- [Lecture explanation and eight practice questions with answers](../../L09c-nutrients_visualised.qmd#sec-enrichment-oxygen).
 - [Model table](concept_09_model.json), [model checks](concept_09_model_checks.json), [native checks](concept_09_asset_checks.json), [production verification](concept_09_verification.json).
 
 ## Sequence and narration

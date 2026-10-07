@@ -1,6 +1,6 @@
 # Nutrients: from seawater to growth
 
-This production plan now records the completed nine-film Blender companion to BDC223 Lectures 8a and 8b. All nine films, editable projects, teaching notes and the lecture companion are available locally. The existing Manim film remains available. See the [film index](README.md) and [completion report](SUITE_REVIEW.md).
+This production plan now records the completed nine-film Blender companion to BDC223 Lectures 9a and 9b. All nine films, editable projects, teaching notes and the lecture companion are available locally. The existing Manim film remains available. See the [film index](README.md) and [completion report](SUITE_REVIEW.md).
 
 The suite is ready for the separate deployment step. Nothing in this production run has been published.
 
@@ -40,8 +40,8 @@ The suite is ready for the separate deployment step. Nothing in this production 
 
 ## Sources and evidence
 
-- [Lecture 8a](../../L08a-nutrient_uptake.qmd), especially “Pathways and barriers”, “The boundary layer concept”, “Water movement”, and the uptake mechanisms and modifiers.
-- [Lecture 8b](../../L08b-nutrients_michaelis_menten.qmd): the perturbation and multiple-flask experiments, worked units and Michaelis–Menten model.
+- [Lecture 9a](../../L09a-nutrient_uptake.qmd), especially “Pathways and barriers”, “The boundary layer concept”, “Water movement”, and the uptake mechanisms and modifiers.
+- [Lecture 9b](../../L09b-nutrients_michaelis_menten.qmd): the perturbation and multiple-flask experiments, worked units and Michaelis–Menten model.
 - [Smit (2002), *Nitrogen uptake by Gracilaria gracilis*](../../../docs/Smit_2002.pdf): the course's experimental source, including the interaction between water movement and low nutrient availability. [Public copy](https://tangledbank.netlify.app/docs/Smit_2002.pdf).
 - [Lindemann et al. (2016), *Scaling laws in phytoplankton nutrient uptake affinity*](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2016.00026/full): explicit separation of diffusive supply, uptake sites and affinity.
 - [Blender rendering documentation](https://docs.blender.org/manual/en/latest/advanced/command_line/render.html) and [EEVEE technical documentation](https://developer.blender.org/docs/features/eevee/).

@@ -1,6 +1,6 @@
 # Concept 3: Crossing the membrane
 
-[Watch the film](concept_03_crossing_membrane.mp4) · [Editable Blender project](concept_03_crossing_membrane.blend) · [Lecture and practice](../../L08c-nutrients_visualised.qmd#sec-crossing-membrane)
+[Watch the film](concept_03_crossing_membrane.mp4) · [Editable Blender project](concept_03_crossing_membrane.blend) · [Lecture and practice](../../L09c-nutrients_visualised.qmd#sec-crossing-membrane)
 
 The film is 2:16, 1920 × 1080, 30 fps, H.264, with written explanations, a [caption track](concept_03.vtt) and no audio. It continues from external delivery to the next boundary: the plasma membrane. [Production verification](concept_03_verification.json) records the model, native animation, rendered video and local lecture checks.
 
@@ -96,7 +96,7 @@ These notes support live teaching; they are not an audio track or a guarantee of
 
 ## Lecture integration
 
-Lecture 8a's membrane sections now classify facilitated diffusion within passive transport, distinguish free nitrate from total tissue N, include membrane voltage, correct the definition of antiport, and describe alternating access without suggesting that the protein turns over in the bilayer. Repeated claims that ammonium must be passive and linear, or that a plateau proves active uptake, have been corrected. The adjoining growth discussion also stops assigning storage capacity or instantaneous growth from the membrane mechanism. Original slide images are retained; the revised prose and new visualisation supply the mechanism explanations.
+Lecture 9a's membrane sections now classify facilitated diffusion within passive transport, distinguish free nitrate from total tissue N, include membrane voltage, correct the definition of antiport, and describe alternating access without suggesting that the protein turns over in the bilayer. Repeated claims that ammonium must be passive and linear, or that a plateau proves active uptake, have been corrected. The adjoining growth discussion also stops assigning storage capacity or instantaneous growth from the membrane mechanism. Original slide images are retained; the revised prose and new visualisation supply the mechanism explanations.
 
 This is the third stage of the suite. Continue to the completed [capacity and concentration film](CONCEPT_04.md) and [uptake measurement film](CONCEPT_05.md). Form, storage, physiology and enrichment are also complete; see the [nine-film index](README.md). These materials are available locally.
 

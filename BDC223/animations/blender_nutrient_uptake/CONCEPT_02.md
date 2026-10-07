@@ -1,6 +1,6 @@
 # Concept 2: Moving water and diffusion limitation
 
-[Watch the film](concept_02_moving_water.mp4) · [Editable Blender project](concept_02_moving_water.blend) · [Lecture and practice](../../L08c-nutrients_visualised.qmd#sec-moving-water)
+[Watch the film](concept_02_moving_water.mp4) · [Editable Blender project](concept_02_moving_water.blend) · [Lecture and practice](../../L09c-nutrients_visualised.qmd#sec-moving-water)
 
 The film is 1:36, 1920 × 1080, 30 fps, H.264, with written explanations, a [caption track](concept_02.vtt) and no audio. It continues from concept 1's prediction: what happens when we move the water, keeping the biology the same? The [production verification](concept_02_verification.json) records the mathematical, native-project, video and lecture checks.
 
@@ -80,6 +80,6 @@ The local production scripts, dependencies and reproduction instructions are kep
 
 ## Sources
 
-The narrative follows [Lecture 8a](../../L08a-nutrient_uptake.qmd), particularly its boundary-layer and water-movement discussion. [Smit (2002)](../../../docs/Smit_2002.pdf) supplies the course's experimental context for water movement and nutrient uptake. [Lindemann et al. (2016)](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2016.00026/full) supports distinguishing diffusive supply from biological constraints. The planar model and illustrative parameter comparisons here are constructed for teaching; they are not a reproduction of either paper's measurements or geometry.
+The narrative follows [Lecture 9a](../../L09a-nutrient_uptake.qmd), particularly its boundary-layer and water-movement discussion. [Smit (2002)](../../../docs/Smit_2002.pdf) supplies the course's experimental context for water movement and nutrient uptake. [Lindemann et al. (2016)](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2016.00026/full) supports distinguishing diffusive supply from biological constraints. The planar model and illustrative parameter comparisons here are constructed for teaching; they are not a reproduction of either paper's measurements or geometry.
 
 Concepts 1–9 are available locally; continue to [Crossing the membrane](CONCEPT_03.md), [Capacity and concentration](CONCEPT_04.md) and [Measuring a changing uptake rate](CONCEPT_05.md). All nine films are linked in the [suite index](README.md).

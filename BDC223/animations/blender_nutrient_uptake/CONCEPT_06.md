@@ -6,7 +6,7 @@ The sixth film compares different forms at equal tissue volume, unfolds their su
 
 - [Film](concept_06_form_and_supply.mp4): 3:10, 1920 × 1080, 30 fps, H.264; written explanations and no audio.
 - [Editable Blender project](concept_06_form_and_supply.blend): four named scenes with ordinary keyframes.
-- [Lecture companion and eight practice questions with answers](../../L08c-nutrients_visualised.qmd#sec-form-and-supply).
+- [Lecture companion and eight practice questions with answers](../../L09c-nutrients_visualised.qmd#sec-form-and-supply).
 - [Captions](concept_06.vtt), [poster](concept_06_poster.jpg), [geometry table](concept_06_geometry.csv).
 - Model (`form_model.py`, private source), [model data](concept_06_model.json), [independent model checks](concept_06_model_checks.json), [native geometry checks](concept_06_asset_checks.json), [production verification](concept_06_verification.json).
 
@@ -103,7 +103,7 @@ These are prompts for live narration, not an audio track.
 
 [Lichtenberg, Nørregaard and Kühl (2017)](https://pmc.ncbi.nlm.nih.gov/articles/PMC5378137/) measured oxygen boundary-layer structure around *Fucus* hair tufts, including local thickening. The film uses this to qualify a universal hair-thinning explanation, not to infer nitrate kinetic parameters.
 
-Lecture 8a now links the form comparison, distinguishes area from areal activity and replaces the hairline-hair/intrinsic-affinity claim. The companion gives eight practice questions and answers. All existing slide-image references remain. Lecture 2 and the other films are retained.
+Lecture 9a now links the form comparison, distinguishes area from areal activity and replaces the hairline-hair/intrinsic-affinity claim. The companion gives eight practice questions and answers. All existing slide-image references remain. Lecture 2 and the other films are retained.
 
 ## Production source
 

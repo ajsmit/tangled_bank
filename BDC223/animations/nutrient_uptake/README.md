@@ -4,7 +4,7 @@ A 2 minute 41 second Manim animation for BDC223. It starts with a nitrate pulse 
 
 - [Play or download the video](nutrient_uptake.mp4)
 - Manim source (`nutrient_uptake.py`, private source)
-- [Lecture 8b and written walk-through](../../L08b-nutrients_michaelis_menten.qmd#sec-follow-nitrogen)
+- [Lecture 9b and written walk-through](../../L09b-nutrients_michaelis_menten.qmd#sec-follow-nitrogen)
 - [Illustrative five-minute measurements](illustrative_samples.csv)
 - [Numerical checks](model_checks.json)
 
@@ -61,10 +61,10 @@ I searched for enzyme-kinetics animations, substrate-depletion simulations and a
 
 The aim is to make the causal links visible. The additions are the transfer of N into tissue, the no-seaweed control, the unit conversion, points appearing in experimental order, accumulated uptake beside depletion, instantaneous tangents, an exact half-saturation pause, a capacity sketch, and an intervention that tests the explanation. No third-party graphics or animation code were copied. A claim of a numerical improvement in teaching effectiveness would require testing with students.
 
-The course sources are Lecture 8a, Lecture 8b and Lab 4. The local ecological context is supported by [Smit (2002), Nitrogen uptake by Gracilaria gracilis](../../../docs/Smit_2002.pdf): nitrate uptake saturated, and water motion and nutritional history affected uptake behaviour. The distinction between low-concentration affinity and half-saturation is also consistent with [Lindemann et al. (2016), Scaling laws in phytoplankton nutrient uptake affinity](https://doi.org/10.3389/fmars.2016.00026).
+The course sources are Lecture 9a, Lecture 9b and Lab 4. The local ecological context is supported by [Smit (2002), Nitrogen uptake by Gracilaria gracilis](../../../docs/Smit_2002.pdf): nitrate uptake saturated, and water motion and nutritional history affected uptake behaviour. The distinction between low-concentration affinity and half-saturation is also consistent with [Lindemann et al. (2016), Scaling laws in phytoplankton nutrient uptake affinity](https://doi.org/10.3389/fmars.2016.00026).
 
 ## Changes to the lectures
 
-Lecture 8b embeds the film and adds a written walk-through, the numerical correspondence with the existing example, the nitrogen balance, assumptions, and prediction questions. It also distinguishes the amount taken up per gram from a rate, includes water volume in the condensed mass-conversion equations, corrects the first five-minute interval's duration, and explains the Ks/Km notation.
+Lecture 9b embeds the film and adds a written walk-through, the numerical correspondence with the existing example, the nitrogen balance, assumptions, and prediction questions. It also distinguishes the amount taken up per gram from a rate, includes water volume in the condensed mass-conversion equations, corrects the first five-minute interval's duration, and explains the Ks/Km notation.
 
-Lecture 8a now links to that walk-through. The directly related passages use rectangular hyperbola, include the sign and volume/mass normalisation when deriving uptake from depletion, describe Vmax as an asymptotic limit, and interpret low-S uptake using Vmax/Ks. The existing lecture structure and unrelated topics are retained.
+Lecture 9a now links to that walk-through. The directly related passages use rectangular hyperbola, include the sign and volume/mass normalisation when deriving uptake from depletion, describe Vmax as an asymptotic limit, and interpret low-S uptake using Vmax/Ks. The existing lecture structure and unrelated topics are retained.

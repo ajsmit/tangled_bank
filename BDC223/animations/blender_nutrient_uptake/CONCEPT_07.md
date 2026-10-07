@@ -4,7 +4,7 @@ Film 7 completes another part of the nine-film nutrient-uptake suite.
 
 - [Film](concept_07_uptake_storage_growth.mp4): 3:00, 1920 × 1080, 30 fps, H.264; written explanations, no audio.
 - [Native Blender project](concept_07_uptake_storage_growth.blend), [captions](concept_07.vtt), [poster](concept_07_poster.jpg).
-- [Lecture explanation and eight practice questions with answers](../../L08c-nutrients_visualised.qmd#sec-storage-growth).
+- [Lecture explanation and eight practice questions with answers](../../L09c-nutrients_visualised.qmd#sec-storage-growth).
 - [Model table](concept_07_model.json), [model checks](concept_07_model_checks.json), [native checks](concept_07_asset_checks.json), [production verification](concept_07_verification.json).
 
 ## Sequence and narration

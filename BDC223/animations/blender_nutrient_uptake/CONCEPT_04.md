@@ -6,7 +6,7 @@ The fourth BDC223 film connects individual uptake-site occupancy to the Michaeli
 
 - [Film](concept_04_capacity_and_concentration.mp4): 2:28, 1920 × 1080, 30 fps, H.264. Written explanations; no audio.
 - [Editable Blender project](concept_04_capacity_and_concentration.blend): two scenes, each with 12 independently animated uptake sites and a maintained surface concentration.
-- [Lecture explanation and seven practice questions with answers](../../L08c-nutrients_visualised.qmd#sec-capacity-concentration).
+- [Lecture explanation and seven practice questions with answers](../../L09c-nutrients_visualised.qmd#sec-capacity-concentration).
 - [Captions](concept_04.vtt), [poster](concept_04_poster.jpg) and narration notes below.
 - Numerical model (`capacity_model.py`, private source), [generated data and event ledger](concept_04_model.json), [model checks](concept_04_model_checks.json), [native animation checks](concept_04_asset_checks.json) and [production verification](concept_04_verification.json).
 
@@ -50,7 +50,7 @@ The opening starts at statistical steady state with constant surface nitrate. In
 
 The plotted population capacity is Vmax = 10 µmol N g⁻¹ dry mass h⁻¹. With the chosen kcat, this corresponds to a carrier pool of 10/(3600 × 0.12) = 0.023148 µmol sites per gram dry mass. The 12 visible sites are a sample, not this population per gram. Site icons in the abundance comparison represent relative abundance, increasing from 12 to 24.
 
-The film uses **dry mass**, whereas Lecture 8b's worked Manim example uses **fresh mass**. Do not compare their numerical rates without a measured conversion. Alpha has units L g⁻¹ dry mass h⁻¹.
+The film uses **dry mass**, whereas Lecture 9b's worked Manim example uses **fresh mass**. Do not compare their numerical rates without a measured conversion. Alpha has units L g⁻¹ dry mass h⁻¹.
 
 In this model the binding dissociation constant Kd = koff/kon = 2 µmol/L differs from uptake half-saturation Ks = 5 µmol/L. Increasing kon to 0.10 lowers Ks to 2 while holding capacity fixed. Doubling site abundance instead doubles capacity while holding Ks fixed. Doubling kcat changes both: Vmax becomes 20 and Ks becomes 8. These separate interventions support the lecture's parameter interpretation.
 
@@ -80,7 +80,7 @@ These notes support live teaching or later narration; they are not an audio trac
 
 ## Lecture integration
 
-The companion includes the film, derivation, controlled comparisons and seven practice questions. Lecture 8a now explains the low-concentration response without automatically attributing it to external diffusion limitation. It distinguishes half-saturation from binding affinity and limiting capacity from a rate reached at a finite concentration. Lecture 8b links the maintained-supply model to its flask measurements. Original slide images are retained.
+The companion includes the film, derivation, controlled comparisons and seven practice questions. Lecture 9a now explains the low-concentration response without automatically attributing it to external diffusion limitation. It distinguishes half-saturation from binding affinity and limiting capacity from a rate reached at a finite concentration. Lecture 9b links the maintained-supply model to its flask measurements. Original slide images are retained.
 
 Continue to [concept 5: Measuring a changing uptake rate](CONCEPT_05.md). Concepts 1–9 are complete locally; the complete suite is linked in [README.md](README.md).
 

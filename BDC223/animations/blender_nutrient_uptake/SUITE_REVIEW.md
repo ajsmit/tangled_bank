@@ -1,6 +1,6 @@
 # Nine-film suite: completion and teaching review
 
-All nine movies are available locally, totalling **23 minutes 42 seconds**. The [index](README.md) links each MP4, editable Blender project and teaching guide. The [lecture companion](../../L08c-nutrients_visualised.qmd) brings them together with explanations, calculations, prediction pauses and practice answers. The original Manim material in Lecture 8b remains available.
+All nine movies are available locally, totalling **23 minutes 42 seconds**. The [index](README.md) links each MP4, editable Blender project and teaching guide. The [lecture companion](../../L09c-nutrients_visualised.qmd) brings them together with explanations, calculations, prediction pauses and practice answers. The original Manim material in Lecture 9b remains available.
 
 The final three films add:
 
@@ -12,7 +12,7 @@ Each has an MP4, native `.blend`, poster, WebVTT captions, narration notes, mode
 
 ## Changes to the lecture
 
-Lecture 8a now links the complete sequence and qualifies shorthand in its original figures. Its **94 original slide-image references are retained in the same order**. The images themselves were not redrawn; students are directed to read them alongside the qualified explanations. Prose changes address:
+Lecture 9a now links the complete sequence and qualifies shorthand in its original figures. Its **94 original slide-image references are retained in the same order**. The images themselves were not redrawn; students are directed to read them alongside the qualified explanations. Prose changes address:
 
 - Uptake, storage, assimilation and structural growth as distinct quantities and processes.
 - Surge and internal feedback as hypotheses requiring measurements, with external delivery and membrane gradients kept separate.

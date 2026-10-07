@@ -1,6 +1,6 @@
 # Nutrients: from seawater to growth
 
-The Blender companion to BDC223 Lectures 8a and 8b contains all nine films, with editable native projects, captions and teaching notes. Production Python is kept in `_private`. [Open the lecture companion and practice](../../L08c-nutrients_visualised.qmd). All films have written explanations and no audio.
+The Blender companion to BDC223 Lectures 9a and 9b contains all nine films, with editable native projects, captions and teaching notes. Production Python is kept in `_private`. [Open the lecture companion and practice](../../L09c-nutrients_visualised.qmd). All films have written explanations and no audio.
 
 | Film | Watch | Duration | Edit | Teach |
 |---|---|---|---|---|
@@ -20,7 +20,7 @@ Total viewing time: **23:42**. The [suite plan](SUITE_PLAN.md) maps the films to
 
 - [Film: From the flask to the surface](concept_01_supply_to_surface.mp4), 1:08, 1920 × 1080, 30 fps, H.264. Written explanations; no audio.
 - [Editable Blender project](concept_01_supply_to_surface.blend), containing three named scenes. The three-dimensional objects, materials, cameras and particle paths are editable. Ordinary keyframes are baked into the project, so playback does not require enabling script execution.
-- [Lecture companion and practice](../../L08c-nutrients_visualised.qmd).
+- [Lecture companion and practice](../../L09c-nutrients_visualised.qmd).
 - [Captions](concept_01.vtt) and [narration notes](#narration-notes).
 - Scientific model (`gradient_model.py`, private source), [generated profiles](concept_01_model.json), [independent checks](model_checks.json), and [production verification](verification.json).
 
@@ -82,10 +82,10 @@ The local production scripts, dependencies and reproduction instructions are kep
 
 ## Lecture changes
 
-The new companion page contains the film, a written explanation, model assumptions, and four prediction questions with answers. Lecture 8a links to it. Its directly related passages now distinguish surface from bulk and tissue concentrations, diffusion from osmosis and membrane transport, a concentration boundary layer from a solid skin, and molecular diffusion from imposed water movement. The water-movement discussion now separates intrinsic capacity from fitted parameters and avoids treating a shaker setting as a direct water-velocity measurement.
+The new companion page contains the film, a written explanation, model assumptions, and four prediction questions with answers. Lecture 9a links to it. Its directly related passages now distinguish surface from bulk and tissue concentrations, diffusion from osmosis and membrane transport, a concentration boundary layer from a solid skin, and molecular diffusion from imposed water movement. The water-movement discussion now separates intrinsic capacity from fitted parameters and avoids treating a shaker setting as a direct water-velocity measurement.
 
 The existing Manim film is retained; its production source is kept in `_private`.
 
 ## Sources
 
-The visual narrative follows [Lecture 8a](../../L08a-nutrient_uptake.qmd) and [Lecture 8b](../../L08b-nutrients_michaelis_menten.qmd). The experimental context is [Smit (2002)](../../../docs/Smit_2002.pdf); the distinction between diffusive supply and uptake capacity is also developed by [Lindemann et al. (2016)](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2016.00026/full). All rendered artwork and code in this concept were created for this lesson.
+The visual narrative follows [Lecture 9a](../../L09a-nutrient_uptake.qmd) and [Lecture 9b](../../L09b-nutrients_michaelis_menten.qmd). The experimental context is [Smit (2002)](../../../docs/Smit_2002.pdf); the distinction between diffusive supply and uptake capacity is also developed by [Lindemann et al. (2016)](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2016.00026/full). All rendered artwork and code in this concept were created for this lesson.
