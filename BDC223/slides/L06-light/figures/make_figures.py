@@ -2,7 +2,7 @@
 
 fig-spectrum-sea.tex  : EM spectrum, solar spectrum and its attenuation with depth in clear ocean water
 fig-ocean-zones.tex   : (a) ocean biozones, (b) light zones with depth reached by each colour
-fig-beer-lambert.tex  : Beer-Lambert profiles with linear and logarithmic light axes
+fig-beer-lambert.tex  : Beer-Lambert profiles (depth on x) with linear and logarithmic light axes
 
 Spectral attenuation uses approximate diffuse attenuation coefficients (Kd) for very clear ocean
 water (KD below). They are illustrative values chosen to reproduce the familiar pattern (blue
@@ -195,32 +195,29 @@ def fig_ocean_zones():
 
 # ---------------------------------------------------------------- figure 3
 def fig_beer_lambert():
-    curves = [(0.04, 'accent', 130), (0.15, 'sea', 130), (0.5, 'brown!70!black', 130)]
+    curves = [(0.04, 'accent'), (0.15, 'sea'), (0.5, 'brown!70!black')]
     def panel(log):
-        opts = ("xmode=log,xmin=0.01,xmax=100,xlabel={Light remaining (\\% of surface, logarithmic axis)}" if log
-                else "xmin=0,xmax=100,xlabel={Light remaining (\\% of surface, linear axis)}")
-        s = [rf"\begin{{axis}}[width=7.6cm,height=8cm,{opts},ymin=0,ymax=130,y dir=reverse,ylabel={{Depth (m)}},"
+        opts = ("ymode=log,ymin=0.01,ymax=100,ylabel={Light remaining (\\% of surface, logarithmic axis)}" if log
+                else "ymin=0,ymax=100,ylabel={Light remaining (\\% of surface, linear axis)}")
+        s = [rf"\begin{{axis}}[width=7.6cm,height=6.4cm,{opts},xmin=0,xmax=130,xlabel={{Depth (m)}},"
              r"tick label style={font=\footnotesize},label style={font=\small},title style={font=\small\bfseries},"
              + ("title={(b) Logarithmic light axis}" if log else "title={(a) Linear light axis}") + "]"]
-        for k, col, zmax in curves:
-            zz = min(zmax, math.log(1e4) / k) if log else zmax
-            s.append(rf"\addplot[very thick,{col},domain=0:{zz:.2f},samples=120] ({{100*exp(-{k}*x)}},{{x}});")
-        s.append(r"\draw[dashed,grey] (axis cs:1,0) -- (axis cs:1,130);")
-        s.append(r"\addplot[only marks,mark=*,mark size=1.8pt,ink] coordinates {(1,115.1)(1,30.7)(1,9.2)};")
+        for k, col in curves:
+            zz = min(130, math.log(1e4) / k) if log else 130
+            s.append(rf"\addplot[very thick,{col},domain=0:{zz:.2f},samples=120] {{100*exp(-{k}*x)}};")
+        s.append(r"\draw[dashed,grey] (axis cs:0,1) -- (axis cs:130,1);")
+        s.append(r"\addplot[only marks,mark=*,mark size=1.8pt,ink] coordinates {(115.1,1)(30.7,1)(9.2,1)};")
         if log:
-            s += [r"\node[anchor=west,font=\footnotesize\bfseries,accent] at (axis cs:12,70) {$K_d = 0.04$};",
-                  r"\node[anchor=west,font=\footnotesize\bfseries,sea] at (axis cs:3,30) {$K_d = 0.15$};",
-                  r"\node[anchor=west,font=\footnotesize\bfseries,brown!70!black] at (axis cs:0.012,22) {$K_d = 0.5$};"]
+            s += [r"\node[anchor=south west,font=\footnotesize\bfseries,accent] at (axis cs:60,12) {$K_d = 0.04$};",
+                  r"\node[anchor=west,font=\footnotesize\bfseries,sea] at (axis cs:42,0.05) {$K_d = 0.15$};",
+                  r"\node[anchor=west,font=\footnotesize\bfseries,brown!70!black] at (axis cs:14,0.02) {$K_d = 0.5$};",
+                  r"\node[anchor=south,font=\scriptsize,grey] at (axis cs:75,1) {1\% of surface};"]
         else:
-            s += [r"\node[anchor=west,font=\footnotesize\bfseries,accent] at (axis cs:30,40) {$K_d = 0.04$};",
-                  r"\node[anchor=west,font=\footnotesize\bfseries,sea] at (axis cs:8,24) {$K_d = 0.15$};",
-                  r"\draw[brown!70!black] (axis cs:12,4.2) -- (axis cs:34,9);",
-                  r"\node[anchor=west,font=\footnotesize\bfseries,brown!70!black] at (axis cs:34,9) {$K_d = 0.5$};"]
+            s += [r"\node[anchor=north east,font=\footnotesize,align=left,draw=grey!50,fill=white,inner sep=4pt] at (axis cs:127,95) {{\color{accent}\rule[2pt]{12pt}{1.2pt}} $K_d = 0.04$\\ {\color{sea}\rule[2pt]{12pt}{1.2pt}} $K_d = 0.15$\\ {\color{brown!70!black}\rule[2pt]{12pt}{1.2pt}} $K_d = 0.5$};"]
         s.append(r"\end{axis}")
         return s
     out = [PRE, r"\begin{tikzpicture}"] + panel(False) + [r"\begin{scope}[xshift=8.6cm]"] + panel(True) + [r"\end{scope}", r"\end{tikzpicture}\end{document}"]
     (HERE / 'fig-beer-lambert.tex').write_text('\n'.join(out))
-
 
 if __name__ == '__main__':
     print('PAR remaining (%):', fig_spectrum_sea())
