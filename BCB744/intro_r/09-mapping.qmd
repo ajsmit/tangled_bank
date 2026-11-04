@@ -41,7 +41,7 @@ Most of the work that you will perform as environmental/biological scientists in
 
 ![Today's goal.](../../images/map_complete.png)
 
-# Using Prepared Data
+# Using prepared data
 
 Before you begin let us go ahead and load the packages you will need, as well as several dataframes required to make the final product.
 
@@ -67,7 +67,7 @@ cols11 <- c("#004dcd", "#0068db", "#007ddb", "#008dcf", "#009bbc",
             "#00a7a9", "#1bb298", "#6cba8f", "#9ac290", "#bec99a")
 ```
 
-# A New Concept?
+# A new concept?
 
 The idea of creating a map in R may be daunting to some, but remember that a basic map is nothing more than a simple figure with an *x*, *y* axis. We tend to think of maps as different from other scientific figures, whereas in reality they are created the exact same way. The *epistemic* consequence of this is important: maps are built from the same grammar of graphics, but they carry extra assumptions about geography.
 
@@ -103,7 +103,7 @@ Does that look familiar? Notice how the *x* and *y* axis tick labels look the sa
 Before scrolling, try swapping `lon` and `lat`. What happens to the coastline? This is a fast way to diagnose coordinate order mistakes.
 :::
 
-# Land Mask
+# Land mask
 
 Now that you have seen that a map is nothing more than a bunch of dots and shapes on specific points along the *x* and *y* axes you are going to look at the steps you would take to build a more complex map. Do not worry if this seems daunting at first. You are going to take this step by step and ensure that each step is made clear along the way. The first step is to create a polygon.
 
@@ -112,7 +112,7 @@ Why a polygon? Polygons encode **adjacency, continuity, and enclosure**  ---  pr
 Note that you create an aesthetic argument inside of `geom_polygon()` and not `ggplot()` because some of the steps you will take later on will not accept the `group` aesthetic. Remember, whatever aesthetic arguments we put inside of `ggplot()` will be inserted into all of our other `geom_...()` lines of code.
 
 ::: {.callout-note appearance="simple"}
-## Why `group` Goes in `geom_polygon()`
+## Why `group` goes in `geom_polygon()`
 Try moving `aes(group = group)` into the main `ggplot()` call. Later layers (*e.g.*, `geom_raster()`) will inherit it and may produce warnings or odd behaviour. Keeping `group` local to `geom_polygon()` makes the intent explicit and prevents accidental inheritance.
 :::
 
@@ -133,7 +133,7 @@ ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   geom_path(data = sa_provinces, aes(group = group)) # The province borders
 ```
 
-# Force lon/lat Extent {#sec-coordsequal}
+# Force lon/lat extent {#sec-coordsequal}
 
 Unfortunately when you added our borders it increased the plotting area of our map past what you would like. To correct that you will need to explicitly state the borders you want. This is also where aspect ratio matters most: without `coord_equal()`, your coastline will be subtly stretched.
 
@@ -145,7 +145,7 @@ ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   coord_equal(xlim = c(15, 34), ylim = c(-36, -26), expand = 0) # Force lon/lat extent
 ```
 
-# Ocean Temperature
+# Ocean temperature
 
 This is starting to look pretty fancy, but it would be nicer if there was some colour involved. So let us add the ocean temperature. Again, this will only require one more line of code. Starting to see a pattern? But what is different this time, why? Here we are **filling** areas (ocean cells), not colouring borders, so we map to `fill` instead of `colour`.
 
@@ -161,12 +161,12 @@ ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
 That looks... odd. Why do the colours look like someone melted a big bucket of ice cream in the ocean? This is because the colours you see in this figure are the default colours for discrete values in **ggplot2**. If you want to change them we may do so easily by adding yet one more line of code.
 
 ::: {.callout-note appearance="simple"}
-## Diagnostic Heuristic
+## Diagnostic heuristic
 If a continuous field looks blocky or cartoonish, check whether your variable has been discretised upstream. If it has, you will get a discrete palette and a stepped legend.
 :::
 
 ::: {.callout-note appearance="simple"}
-## Palette Consistency Is Important
+## Palette consistency is important
 **ggplot2** enforces a consistent palette across layers so that the same colour always means the same thing. This is a principle of perceptual coherence.
 :::
 
@@ -194,7 +194,7 @@ ggplot(data = south_africa_coast, aes(x = lon, y = lat)) +
   coord_equal(xlim = c(15, 34), ylim = c(-36, -26), expand = 0)
 ```
 
-# Final Touches
+# Final touches
 
 You used `geom_tile()` instead of `geom_rast()` to add the coastal pixels above so that you could add those little white boxes around them.
 
@@ -203,19 +203,19 @@ Why tiles? `geom_tile()` and `geom_raster()` are best for **gridded data** (cont
 This figure is looking pretty great now. And it only took a few rows of code to put it all together! The last step is to add several more lines of code that will control for all of the little things you want to change about the appearance of the figure. Each little thing that is changed below is annotated for your convenience.
 
 ::: {.callout-note appearance="simple"}
-## Design Choices Are Not Defaults
+## Design choices are not defaults
 Adding borders, grids, or labels is a rhetorical decision. Ask yourself: does this layer help the scientific story, or just add clutter?
 :::
 
 ::: {.callout-note appearance="simple"}
-## Failure Modes to Watch For
+## Failure modes to watch for
 -   **Swapped lon/lat** → the map appears mirrored or rotated.
 -   **No `coord_equal()`** → coastlines look stretched.
 -   **Mismatched extents** → rasters appear shifted or cropped.
 :::
 
 ::: {.callout-note appearance="simple"}
-## Workflow Tip
+## Workflow tip
 Build the map in this order: data → geometry → scale → coordinate system → theme. Styling comes last.
 :::
 

@@ -1,6 +1,6 @@
 ---
-title: "22. Nonlinear Regression"
-subtitle: "When Straight Lines Are Not Enough"
+title: "22. Nonlinear regression"
+subtitle: "When straight lines are not enough"
 date: last-modified
 date-format: "YYYY/MM/DD"
 reference-location: margin
@@ -63,7 +63,7 @@ generate_data <- function(n_trt, n_rep, conc_vec, Km_vec,
 ```
 
 ::: {.callout-note appearance="simple"}
-## In This Chapter
+## In this chapter
 
 -   Why some biological relationships are mechanistically nonlinear
 -   How nonlinear regression differs from polynomial and additive models
@@ -79,7 +79,7 @@ In this chapter, I focus specifically on mechanistic nonlinear regression: model
 
 Polynomial regression and GAMs are covered in their own chapters because they answer a different modelling need. Here the emphasis is narrower and stronger: what to do when the biology suggests the form of the curve itself.
 
-# Key Concepts
+# Key concepts
 
 -   **Nonlinearity** often reflects real biological structure rather than unwanted curvature.
 -   **Flexible regression** can model patterns that a straight line misses.
@@ -87,7 +87,7 @@ Polynomial regression and GAMs are covered in their own chapters because they an
 -   **Greater flexibility increases the risk of overfitting** if used carelessly.
 -   **Model choice should follow biological form**, not only convenience or visual preference.
 
-# When This Method Is Appropriate
+# When this method is appropriate
 
 You should move beyond a simple linear model when:
 
@@ -98,7 +98,7 @@ You should move beyond a simple linear model when:
 
 The diagnostic chapters earlier in the sequence already suggested this possibility. This chapter is about what to do next.
 
-# Nature of the Data and Assumptions
+# Nature of the data and assumptions
 
 Mechanistic nonlinear regression is still regression, so the familiar concerns about independence, residual spread, and overall model adequacy do not disappear. In many introductory applications, the response variable is continuous and the residuals are assumed to be approximately normally distributed with constant variance.
 
@@ -106,7 +106,7 @@ The key distinction is that the mean structure is explicitly nonlinear and tied 
 
 The practical point is that you choose a non-linear model because the straight-line model is inadequate and because the curved alternative matches the biological process or the inferential question more closely. And it looks pretty and complicated.
 
-# The Core Equation
+# The core equation
 
 The general form of a nonlinear regression is:
 
@@ -114,7 +114,7 @@ $$Y_i = f(X_i, \theta) + \epsilon_i$$ {#eq-nonlinear}
 
 In @eq-nonlinear, $f(\cdot)$ is a biologically chosen nonlinear function and $\theta$ represents the parameter set that defines its shape. This chapter then uses a Michaelis-Menten curve as the main worked example of that general idea.
 
-# R Functions
+# R functions
 
 Some of the most useful R functions are:
 
@@ -133,7 +133,7 @@ nlme::nlme(y ~ Vmax * x / (Km + x), data = df, ...)
 
 One practical difference from ordinary regression is that `nls()` usually needs sensible starting values. Unlike `lm()`, it uses an iterative search for the best-fitting parameter values, and poor starting values can prevent convergence.
 
-# Example 1: Why Use a Mechanistic Nonlinear Model?
+# Example 1: Why use a mechanistic nonlinear model?
 
 The first decision is whether the biology gives you a reason to prefer a specific nonlinear function rather than a descriptive curve.
 
@@ -200,7 +200,7 @@ ggarrange(plt_poly, plt_gam, plt_mm, ncol = 2, nrow = 2)
 
 That last point is important. If we know the process should saturate, as in nutrient uptake kinetics, a mechanistic model tells us more than a flexible smoother. It gives us interpretable parameters such as an asymptote or a half-saturation constant.
 
-# Example 2: Algal Nutrient Uptake Kinetics
+# Example 2: Algal nutrient uptake kinetics
 
 We can measure algal nutrient uptake rates using a multiple flask experiment. We prepare a series of flasks, each containing a different initial concentration of the substrate nutrient, and then estimate nutrient uptake rate over a fixed time interval. The result is a set of uptake rates, $V$ ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$), paired with substrate concentrations, $[S]$ ($\mu\mathrm{mol}\ \mathrm{L}^{-1}$).
 
@@ -220,7 +220,7 @@ In @eq-mm:
 
 The two parameters are biologically meaningful. $V_{max}$ represents the maximum capacity of the alga to utilise the nutrient and is measured in $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$. $K_m$ describes the affinity of the uptake system for that nutrient and is measured in $\mu\mathrm{mol}\ \mathrm{L}^{-1}$. Lower values of $K_m$ indicate higher affinity.
 
-## Do an Exploratory Data Analysis (EDA)
+## Do an exploratory data analysis (EDA)
 
 To demonstrate fitting a nonlinear model to $V$ versus $[S]$ data from a multiple flask experiment, I simulate data across a range of substrate concentrations. The dataset consists of five replicate flasks for each of 13 substrate concentrations.
 
@@ -266,7 +266,7 @@ The plot in @fig-mf-eda already suggests that a straight line is not the right m
 
 You will also often see greater spread in uptake rate at higher substrate concentrations. That happens because the high-concentration part of the curve approaches the enzyme-limited region. Once transport and assimilation systems are near saturation, small biological differences among flasks in tissue condition, enzyme capacity, light history, or temperature response can translate into visibly different realised uptake rates. At low concentrations, by contrast, uptake is constrained more strongly by substrate availability itself, so the responses are often pulled into a narrower range.
 
-## State the Model Question
+## State the model question
 
 At this point, two related questions arise.
 
@@ -276,7 +276,7 @@ The second is comparative: does a Michaelis-Menten model fit these data better t
 
 Those are not the same question. The first is about parameter estimation within a nonlinear biological model. The second is about choosing between two competing mean structures.
 
-## Fit the Model
+## Fit the model
 
 The Michaelis-Menten model is fit with `nls()`:
 
@@ -314,7 +314,7 @@ ggplot(mf_data, aes(x = S, y = V)) +
   )
 ```
 
-## Check Diagnostics
+## Check diagnostics
 
 Because this is a least-squares nonlinear model, residual diagnostics are interpreted much as they are for ordinary regression.
 
@@ -352,7 +352,7 @@ ggarrange(plt_hist, plt_resid, ncol = 2)
 
 The diagnostics in @fig-mf-diagnostics do not suggest any serious problem. The residual spread is fairly even, and the histogram is approximately symmetric. As always, you should not rely on a single formal test, but the residual behaviour is consistent with a usable fit.
 
-## Interpret the Results
+## Interpret the results
 
 ```{r compare-linear-and-nonlinear}
 lm_mod <- lm(V ~ S, data = mf_data)
@@ -371,7 +371,7 @@ The model comparison also matters. If the linear and Michaelis-Menten models are
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
-## Write-Up
+## Write-up
 
 **Methods**
 
@@ -386,7 +386,7 @@ Nutrient uptake increased rapidly with substrate concentration at low concentrat
 The main biological point is that uptake is saturating rather than indefinitely linear over the observed concentration range. That matters because the fitted parameters now speak directly to uptake capacity and nutrient affinity.
 :::
 
-## What If We Add Treatments?
+## What if we add treatments?
 
 Experiments are seldom as simple as the one above. Consider an experiment designed to assess whether an experimental treatment, such as light intensity or seawater temperature, affects nutrient uptake kinetics. It is biologically plausible to expect that each treatment will result in unique $V_{max}$ values ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$) and $K_m$ values ($\mu\mathrm{mol}\ \mathrm{L}^{-1}$).
 
@@ -419,7 +419,7 @@ The treatment-specific curvature in @fig-mf-treatment makes the modelling proble
 
 The important point is that nonlinear modelling “draws a curve” *and* it chooses a mean structure that matches the process and then extending that structure carefully when treatments, dependence, or more complicated designs are present.
 
-## Repeated-Measures Extension
+## Repeated-measures extension
 
 The next extension appears when the same experimental unit is measured repeatedly across the concentration gradient. For example, you might measure uptake repeatedly on the same thallus, plant, or mesocosm under several substrate concentrations. At that point, the observations within each unit are no longer independent, so a separate `nls()` fit per unit or a pooled `nls()` fit is no longer enough.
 
@@ -438,13 +438,13 @@ nlme::nlme(
 
 In that formulation, the fixed effects describe how treatment shifts the average kinetic parameters, while the random effect acknowledges that repeated observations from the same individual share the same underlying uptake curve. A full worked example needs a dataset with true repeated measurements on the same biological units and enough observations per unit to estimate the random-effects structure sensibly.
 
-# Example 3: Repeated-Measures Michaelis-Menten Kinetics
+# Example 3: Repeated-measures Michaelis-Menten kinetics
 
 The previous examples treated each flask as an independent unit observed once at each starting concentration. A perturbation experiment is different. The same flask is sampled repeatedly through time as nutrient concentration declines, so the observations from that flask are correlated. This is exactly the kind of dependence problem introduced in [Chapter 19](19-dependence-and-mixed-models.qmd), except that the mean structure is now nonlinear rather than linear.
 
 For the BDC223 treatment of this experimental design, including depletion curves and the distinction between perturbation and multiple-flask methods, see [Lecture 9a: Nutrient Uptake](../../BDC223/L09a-nutrient_uptake.qmd), [Lecture 9b: Uptake Kinetics -- Michaelis-Menten](../../BDC223/L09b-nutrients_michaelis_menten.qmd), and [Lab 4: Uptake Kinetics -- Michaelis-Menten](../../BDC223/Lab4_nitrogen_uptake.qmd). Here we pick up at the point where those experiments become a modelling problem.
 
-## Example Dataset
+## Example dataset
 
 These data come from a perturbation experiment on the red seaweed *Gracilaria* sp. Flasks were enriched to approximately 55--60 $\mu M$ nitrate and sampled repeatedly over roughly 2.5 hours. Uptake rates were measured under three levels of water movement (`low`, `med`, `high`), with three replicate flasks per treatment.
 
@@ -461,7 +461,7 @@ head(mm_data, 8) |>
   gt::fmt_number(columns = c(V, S), decimals = 2)
 ```
 
-## Do an Exploratory Data Analysis (EDA)
+## Do an exploratory data analysis (EDA)
 
 ```{r fig-mm-eda}
 #| echo: false
@@ -482,14 +482,14 @@ ggplot(mm_data, aes(x = S, y = V, colour = trt, group = interaction(trt, flask))
 
 The relationship in @fig-mm-eda is again saturating, so a Michaelis-Menten mean structure is still sensible. The important difference is that each dashed trajectory comes from the same flask measured repeatedly. That means the residuals are likely to be correlated within flask, and the flasks are nested within treatment.
 
-## State the Model Question
+## State the model question
 
 The biological question is whether the Michaelis-Menten parameters differ among water-movement treatments once the repeated-measures structure of the perturbation experiment is taken into account. Here that means asking whether treatment shifts $V_{max}$ ($\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$) and/or $K_m$ ($\mu\mathrm{mol}\ \mathrm{L}^{-1}$).
 
 $$H_{0}: V_{max} \text{ and } K_m \text{ are the same across treatments after accounting for flask-level dependence}$$
 $$H_{a}: \text{At least one of } V_{max} \text{ or } K_m \text{ differs among treatments after accounting for flask-level dependence}$$
 
-## Fit the Model
+## Fit the model
 
 We compare two nonlinear mixed-effects models. The first is a **global** model in which all treatments share the same Michaelis-Menten parameters. The second allows `Vmax` and `Km` to vary by treatment while retaining the same repeated-measures structure.
 
@@ -544,7 +544,7 @@ Three parts of the specification are important:
 
 This is the nonlinear counterpart of the grouped-dependence ideas from Chapter 19. The model still estimates a mechanistic curve, but it now does so in a way that respects repeated measurement on the same experimental unit while keeping the kinetic parameters in their usual units of $\mu\mathrm{mol}\ \mathrm{N}\ \mathrm{g}^{-1}\ \mathrm{h}^{-1}$ ($V_{max}$) and $\mu\mathrm{mol}\ \mathrm{L}^{-1}$ ($K_m$).
 
-## Check Diagnostics
+## Check diagnostics
 
 ```{r code-mm-diagnostics}
 mm_data <- mm_data |>
@@ -582,7 +582,7 @@ ggarrange(plt_hist_mm, plt_resid_mm, ncol = 2)
 
 The diagnostics in @fig-mm-diagnostics show whether the fitted nonlinear mean structure and the residual assumptions are at least broadly compatible with the data.
 
-## Interpret the Results
+## Interpret the results
 
 ```{r code-mm-params}
 coef_mm <- fixed.effects(mm_trt)
@@ -646,7 +646,7 @@ In nonlinear mixed-effects work, the global model comparison is often more infor
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
-## Write-Up
+## Write-up
 
 **Methods**
 
@@ -661,11 +661,11 @@ Allowing Michaelis-Menten parameters to vary among treatments improved model fit
 The biological point is that repeated-measures uptake data can support treatment differences in kinetic behaviour, but only if the dependence structure is modelled explicitly. Ignoring the repeated sampling of the same flasks would treat correlated measurements as independent and would make the inferential result less trustworthy.
 :::
 
-# Choosing Among Flexible Models
+# Choosing among flexible models
 
 There are a few practical considerations to keep in mind when choosing a mechanistic nonlinear model. Sometimes different curved models can provide similar fits to the same data, but they have very different implications for interpretation. The reason to prefer a mechanistic nonlinear model is precisely that its parameters mean something biologically. If that interpretability is weak or artificial, a descriptive alternative such as a polynomial regression or GAM may be more honest.
 
-# Practical Caution
+# Practical caution
 
 Flexibility is valuable, but it comes with a cost.
 

@@ -1,6 +1,6 @@
 ---
-title: "23. Quantile Regression"
-subtitle: "Modelling the Whole Response Distribution"
+title: "23. Quantile regression"
+subtitle: "Modelling the whole response distribution"
 date: last-modified
 date-format: "YYYY/MM/DD"
 reference-location: margin
@@ -29,7 +29,7 @@ library(gt)
 ```
 
 ::: {.callout-note appearance="simple"}
-## In This Chapter
+## In this chapter
 
 -   why modelling only the mean can hide important ecological structure;
 -   what quantile regression estimates and how it differs from ordinary least squares;
@@ -40,7 +40,7 @@ library(gt)
 :::
 
 ::: {.callout-important appearance="simple"}
-## Tasks to Complete in This Chapter
+## Tasks to complete in this chapter
 
 -   None
 :::
@@ -58,7 +58,7 @@ This may be useful when:
 -   outliers make mean-based summaries unstable;
 -   the ecological question is about constraints, limits, or heterogeneous responses rather than only about the average trend.
 
-# Key Concepts
+# Key concepts
 
 -   **Quantile regression models conditional quantiles**, not the conditional mean.
 -   **Quantiles** divide a distribution into cumulative proportions such as the 10th, 50th, or 90th percentile.
@@ -67,7 +67,7 @@ This may be useful when:
 -   **Inference can differ across quantiles**, meaning that the same predictor may be weak at the lower boundary but strong at the upper boundary.
 -   **Quantile regression is robust to heteroscedasticity** and does not require normally distributed residuals in the way ordinary least squares does.
 
-# When This Method Is Appropriate
+# When this method is appropriate
 
 Quantile regression is useful when:
 
@@ -79,7 +79,7 @@ Quantile regression is useful when:
 
 Quantile regression is not a substitute for every nonlinear or hierarchical model. If the relationship is curved, use polynomial or additive extensions where needed. If the data are clustered by site, year, or individual, the dependence structure is still important and should not be ignored just because the model is quantile-based.
 
-# Nature of the Data and Assumptions
+# Nature of the data and assumptions
 
 Quantile regression is more flexible than ordinary least squares, but it is not assumption-free.
 
@@ -94,7 +94,7 @@ Unlike ordinary least squares, quantile regression does **not** assume normally 
 
 What we need to consider is model form. If the relationship is curved, then a straight-line quantile model may be inadequate. It is also important to check that fitted quantile lines do not behave implausibly or cross in the range of interest.
 
-# The Core Equations
+# The core equations
 
 For a simple linear quantile regression, the conditional quantile of the response can be written as:
 
@@ -112,7 +112,7 @@ $$\rho_{\tau}(u) = u\left[\tau - I(u < 0)\right]$$ {#eq-rho}
 
 You do not need to memorise @eq-check and @eq-rho, but they explain why quantile regression behaves differently from mean regression. Residuals above and below the fitted line are weighted differently depending on the target quantile. For the median, positive and negative residuals are weighted equally; for the 90th quantile, underprediction is penalised more strongly than overprediction.
 
-# R Functions
+# R functions
 
 The main function is `quantreg::rq()`.
 
@@ -127,9 +127,9 @@ anova(model_multi_tau)                              # compare slopes across quan
 
 The syntax is similar to `lm()`, which makes quantile regression easy to adopt once you are comfortable with ordinary regression.
 
-# Example 1: Blade-Length Envelopes in *Laminaria pallida*
+# Example 1: Blade-length envelopes in *Laminaria pallida*
 
-## Example Dataset
+## Example dataset
 
 We use the `laminaria.csv` dataset from the course data folder. These data come from a morphometric sampling campaign on the kelp *Laminaria pallida* at 13 sites along the Cape Peninsula, spanning the west coast and False Bay regions. The sampled plants were large adult kelps, and several blade and stipe measurements were recorded for each individual.
 
@@ -147,7 +147,7 @@ laminaria <- read_csv(here::here("data", "BCB744", "laminaria.csv"),
 gt(head(laminaria, 10))
 ```
 
-## Do an Exploratory Data Analysis (EDA)
+## Do an exploratory data analysis (EDA)
 
 ```{r code-summary}
 laminaria |>
@@ -178,7 +178,7 @@ ggplot(laminaria, aes(x = stipe_length, y = blade_length)) +
 
 The scatterplot in @fig-laminaria-scatter does not suggest a single, uniform linear effect. Blade length generally increases with stipe length, but the spread also changes across the predictor range. In particular, the upper edge of the point cloud steepens more strongly than the lower edge. That is exactly the kind of pattern for which quantile regression is useful.
 
-## State the Model Question and Hypotheses
+## State the model question and hypotheses
 
 We want to know whether stipe length affects the lower, median, and upper parts of the blade-length distribution differently.
 
@@ -194,7 +194,7 @@ Because the chapter is about comparing quantiles, we also care about whether the
 $$H_{0}: \beta_{1}(0.1) = \beta_{1}(0.5) = \beta_{1}(0.9)$$
 $$H_{a}: \text{not all quantile slopes are equal}$$
 
-## Fit the Models
+## Fit the models
 
 We fit one ordinary least squares regression for comparison, and then three quantile regressions for the 10th, 50th, and 90th quantiles.
 
@@ -245,7 +245,7 @@ To compare the quantile slopes directly, we test whether the fitted slopes are e
 anova(fit_rq_all)
 ```
 
-## Test Assumptions / Check Diagnostics
+## Test assumptions / check diagnostics
 
 Quantile regression does not require homoscedasticity or normal residuals, so diagnostics focus more on whether the fitted lines are sensible and whether the model form is adequate.
 
@@ -333,7 +333,7 @@ ggplot(slope_grid, aes(x = tau, y = slope)) +
 
 In this example the fitted lines do not cross in the observed data range, and the slope increases steadily towards the upper quantiles. That is consistent with a biologically meaningful quantile effect rather than a numerical artefact.
 
-## Interpret the Results
+## Interpret the results
 
 The ordinary least squares fit gives the average change in blade length with stipe length. In these data that mean slope is positive, but it understates what is happening at the upper edge of the distribution.
 
@@ -352,7 +352,7 @@ Biologically, the result reveals that increasing stipe length appears to raise t
 ## Reporting
 
 ::: {.callout-note appearance="simple"}
-## Write-Up
+## Write-up
 
 **Methods**
 
@@ -367,7 +367,7 @@ Blade length increased with stipe length in the mean model, but the fitted quant
 The quantile regression reveals a biologically important pattern that would be muted in a mean-only analysis. Stipe length appears to influence the upper potential for blade development more strongly than the lower end of the blade-length distribution. This suggests that while longer stipes may permit greater blade elongation, shorter blades can still occur across much of the stipe-length range, presumably because other unmeasured factors also constrain morphology.
 :::
 
-# What to Do When Assumptions Fail / Alternatives
+# What to do when assumptions fail / alternatives
 
 -   If the fitted straight quantile lines are clearly inadequate, extend the model with polynomial terms or quantile smoothers rather than forcing a linear form.
 -   If quantile lines cross implausibly, reduce model complexity and inspect whether sparse data at extreme predictor values are driving the problem.

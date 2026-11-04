@@ -1,6 +1,6 @@
 ---
 date: last-modified
-title: "14: Distance-Based Redundancy Analysis"
+title: "14. Distance-based redundancy analysis"
 format:
   html:
     code-link: false
@@ -43,7 +43,7 @@ ggplot2::theme_set(
 :::
 
 ::: {.callout-important appearance="simple"}
-## Tasks to Complete in This Chapter
+## Tasks to complete in this chapter
 
 * [Task H 1--6](tasks/Task_H.qmd)
 :::
@@ -53,7 +53,7 @@ Up to now I have applied unconstrained ordination or indirect gradient analyses.
 Constrained ordination extracts and summarises the variation in a set of response variables (species data in ecology) that some explanatory variables ('constraints') can explain, such as measurements of environmental properties at the places where the species data were collected. These analyses relate two (or more) matrices to one another. One is the species table within which the community structure is sought, and the other an explanatory matrix of environmental conditions (or traits, etc.) thought to explain the community patterns. The ecologist can then apply a confirmatory analysis, since methods are available to test the statistical significance of the relationships between explanatory variables and the resultant species composition. Unconstrained ordination offers no such test, so it is descriptive rather than a statistical test in its own right.
 
 ::: {.callout-important}
-## Explanation Is Not Causation
+## Explanation is not causation
 
 A significant constrained ordination confirms that *some relationship* exists between the species matrix and the environmental matrix. It does not establish that the environmental variable *causes* the community pattern, nor that the ecological process you have in mind operates. A strong, significant fit raises the likelihood that a real mechanism is at work, but it remains a starting point. The careful scientist treats it as a hypothesis to confirm with manipulative experiments or independent evidence, not as proof of the mechanism. This is the single most common misinterpretation of a constrained ordination, namely taking *variation explained* for *cause shown*.
 :::
@@ -74,7 +74,7 @@ Each constrained method extends an unconstrained one you have already encountere
 | CA | CCA | $\chi^2$ |
 | PCoA | db-RDA | any dissimilarity |
 
-### Why I Focus on db-RDA
+### Why I focus on db-RDA
 
 I introduce RDA and CCA because you will encounter them throughout the literature and because they clarify what db-RDA does, but this chapter works through **db-RDA** alone. The reasoning is the same one that led me to favour PCoA among the unconstrained methods. RDA inherits the assumptions of PCA, namely that it measures community difference with Euclidean distance and describes linear species responses. That suits environmental tables, but it rarely suits raw community data, where the double-zero problem and unimodal responses dominate. CCA relaxes the linearity assumption to a unimodal one, but it fixes the dissimilarity at the $\chi^2$ metric and gives the analyst no choice, and the $\chi^2$ metric also weights rare species heavily, which is often undesirable. db-RDA removes both restrictions. It accepts *any* dissimilarity, so I can choose the measure that matches the ecological question (here a Sørensen-family turnover index), and it follows directly from the distance-based thinking of the previous chapters.
 
@@ -94,7 +94,7 @@ flowchart TD
 ```
 
 ::: {.callout-note appearance="simple"}
-## What Constrained Ordination Adds
+## What constrained ordination adds
 
 - **PCoA** and **nMDS** *describe* the patterns in a dissimilarity matrix.
 - **db-RDA** asks whether a set of measured predictors can *explain* those patterns, and tests it formally.
@@ -102,7 +102,7 @@ flowchart TD
 This chapter develops that single new step, from *what patterns exist?* to *can the environment account for them?*
 :::
 
-## The Seaweed Dataset
+## The seaweed dataset
 
 For this example I will use the seaweed data of @smit2017seaweeds. Please make sure that you read it! An additional file describing the background to the data is available at the link above (see **The_seaweed_data.pdf**).
 
@@ -110,7 +110,7 @@ I use two data sets. The first, $Y$ (in the file `SeaweedSpp.csv`), comprises di
 
 The second, $E$ (in `SeaweedEnv.RData`), is a dataset of *in situ* coastal seawater temperatures (Smit et al. 2013) derived from daily measurements over up to 40 years.
 
-## Set-Up the Analysis Environment
+## Set-up the analysis environment
 
 ```{r code-library-tidyverse}
 library(tidyverse)
@@ -129,7 +129,7 @@ spp <- dplyr::select(spp, -1)
 dim(spp)
 ```
 
-## Set-Up the Data
+## Set-up the data
 
 Analysis begins with the species table ($Y$). I compute the Sørensen dissimilarity, which I then decompose into 'nestedness-resultant' ($\beta_\text{sne}$) and 'turnover' ($\beta_\text{sim}$) components using the `betapart.core()` and `betapart.pair()` functions of the **betapart** package [@baselga2018partitioning]. These are placed into the matrices $Y1$ and $Y2$. Decomposition into $Y1$ and $Y2$ is optional, but I do it here to focus on the turnover component free of any nestedness-resultant influence. Optionally, I can apply a CA, PCoA, or nMDS to $Y$ to find the major patterns in the community data on their own. The formal analysis in this chapter uses the species data in a distance-based redundancy analysis (db-RDA as per **vegan**'s `capscale()` function) by coupling it with $E$.
 
@@ -196,7 +196,7 @@ Again, I have 58 rows of data for both the coastal section coordinates and the b
 ## Start the db-RDA
 
 ::: {.callout-note appearance="simple"}
-## The db-RDA Workflow
+## The db-RDA workflow
 
 The analysis that follows is a single series of steps:
 
@@ -232,7 +232,7 @@ cap_full
 The dissimilarity-matrix calculation discards species information, but if the original matrix of species composition is available, the species scores can be added back into the ordination diagram as weighted means of site scores in which case they occur or as vectors fitted onto the ordination space.
 
 ::: {.callout-note appearance="simple"}
-## What the CAP Axes Are
+## What the CAP axes are
 
 The output reports axes labelled **CAP1, CAP2, ...** (and some labelled **MDS**). The distinction is central to constrained ordination. Where PCA, CA, and PCoA build their axes to capture the most variation in the *species data alone*, db-RDA builds its CAP axes to capture the most variation that the *environmental predictors can explain*. A CAP axis is therefore a composite environmental gradient, ranked by how much community turnover it accounts for. The variation the predictors cannot explain is set aside on the unconstrained MDS axes. So CAP1 traces the strongest environmentally-explained gradient in the community.
 :::
@@ -277,12 +277,12 @@ round(sum(cap_full$CCA$eig) / cap_full$tot.chi * 100, 2) # this is 6.86398 / 7.5
 The model is significant, the adjusted $R^2$ is about **0.85**, and the constraints account for about **91%** of the turnover inertia. These are high values that deserve a moment of thought.
 
 ::: {.callout-note appearance="simple"}
-## Why Is the Fit So High?
+## Why is the fit so high?
 
 An adjusted $R^2$ of 0.85, with constraints explaining roughly 91% of the variation, is far above what most community datasets achieve, where values of 0.1 to 0.3 are common. The number is genuine rather than an artefact of overfitting (the adjusted $R^2$ already penalises the predictor count). It reflects the biology of this system. South African seaweed biogeography is dominated by one overriding control, namely the coastal thermal gradient set by the cold Benguela upwelling in the west and the warm Agulhas Current in the east. When a single environmental axis governs turnover this tightly, a set of thermal predictors will explain most of it. Do not carry this number forward as an expectation. Here it reflects an unusually strong thermal structuring of the flora, not a typical result.
 :::
 
-## Assess Multicollinearity {#sec-multicollinearity}
+## Assess multicollinearity {#sec-multicollinearity}
 
 I check for collinearity using variance inflation factors (VIF), and retain a subset of non-collinear variables to include in the 'reduced' or 'final' model. A common rule is that values over 10 indicate redundant constraints. I run the VIF procedure iteratively, each time removing the highest VIF and examining the remaining ones until these are mostly below 10.
 
@@ -325,7 +325,7 @@ cap_final <- cap_sel3
 # cap_final <- capscale(spp ~ febRange + febSD + augMean + augRange + augSD + annRange + annSD, data = E3, distance = "jaccard")
 ```
 
-## Assess the Model
+## Assess the model
 
 I calculate the significance of the model, the variance explained by all the constraints (in $E4$) in the final model, as well as the $R^{2}$:
 
@@ -374,7 +374,7 @@ scores(cap_final, display = "bp", choices = c(1:2))
 
 These biplot scores will mark the position of the termini of the arrows that indicate the direction and strength of the constraining variables.
 
-## Ordination Diagrams
+## Ordination diagrams
 
 A constrained ordination can be drawn with either of two kinds of site coordinate, and both are worth seeing:
 
@@ -462,7 +462,7 @@ ggplot(data = lc_scores, aes(x = CAP1, y = CAP2, colour = bioreg)) +
 
 Comparing the two figures shows the point behind the note. In the **wa-score** plot the sections fall into a crude map of South Africa, ordered by geographical coordinates (N-E-S-W). That arrangement is coincidental, though it can be logically explained, since the thermal gradient is itself geographically ordered. The coenoclines and gradients are discernible, and the west-to-east numbering of sections and the transition of one bioregion into the next are obvious. The map-like arrangement disappears in the **lc-score** plot (which is the version published as Fig. 2a in Smit et al. 2017), where the sections are spaced by the fitted thermal model rather than by their composition. The interpretation of how the thermal drivers structure seaweed biodiversity is the same in both.
 
-### Reading the Ordination
+### Reading the ordination
 
 The diagram shows the ecological result of the whole analysis:
 
@@ -474,7 +474,7 @@ The diagram shows the ecological result of the whole analysis:
 Seaweed turnover along the South African coast is structured first by the mean winter thermal gradient and second by seasonal thermal variability, consistent with the niche-difference mechanism proposed at the outset. The four significant predictors (`febRange`, `febSD`, `augMean`, `augRange`) make the statement that *both the average warmth and the variability of the coastal thermal regime sort the seaweed flora into its regional assemblages*.
 
 ::: {.callout-note}
-## Is This the Arch Effect?
+## Is this the arch effect?
 
 The site (wa) scores in @fig-cap-final-scrs-scores-cap-final-display fall into a clean arch, so it is fair to ask whether this is the [arch effect](CA.qmd#sec-arch-effect), the same artefact that appears in distance-based methods as a [horseshoe](PCA.qmd#sec-horseshoe-effect). An arch *shape* is not automatically the arch *effect*, and here it is some of each.
 
@@ -485,7 +485,7 @@ CAP2 carries genuine content, however. It is a significant constrained axis (`an
 A remedy is unnecessary. In a constrained ordination you do not detrend, and DCA-style detrending is in any case discouraged. CAP1 still orders the sites correctly from west to east, and CAP2 still carries a real signal. You must not interpret the up-curled ends of the wa arch as similar, because sections 12 and 58 share almost no species. Interpret the lc scores and the predictor arrows, as I do here, rather than the literal shape of the wa configuration. Working from a distance-based method with an ecological dissimilarity on the turnover component, as this chapter does, already keeps the arch milder than CA or PCA would.
 :::
 
-## Factor Variables
+## Factor variables
 
 ```{r fig-e5-e4-c-cap-final-sign-ax, fig.width=8, fig.height=6}
 #| fig-cap: "Default **vegan** plot of the db-RDA after adding the bioregions as a categorical constraint. Site scores, the significant thermal arrows, and the bioregion centroids are drawn together, but the elements overlap and are hard to read."
@@ -556,7 +556,7 @@ ggplot(data = site_scores, aes(CAP1, CAP2, colour = bioreg)) +
 
 The bioregion centroids fall in the same west-to-east order along CAP1 as the continuous thermal gradient. db-RDA places continuous predictors (the thermal arrows) and categorical predictors (the bioregion centroids) in one ordination space, so a factor and a gradient can be compared directly within a single framework.
 
-## db-RDA as Multivariate Regression
+## db-RDA as multivariate regression
 
 Conceptually, **db-RDA is multiple regression performed on community structure**. The response is not a single variable but an entire dissimilarity matrix of species composition, and the predictors are the environmental variables. The tools used to assess it, namely the permutation significance test, the adjusted $R^2$, the term-by-term tests, and the variance inflation factors, are the same tools used in ordinary multiple regression, now applied in a multivariate, distance-based context.
 

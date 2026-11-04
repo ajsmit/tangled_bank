@@ -1,6 +1,6 @@
 ---
 date: last-modified
-title: "15: Distance-Based Redundancy Analysis: Revisiting the β-Diversity Partition"
+title: "15. Distance-based redundancy analysis: revisiting the β-diversity partition"
 format:
   html:
     code-link: false
@@ -37,7 +37,7 @@ ggplot2::theme_set(
 |             | The seaweed coastal section coordinates  | [💾 `SeaweedSites.csv`](../data/BCB743/seaweed/SeaweedSites.csv)                                   |
 :::
 
-## Why a Second Version of This Chapter?
+## Why a second version of this chapter?
 
 In the [first version](constrained_ordination.qmd) of this db_RDA analysis I used the **turnover** component of Sørensen dissimilarity, extracted by the **betapart** package following @Baselga2010 and @baselga2018partitioning. That step applied one way of taking community dissimilarity apart, namely splitting the total into a *turnover* part ($\beta_\text{sim}$) and a *nestedness-resultant* part ($\beta_\text{sne}$) and keeping the turnover part. A decade of methodological work has questioned whether splitting $\beta$-diversity in that way is the right one. Here I keep the ecological question, the data, and the db-RDA method exactly as they were, and change only the dissimilarity partition, asking whether the seaweed result changes materially.
 
@@ -68,12 +68,12 @@ flowchart TD
 What follows states the problem and the fix in plain language, sets out the algebra of the two partitions, and re-runs the analysis with a direct comparison against the original turnover analysis.
 
 ::: {.callout-note appearance="simple"}
-## My Thinking
+## My thinking
 
 The original analysis assumed that Baselga's $\beta_\text{sim}$ is "pure turnover", cleanly separated from differences in species richness. That assumption draws two objections. The leftover $\beta_\text{sne}$ does not behave like nestedness [@almeidaneto2012rethinking]. Separately, $\beta_\text{sim}$ and the total Sørensen dissimilarity are scaled by different denominators, so $\beta_\text{sim}$ is not a fraction of the total on a common scale [@podani2011new; @schmera2011comments]. @legendre2014interpreting offers an alternative that *is* additive and commensurably scaled, namely a split of dissimilarity into **replacement** and **richness difference**. I rebuild the db-RDA on the replacement component and compare.
 :::
 
-## The Original Assumption
+## The original assumption
 
 The first version computed Sørensen dissimilarity and decomposed it with **betapart**:
 
@@ -85,7 +85,7 @@ Y1 <- as.matrix(Y.pair$beta.sim)   # the turnover component, used as the respons
 
 The response matrix `Y1` was $\beta_\text{sim}$, the Simpson dissimilarity, on the reasoning that it isolates spatial **turnover** (species replacing one another along the coast) from the **nestedness-resultant** dissimilarity $\beta_\text{sne}$ (assemblages at species-poor sites forming subsets of richer ones). The interpretation in this chapter and in @smit2017seaweeds depended on $\beta_\text{sim}$ being a clean measure of replacement. That is the assumption now in question.
 
-## Alternative Views
+## Alternative views
 
 **Baselga's "nestedness" component is not nestedness.** @almeidaneto2012rethinking showed that $\beta_\text{sne}$ (and its multi-site form $\beta_\text{SNE}$) is only loosely related to nestedness. It responds to the size and fill of the data matrix and can rise or fall while the degree of nestedness is held constant, and it can even take large values for matrices with no nestedness at all, so the name overstates what the quantity measures. So, if $\beta_\text{sne}$ is not a clear measurement of nestedness, treating it as "the nestedness component" invites a claim that cannot be supported.
 
@@ -93,7 +93,7 @@ The response matrix `Y1` was $\beta_\text{sim}$, the Simpson dissimilarity, on t
 
 **A synthesis with a working implementation.** @legendre2014interpreting drew these ideas together and supplied a tidy decomposition for both the Jaccard and Sørensen approaches. He keeps the replacement and richness-difference idea of Podani and Schmera and of @carvalho2012determining, and provides it in the **adespatial** package [@dray2023adespatial] as `beta.div.comp()`.
 
-### The Math Behind the Dissimilarities
+### The math behind the dissimilarities
 
 For two sites, write the shared and unique species counts the usual way:
 
@@ -102,7 +102,7 @@ For two sites, write the shared and unique species counts the usual way:
 - $c$ = species unique to the second site.
 
 ::: {.callout-important}
-## Two Partitions of the Same Sørensen Dissimilarity
+## Two partitions of the same Sørensen dissimilarity
 
 **Total Sørensen dissimilarity**
 $$\beta_\text{sor} = \frac{b+c}{2a+b+c}.$$
@@ -119,7 +119,7 @@ $$\text{Repl} + \text{RichDiff} = \frac{2\min(b,c) + \lvert b-c\rvert}{2a+b+c} =
 Baselga's $\beta_\text{sim}$ uses the denominator $a+\min(b,c)$ instead. That choice makes $\beta_\text{sim}$ **independent of the richness difference** $\lvert b-c\rvert$, but it also stops it from being a fraction of $\beta_\text{sor}$ on a shared scale.
 :::
 
-### Baselga's Defence
+### Baselga's defence
 
 @Baselga2012 argues that independence from richness difference is the property a turnover measure *should* have, since $\beta_\text{sim}$ stays unchanged when sites differ only in how many species they contain, whereas the Podani replacement, with the richness difference in its denominator, still changes with richness gradients. @baselga2015comparing extends the argument and compares the indices on simulated and real data. The choice is a trade-off between properties, not a case of one index being wrong.
 
@@ -134,7 +134,7 @@ Baselga's $\beta_\text{sim}$ uses the denominator $a+\min(b,c)$ instead. That ch
 
 There is no universal answer. The right choice depends on the property you most need. For a db-RDA whose goal is to model how the *whole* community dissimilarity is structured by the environment, the case for the Podani–Legendre approach is justified, since it is a commensurable, additive piece of the total Sørensen dissimilarity whose partner component is named for what it measures. I adopt it here, then check whether the ecological interpretation changes materially.
 
-## Set-Up the Analysis Environment
+## Set-up the analysis environment
 
 The only new dependency is **adespatial**. Install it once if needed (`install.packages("adespatial")`).
 
@@ -153,7 +153,7 @@ spp <- dplyr::select(spp, -1)
 dim(spp)
 ```
 
-## Two Partitions of the Same Dissimilarity
+## Two partitions of the same dissimilarity
 
 First the original Baselga turnover, which I keep so that I can compare against it later:
 
@@ -194,7 +194,7 @@ mantel(Y.comp$repl, Y.pair$beta.sim)
 
 I expect a high correlation, since both numerators are built on $\min(b,c)$, but not equality, because the denominators differ. The test returns $r = 0.938$, i.e., the two response matrices are already nearly the same *before any ordination is performed*, so switching the partition reshuffles the dissimilarities only slightly. Does so small a difference change the db-RDA?
 
-## Environmental Predictors and Collinearity
+## Environmental predictors and collinearity
 
 The environmental variables are unchanged from the first version. Load the thermal data, keep the same nine variables, and convert to $z$-scores:
 
@@ -218,7 +218,7 @@ bioreg <- read.csv(here::here("data", "BCB743", "seaweed", "bioregions.csv"))
 ```
 
 ::: {.callout-note appearance="simple"}
-## Why the Collinearity Step Is Identical to Version 1
+## Why the collinearity step is identical to version 1
 
 In RDA and db-RDA the variance inflation factors depend on the **predictor matrix alone**, not on the response. Changing the response from $\beta_\text{sim}$ to the replacement matrix cannot change the VIFs, so the same three variables drop out and I arrive at the same reduced predictor set $E4$. You can confirm this from the VIFs of the full model below, which match the first version.
 :::
@@ -232,7 +232,7 @@ E4 <- E1 |>
 names(E4)
 ```
 
-## The db-RDA on the Replacement Component
+## The db-RDA on the replacement component
 
 I fit the model on the replacement matrix, under the same niche-difference hypothesis, namely that the coastal thermal gradient sorts the seaweed flora by physiological tolerance.
 
@@ -265,7 +265,7 @@ round(cap_repl_R2, 2)
 round(sum(cap_repl$CCA$eig) / cap_repl$tot.chi * 100, 2) # % constrained
 ```
 
-## Does the Choice of Partition Change the Result?
+## Does the choice of partition change the result?
 
 To answer this, I refit the **original** turnover model on the same reduced predictors and assess the two side by side.
 
@@ -318,7 +318,7 @@ The numbers differ. The replacement partition explains less constrained variatio
 
 What the analysis says about the *ecology* stays the same. The same four thermal terms stay significant, and once the two ordinations are optimally rotated onto one another their site configurations are almost coincident (Procrustes correlation `r round(pro$t0, 3)`, $p =$ `r format.pval(pro$signif, eps = 0.001)`). **The ecological conclusion holds under both partitions, even though the ordination is not numerically identical.** Switching to Podani's scheme changes some numbers but not the answer, and had it changed the answer, that is something I would have wanted to know.
 
-### Seeing the Rotation
+### Seeing the rotation
 
 The Procrustes correlation is easier to trust once you can see it. In @fig-procrustes I rotate Baselga's turnover ordination onto Podani's replacement ordination and draw, for each of the 58 coastal sections, an arrow from its rotated turnover position to its replacement position. A section that the two partitions place identically would not have an arrow at all.
 
@@ -366,7 +366,7 @@ ggplot(pro_df) +
 
 The figure makes the Procrustes correlation of `r round(pro$t0, 3)` visible. The arrows are short over most of the coast, a little longer at the two ends of the gradient, and they point in no single direction. No section relocates to a different part of the ordination, and the bioregions keep their west-to-east order and their separation. The two partitions place the 58 sections in almost the same arrangement, and the small residual movement that remains has no spatial or ecological pattern. So, a change of partition leaves the ecological conclusion unchanged.
 
-## Ordination Diagram
+## Ordination diagram
 
 I draw the replacement-based model with **site (wa) scores**, coloured by bioregion, with arrows for the significant thermal constraints, using the same conventions as the first version so the two figures can be compared directly.
 
@@ -419,10 +419,10 @@ The ecological interpretation is the same one the first version gave:
 
 The structure is the same and the drivers are the same, and the only change is how the response variable is defined. Seaweed dissimilarity along the South African coast is structured first by the mean winter thermal gradient and second by seasonal thermal variability.
 
-## Practical Guidance
+## Practical guidance
 
 ::: {.callout-note appearance="simple"}
-## Choosing and Reporting a Partition
+## Choosing and reporting a partition
 
 - **Name the partition.** "Turnover" and "replacement" denote different quantities. Name the index (Baselga's $\beta_\text{sim}$, or Podani/Legendre's replacement) and the package.
 - **For modelling community dissimilarity** (db-RDA, RDA on a component, variation partitioning), prefer the **Podani–Legendre replacement** (via `adespatial::beta.div.comp(coef = "S")` or `"J"`), which is a commensurable, additive fraction of the total whose partner component is named *richness difference*, for what it measures, rather than *nestedness*.

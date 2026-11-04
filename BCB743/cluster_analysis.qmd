@@ -1,6 +1,6 @@
 ---
 date: last-modified
-title: "17: Cluster Analysis"
+title: "17. Cluster analysis"
 format:
   html: default
 ---
@@ -32,7 +32,7 @@ ggplot2::theme_set(
 > Anon.
 
 ::: {.callout-important appearance="simple"}
-## Tasks to Complete in This Chapter
+## Tasks to complete in this chapter
 
 * [Task I 1--6](tasks/Task_I.qmd)
 :::
@@ -40,7 +40,7 @@ ggplot2::theme_set(
 The ordination chapters, from PCA through CA, PCoA, and nMDS to db-RDA, have taught one way of seeing multivariate data, namely as continuous structure. Sites spread along axes, species replace one another gradually, and the question is always *along what gradient* the community is organised. Sometimes a set of discrete groups is the more useful description, and the task becomes partitioning sites into units rather than positioning them on a continuum. Cluster analysis is the set of tools for that.
 
 ::: {.callout-tip}
-## Main Idea: Gradients versus Classification
+## Main idea: gradients versus classification
 
 Ordination and clustering answer different questions about the same data.
 
@@ -52,7 +52,7 @@ A clustering algorithm produces groups such that dissimilarities between sites w
 
 This distinction is the central idea of the chapter. When the data have real boundaries, clustering identifies them. When the data are a gradient, an ordination is the more appropriate approach, and a clustering of the same data will look weak however the algorithm is set up.
 
-## Why Do Ecologists Cluster?
+## Why do ecologists cluster?
 
 Cluster analysis appears less often than ordination in the ecological literature, unless you work in conservation or biogeography, and the distinction above explains why. Most community data express gradients, and for a gradient an ordination loses less information than a partition does. Clustering becomes the right tool when the goal is a **classification**, namely a defined set of named units that other people can use.
 
@@ -73,7 +73,7 @@ An ordination is the better tool when the structure is continuous and the goal i
 
 A classification is a hypothesis about where the boundaries lie, offered for others to test and use. The methods (hierarchical clustering, partitioning, dendrograms, silhouette widths, validation) all offer ways of proposing, drawing, and checking those boundaries.
 
-## Distance and Similarity
+## Distance and similarity
 
 Clustering depends on the same foundation as PCoA and nMDS, namely a **dissimilarity matrix**. Every pairwise distance the earlier chapters spent so long on returns here, because a clustering is built entirely from the distances between sites. The choice of dissimilarity is therefore an ecological decision. Euclidean distance suits standardised environmental variables, Bray-Curtis suits abundance data, and Jaccard or Sørensen suit presence-absence data. Whatever measure suited the data in the ordination chapters suits it here too.
 
@@ -89,7 +89,7 @@ flowchart LR
 
 The cluster you obtain depends on the distance you chose. Two analysts who pick different dissimilarities for the same community table will, in general, obtain different clusters, both defensible. This is the same sensitivity the PCoA chapter raised, namely that clustering seldom reveals objective facts about data.
 
-## Set up the Analysis Environment
+## Set up the analysis environment
 
 ```{r code-library-tidyverse}
 library(tidyverse)
@@ -104,7 +104,7 @@ library(ggpubr)
 
 Clustering algorithms are well represented in R. The main package is, oddly, called **cluster**. It provides `pam()` for Partitioning Around Medoids, `agnes()` for agglomerative hierarchical clustering, `diana()` for divisive hierarchical clustering, and `fanny()` for fuzzy clustering. Base R adds `hclust()` for hierarchical clustering and `kmeans()` for k-means partitioning, both widely used by ecologists. The **factoextra** package wraps these in convenient plotting and model-selection helpers. Older methods persist too, notably [TWINSPAN](https://github.com/jarioksa/twinspan) and its modern relative [IndVal](https://doi.org/10.1016/B978-0-12-384719-5.00430-5) for indicator-species analysis. Every clustering function comes with its own plotting method, and it is worth becoming familiar with them.
 
-## Hierarchical Clustering
+## Hierarchical clustering
 
 Hierarchical clustering is the most common clustering approach in ecology, and dendrograms are the figures students will encounter most often, so this chapter treats it as the primary method. It comes in two directions. **Agglomerative** clustering starts with every site in its own cluster and repeatedly merges the closest pair until a single cluster remains. **Divisive** clustering works from the other end, starting with one cluster and splitting it. Agglomerative clustering (`hclust()`, `agnes()`) is far more widely used, and is the version developed here.
 
@@ -143,7 +143,7 @@ spe_hclust <- hclust(spe_bray, method = "average")
 
 The `method = "average"` argument selects a linkage rule, discussed shortly. The result is a record of every merge, displayed as a dendrogram.
 
-## Reading a Dendrogram
+## Reading a dendrogram
 
 A dendrogram is a tree. Each site is a leaf, and each internal node is a merge. The height at which two sites (or two groups) join is the dissimilarity at which the algorithm merged them. Leaves that join low down are similar, and groups that join only near the top of the tree are dissimilar. The shape of the tree is the whole result, and interpreting it is a skill worth practising.
 
@@ -172,7 +172,7 @@ table(doubs_groups)
 
 The groups broadly track the river. One headwater site forms a cluster of its own, and the rest fall into a large upstream group, a downstream group, and a small cluster of lower-river sites, following the site order (which runs from the headwaters downstream). The tracking is loose rather than fine-grained. A handful of sites join a group beyond their immediate neighbours, and the group boundaries come from the cut rather than from any sharp ecological break. That looseness is the signature of a clustered **gradient**, a continuum that the algorithm has divided into ordered segments. The segments are real and usable, though partly arbitrary, and the silhouette analysis in the validation section quantifies how arbitrary they are.
 
-## Linkage Methods
+## Linkage methods
 
 When two clusters each contain several sites, the distance between the clusters is not uniquely defined, and the **linkage** rule supplies the definition. The four common choices differ in which within-pair distance they treat as the cluster-to-cluster distance:
 
@@ -213,7 +213,7 @@ round(cophenetic_cor, 3)
 
 For the Doubs fish, average linkage preserves the distances best (about 0.83), with complete linkage a little lower, and single and Ward linkage lower still. This is why average linkage was chosen for the dendrogram above. The cophenetic correlation is a faithfulness criterion rather than a goodness criterion. It reports which tree best represents the distances, not whether the data should be clustered at all.
 
-## Choosing the Number of Clusters
+## Choosing the number of clusters
 
 Novice users often expect the algorithm to decide how many clusters to use. It does not, and that expectation must be unlearned. Numerical guidance is available, but it is guidance, not an answer. Three common diagnostics are the **silhouette** width (how well each site fits its own cluster against the next-best one), the **within-cluster sum of squares** or **elbow** (where adding clusters stops paying off), and the **gap statistic** (the observed within-cluster compactness against that expected under no clustering).
 
@@ -239,7 +239,7 @@ ggarrange(p_sil, p_wss, p_gap, nrow = 3)
 
 Even here the three methods need not agree exactly, and that is the point. The diagnostics narrow the range, but the final choice rests on what the groups are *for*. Two clusters split `iris` into "the distinct species" against "the rest". Three clusters attempt the botanical species. Either is defensible depending on the question. Expert knowledge of the system, and the intended use of the classification, do work that no statistic can.
 
-## Partitioning Methods: k-means and PAM
+## Partitioning methods: k-means and PAM
 
 Hierarchical clustering builds a whole tree and lets me cut it afterwards. **Partitioning** methods instead take the number of groups *k* as an input and sort the sites directly into that many clusters, with no tree. k-means and PAM are the common choices.
 
@@ -270,7 +270,7 @@ fviz_cluster(
   theme_grey()
 ```
 
-## Cluster Validation
+## Cluster validation
 
 A clustering always returns groups. The validation question is whether those groups mean anything, and the default answer is that **clusters are hypotheses, not facts**. Three checks help decide how much weight a clustering can bear.
 
@@ -315,7 +315,7 @@ boot$bootmean # mean Jaccard recovery per cluster (closer to 1 is more stable)
 
 Report the clusters together with the confidence the validation supports. A clustering presented without a silhouette width or a stability check lets a hypothesis pass for a result.
 
-## Combining Ordination and Clustering
+## Combining ordination and clustering
 
 The two halves of multivariate analysis are most powerful together. A common and informative approach is to cluster a dissimilarity matrix and then **draw the cluster labels onto an ordination of the same matrix**. The ordination shows the continuous arrangement, and the cluster colours show where a classification would place its boundaries. If the clusters form tidy, separated patches in the ordination, the discrete description is well supported. If they form contiguous bands across a gradient, the ordination was the better description and the clustering has cut a continuum.
 
@@ -345,7 +345,7 @@ ggplot(nmds_df, aes(NMDS1, NMDS2, colour = cluster)) +
 
 The clusters line up along the first axis, the upstream-to-downstream gradient the CA and nMDS chapters identified. Rather than discovering hidden community types, the clustering has chopped a known continuum into ordered segments. The method reflects the gradient structure of the data, which is why ordination is the more common tool for community data. The same overlay on data with real discontinuities looks entirely different, as the seaweed example below shows.
 
-## A Worked Example: WHO/SDG Countries
+## A worked example: WHO/SDG countries
 
 I now return to the WHO Sustainable Development Goals (SDG) data used in the PCA chapter, which describe each country by a set of health and development indicators. The countries fall loosely into development tiers, which makes a partition into a few clusters reasonable to attempt, and PAM a reasonable choice because its medoids name a representative country for each tier.
 
@@ -393,7 +393,7 @@ fviz_cluster(
 
 `pam()` does not draw a dendrogram. Like all partitioning methods it returns only the group labels, and the usual display is a scatter plot resembling an ordination diagram (though it is not one).
 
-### Interpreting the Clusters
+### Interpreting the clusters
 
 A clustering that is never interpreted leaves the groups abstract. The point of the analysis is to say what the clusters *are*, and PAM makes that easy through its medoids, the representative country of each group.
 
@@ -436,7 +436,7 @@ The two end clusters have average silhouette widths near 0.27, modest but real. 
 
 South Africa, highlighted on the plot, illustrates the same point at the level of a single country. It falls in the intermediate cluster on its overall multivariate profile, yet its life expectancy (about 62 years) resembles the low-development cluster, and its new-HIV rate (about 5.9 per 1 000) is an order of magnitude above any cluster median. A country can fall in one group on the average of many indicators while being an outlier on the few most relevant to a specific question. A cluster label is a summary, not the whole truth about a site.
 
-## A Conservation Example: South African Seaweed Bioregions
+## A conservation example: South African seaweed bioregions
 
 The Doubs gradient showed clustering at its least convincing. The South African seaweed flora shows it at its most useful, and explains why ecologists with a conservation or biogeographic purpose rely on it. The coast has genuine biogeographic boundaries, where one set of species gives way to another, and clustering exists to find such boundaries and turn them into named regions. This is the same dataset analysed in the [*Seaweeds in Two Oceans* appendix](two_oceans_appendices.qmd), where the bioregions were established from independent evidence.
 

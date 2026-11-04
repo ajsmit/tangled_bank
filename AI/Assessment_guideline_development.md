@@ -1,6 +1,6 @@
-# BCB733 Practical Exam Assessment Development (2025)
+# BCB733 practical exam assessment development (2025)
 
-## ChatGPT and Claude for Assessment Development
+## ChatGPT and Claude for assessment development
 
 ### Step 1
 
@@ -209,7 +209,7 @@ Rubric:
 - Limitations clearly acknowledged and reflected on: 5%
 - Forward-looking ecological insight or recommendation offered: 5%
 
-### Step 3 
+### Step 3
 
 Edit if necessary and save as a PDF ("BCB744_Prac_Exam_Rubric_2025.pdf") -- used below.
 
@@ -330,7 +330,7 @@ Output Type	Content:
 
 **Prompt ChatGPT or Clause Sonnet 4:** Please refer to the Project knowledge for detailed instructions. Produce the required .txt and .csv files as specified according to the instructions. The first batch of five student submissions is attached here.
 
-## Use Gemini for Assessment Schema Development
+## Use Gemini for assessment schema development
 
 ### -------------------------------------------------------------------------- ##
 ## Trying new marking guidelines for Gemini
@@ -338,9 +338,9 @@ Output Type	Content:
 
 Please see the attached file, "BCB744_Biostats_Prac_Exam_2025.docx". It contains an exam given to the BCB744 Biostatistics students. There are six tasks, Tasks 1-6. For each question within the tasks, I have provided the ideal (model) answer according to which the student's work must be assessed. Below is outlined a set of instructions to give to an AI system to apply a consistent, defensible, reproducible, justifiable, and verifiable mark for each task.
 
-### GENERAL ASSESSMENT PROCEDURE AND STANDARDS (Apply to All Tasks)
+### GENERAL ASSESSMENT PROCEDURE AND STANDARDS (apply to all tasks)
 
-#### A. EVALUATION AXES (Apply to All Tasks)
+#### A. EVALUATION AXES (apply to all tasks)
 
 1. Technical Accuracy (50%)
 2. Depth of Analysis (20%)
@@ -351,7 +351,7 @@ Please see the attached file, "BCB744_Biostats_Prac_Exam_2025.docx". It contains
 
 Consider also the "Note(s) to Assessor" embedded in "BCB744_Biostats_Prac_Exam_2025.docx" for each task and the answer paper in general.
 
-#### B. CRITICAL FORMATTING AND PRESENTATION REQUIREMENTS (Apply to All Tasks)
+#### B. CRITICAL FORMATTING AND PRESENTATION REQUIREMENTS (apply to all tasks)
 
 1. Automatic Penalties (Applied Before Task-Specific Assessment):
   - Code Execution Failure: Any question where code produces error messages and fails to generate required output = 0 marks for that specific question
@@ -385,7 +385,7 @@ Consider also the "Note(s) to Assessor" embedded in "BCB744_Biostats_Prac_Exam_2
   - Third: Evaluate depth, communication, and critical thinking.
   - Final: Apply task weightings to calculate overall mark.
 
-#### C. GENERAL MARKING GUIDELINES (Apply to All Tasks)
+#### C. GENERAL MARKING GUIDELINES (apply to all tasks)
 
 1. Partial Credit:
   - Award partial credit for incomplete but methodologically sound approaches.
@@ -458,7 +458,7 @@ Study feedback...
 
 **Prompt 2:** Please provide me with an improved version of my instructions that considers all your recommendations. I have also attached the "BCB744_Biostats_Prac_Exam_2025.docx" file for your reference.
 
-## Use Refined Feedback 
+## Use refined feedback
 
 **Prompt Gemini:** Paste this prompt into ChatGPT together with "BCB744_Biostats_Prac_Exam_2025.docx":
 

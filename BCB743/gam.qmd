@@ -1,6 +1,6 @@
 ---
 date: last-modified
-title: "22: Generalised Additive Models (GAM)"
+title: "22. Generalised additive models (GAM)"
 format:
   html:
     code-link: false
@@ -36,7 +36,7 @@ ggplot2::theme_set(
 :::
 
 ::: {.callout-important appearance="simple"}
-## Tasks to Complete in This Chapter
+## Tasks to complete in this chapter
 
 * [Task M 1--6](tasks/Task_M.qmd)
 :::
@@ -51,7 +51,7 @@ $$
 
 The model decides for itself whether a predictor acts linearly, as a hump, as a threshold, or as something more complex, while a penalty stops it from chasing noise. You have already used a GAM without knowing it. The `ordisurf()` response surfaces in the ordination chapters fit precisely this kind of smooth onto an ordination diagram.
 
-## What Is a Smooth?
+## What is a smooth?
 
 A smooth $f(x)$ is built as a weighted sum of simple **basis functions**. In `mgcv::gam()`, `s()` uses thin-plate regression splines by default unless another basis is requested with `bs =`, such as cubic regression splines. On its own, a flexible basis would overfit, so a GAM adds a **wiggliness penalty** and chooses the weights by penalised likelihood. The strength of the penalty is selected automatically. I use restricted maximum likelihood (`method = "REML"`), which is the most reliable choice.
 
@@ -79,7 +79,7 @@ dat <- data.frame(
 )
 ```
 
-## A First GAM: the Line Becomes a Curve
+## A first GAM: the line becomes a curve
 
 In the [GLM chapter](glm.qmd) I modelled richness against the environment with straight lines on the log scale. Compare a linear Poisson GLM with a GAM in which distance from source appears as a smooth:
 
@@ -123,7 +123,7 @@ ggplot(dat, aes(dfs, richness)) +
 
 Richness climbs steeply in the upper river, plateaus through the middle reaches, and dips near the mouth, a shape the straight line averages away entirely.
 
-## Reading a Smooth
+## Reading a smooth
 
 A GAM `summary()` has two blocks, namely the parametric terms (the intercept and any ordinary linear predictors) and the **smooth terms**, reported by their edf and an approximate significance test. The smooth itself is best seen in a plot of its **partial effect**, the contribution of that predictor on the link scale with the others held at their averages:
 
@@ -142,7 +142,7 @@ plot(
 
 The *y*-axis is centred on zero because a smooth has no intercept of its own. Interpretation rests on the **shape** and on the regions where the confidence band excludes zero. Wide bands at the ends, where data are sparse, express uncertainty.
 
-## Several Smooths at Once
+## Several smooths at once
 
 Like multiple regression, a GAM can include several predictors, each with its own smooth. The model adds their partial effects:
 
@@ -168,7 +168,7 @@ par(mfrow = c(1, 1))
 
 The elevation smooth has an edf of exactly 1, so the GAM has decided that richness responds **linearly** to elevation and has drawn a straight line of its own accord. This is a safety feature of penalised smooths, i.e., given a linear relationship, a GAM recovers it rather than inventing curvature. Oxygen and biological oxygen demand, by contrast, are non-linear.
 
-## Choosing and Checking the Basis Dimension
+## Choosing and checking the basis dimension
 
 The argument `k` sets the **maximum** flexibility (the basis dimension), and the penalty then decides how much of it to use. Rather than tuning `k` to the "right" value, you set it generously and check that it was large enough. `k.check()` (and the fuller `gam.check()`) report, for each smooth, the basis dimension `k'`, the edf used, and a test of whether residual pattern remains:
 
@@ -178,7 +178,7 @@ k.check(gam_multi)
 
 A smooth needs a larger `k` only if its **edf is close to `k'`** *and* the k-index is below 1 with a small *p*-value. Here the oxygen and BOD smooths are well below their basis dimension, so the basis is adequate. The elevation smooth shows a low *p*-value, but because its edf (1) is nowhere near `k'`, the flag is spurious. A linear smooth cannot benefit from a larger basis. `gam.check()` produces residual plots as well, which should be interpreted like those of any GLM.
 
-## Concurvity: the GAM's Multicollinearity
+## Concurvity: the GAM's multicollinearity
 
 The [multiple regression](multiple_regression.qmd) chapter warned that correlated predictors destabilise a model, and measured the problem with the VIF. The GAM has the same problem in a more general form, **concurvity**, namely that one smooth can be approximated by a combination of the others, not only linearly but through any curve. The `concurvity()` function measures it on a 0-to-1 scale, where values approaching 1 are dangerous:
 
@@ -188,7 +188,7 @@ concurvity(gam_multi, full = TRUE)
 
 The values here are high, because elevation, oxygen, and biological oxygen demand are all expressions of the same upstream-downstream gradient, which is the same collinearity I diagnosed with the VIF. As with the VIF, high concurvity means the individual smooths cannot be interpreted in isolation. The model still predicts well, but you should not claim that one correlated driver has an ecological effect and another does not.
 
-## Recovering the Unimodal Response
+## Recovering the unimodal response
 
 The motivating idea was that species respond to gradients as humps. I can see a GAM reconstruct one directly. The stone loach occurs at most sites, so its smooth is well supported:
 
@@ -220,11 +220,11 @@ ggplot(dat, aes(dfs, Babl)) +
 
 The fitted curve rises to a peak partway down the river and declines towards both ends, which is the **unimodal species-response model**. The position of the peak is the species' gradient **optimum**, and the width of the hump is its **tolerance**, the same quantities that correspondence analysis estimates as weighted averages. A GAM lets me see, for one species at a time, the response shape that ordination summarises for the whole community at once.
 
-## Prediction, Overfitting, and Smoothing
+## Prediction, overfitting, and smoothing
 
 Predictions come from `predict()`, on the link scale by default or with `type = "response"` for the original units, and a smooth term has a confidence band that widens where data are thin. The penalty restrains the fit, and without it a flexible basis would interpolate the noise. Even a penalised GAM has limits. A smooth with a high edf fitted to few data points can still overfit, so treat dramatic wiggles supported by a handful of observations with suspicion, and lean on REML rather than the older GCV criterion, which can undersmooth. The smooths remain descriptive rather than mechanistic, and a GAM tells you *that* richness peaks in the middle river, not *why*.
 
-## Where GAMs Lead
+## Where GAMs lead
 
 The additive smooth is versatile. Set `bs = "re"` and a smooth becomes a **random effect**, which takes us to the next chapter. A GAM with a random-effect smooth is a generalised additive *mixed* model. The smooth surfaces you fitted with `ordisurf()` in the ordination chapters were GAMs projected onto ordination axes, and the same `mgcv` function underlies spatial models that smooth over geographic coordinates. Once you can interpret an edf and a partial-effect plot, a large part of modern ecological modelling is open to you. The [mixed models](mixed_models.qmd) chapter takes the final step, adding structure for data that are grouped or non-independent.
 
