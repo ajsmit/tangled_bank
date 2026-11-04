@@ -111,6 +111,40 @@ document.addEventListener("DOMContentLoaded", function () {
   const actions = document.querySelector("#TOC .toc-actions"); // Edit this page / Report an issue
   if (actions) { actions.classList.add("manual-actions"); sidebar.appendChild(actions); }
   document.getElementById("TOC").hidden = true;
+  // Accordion: opening one top-level entry folds the others, including a top-level page's own sections
+  const topList = sidebar.querySelector(".sidebar-menu-container > ul");
+  const ownerLi = nav.parentElement;
+  let foldOwner = () => {};
+  if (topList && ownerLi.parentElement === topList) {
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "manual-toggle";
+    toggle.setAttribute("aria-label", "Show or hide this page's sections");
+    toggle.setAttribute("aria-expanded", "true");
+    toggle.innerHTML = '<i class="bi bi-chevron-right"></i>';
+    (ownerLi.querySelector(".sidebar-item-container") || ownerLi).appendChild(toggle);
+    foldOwner = folded => {
+      ownerLi.classList.toggle("manual-folded", folded);
+      toggle.setAttribute("aria-expanded", String(!folded));
+    };
+    toggle.addEventListener("click", () => {
+      const opening = ownerLi.classList.contains("manual-folded");
+      foldOwner(!opening);
+      if (opening) closeSections(null);
+    });
+  }
+  const closeSections = keep => {
+    if (!topList || !window.bootstrap) return;
+    topList.querySelectorAll(":scope > li > ul.collapse.show").forEach(ul => {
+      if (ul !== keep) bootstrap.Collapse.getOrCreateInstance(ul, { toggle: false }).hide();
+    });
+  };
+  sidebar.addEventListener("show.bs.collapse", e => {
+    if (!topList || e.target.parentElement?.parentElement !== topList) return;
+    closeSections(e.target);
+    if (!e.target.contains(nav)) foldOwner(true);
+  });
+
   const links = [...nav.querySelectorAll("a[href*='#']")];
   const heads = links.map(a => document.getElementById(decodeURIComponent(a.hash.slice(1))));
   const spy = () => {
