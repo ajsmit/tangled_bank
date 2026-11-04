@@ -1,0 +1,113 @@
+<!-- Manual page structure (styles/manual.scss). On sidebar pages in a wide window:
+     move search, the site's module list and the page sections into the contents
+     panel, and put author, affiliation and date on one line in the banner. -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const sidebar = document.querySelector("#quarto-sidebar");
+  // shortcut: decided once at load; resizing across 992px needs a reload, fine for a reading site.
+  if (!sidebar || !document.body.classList.contains("nav-sidebar") ||
+      !window.matchMedia("(min-width: 992px)").matches) return;
+
+  const header = sidebar.querySelector(".sidebar-header") || sidebar.firstElementChild;
+
+  // Site home and every module, built from the (hidden) top bar so _quarto.yml stays the only list.
+  const navbar = document.querySelector("#quarto-header .navbar");
+  if (navbar && header) {
+    const site = document.createElement("div");
+    site.className = "manual-site";
+    const brand = navbar.querySelector(".navbar-brand");
+    const home = document.createElement("a");
+    home.className = "manual-site-home";
+    home.href = brand ? brand.getAttribute("href") : "/";
+    home.textContent = (navbar.querySelector(".navbar-title") || {}).textContent || "Home";
+    site.appendChild(home);
+
+    const details = document.createElement("details");
+    details.innerHTML = "<summary>All modules and resources</summary>";
+    const dir = h => h.slice(0, h.lastIndexOf("/") + 1);
+    let current = null;
+    navbar.querySelectorAll(".navbar-nav:not(.ms-auto) > li.dropdown").forEach(li => {
+      const label = li.querySelector(".dropdown-toggle .menu-text");
+      const items = [...li.querySelectorAll(".dropdown-menu a.dropdown-item")];
+      if (!label || !items.length) return;
+      const group = document.createElement("div");
+      group.className = "manual-site-group";
+      group.textContent = label.textContent.trim();
+      const ul = document.createElement("ul");
+      items.forEach(a => {
+        const link = document.createElement("a");
+        link.href = a.href;
+        link.textContent = a.textContent.trim();
+        if (a.target) link.target = a.target;
+        // The module this page belongs to: the entry whose folder is the longest prefix of this page's path
+        if (a.origin === location.origin && location.pathname.startsWith(dir(a.pathname)) &&
+            (!current || dir(a.pathname).length > dir(current.pathname).length)) current = link;
+        const item = document.createElement("li");
+        item.appendChild(link);
+        ul.appendChild(item);
+      });
+      details.append(group, ul);
+    });
+    if (current) {
+      current.classList.add("current");
+      const name = document.createElement("a");
+      name.className = "manual-module";
+      name.href = current.href;
+      name.textContent = current.textContent;
+      header.prepend(name);
+    }
+    if (details.querySelector("ul")) site.appendChild(details);
+    header.before(site);
+
+    const search = navbar.querySelector("#quarto-search");
+    if (search) header.after(search);
+  }
+
+  // Previous / Overview / Next at the top of the reading column
+  const pager = document.querySelector("body > .course-page-nav, #title-block-header ~ .course-page-nav");
+  const main = document.querySelector("main.content");
+  if (pager && main) main.prepend(pager);
+
+  // Author, affiliation and date as one line in the banner
+  const block = document.querySelector("#title-block-header");
+  const title = block && block.querySelector(".quarto-title-banner .quarto-title");
+  if (title) {
+    const text = s => [...block.querySelectorAll(s)].map(e => e.textContent.trim()).filter(Boolean);
+    const meta = [...new Set([...text("p.author > a:first-child, p.author:not(:has(a))"), ...text("p.affiliation")])];
+    const date = block.querySelector(".quarto-title-meta p.date");
+    if (date) {
+      const label = date.closest(".quarto-title-meta-contents")?.previousElementSibling?.textContent.trim();
+      meta.push((label ? label.charAt(0) + label.slice(1).toLowerCase() + " " : "") + date.textContent.trim());
+    }
+    if (meta.length) {
+      const p = document.createElement("p");
+      p.className = "manual-meta";
+      p.textContent = meta.join("  ·  ");
+      title.appendChild(p);
+      block.classList.add("manual-meta-moved");
+    }
+  }
+
+  // The page's sections, nested under the current page in the panel
+  const toc = document.querySelector("#TOC > ul");
+  const active = sidebar.querySelector("a.sidebar-link.active");
+  if (!toc || !active) return;
+  const nav = document.createElement("nav");
+  nav.className = "manual-toc";
+  nav.setAttribute("aria-label", "On this page");
+  nav.appendChild(toc);
+  active.closest("li").appendChild(nav);
+  const actions = document.querySelector("#TOC .toc-actions"); // Edit this page / Report an issue
+  if (actions) { actions.classList.add("manual-actions"); sidebar.appendChild(actions); }
+  document.getElementById("TOC").hidden = true;
+  const links = [...nav.querySelectorAll("a[href*='#']")];
+  const heads = links.map(a => document.getElementById(decodeURIComponent(a.hash.slice(1))));
+  const spy = () => {
+    let i = heads.length - 1;
+    while (i > 0 && (!heads[i] || heads[i].getBoundingClientRect().top > 120)) i--;
+    links.forEach((a, j) => a.classList.toggle("active", j === i));
+  };
+  addEventListener("scroll", spy, { passive: true });
+  spy();
+});
+</script>

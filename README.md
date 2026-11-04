@@ -121,13 +121,13 @@ quarto clean
 
 - **`_quarto.yml`** - Main website configuration, navigation, and rendering settings
 - **`tangled_bank.Rproj`** - R project configuration  
-- **`styles/`** - Custom CSS styling (`styles.css`, `styles.scss`)
+- **`styles/`** - Site theme: `fonts.scss` (typography), `manual.scss` (colours, boxes and page structure, after the Shelf user manual) and `landing.scss` (home page); `includes/manual-shell.html` builds the contents panel
 - **`references.bib`** - Academic references and citations
 - **`.gitignore`** - Git ignore patterns for R and Quarto artifacts
 
 ## 🎨 Features
 
-- **Responsive Design** - Mobile-friendly layout with sidebar navigation
+- **Manual layout** - Course pages open with a teal banner and read in one column beside a fixed contents panel holding the site home, every module, the module's chapters and the current page's sections; narrow windows and pages without a sidebar keep the top menu bar
 - **Interactive Content** - Code folding, copy buttons, hover citations
 - **Rich Media** - SVG figures, embedded videos, lightbox galleries  
 - **Academic Tools** - Citation management, reference tooltips, hypothesis comments
