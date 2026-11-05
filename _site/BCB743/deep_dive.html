@@ -5,7 +5,7 @@
 <meta name="generator" content="quarto-1.10.18">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="author" content="A. J. Smit">
-<title>19: Deep Dive into Gradients – The Tangled Bank</title>
+<title>19. Deep dive into gradients – The Tangled Bank</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -100,7 +100,7 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-e53cf5314bb25ac86eb7b66edfa63eef.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-f5cdd1e343abe282723dee02834b9a82.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-9e63dba39fc18d9f0cb852ed84745632.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet"><script id="quarto-search-options" type="application/json">{
@@ -155,7 +155,7 @@ cookieconsent.run({
   });
 </script><!-- Site fonts + head metadata --><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&amp;family=Fira+Code:wght@400..700&amp;family=Inter:wght@400;500;600;700&amp;family=STIX+Two+Math&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&amp;family=Source+Sans+3:ital,wght@0,400..900;1,400..700&amp;family=Fira+Code:wght@400..700&amp;family=STIX+Two+Math&amp;display=swap">
 <script defer="" src="../scripts/external-links.js"></script><script>
   window.MathJax = {
     output: {
@@ -165,7 +165,7 @@ cookieconsent.run({
       mtextInheritFont: true
     }
   };
-</script><!-- Light-only site: pin the colour scheme and address-bar chrome --><meta name="theme-color" content="#283747">
+</script><!-- Light-only site: pin the colour scheme and address-bar chrome --><meta name="theme-color" content="#004E66">
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
 <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml-nofont.js" type="text/javascript"></script><script type="text/javascript">
@@ -195,7 +195,7 @@ window.Quarto = {
 };
 </script><link rel="stylesheet" href="../styles/biostats-callouts.css">
 <link rel="stylesheet" href="../styles/bcb743-callouts.css">
-<meta property="og:title" content="19: Deep Dive into Gradients – The Tangled Bank">
+<meta property="og:title" content="19. Deep dive into gradients – The Tangled Bank">
 <meta property="og:description" content="UWC’s Biodiversity &amp; Conservation Biology Department Pages For BDC223, BDC334, BCB743, and BCB744.">
 <meta property="og:image" content="https://tangledbank.netlify.app/BCB743/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==">
 <meta property="og:site_name" content="The Tangled Bank">
@@ -204,7 +204,7 @@ window.Quarto = {
 <body class="nav-sidebar floating nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top quarto-banner"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">The Tangled Bank</span>
@@ -237,12 +237,12 @@ window.Quarto = {
 </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-honours-core" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">Honours Core</span>
+ <span class="menu-text">Honours core</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-honours-core">
 <li>
     <a class="dropdown-item" href="../BCB744/BCB744_index.html">
- <span class="dropdown-text">BCB744: Module Overview</span></a>
+ <span class="dropdown-text">BCB744: Module overview</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../BCB744/intro_r/index.html">
@@ -267,24 +267,24 @@ window.Quarto = {
 </li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-ai--policy" role="link" data-bs-toggle="dropdown" aria-expanded="false">
- <span class="menu-text">AI &amp; Policy</span>
+ <span class="menu-text">AI &amp; policy</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-ai--policy">
 <li>
     <a class="dropdown-item" href="../docs/Combined Faculty AI Policy 15082025.pdf">
- <span class="dropdown-text">Faculty AI Policy</span></a>
+ <span class="dropdown-text">Faculty AI policy</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../AI/BCB_AI_Workshop_Sep_2025.html">
- <span class="dropdown-text">AI Workshop Overview</span></a>
+ <span class="dropdown-text">AI workshop overview</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../AI/AI_Basic_Intro.html">
- <span class="dropdown-text">Artificial Intelligence: a Basic Introduction</span></a>
+ <span class="dropdown-text">Artificial intelligence: a basic introduction</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../pages/genAI.html">
- <span class="dropdown-text">Evolving AI and Information Literacy</span></a>
+ <span class="dropdown-text">Evolving AI and information literacy</span></a>
   </li>  
     </ul>
 </li>
@@ -295,15 +295,15 @@ window.Quarto = {
     <ul class="dropdown-menu" aria-labelledby="nav-menu-support">
 <li>
     <a class="dropdown-item" href="../resources/general_resources_web.html">
- <span class="dropdown-text">General Web Resources</span></a>
+ <span class="dropdown-text">General web resources</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../resources/ecology_resources_web.html">
- <span class="dropdown-text">Ecology Web Resources</span></a>
+ <span class="dropdown-text">Ecology web resources</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../resources/spatial_resources_web.html">
- <span class="dropdown-text">Spatial Web Resources</span></a>
+ <span class="dropdown-text">Spatial web resources</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../vignettes/README_Lengau.html">
@@ -311,7 +311,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../vignettes/buffer_data_extract.html">
- <span class="dropdown-text">Buffer Data Extract</span></a>
+ <span class="dropdown-text">Extracting gridded data within a buffer</span></a>
   </li>  
     </ul>
 </li>
@@ -330,7 +330,7 @@ window.Quarto = {
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-bi-github">
 <li>
     <a class="dropdown-item" href="https://github.com/ajsmit/tangled_bank">
- <span class="dropdown-text">Source Code</span></a>
+ <span class="dropdown-text">Source code</span></a>
   </li>  
     </ul>
 </li>
@@ -348,14 +348,50 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../BCB743/constrained_ordination.html">Extended methods and applications</a></li><li class="breadcrumb-item"><a href="../BCB743/deep_dive.html">19: Deep Dive Into Gradients</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../BCB743/constrained_ordination.html">Extended methods and applications</a></li><li class="breadcrumb-item"><a href="../BCB743/deep_dive.html">19. Deep dive into gradients</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
     </div>
-  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+  </nav></header><!-- content --><header id="title-block-header" class="quarto-title-block default page-columns page-full"><div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../BCB743/constrained_ordination.html">Extended methods and applications</a></li><li class="breadcrumb-item"><a href="../BCB743/deep_dive.html">19. Deep dive into gradients</a></li></ol></nav>
+      <div class="quarto-title-block"><div><h1 class="title">19. Deep dive into gradients</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+                      </div>
+  </div>
+    
+  <div class="quarto-title-meta-author">
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-heading">Affiliation</div>
+    
+      <div class="quarto-title-meta-contents">
+      <p class="author"><a href="https://tangledbank.netlify.app">A. J. Smit</a> <a href="https://orcid.org/0000-0002-3799-6126" class="quarto-title-author-orcid" aria-label="ORCID profile for A. J. Smit"> <img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+    </div>
+    <div class="quarto-title-meta-contents">
+          <p class="affiliation">
+              <a href="https://uwc.ac.za">
+              University of the Western Cape
+              </a>
+            </p>
+        </div>
+    </div>
+
+  <div class="quarto-title-meta">
+
+        
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">2026/11/04</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
       <a href="../index.html" class="sidebar-logo-link">
@@ -392,25 +428,25 @@ window.Quarto = {
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/review.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">1: Review Concepts of Biodiversity</span></a>
+ <span class="menu-text">1. Review: Biogeography and Global Ecology</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/correlations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">2: Correlations &amp; Associations</span></a>
+ <span class="menu-text">2. Environmental correlations and species associations</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/dis-metrics.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">3: Distance &amp; Dissimilarity Metrics</span></a>
+ <span class="menu-text">3. Distance and dissimilarity metrics</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/ordination.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">4: Intro to Ordination</span></a>
+ <span class="menu-text">4. Ordination</span></a>
   </div>
 </li>
       </ul>
@@ -427,55 +463,55 @@ window.Quarto = {
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/PCA.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">5: Principal Components Analysis</span></a>
+ <span class="menu-text">5. Principal component analysis (PCA)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/PCA_examples.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">6: PCA: Additional Examples</span></a>
+ <span class="menu-text">6. PCA: additional examples</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/PCA_SDG_example.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">7: PCA: WHO SDG Example</span></a>
+ <span class="menu-text">7. PCA: WHO SDGs</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/CA.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">8: Correspondence Analysis</span></a>
+ <span class="menu-text">8. Correspondence analysis (CA)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/DCA.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">9: Detrended Correspondence Analysis</span></a>
+ <span class="menu-text">9. Detrended correspondence analysis (DCA)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/PCoA.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">10: Principal Coordinates Analysis</span></a>
+ <span class="menu-text">10. Principal coordinate analysis (PCoA)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/nMDS.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">11: Non-metric Multidimensional Scaling</span></a>
+ <span class="menu-text">11. Non-metric multidimensional scaling (nMDS)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/nMDS_diatoms.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">12: nMDS: PERMANOVA (Diatoms) Example</span></a>
+ <span class="menu-text">12. Community analysis case study: Mayombo’s diatom data</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/unconstrained-summary.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">13: Unconstrained Ordination Summary</span></a>
+ <span class="menu-text">13. Summary: unconstrained ordinations</span></a>
   </div>
 </li>
       </ul>
@@ -492,67 +528,67 @@ window.Quarto = {
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/constrained_ordination.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">14: Distance-Based Redundancy Analysis</span></a>
+ <span class="menu-text">14. Distance-based redundancy analysis</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/constrained_ordination_v2.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">15: db-RDA: Revisiting the β-Diversity Partition</span></a>
+ <span class="menu-text">15. Distance-based redundancy analysis: revisiting the β-diversity partition</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/two_oceans_appendices.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">16: db-RDA: Seaweeds Example</span></a>
+ <span class="menu-text">16. Seaweeds in Two Oceans: beta-diversity (appendices)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/cluster_analysis.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">17: Cluster Analysis</span></a>
+ <span class="menu-text">17. Cluster analysis</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/model_building.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">18: Model Building</span></a>
+ <span class="menu-text">18. Ecological model building</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/deep_dive.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">19: Deep Dive Into Gradients</span></a>
+ <span class="menu-text">19. Deep dive into gradients</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/multiple_regression.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">20: Multiple Regression</span></a>
+ <span class="menu-text">20. Multiple linear regression (MLR)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/glm.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">21: Generalised Linear Models</span></a>
+ <span class="menu-text">21. Generalised linear models (GLM)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/gam.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">22: Generalised Additive Models</span></a>
+ <span class="menu-text">22. Generalised additive models (GAM)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/mixed_models.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">23: Linear &amp; Generalised Linear Mixed Models</span></a>
+ <span class="menu-text">23. Linear and generalised linear mixed models</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../BCB743/doubs_multivariate.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">24: A Complete Multivariate Analysis of the Doubs River</span></a>
+ <span class="menu-text">24. A complete multivariate analysis of the Doubs River</span></a>
   </div>
 </li>
       </ul>
@@ -589,57 +625,21 @@ window.Quarto = {
    
   <ul>
 <li>
-<a href="#load-and-prepare-all-the-data" id="toc-load-and-prepare-all-the-data" class="nav-link active" data-scroll-target="#load-and-prepare-all-the-data">Load and Prepare All the Data</a>
+<a href="#load-and-prepare-all-the-data" id="toc-load-and-prepare-all-the-data" class="nav-link active" data-scroll-target="#load-and-prepare-all-the-data"><span class="header-section-number">1</span> Load and prepare all the data</a>
   <ul class="collapse">
-<li><a href="#the-environmental-data" id="toc-the-environmental-data" class="nav-link" data-scroll-target="#the-environmental-data">The environmental data</a></li>
-  <li><a href="#the-bioregional-classification" id="toc-the-bioregional-classification" class="nav-link" data-scroll-target="#the-bioregional-classification">The bioregional classification</a></li>
-  <li><a href="#the-geographic-distances" id="toc-the-geographic-distances" class="nav-link" data-scroll-target="#the-geographic-distances">The geographic distances</a></li>
-  <li><a href="#the-seaweed-species-data" id="toc-the-seaweed-species-data" class="nav-link" data-scroll-target="#the-seaweed-species-data">The seaweed species data</a></li>
+<li><a href="#the-environmental-data" id="toc-the-environmental-data" class="nav-link" data-scroll-target="#the-environmental-data"><span class="header-section-number">1.1</span> The environmental data</a></li>
+  <li><a href="#the-bioregional-classification" id="toc-the-bioregional-classification" class="nav-link" data-scroll-target="#the-bioregional-classification"><span class="header-section-number">1.2</span> The bioregional classification</a></li>
+  <li><a href="#the-geographic-distances" id="toc-the-geographic-distances" class="nav-link" data-scroll-target="#the-geographic-distances"><span class="header-section-number">1.3</span> The geographic distances</a></li>
+  <li><a href="#the-seaweed-species-data" id="toc-the-seaweed-species-data" class="nav-link" data-scroll-target="#the-seaweed-species-data"><span class="header-section-number">1.4</span> The seaweed species data</a></li>
   </ul>
 </li>
-  <li><a href="#calculate-beta-diversity-indices" id="toc-calculate-beta-diversity-indices" class="nav-link" data-scroll-target="#calculate-beta-diversity-indices">Calculate <span class="math inline">\(\beta\)</span>-Diversity Indices</a></li>
-  <li><a href="#make-the-plots" id="toc-make-the-plots" class="nav-link" data-scroll-target="#make-the-plots">Make the Plots</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
-  </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB743/deep_dive.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+  <li><a href="#calculate-beta-diversity-indices" id="toc-calculate-beta-diversity-indices" class="nav-link" data-scroll-target="#calculate-beta-diversity-indices"><span class="header-section-number">2</span> Calculate <span class="math inline">\(\beta\)</span>-diversity indices</a></li>
+  <li><a href="#make-the-plots" id="toc-make-the-plots" class="nav-link" data-scroll-target="#make-the-plots"><span class="header-section-number">3</span> Make the plots</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">4</span> References</a></li>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/master/BCB743/deep_dive.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content page-columns page-full" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../BCB743/constrained_ordination.html">Extended methods and applications</a></li><li class="breadcrumb-item"><a href="../BCB743/deep_dive.html">19: Deep Dive Into Gradients</a></li></ol></nav><div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">19: Deep Dive into Gradients</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
-</div>
-
-
-<div class="quarto-title-meta-author">
-  <div class="quarto-title-meta-heading">Author</div>
-  <div class="quarto-title-meta-heading">Affiliation</div>
-  
-    <div class="quarto-title-meta-contents">
-    <p class="author"><a href="https://tangledbank.netlify.app">A. J. Smit</a> <a href="https://orcid.org/0000-0002-3799-6126" class="quarto-title-author-orcid" aria-label="ORCID profile for A. J. Smit"> <img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
-  </div>
-  <div class="quarto-title-meta-contents">
-        <p class="affiliation">
-            <a href="https://uwc.ac.za">
-            University of the Western Cape
-            </a>
-          </p>
-      </div>
-  </div>
-
-<div class="quarto-title-meta">
-
-      
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">2026/07/07</p>
-    </div>
-  </div>
-  
-    
-  </div>
-  
-
-
-</header><div class="callout callout-style-default callout-tip callout-titled">
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content"><div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
@@ -705,8 +705,10 @@ window.Quarto = {
 <span id="cb1-4"><a href="#cb1-4" aria-label="4"></a><span class="fu">library</span>(vegan)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-label="5"></a><span class="fu">library</span>(betapart) <span class="co"># for partitioning beta-diversity</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="load-and-prepare-all-the-data" class="level2"><h2 class="anchored" data-anchor-id="load-and-prepare-all-the-data">Load and Prepare All the Data</h2>
-<section id="the-environmental-data" class="level3"><h3 class="anchored" data-anchor-id="the-environmental-data">The environmental data</h3>
+<section id="load-and-prepare-all-the-data" class="level2" data-number="1"><h2 data-number="1" class="anchored" data-anchor-id="load-and-prepare-all-the-data">
+<span class="header-section-number">1</span> Load and prepare all the data</h2>
+<section id="the-environmental-data" class="level3" data-number="1.1"><h3 data-number="1.1" class="anchored" data-anchor-id="the-environmental-data">
+<span class="header-section-number">1.1</span> The environmental data</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-label="1"></a><span class="co"># load the environmental data...</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-label="2"></a><span class="fu">load</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"BCB743"</span>, <span class="st">"seaweed"</span>, <span class="st">"SeaweedEnv.RData"</span>))</span>
@@ -724,7 +726,8 @@ window.Quarto = {
 <span id="cb2-14"><a href="#cb2-14" aria-label="14"></a>  <span class="st">"augSD"</span></span>
 <span id="cb2-15"><a href="#cb2-15" aria-label="15"></a>)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section><section id="the-bioregional-classification" class="level3"><h3 class="anchored" data-anchor-id="the-bioregional-classification">The bioregional classification</h3>
+</section><section id="the-bioregional-classification" class="level3" data-number="1.2"><h3 data-number="1.2" class="anchored" data-anchor-id="the-bioregional-classification">
+<span class="header-section-number">1.2</span> The bioregional classification</h3>
 <p>Various bioregions have been defined for South African marine biota. I use the four-region scheme of <span class="citation" data-cites="Bolton2004">Bolton and Anderson (<a href="#ref-Bolton2004" role="doc-biblioref">2004</a>)</span>:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-label="1"></a><span class="co"># load the bioregions data...</span></span>
@@ -743,7 +746,8 @@ window.Quarto = {
 58       AMP          NE     NBR   ECTZ</code></pre>
 </div>
 </div>
-</section><section id="the-geographic-distances" class="level3"><h3 class="anchored" data-anchor-id="the-geographic-distances">The geographic distances</h3>
+</section><section id="the-geographic-distances" class="level3" data-number="1.3"><h3 data-number="1.3" class="anchored" data-anchor-id="the-geographic-distances">
+<span class="header-section-number">1.3</span> The geographic distances</h3>
 <p>The connectivity between sections is constrained by their location along a shoreline, so I calculated the distances not as ‘as the crow flies’ distances (e.g.&nbsp;Section 1 is not connected in a straight line to Section 58 because of the intervening land), but as the great circle geodesic distances between each pair of sections along a ‘route’. Travelling from <strong>1</strong> to <strong>58</strong> therefore requires visiting <strong>2</strong>, then <strong>3</strong>, and eventually all the way up to <strong>58</strong>. The total distance between a pair of arbitrary sections is the cumulative sum of the great circle distances between each consecutive pair of intervening sections along the route. These data are contained in <code>dists_mat.RData</code> (I prepared it earlier):</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-label="1"></a><span class="co"># load the distances matrix...</span></span>
@@ -828,7 +832,8 @@ window.Quarto = {
 58 ECTZ  25.571    5.574 2.023  28.457    3.267 1.000  22.883    1.098 0.349</code></pre>
 </div>
 </div>
-</section><section id="the-seaweed-species-data" class="level3"><h3 class="anchored" data-anchor-id="the-seaweed-species-data">The seaweed species data</h3>
+</section><section id="the-seaweed-species-data" class="level3" data-number="1.4"><h3 data-number="1.4" class="anchored" data-anchor-id="the-seaweed-species-data">
+<span class="header-section-number">1.4</span> The seaweed species data</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-label="1"></a><span class="co"># load the seaweed data...</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-label="2"></a>spp <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"BCB743"</span>, <span class="st">"seaweed"</span>, <span class="st">"SeaweedSpp.csv"</span>))</span>
@@ -848,7 +853,8 @@ window.Quarto = {
 10      0      0      0      0      0      0      0      0      0      0</code></pre>
 </div>
 </div>
-</section></section><section id="calculate-beta-diversity-indices" class="level2"><h2 class="anchored" data-anchor-id="calculate-beta-diversity-indices">Calculate <span class="math inline">\(\beta\)</span>-Diversity Indices</h2>
+</section></section><section id="calculate-beta-diversity-indices" class="level2" data-number="2"><h2 data-number="2" class="anchored" data-anchor-id="calculate-beta-diversity-indices">
+<span class="header-section-number">2</span> Calculate <span class="math inline">\(\beta\)</span>-diversity indices</h2>
 <p>Calculate <span class="math inline">\(\beta\)</span>-diversity using the Sørensen index of dissimilarity. This measure is used throughout, and binary Bray-Curtis is equivalent to Sørensen in <strong>vegan</strong>. I then extract the subdiagonal from this matrix of species dissimilarities. The subdiagonal refers to the elements immediately below the main diagonal. For a matrix <span class="math inline">\(Y\)</span> with elements <span class="math inline">\(y_{ij}\)</span>, the subdiagonal elements are <span class="math inline">\(y_{i, i+1}\)</span>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-label="1"></a><span class="co"># ---- Sorensen-index ----</span></span>
@@ -1141,7 +1147,8 @@ F-statistic:  4229 on 1 and 287 DF,  p-value: &lt; 2.2e-16</code></pre>
 <span id="cb38-13"><a href="#cb38-13" aria-label="13"></a>Y2_lm2 <span class="ot">&lt;-</span> <span class="fu">dlply</span>(spp_df2, .(bio), <span class="cf">function</span>(x) <span class="fu">lm</span>(Y2 <span class="sc">~</span> annMean, <span class="at">data =</span> x))</span>
 <span id="cb38-14"><a href="#cb38-14" aria-label="14"></a><span class="co"># lapply(Y2_lm2, summary)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section><section id="make-the-plots" class="level2 page-columns page-full"><h2 class="anchored" data-anchor-id="make-the-plots">Make the Plots</h2>
+</section><section id="make-the-plots" class="level2 page-columns page-full" data-number="3"><h2 data-number="3" class="anchored" data-anchor-id="make-the-plots">
+<span class="header-section-number">3</span> Make the plots</h2>
 <p>Now assemble <strong>Figure 5.</strong> in <span class="citation" data-cites="smit2017seaweeds">Smit et al. (<a href="#ref-smit2017seaweeds" role="doc-biblioref">2017</a>)</span>. It is a plot of pairwise (a) Sørensen dissimilarities (<span class="math inline">\(\beta_\text{sør}\)</span>), (b) turnover (<em>β<sub>sim</sub></em>) and (c) nestedness-related <em>β</em>-diversity (<em>β<sub>sne</sub></em>) <span class="citation" data-cites="baselga2010partitioning">(<em>sensu</em> <a href="#ref-baselga2010partitioning" role="doc-biblioref">Baselga 2010</a>)</span> as a function of distance between sections. Section pairs falling within individual bioregions are colour-coded. Where the pairs include sections across different bioregions, the symbols are coloured grey and labelled ‘out’.</p>
 <p>Combine the data in a way that makes for easy plotting:</p>
 <div class="cell">
@@ -1469,7 +1476,8 @@ F-statistic:  4229 on 1 and 287 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 </div>
-</section><section id="references" class="level2"><h2 class="anchored" data-anchor-id="references">References</h2>
+</section><section id="references" class="level2" data-number="4"><h2 data-number="4" class="anchored" data-anchor-id="references">
+<span class="header-section-number">4</span> References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-baselga2010partitioning" class="csl-entry" role="listitem">
 Baselga A (2010) Partitioning the turnover and nestedness components of beta diversity. <span class="nocase">Global Ecology and Biogeography</span> 19:134–143.
@@ -1487,13 +1495,13 @@ Smit AJ, Bolton JJ, Anderson RJ (2017) Seaweeds in two oceans: Beta-diversity. <
 
 </section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{smit2026,
   author = {Smit, A. J.},
-  title = {19: {Deep} {Dive} into {Gradients}},
-  date = {2026-07-07},
+  title = {19. {Deep} Dive into Gradients},
+  date = {2026-11-04},
   url = {https://tangledbank.netlify.app/BCB743/deep_dive.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-smit2026" class="csl-entry quarto-appendix-citeas" role="listitem">
-Smit AJ (2026) 19: Deep Dive into Gradients. <a href="https://tangledbank.netlify.app/BCB743/deep_dive.html">https://tangledbank.netlify.app/BCB743/deep_dive.html.
+Smit AJ (2026) 19. Deep dive into gradients. <a href="https://tangledbank.netlify.app/BCB743/deep_dive.html">https://tangledbank.netlify.app/BCB743/deep_dive.html.
 </a>
 </div></div></section></div></main><!-- /main --><script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -1552,6 +1560,162 @@ document.addEventListener("DOMContentLoaded", function () {
     '" title="Open PDF version" aria-label="Open PDF version">' +
     pdfIcon +
     '<span>PDF</span></a>';
+});
+</script><!-- Manual page structure (styles/manual.scss). On sidebar pages in a wide window:
+     move search, the site's module list and the page sections into the contents
+     panel, and put author, affiliation and date on one line in the banner. --><script>
+document.addEventListener("DOMContentLoaded", function () {
+  const sidebar = document.querySelector("#quarto-sidebar");
+  // shortcut: decided once at load; resizing across 992px needs a reload, fine for a reading site.
+  if (!sidebar || !document.body.classList.contains("nav-sidebar") ||
+      !window.matchMedia("(min-width: 992px)").matches) return;
+
+  const header = sidebar.querySelector(".sidebar-header") || sidebar.firstElementChild;
+
+  // Site home and every module, built from the (hidden) top bar so _quarto.yml stays the only list.
+  const navbar = document.querySelector("#quarto-header .navbar");
+  if (navbar && header) {
+    const site = document.createElement("div");
+    site.className = "manual-site";
+    const brand = navbar.querySelector(".navbar-brand");
+    const home = document.createElement("a");
+    home.className = "manual-site-home";
+    home.href = brand ? brand.getAttribute("href") : "/";
+    home.textContent = (navbar.querySelector(".navbar-title") || {}).textContent || "Home";
+    site.appendChild(home);
+
+    const details = document.createElement("details");
+    details.innerHTML = "<summary>All modules and resources</summary>";
+    const dir = h => h.slice(0, h.lastIndexOf("/") + 1);
+    let current = null;
+    navbar.querySelectorAll(".navbar-nav:not(.ms-auto) > li.dropdown").forEach(li => {
+      const label = li.querySelector(".dropdown-toggle .menu-text");
+      const items = [...li.querySelectorAll(".dropdown-menu a.dropdown-item")];
+      if (!label || !items.length) return;
+      const group = document.createElement("div");
+      group.className = "manual-site-group";
+      group.textContent = label.textContent.trim();
+      const ul = document.createElement("ul");
+      items.forEach(a => {
+        const link = document.createElement("a");
+        link.href = a.href;
+        link.textContent = a.textContent.trim();
+        if (a.target) link.target = a.target;
+        // The module this page belongs to: the entry whose folder is the longest prefix of this page's path
+        if (a.origin === location.origin && location.pathname.startsWith(dir(a.pathname)) &&
+            (!current || dir(a.pathname).length > dir(current.pathname).length)) current = link;
+        const item = document.createElement("li");
+        item.appendChild(link);
+        ul.appendChild(item);
+      });
+      details.append(group, ul);
+    });
+    if (current) {
+      current.classList.add("current");
+      const name = document.createElement("a");
+      name.className = "manual-module";
+      name.href = current.href;
+      name.textContent = current.textContent;
+      header.prepend(name);
+    }
+    if (details.querySelector("ul")) site.appendChild(details);
+    header.before(site);
+
+    const search = navbar.querySelector("#quarto-search");
+    if (search) header.after(search);
+  }
+
+  // Previous / Overview / Next at the top of the reading column
+  const pager = document.querySelector("body > .course-page-nav, #title-block-header ~ .course-page-nav");
+  const main = document.querySelector("main.content");
+  if (pager && main) main.prepend(pager);
+
+  // Margin notes follow their block in the source; float them from the top of that block instead
+  if (window.matchMedia("(min-width: 1560px)").matches) {
+    const isMargin = el => el.matches(".column-margin, .no-row-height");
+    document.querySelectorAll("main.content .column-margin, main.content .no-row-height").forEach(note => {
+      if (note.parentElement.closest(".column-margin, .no-row-height")) return;
+      let before = note.previousElementSibling;
+      while (before && isMargin(before)) before = before.previousElementSibling;
+      if (before && !/^H[1-6]$/.test(before.tagName)) before.before(note);
+    });
+  }
+
+  // Author, affiliation and date as one line in the banner
+  const block = document.querySelector("#title-block-header");
+  const title = block && block.querySelector(".quarto-title-banner .quarto-title");
+  if (title) {
+    const text = s => [...block.querySelectorAll(s)].map(e => e.textContent.trim()).filter(Boolean);
+    const meta = [...new Set([...text("p.author > a:first-child, p.author:not(:has(a))"), ...text("p.affiliation")])];
+    const date = block.querySelector(".quarto-title-meta p.date");
+    if (date) {
+      const label = date.closest(".quarto-title-meta-contents")?.previousElementSibling?.textContent.trim();
+      meta.push((label ? label.charAt(0) + label.slice(1).toLowerCase() + " " : "") + date.textContent.trim());
+    }
+    if (meta.length) {
+      const p = document.createElement("p");
+      p.className = "manual-meta";
+      p.textContent = meta.join("  ·  ");
+      title.appendChild(p);
+      block.classList.add("manual-meta-moved");
+    }
+  }
+
+  // The page's sections, nested under the current page in the panel
+  const toc = document.querySelector("#TOC > ul");
+  const active = sidebar.querySelector("a.sidebar-link.active");
+  if (!toc || !active) return;
+  const nav = document.createElement("nav");
+  nav.className = "manual-toc";
+  nav.setAttribute("aria-label", "On this page");
+  nav.appendChild(toc);
+  active.closest("li").appendChild(nav);
+  const actions = document.querySelector("#TOC .toc-actions"); // Edit this page / Report an issue
+  if (actions) { actions.classList.add("manual-actions"); sidebar.appendChild(actions); }
+  document.getElementById("TOC").hidden = true;
+  // Accordion: opening one top-level entry folds the others, including a top-level page's own sections
+  const topList = sidebar.querySelector(".sidebar-menu-container > ul");
+  const ownerLi = nav.parentElement;
+  let foldOwner = () => {};
+  if (topList && ownerLi.parentElement === topList) {
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "manual-toggle";
+    toggle.setAttribute("aria-label", "Show or hide this page's sections");
+    toggle.setAttribute("aria-expanded", "true");
+    toggle.innerHTML = '<i class="bi bi-chevron-right"></i>';
+    (ownerLi.querySelector(".sidebar-item-container") || ownerLi).appendChild(toggle);
+    foldOwner = folded => {
+      ownerLi.classList.toggle("manual-folded", folded);
+      toggle.setAttribute("aria-expanded", String(!folded));
+    };
+    toggle.addEventListener("click", () => {
+      const opening = ownerLi.classList.contains("manual-folded");
+      foldOwner(!opening);
+      if (opening) closeSections(null);
+    });
+  }
+  const closeSections = keep => {
+    if (!topList || !window.bootstrap) return;
+    topList.querySelectorAll(":scope > li > ul.collapse.show").forEach(ul => {
+      if (ul !== keep) bootstrap.Collapse.getOrCreateInstance(ul, { toggle: false }).hide();
+    });
+  };
+  sidebar.addEventListener("show.bs.collapse", e => {
+    if (!topList || e.target.parentElement?.parentElement !== topList) return;
+    closeSections(e.target);
+    if (!e.target.contains(nav)) foldOwner(true);
+  });
+
+  const links = [...nav.querySelectorAll("a[href*='#']")];
+  const heads = links.map(a => document.getElementById(decodeURIComponent(a.hash.slice(1))));
+  const spy = () => {
+    let i = heads.length - 1;
+    while (i > 0 && (!heads[i] || heads[i].getBoundingClientRect().top > 120)) i--;
+    links.forEach((a, j) => a.classList.toggle("active", j === i));
+  };
+  addEventListener("scroll", spy, { passive: true });
+  spy();
 });
 </script><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -2006,19 +2170,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
   </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="../BCB743/model_building.html" class="pagination-link" aria-label="18: Model Building">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">18: Model Building</span>
+      <a href="../BCB743/model_building.html" class="pagination-link" aria-label="18. Ecological model building">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">18. Ecological model building</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../BCB743/multiple_regression.html" class="pagination-link" aria-label="20: Multiple Regression">
-        <span class="nav-page-text">20: Multiple Regression</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../BCB743/multiple_regression.html" class="pagination-link" aria-label="20. Multiple linear regression (MLR)">
+        <span class="nav-page-text">20. Multiple linear regression (MLR)</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb49-1"><a href="#cb49-1" aria-label="1"></a><span class="co">---</span></span>
 <span id="cb49-2"><a href="#cb49-2" aria-label="2"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
-<span id="cb49-3"><a href="#cb49-3" aria-label="3"></a><span class="an">title:</span><span class="co"> "19: Deep Dive into Gradients"</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-label="3"></a><span class="an">title:</span><span class="co"> "19. Deep dive into gradients"</span></span>
 <span id="cb49-4"><a href="#cb49-4" aria-label="4"></a><span class="an">format:</span></span>
 <span id="cb49-5"><a href="#cb49-5" aria-label="5"></a><span class="co">  html: default</span></span>
 <span id="cb49-6"><a href="#cb49-6" aria-label="6"></a><span class="co">---</span></span>
@@ -2072,7 +2236,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb49-54"><a href="#cb49-54" aria-label="54"></a><span class="fu">library</span>(betapart) <span class="co"># for partitioning beta-diversity</span></span>
 <span id="cb49-55"><a href="#cb49-55" aria-label="55"></a><span class="in">```</span></span>
 <span id="cb49-56"><a href="#cb49-56" aria-label="56"></a></span>
-<span id="cb49-57"><a href="#cb49-57" aria-label="57"></a><span class="fu">## Load and Prepare All the Data</span></span>
+<span id="cb49-57"><a href="#cb49-57" aria-label="57"></a><span class="fu">## Load and prepare all the data</span></span>
 <span id="cb49-58"><a href="#cb49-58" aria-label="58"></a></span>
 <span id="cb49-59"><a href="#cb49-59" aria-label="59"></a><span class="fu">### The environmental data</span></span>
 <span id="cb49-60"><a href="#cb49-60" aria-label="60"></a></span>
@@ -2172,7 +2336,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb49-154"><a href="#cb49-154" aria-label="154"></a>spp[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]</span>
 <span id="cb49-155"><a href="#cb49-155" aria-label="155"></a><span class="in">```</span></span>
 <span id="cb49-156"><a href="#cb49-156" aria-label="156"></a></span>
-<span id="cb49-157"><a href="#cb49-157" aria-label="157"></a><span class="fu">## Calculate $\beta$-Diversity Indices</span></span>
+<span id="cb49-157"><a href="#cb49-157" aria-label="157"></a><span class="fu">## Calculate $\beta$-diversity indices</span></span>
 <span id="cb49-158"><a href="#cb49-158" aria-label="158"></a></span>
 <span id="cb49-159"><a href="#cb49-159" aria-label="159"></a>Calculate $\beta$-diversity using the Sørensen index of dissimilarity. This measure is used throughout, and binary Bray-Curtis is equivalent to Sørensen in **vegan**. I then extract the subdiagonal from this matrix of species dissimilarities. The subdiagonal refers to the elements immediately below the main diagonal. For a matrix $Y$ with elements $y_{ij}$, the subdiagonal elements are $y_{i, i+1}$.</span>
 <span id="cb49-160"><a href="#cb49-160" aria-label="160"></a></span>
@@ -2392,7 +2556,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <span id="cb49-374"><a href="#cb49-374" aria-label="374"></a><span class="co"># lapply(Y2_lm2, summary)</span></span>
 <span id="cb49-375"><a href="#cb49-375" aria-label="375"></a><span class="in">```</span></span>
 <span id="cb49-376"><a href="#cb49-376" aria-label="376"></a></span>
-<span id="cb49-377"><a href="#cb49-377" aria-label="377"></a><span class="fu">## Make the Plots</span></span>
+<span id="cb49-377"><a href="#cb49-377" aria-label="377"></a><span class="fu">## Make the plots</span></span>
 <span id="cb49-378"><a href="#cb49-378" aria-label="378"></a></span>
 <span id="cb49-379"><a href="#cb49-379" aria-label="379"></a>Now assemble **Figure 5.** in @smit2017seaweeds. It is a plot of pairwise (a) Sørensen dissimilarities ($\beta_\text{sør}$), (b) turnover (*β~sim~*) and (c) nestedness-related *β*-diversity (*β~sne~*) [*sensu* @baselga2010partitioning] as a function of distance between sections. Section pairs falling within individual bioregions are colour-coded. Where the pairs include sections across different bioregions, the symbols are coloured grey and labelled 'out'.</span>
 <span id="cb49-380"><a href="#cb49-380" aria-label="380"></a></span>
@@ -2745,7 +2909,7 @@ document.addEventListener("DOMContentLoaded", function () {
 </div>   
     <div class="nav-footer-center">
 
-<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/main/BCB743/deep_dive.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div><div class="cookie-consent-footer"><a href="#" id="open_preferences_center">Cookie Preferences</a></div></div>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/ajsmit/tangled_bank/edit/master/BCB743/deep_dive.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/ajsmit/tangled_bank/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div><div class="cookie-consent-footer"><a href="#" id="open_preferences_center">Cookie Preferences</a></div></div>
     <div class="nav-footer-right">
       &nbsp;
     </div>
