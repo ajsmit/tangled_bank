@@ -1,3 +1,4 @@
+# After exporting the final MP4 and poster, run _private/animations/BDC223/prepare_playback.py from the repository root to add control clearance and one-second keyframes.
 """Blender film for BDC223 Lecture 7b: air flowing through an open leaf gas-exchange chamber.
 
 Grey parcels = CO2, blue parcels = water vapour. Parcels are enlarged visual representatives,

@@ -6,6 +6,10 @@ Film 2, SaturatingPulse: a PAM saturation-pulse trace becomes yields, ETR and a 
 All numbers are read from ../../slides/L07b-measuring-photosynthesis/values.json and data/
 (illustrative simulations from models.py). Render:
   uv run --python 3.12 --with manim manim -qh films.py OxygenToPI SaturatingPulse
+
+After exporting the final MP4s and posters, run from the repository root:
+  python _private/animations/BDC223/prepare_playback.py
+This adds the same 200-pixel control band and one-second keyframes as Lecture 9.
 """
 import json
 import math

@@ -14,11 +14,11 @@ The Blender companion to BDC223 Lectures 9a and 9b contains all nine films, with
 | 8 | [A changing physiological environment](concept_08_physiological_environment.mp4) | 3:20 | [Blender](concept_08_physiological_environment.blend) | [Guide](CONCEPT_08.md) |
 | 9 | [From enrichment to oxygen loss](concept_09_enrichment_and_oxygen.mp4) | 3:20 | [Blender](concept_09_enrichment_and_oxygen.blend) | [Guide](CONCEPT_09.md) |
 
-Total viewing time: **23:42**. The [suite plan](SUITE_PLAN.md) maps the films to the lecture, and the [completion report](SUITE_REVIEW.md) records the teaching changes and verification. The remainder of this page documents concept 1.
+Total viewing time: **23:42**. The prose and figures were reviewed on 5 November 2026; see the [revision account](SUITE_REVIEW.md#revision-of-5-november-2026) and [current verification](REVISION_2026-11-05.json). The [suite plan](SUITE_PLAN.md) maps the films to the lecture, and the [completion report](SUITE_REVIEW.md) records the teaching changes and verification. The remainder of this page documents concept 1.
 
 ## Watch and teach
 
-- [Film: From the flask to the surface](concept_01_supply_to_surface.mp4), 1:08, 1920 × 1080, 30 fps, H.264. Written explanations; no audio.
+- [Film: From the flask to the surface](concept_01_supply_to_surface.mp4), 1:08, 1920 × 1280, 30 fps, H.264. Written explanations; no audio.
 - [Editable Blender project](concept_01_supply_to_surface.blend), containing three named scenes. The three-dimensional objects, materials, cameras and particle paths are editable. Ordinary keyframes are baked into the project, so playback does not require enabling script execution.
 - [Lecture companion and practice](../../L09c-nutrients_visualised.qmd).
 - [Captions](concept_01.vtt) and [narration notes](#narration-notes).
@@ -89,3 +89,9 @@ The existing Manim film is retained; its production source is kept in `_private`
 ## Sources
 
 The visual narrative follows [Lecture 9a](../../L09a-nutrient_uptake.qmd) and [Lecture 9b](../../L09b-nutrients_michaelis_menten.qmd). The experimental context is [Smit (2002)](../../../docs/Smit_2002.pdf); the distinction between diffusive supply and uptake capacity is also developed by [Lindemann et al. (2016)](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2016.00026/full). All rendered artwork and code in this concept were created for this lesson.
+
+The current exports preserve the full 1920 × 1080 teaching canvas and add a 200-pixel text-free band below it for native playback controls. One-second keyframes improve seeking. Lecture pages place their controls below the video and include 10-second back/forward buttons, a seek slider and restart. When the preview server does not support byte ranges, the first seek downloads the video into browser memory.
+
+Y-axis titles are vertical and centred beside their axes, outside the tick labels. Long titles wrap without reducing the type size. In concept 2’s paired opening profiles, distance from the surface is on the x-axis of both panels; velocity and nitrate concentration are on the y-axes, with a vertical scan line and the surface at the left edge.
+
+Films 7 and 8 now use labelled quantitative diagrams in place of the vessel and molecular footage. In film 7, the tissue boundary encloses reserve and organic N, transfer arrows show rates, and a conserved stacked bar includes N removed with the water. Film 8 puts transport and chemical conversions in a single pathway and aligns the day/night rates with the reserve time course. The underlying model data and film durations are unchanged. These scenes are reproduced by `finish_final_concepts.py`; the retained native Blender scenes document the earlier visual treatment.

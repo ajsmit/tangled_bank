@@ -1,0 +1,141 @@
+<style>
+.lesson-player { margin: 1rem 0; background: #0a1721; border-radius: 8px; overflow: hidden; }
+.lesson-player video { display: block; width: 100%; margin: 0; border-radius: 0 !important; }
+.lesson-player-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .75rem; color: #f1f0dd; font: 16px/1.4 system-ui, sans-serif; }
+.lesson-player-controls button, .lesson-player-controls a { padding: .45rem .65rem; border: 1px solid #829ba5; border-radius: 4px; background: #152f3d; color: #fff; font: inherit; text-decoration: none; cursor: pointer; }
+.lesson-player-controls button:disabled { opacity: .5; cursor: wait; }
+.lesson-player-controls :focus-visible { outline: 3px solid #f8be4c; outline-offset: 3px; }
+.lesson-player-controls label { flex: 1 0 100%; display: flex; align-items: center; gap: .75rem; }
+.lesson-player-controls input { flex: 1; min-width: 0; cursor: pointer; accent-color: #f8be4c; }
+.lesson-player-time { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lesson-player-status { flex: 1 0 100%; margin: 0; }
+.lesson-player-status:empty { display: none; }
+.lesson-player:fullscreen { display: flex; flex-direction: column; justify-content: center; width: 100%; height: 100%; border-radius: 0; }
+.lesson-player:fullscreen video { flex: 1; min-height: 0; object-fit: contain; }
+.lesson-player:fullscreen .lesson-player-controls { flex-shrink: 0; }
+</style>
+<script>
+(() => {
+  const clock = seconds => {
+    const n = Math.max(0, Math.floor(Number.isFinite(seconds) ? seconds : 0));
+    return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
+  };
+  document.querySelectorAll('video').forEach((video, index) => {
+    if (video.closest('.lesson-player')) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'lesson-player';
+    wrapper.setAttribute('role', 'group');
+    wrapper.setAttribute('aria-label', video.getAttribute('aria-label') || `Animation ${index + 1}`);
+    video.before(wrapper);
+    wrapper.append(video);
+    const controls = document.createElement('div');
+    controls.className = 'lesson-player-controls';
+    controls.innerHTML = '<button type="button" data-action="play">Play</button>' +
+      '<button type="button" data-action="back" aria-label="Back 10 seconds">−10 s</button>' +
+      '<button type="button" data-action="forward" aria-label="Forward 10 seconds">+10 s</button>' +
+      '<button type="button" data-action="restart">Restart</button>' +
+      '<span class="lesson-player-time">0:00 / 0:00</span>' +
+      '<label>Seek <input type="range" min="0" max="0" step="0.1" value="0" aria-label="Playback position"></label>' +
+      '<button type="button" data-action="captions" aria-pressed="false">Captions</button>' +
+      '<button type="button" data-action="fullscreen">Full screen</button>' +
+      '<a class="lesson-player-download">Download video</a>' +
+      '<p class="lesson-player-status" role="status"></p>';
+    wrapper.append(controls);
+    const button = action => controls.querySelector(`[data-action="${action}"]`);
+    const slider = controls.querySelector('input');
+    const status = controls.querySelector('.lesson-player-status');
+    const download = controls.querySelector('a');
+    download.href = video.querySelector('source')?.src || video.src;
+    download.setAttribute('download', '');
+    let scrubbing = false;
+    const update = () => {
+      const ready = Number.isFinite(video.duration) && video.duration > 0;
+      slider.disabled = !ready;
+      slider.max = ready ? video.duration : 0;
+      for (const action of ['back', 'forward', 'restart']) button(action).disabled = !ready;
+      if (!scrubbing) slider.value = video.currentTime;
+      slider.setAttribute('aria-valuetext', `${clock(Number(slider.value))} of ${clock(video.duration)}`);
+      controls.querySelector('.lesson-player-time').textContent = `${clock(video.currentTime)} / ${clock(video.duration)}`;
+      button('play').textContent = video.paused || video.ended ? 'Play' : 'Pause';
+    };
+    let seekSource;
+    let seekTarget = 0;
+    let seekVersion = 0;
+    const prepareSeeking = async () => {
+      // Quarto's preview server can ignore Range, although Netlify supports it.
+      const response = await fetch(download.href, { method: 'HEAD', headers: { Range: 'bytes=0-0' } });
+      if (response.status === 206 || response.headers.get('accept-ranges') === 'bytes') return;
+      status.textContent = 'Loading the video for seeking…';
+      const whole = await fetch(download.href);
+      if (!whole.ok) throw new Error('Video download failed');
+      const url = URL.createObjectURL(await whole.blob());
+      video.pause();
+      await new Promise((resolve, reject) => {
+        const loaded = () => { cleanup(); resolve(); };
+        const failed = () => { cleanup(); reject(new Error('Video could not load')); };
+        const cleanup = () => {
+          video.removeEventListener('loadedmetadata', loaded);
+          video.removeEventListener('error', failed);
+        };
+        video.addEventListener('loadedmetadata', loaded);
+        video.addEventListener('error', failed);
+        video.src = url;
+        video.load();
+      });
+      status.textContent = '';
+    };
+    const seek = async time => {
+      if (!Number.isFinite(video.duration)) return;
+      seekTarget = Math.max(0, Math.min(video.duration, time));
+      const version = ++seekVersion;
+      const resume = !video.paused;
+      try {
+        if (!seekSource) seekSource = prepareSeeking();
+        await seekSource;
+        if (version !== seekVersion) return;
+        video.currentTime = seekTarget;
+        if (resume) await video.play();
+        update();
+      } catch {
+        seekSource = null;
+        status.textContent = 'Seeking could not complete. Try again or download the video.';
+      }
+    };
+    button('play').addEventListener('click', async () => {
+      if (!video.paused) { video.pause(); return; }
+      try { await video.play(); status.textContent = ''; }
+      catch { status.textContent = 'Playback could not start. Try again or download the video.'; }
+    });
+    button('back').addEventListener('click', () => seek(video.currentTime - 10));
+    button('forward').addEventListener('click', () => seek(video.currentTime + 10));
+    button('restart').addEventListener('click', () => seek(0));
+    slider.addEventListener('pointerdown', () => { scrubbing = true; });
+    slider.addEventListener('input', () => seek(Number(slider.value)));
+    slider.addEventListener('change', () => { scrubbing = false; seek(Number(slider.value)); });
+    slider.addEventListener('pointercancel', () => { scrubbing = false; update(); });
+    button('captions').hidden = !video.querySelector('track[kind="captions"], track[kind="subtitles"]');
+    button('captions').addEventListener('click', () => {
+      const track = video.textTracks[0];
+      if (!track) return;
+      track.mode = track.mode === 'showing' ? 'hidden' : 'showing';
+      button('captions').setAttribute('aria-pressed', String(track.mode === 'showing'));
+    });
+    button('fullscreen').hidden = !wrapper.requestFullscreen && !video.webkitEnterFullscreen;
+    button('fullscreen').addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else if (wrapper.requestFullscreen) await wrapper.requestFullscreen();
+        else video.webkitEnterFullscreen();
+      } catch { status.textContent = 'Full screen is unavailable in this browser.'; }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      button('fullscreen').textContent = document.fullscreenElement === wrapper ? 'Exit full screen' : 'Full screen';
+    });
+    for (const event of ['loadedmetadata', 'durationchange', 'timeupdate', 'play', 'pause', 'ended', 'seeked']) video.addEventListener(event, update);
+    video.addEventListener('error', () => { status.textContent = 'The video could not load. Use Download video to open it separately.'; });
+    update();
+    // Keep the native controls as the fallback when this script is unavailable.
+    video.controls = false;
+  });
+})();
+</script>
