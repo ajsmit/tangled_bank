@@ -1,0 +1,1131 @@
+> **TIP:**
+>
+> - Nitrogen in the environment: its forms and sources, the marine nitrogen cycle, and eutrophication as a consequence of excess nitrogen.
+> - Classifying nutrients (essential and beneficial; macronutrients and micronutrients), nutrient limitation, the Redfield ratio, Liebig’s law of the minimum and luxury consumption.
+> - The external phase of uptake: the concentration boundary layer and diffusive delivery to the thallus surface.
+> - Measuring uptake in the laboratory: multiple-flask and perturbation experiments, and calculating uptake rates from depletion curves.
+> - Uptake kinetics: the Michaelis–Menten model and its parameters $V_\text{max}$, $K_s$ and $\alpha$.
+> - Membrane transport: passive, facilitated and active (primary and secondary) uptake, and biphasic responses.
+> - Factors that modify uptake rates: water movement, nutritional history, light, temperature, nutrient form and morphology.
+
+> **TIP:**
+>
+> This lecture uses nitrogen to explain how seaweeds and plants acquire nutrients, and why this matters for eutrophication, one consequence of the transgressed nitrogen and phosphorus boundary in [Lecture 1](../BDC223/L01-worldmapper.llms.md#sec-planetary-boundaries). It builds on the surface area to volume ratio and Fick’s law from [Lecture 2](../BDC223/L02-SA_V.llms.md), and follows nitrogen from the global cycle, through the water next to the thallus, and across the cell membrane. You will learn how uptake is measured and how the Michaelis–Menten model describes it, and why the shape of an uptake curve does not by itself reveal the transport mechanism. [Lecture 9b](../BDC223/L09b-nutrients_michaelis_menten.llms.md) sets out the experimental protocol and calculations in detail, [Lecture 9c](../BDC223/L09c-nutrients_visualised.llms.md) shows the processes in nine visualisations, and in [Lab 4](../BDC223/Lab4_nitrogen_uptake.llms.md) you calculate uptake rates and fit the model to data. [Lecture 10](../BDC223/L10-plant_stress.llms.md) returns to nutrient excess as a stress.
+
+> **TIP:**
+>
+> By the end of this lecture, you will be able to:
+>
+> 1.  Describe the main forms of nitrogen in seawater and the transformations that link them in the marine nitrogen cycle (fixation, assimilation, remineralisation, nitrification and denitrification).
+> 2.  Distinguish essential from beneficial nutrients and macronutrients from micronutrients, and explain how nutrient-addition experiments, nutrient ratios, Liebig’s law and luxury consumption inform questions about nutrient limitation.
+> 3.  Explain how nutrient enrichment can lead to eutrophication, and why biomass accumulation and oxygen depletion depend on more than nutrient input.
+> 4.  Explain the concentration boundary layer, and use the diffusive flux relationship to predict how water movement and bulk concentration affect nutrient delivery to the thallus surface.
+> 5.  Describe multiple-flask and perturbation experiments with their controls, and calculate an uptake rate from depletion data by correcting for water volume, algal mass and time.
+> 6.  Interpret a Michaelis–Menten curve in terms of $V_\text{max}$, $K_s$ and $\alpha$, and use $\alpha = V_\text{max}/K_s$ to compare uptake at low concentration.
+> 7.  Distinguish passive, facilitated and primary and secondary active transport, and explain why linear, saturating or biphasic curves do not on their own identify the transport mechanism.
+> 8.  Explain how water movement, nutritional history, light, temperature and nutrient form modify uptake rates.
+
+> **NOTE:**
+>
+> - [Fisher, D. E., & Fisher, M. J. (2001). The nitrogen bomb. *Discover*, April 2001.](../docs/The_Nitrogen_Bomb_(2001).pdf)
+> - [Gruber, N., & Galloway, J. N. (2008). An Earth-system perspective of the global nitrogen cycle. *Nature*, 451(7176), 293–296.](../docs/Gruber_Galloway_(2008).pdf)
+> - [Smit, A. J. (2002). Nitrogen uptake by *Gracilaria gracilis* (Rhodophyta): adaptations to a temporally variable nitrogen environment. *Botanica Marina*, 45(2), 196–209.](../docs/Smit_2002.pdf)
+
+> **TIP:**
+>
+> [Watch the films and work through the practice questions](../BDC223/L09c-nutrients_visualised.llms.md). Start with nutrient delivery and membrane transport, then connect uptake to internal reserves, growth and coastal nutrient cycling.
+>
+> Read the slide figures alongside the explanations. Uptake is not the same measurement as growth; curve shape alone does not establish a transport mechanism; and nutrient ratios and temperature responses depend on context. Where a slide uses broad shorthand, use the qualified explanation in these notes.
+
+[![](images/BDC223_L08a_slide01.jpeg)](images/BDC223_L08a_slide01.jpeg)
+
+## 1 Introduction: the centrality of nitrogen
+
+[![](images/BDC223_L08a_slide02.jpeg)](images/BDC223_L08a_slide02.jpeg)
+
+Today’s lecture is centred on the topic of nutrient uptake. We are using nitrogen as our principal example, given its status as a ubiquitous nutrient, essential to all plants for successful growth. Additionally, we will be considering the environmental consequences of there being excessive nitrogen in the environment. This is tied directly to the planetary boundaries concept expounded by Johan Rockström ([Rockström et al. 2009](#ref-rockstrom2009safe)), specifically the quadrant concerning the nitrogen and phosphorus cycles, two key global biogeochemical cycles involving the transportation and transformation of these elements between the biosphere, geosphere, atmosphere, and oceans.
+
+Nitrogen is a particular concern, as it is one of the major thresholds humanity has already exceeded globally. This excess results in numerous environmental problems, especially where processes involve plants, primarily aquatic and marine plants, although to a lesser extent, it does impact certain terrestrial plants as well.
+
+### 1.1 Nitrogen in the environment
+
+[![](images/BDC223_L08a_slide03.jpeg)](images/BDC223_L08a_slide03.jpeg)
+
+Nitrogen’s importance is clear when you consider its abundant presence. Approximately $78\%$ of the air we breathe is composed of nitrogen, and it is found in soils, sand, and oceans, where it is accessed by plant roots or available in dissolved form for algae and marine plants. Available N can support production where N restricts growth, but light, other nutrients and losses also determine how much biomass accumulates. Abundant atmospheric N₂ does not mean abundant nitrate or ammonium.
+
+For this module, whilst terrestrial plants will feature in our discussions, our focus throughout the examples will be on aquatic environments, with particular attention to nitrogen dissolved in seawater and its role in triggering phytoplankton blooms. These can be so prolific that they are visible from space. Swirls and green patches near the UK, Ireland, or east of the Falkland Islands all testify to high concentrations of phytoplankton supported by nitrogen availability.
+
+[![](images/BDC223_L08a_slide04.jpeg)](images/BDC223_L08a_slide04.jpeg)
+
+The twirling and swirling patterns you observe in satellite imagery arise from physical ocean mixing processes (currents, eddies) distributing dissolved nitrogen, which in turn supports phytoplankton blooms.
+
+### 1.2 Environmental consequences of excess nitrogen
+
+[![](images/BDC223_L08a_slide05.jpeg)](images/BDC223_L08a_slide05.jpeg)
+
+Excess nutrient inputs from wastewater, fertiliser runoff and other sources can support nuisance blooms where nutrients restrict production. Accumulated biomass may shade other organisms, alter habitats and affect water quality and livelihoods. The response depends on the receiving system, not on nutrient input alone.
+
+[![](images/BDC223_L08a_slide06.jpeg)](images/BDC223_L08a_slide06.jpeg)
+
+Photosynthetic organisms, including some cyanobacteria, can contribute to blooms. Living organisms respire, and microbes also decompose organic matter. Low oxygen develops when total consumption exceeds supply by photosynthesis and physical renewal. Darkness removes photosynthetic supply, but neither a bloom nor nightfall inevitably produces anoxia. Later we separate nutrient supply, biomass accumulation and oxygen renewal in the final visualisation.
+
+## 2 Understanding nutrients and their uptake
+
+### 2.1 What makes a nutrient essential?
+
+[![](images/BDC223_L08a_slide07.jpeg)](images/BDC223_L08a_slide07.jpeg)
+
+Nutrients, alongside light, oxygen, and carbon dioxide, are required for plant and algal growth. In aquatic environments, algae absorb dissolved nutrients directly from the surrounding water. Terrestrial plants usually acquire them through roots in the soil.
+
+Algae, because of their immersion, do not require roots. Their entire body (the “thallus”) is bathed in nutrients. By contrast, plants depend on root systems both for nutrient uptake and for transport to other parts of the organism. You should recall from previous modules how the surface area to volume ratio becomes decisive for nutrient uptake efficiency, particularly in aquatic environments where mixing is driven by environmental processes.
+
+#### Symbiotic relationships
+
+Terrestrial plants often benefit from symbiotic relationships with fungi and bacteria (mycorrhizae and root nodules), helping them acquire and process nutrients from the soil. Aquatic algae generally do not require such associations, although bacteria in the marine environment do help make nitrogen available for algal uptake.
+
+Bacteria, in terms of both biomass and individual numbers, are among the planet’s most abundant organisms; without them, no form of life would exist.
+
+## 3 “Taxonomies” of nutrients
+
+Nutrients can be classified in various ways.
+
+### 3.1 Essential vs beneficial
+
+[![](images/BDC223_L08a_slide08.jpeg)](images/BDC223_L08a_slide08.jpeg)
+
+Our current understanding of plant nutrient uptake is largely indebted to studies conducted between the 1930s and 1970s. Algae, because of their direct exposure to dissolved nutrients, provided a simple and convenient model to study the principles of nutrient uptake, eventually informing our understanding of the entire plant kingdom.
+
+### 3.2 A classification based on physiological effect
+
+[![](images/BDC223_L08a_slide09.jpeg)](images/BDC223_L08a_slide09.jpeg)
+
+### 3.3 Classification informed by nutrient quantities
+
+[![](images/BDC223_L08a_slide10.jpeg)](images/BDC223_L08a_slide10.jpeg)
+
+- **Essential versus beneficial nutrients**: Essential nutrients are those without which a plant cannot survive or complete its life cycle. Even the absence of a single essential nutrient will halt growth, productivity, or reproduction. Beneficial nutrients enhance or facilitate physiological processes, but are not strictly required for survival or completion of the life cycle.
+
+  - By the definition of Epstein ([1972](#ref-epstein1972mineral)), an element is essential if the plant cannot complete a normal life cycle without it, or if the element forms part of an essential plant constituent or metabolite (e.g., magnesium in chlorophyll-*a*). Either criterion is sufficient.
+  - An essential element cannot be replaced by another element and has a necessary role in metabolism or structure; that role can include acting as an enzyme cofactor.
+
+- **Macronutrients versus micronutrients**: This classification reflects the relative quantity needed by the plant. Macronutrients are present and required in much higher concentrations; their roles are often structural, contributing to the biomass of the plant (e.g., carbon, nitrogen, phosphorus, oxygen, potassium). Micronutrients, though required in far smaller amounts, function mainly as catalysts or regulators (e.g., iron in nitrate reductase).
+
+## 4 So, which nutrients are there?
+
+Higher plants and algae share many (most) of the same nutrients, but their concentrations differ. Also, they differ extensively in the types of macromolecules they possess (e.g., secondary metabolites and so on), which causes the list of nutrients and their abundances to differ somewhat between these taxa.
+
+[![](images/BDC223_L08a_slide11.jpeg)](images/BDC223_L08a_slide11.jpeg)
+
+[![](images/BDC223_L08a_slide12.jpeg)](images/BDC223_L08a_slide12.jpeg)
+
+[![](images/BDC223_L08a_slide13.jpeg)](images/BDC223_L08a_slide13.jpeg)
+
+To reiterate: macronutrients contribute substantially to plant structure and biomass, whereas micronutrients are required in small amounts but are still essential because they act in catalytic and regulatory roles.
+
+Algae (seaweeds) require a suite of essential elements, including:
+
+- **Nitrogen**
+- **Phosphorus**
+- **Potassium**
+- **Calcium**, among others.
+
+Nitrogen is central because it sits in amino acids, proteins, and nucleic acids. Phosphorus is equally important in nucleic acids, membrane phospholipids, and ATP. Potassium and other nutrients have their own structural and physiological roles.
+
+[![](images/BDC223_L08a_slide14.jpeg)](images/BDC223_L08a_slide14.jpeg)
+
+While the precise list of essential nutrients differs modestly between algae and higher plants, the principle remains the same: most of the biomass is composed of macronutrients.
+
+> **TIP:**
+>
+> I will not set examination questions that require simple regurgitation of lists (such as “List five essential elements in seaweeds”). Focus, rather, is on understanding the processes and underlying principles.
+
+Besides inorganic nutrients (the “bare elements,” not bound in organic molecules), plants can, through mixotrophy, also absorb dissolved organic compounds, though this is much less common and less of a focus for today’s discussion.
+
+## 5 Concentration gradients and uptake mechanisms
+
+Tables commonly show, per $\mathrm{kg}$ of dry plant material, that macronutrient concentrations are several orders of magnitude greater than those of micronutrients.
+
+[![](images/BDC223_L08a_slide15.jpeg)](images/BDC223_L08a_slide15.jpeg)
+
+[![](images/BDC223_L08a_slide16.jpeg)](images/BDC223_L08a_slide16.jpeg)
+
+Keep the dissolved nutrient outside the cell distinct from the total nutrient stored in its tissues. Much of the nitrogen inside a seaweed is incorporated into organic compounds, so a tissue N measurement is not directly comparable to the dissolved nitrate concentration in seawater.
+
+Across a membrane, the direction of passive ion transport depends on the **electrochemical gradient**: both the concentration difference and the electrical potential matter. Active transport uses energy, directly or through coupling to another gradient, to move a substance against its electrochemical gradient. Osmosis describes the movement of water, rather than the uptake of dissolved nitrate.
+
+Before reaching the membrane, nitrate must also travel through the surrounding water. The [first Blender visualisation](../BDC223/L09c-nutrients_visualised.llms.md#sec-surface-gradient) isolates this external delivery step. It is important to distinguish diffusion towards the seaweed surface from transport across the membrane. The [third visualisation](../BDC223/L09c-nutrients_visualised.llms.md#sec-crossing-membrane) then follows membrane permeability, electrochemical gradients and energy coupling.
+
+## 6 Limiting nutrients: the concept and experiments
+
+[![](images/BDC223_L08a_slide17.jpeg)](images/BDC223_L08a_slide17.jpeg)
+
+A nutrient restricts growth when its supply, relative to the organism’s requirements and internal reserves, constrains the response under the conditions being considered. A nutrient-addition experiment can test this: compare a control with +N, +P and +N+P treatments while matching the other conditions.
+
+An increase after adding N supports N limitation of the measured response. However, no response to one nutrient alone does not exclude its involvement: another nutrient, light or some other condition may also restrict growth. The response can change with experimental duration as reserves are used or a second nutrient becomes limiting. Marine N limitation is common, but N and P limitation are not divided neatly between marine and freshwater systems ([Elser et al. 2007](#ref-elser2007global)).
+
+Use the [four-treatment experiment in concept 9](../BDC223/L09c-nutrients_visualised.llms.md#sec-enrichment-oxygen) to distinguish an initial restriction from the additional restriction exposed after enrichment.
+
+## 7 The Redfield ratio and nutrient limitation
+
+[![](images/BDC223_L08a_slide18.jpeg)](images/BDC223_L08a_slide18.jpeg)
+
+[![](images/BDC223_L08a_slide19.jpeg)](images/BDC223_L08a_slide19.jpeg)
+
+The Redfield ratio, $106\mathrm{C}:16\mathrm{N}:1\mathrm{P}$, is an empirical summary associated with marine plankton and nutrient cycling ([Redfield 1958](#ref-redfield1958biological)). It is not a requirement that every cell must maintain exactly this composition for optimal growth.
+
+The often-cited $550\mathrm{C}:30\mathrm{N}:1\mathrm{P}$ for benthic marine plants is likewise a summary across variable material, including seaweeds and seagrasses. Structural carbon, species, growth conditions and nutrient storage contribute to variation ([Atkinson and Smith 1983](#ref-atkinson1983cnp)).
+
+Keep **tissue composition**, **dissolved nutrient concentration** and **nutrient supply rate** separate. Their ratios answer different questions. A deviation from a reference ratio can suggest a hypothesis about nutrient status; it does not, by itself, diagnose the limiting nutrient. Test the hypothesis using additions, tissue measurements and the growth response.
+
+## 8 Liebig’s law of the minimum
+
+[![](images/BDC223_L08a_slide20.jpeg)](images/BDC223_L08a_slide20.jpeg)
+
+[![](images/BDC223_L08a_slide21.jpeg)](images/BDC223_L08a_slide21.jpeg)
+
+[![](images/BDC223_L08a_slide22.jpeg)](images/BDC223_L08a_slide22.jpeg)
+
+Liebig’s law expresses a useful limiting case: an abundant resource cannot compensate for an insufficient essential resource. In a model with fixed requirements, attainable yield is set by whichever nutrient can support the least additional biomass.
+
+For example, suppose each new biomass unit requires 10 µmol N and 1 µmol P. With 20 µmol N but only 1 µmol P available, P permits one additional unit and 10 µmol N remains unused. Add another µmol P and the same N inventory can support two units. These chosen requirements illustrate the accounting; they are not a universal seaweed ratio.
+
+Real responses can involve simultaneous or sequential restrictions, variable tissue composition, internal reserves and environmental constraints. Use the minimum model to make a prediction, then examine whether the experimental pattern supports its assumptions.
+
+## 9 Luxury consumption
+
+[![](images/BDC223_L08a_slide23.jpeg)](images/BDC223_L08a_slide23.jpeg)
+
+Luxury consumption means taking up more of a nutrient than is immediately required for growth and retaining the excess for later use. When external supply declines, these reserves may continue to support assimilation and growth, provided the other requirements are available.
+
+This is useful in environments where nutrient supply fluctuates. Uptake and growth can then occur at different times. Storage capacity and regulation vary among species, tissues and conditions; luxury consumption is not exclusive to slow-growing or low-surface-area forms.
+
+In [concept 7](../BDC223/L09c-nutrients_visualised.llms.md#sec-storage-growth), we end a nutrient pulse by replacing the water. Follow the internal reserve and the new tissue separately. That is a direct way to see what a storage explanation predicts.
+
+## 10 Environmental consequences of nutrients and uptake by seaweeds
+
+The preceding section introduced nutrients and explained that they can be classified into macronutrients and micronutrients, as well as essential and beneficial nutrients. We now turn to their environmental consequences and begin to explore how nutrient uptake by seaweeds is measured.
+
+[![](images/BDC223_L08a_slide24.jpeg)](images/BDC223_L08a_slide24.jpeg)
+
+One of the things we are going to do is to use nitrogen as our example. Nitrogen is convenient and easy to work with. The uptake mechanisms seen in many other nutrients are similar to those for nitrogen, so we can use it as a nice case study. But, of course, nitrogen is also one of the most important nutrients, both in the ocean and on land. It is often a limiting nutrient in the ocean and is important in many environmental problems we face today, such as eutrophication.
+
+This lecture gives the ecophysiological background for eutrophication. We want to understand why some seaweeds respond so rapidly to nutrient enrichment and why certain forms become nuisance algae.
+
+### 10.1 Case study: the beijing olympics and eutrophication
+
+[![](images/BDC223_L08a_slide25.jpeg)](images/BDC223_L08a_slide25.jpeg)
+
+Before the 2008 Olympic sailing events, a large green tide accumulated near Qingdao. It is a useful example of why a bloom needs more than a one-cause explanation. Research linked the floating algae to southern Yellow Sea aquaculture areas and examined the transport and conditions that allowed their accumulation. Nutrient availability supported growth, while origins, wind and currents helped determine where biomass appeared ([Hu et al. 2010](#ref-hu2010recurrent)).
+
+When explaining such an event, distinguish nutrient enrichment, production, transport and local accumulation. A photograph of abundant algae does not identify each of these processes.
+
+### 10.2 Sources and forms of nitrogen
+
+[![](images/BDC223_L08a_slide26.jpeg)](images/BDC223_L08a_slide26.jpeg)
+
+Nitrogen gas, $\mathrm{N_2}$, makes up about 78% of the atmosphere. Dissolving that gas in seawater does not convert it into nitrate or ammonium. Biological nitrogen fixation is one route by which $\mathrm{N_2}$ becomes fixed N available to the food web.
+
+Rivers, wastewater and atmospheric deposition can bring reactive N into coastal waters. Rivers carry dissolved inorganic, dissolved organic and particulate forms; their proportions vary. Combustion-related nitrogen oxides ($\mathrm{NO_x}$) and their atmospheric products should not be confused with nitrous oxide ($\mathrm{N_2O}$).
+
+Within the ocean, organisms repeatedly acquire, transform and release N. Upwelling transports existing nutrient-rich water towards the surface; it does not create nitrogen. The source and the transformation are separate parts of the explanation.
+
+### 10.3 Nitrogen fixation and cycling
+
+[![](images/BDC223_L08a_slide27.jpeg)](images/BDC223_L08a_slide27.jpeg)
+
+Nitrogen-fixing microorganisms, including some cyanobacteria, reduce $\mathrm{N_2}$ to ammonia, which can be assimilated into organic matter. Not all cyanobacteria fix N. Grazing, excretion and decomposition can subsequently make some of that fixed N available to other organisms.
+
+For this lecture, DIN means nitrate ($\mathrm{NO_3^-}$), nitrite ($\mathrm{NO_2^-}$) and ammonium ($\mathrm{NH_4^+}$), expressed as their N content. The operational DIN sum excludes dissolved $\mathrm{N_2}$. Some organisms also use particular dissolved organic N compounds, so DIN does not encompass every usable N source.
+
+The relative amounts of these pools vary with depth, oxygen conditions, biological activity and location. Do not apply a single percentage partition to every ocean water sample. Nitrite is an intermediate in several transformations and can accumulate where its production exceeds its consumption.
+
+### 10.4 The marine nitrogen cycle
+
+[![](images/BDC223_L08a_slide28.jpeg)](images/BDC223_L08a_slide28.jpeg)
+
+Biogeochemistry studies the movement and transformation of elements among organisms, water, air and sediments. In the marine N cycle, uptake transfers dissolved N into organisms; assimilation incorporates N into organic compounds; feeding transfers it among organisms; and excretion and decomposition return some N to the surrounding water.
+
+Atmospheric gas exchange alone does not produce DIN from $\mathrm{N_2}$. Fixation is needed to make that N biologically available to organisms unable to fix it themselves. Conversely, denitrification and anammox can return fixed N to $\mathrm{N_2}$ under suitable conditions.
+
+Particulate organic matter, including organic N, can settle as marine snow. Settling is export from a surface-water compartment, but may remain within the wider ecosystem. Microbial decomposition releases inorganic nutrients and consumes oxygen when respiration is aerobic. Some organic matter reaches deeper water or sediments; some may be buried.
+
+Dissolved organic N also enters the cycle through release, feeding and decomposition. Its use depends on the compound and the organism. Choose the system boundary before deciding whether a flux represents recycling or removal.
+
+### 10.5 Remineralisation and upwelling
+
+Remineralisation returns organic N to inorganic form, principally ammonium. Nitrification is a further transformation: ammonium is oxidised through nitrite to nitrate. This distinction matters because aerobic decomposition and nitrification both have oxygen demands, but they are different processes.
+
+Upwelling brings nutrient-rich subsurface water towards illuminated waters, connecting deeper recycling with surface production. Light supports photosynthetic production in the euphotic zone. However, uptake and N transformations are not confined to daylight or surface water: seaweeds can use stored resources in darkness, and heterotrophic and chemotrophic microorganisms transform N at depth.
+
+The final film separates the coastal overview from a dark bottom-water experiment. Its oxygen model includes aerobic decomposition and ammonium regeneration; it does not include nitrification, photosynthesis or anaerobic pathways.
+
+### 10.6 Definitions: some key terms
+
+[![](images/BDC223_L08a_slide29.jpeg)](images/BDC223_L08a_slide29.jpeg)
+
+Some important definitions:
+
+- **DIN:** Dissolved Inorganic Nitrogen; includes ammonium, nitrate, nitrite.
+- **DIP:** Dissolved Inorganic Phosphorus; phosphorus equivalents to DIN.
+- **DON:** Dissolved Organic Nitrogen.
+- **POM:** Particulate Organic Matter; also includes particulate forms of both nitrogen and phosphorus.
+
+The biogeochemical cycle operates similarly on land, but most of the transformations happen within the soil, particularly around plant roots, as well as via aboveground decomposition processes, for example as leaves fall, decompose, and transfer nitrogen back into the soil.
+
+### 10.7 Units, concentrations, and oceanographic patterns
+
+[![](images/BDC223_L08a_slide30.jpeg)](images/BDC223_L08a_slide30.jpeg)
+
+When reading literature about nitrogen as a macronutrient, you will encounter various units: micromolar ($\mu$M), microgram atom per litre, and so on. These all describe the concentration of nitrogen in water or solid solution. You should recall from first-year chemistry how to convert between micromolar and micrograms per litre ($\mu$M to $\mu$g L$^{-1}$, multiplying by the atomic or molecular mass), and vice versa. Note that the older unit microgram atom per litre ($\mu$g-at L$^{-1}$) is numerically the same as $\mu$M for a single element. Be familiar with these conversions, as you will encounter them in tests.
+
+[![](images/BDC223_L08a_slide31.jpeg)](images/BDC223_L08a_slide31.jpeg)
+
+[![](images/BDC223_L08a_slide32.jpeg)](images/BDC223_L08a_slide32.jpeg)
+
+You must also know the SI prefixes and the number of zeros associated with each, namely grammes, milligrammes, microgrammes, nanogrammes, picogrammes, et cetera. In plant physiology, a basic grasp of chemistry and SI unit prefixes is assumed.
+
+### 10.8 Typical oceanic nitrogen concentrations
+
+[![](images/BDC223_L08a_slide33.jpeg)](images/BDC223_L08a_slide33.jpeg)
+
+Always specify the N form, depth and units. Surface nitrate may be very low where biological demand has depleted it, while subsurface or recently upwelled water can contain much more. Tropical waters are not uniformly nutrient-poor: equatorial upwelling is an obvious reason to be cautious about a latitude-only description.
+
+In the Saldanha Bay context used in this lecture, nitrate concentrations ranged from undetectable to around 30–40 µmol/L in some areas, while ammonium was often much lower. These are contextual observations, not fixed thresholds for every oceanographic region ([Smit 2002](#ref-smit2002nitrogen)).
+
+As a units exercise, 40 µmol N/L divided by 2 µmol P/L gives a molar N:P ratio of **20:1**, not 10:1. Neither that ratio nor a single concentration measurement diagnoses nutrient limitation. Supply, uptake, mixing and internal nutrient status all change over time.
+
+### 10.9 Classification of oceanic systems based on nutrient levels
+
+[![](images/BDC223_L08a_slide34.jpeg)](images/BDC223_L08a_slide34.jpeg)
+
+Oligotrophic, mesotrophic and eutrophic describe broadly low, intermediate and high nutrient availability or productivity, depending on the classification being used. State the indicator and context. Low dissolved nutrient concentrations can also occur during active uptake, so they do not always imply low production.
+
+Eutrophic conditions may have natural or human causes. Upwelling regions can be highly productive; they should not automatically be assigned to an intermediate category. Eutrophication concerns nutrient enrichment and its biological consequences, rather than every naturally productive coastal system.
+
+### 10.10 The nitrogen bomb: human impact
+
+[![](images/BDC223_L08a_slide35.jpeg)](images/BDC223_L08a_slide35.jpeg)
+
+[![](images/BDC223_L08a_slide36.jpeg)](images/BDC223_L08a_slide36.jpeg)
+
+For your self-study: read the article “The Nitrogen Bomb” ([Fisher and Fisher 2001](#ref-fisher2001nitrogen)) (available on iKamva). The Haber-Bosch process has resulted in a huge problem worldwide in both terrestrial and aquatic systems ([Gruber and Galloway 2008](#ref-gruber2008earth)). “Nitrogen bomb” is a metaphor for the disastrous potential of excessive and unwisely applied nitrogen, most sharply observed in eutrophication. This is examinable content.
+
+### 10.11 What is eutrophication?
+
+[![](images/BDC223_L08a_slide37.jpeg)](images/BDC223_L08a_slide37.jpeg)
+
+[![](images/BDC223_L08a_slide38.jpeg)](images/BDC223_L08a_slide38.jpeg)
+
+Nutrient enrichment can stimulate production when nutrients restrict growth and the other requirements are available. Biomass accumulates when production exceeds losses through grazing, mortality and export. Fast uptake, internal storage, favourable light and temperature, and water retention can all contribute; surface area alone does not guarantee a bloom.
+
+Accumulated algae can shade other organisms and alter habitats and community composition. The outcome need not be the dominance of exactly one species, and the magnitude of the response varies among systems.
+
+Living organisms respire, and decomposition of organic matter adds an oxygen demand. Oxygen loss occurs when consumption exceeds the oxygen supplied by photosynthesis and physical renewal. At night photosynthetic supply ceases, but respiration continues. In dark bottom water there may be little photosynthetic supply even during the day. Complete depletion is possible under severe conditions, but is not inevitable after every bloom ([Diaz and Rosenberg 2008](#ref-diaz2008spreading)).
+
+The [ninth film](../BDC223/L09c-nutrients_visualised.llms.md#sec-enrichment-oxygen) first tests N and P additions, then holds initial organic loading constant while changing oxygen renewal. Explain why those are different experiments.
+
+### 10.12 Mitigating eutrophication
+
+Source control addresses continuing enrichment: wastewater treatment, reduced nutrient losses from agriculture and appropriate waste management can reduce the load reaching receiving waters. Which nutrient sources matter requires evidence from that system.
+
+Harvesting nuisance algae can remove some stored N and P and relieve local impacts, but it does not by itself stop new inputs. Account for the harvested nutrient amount and the disposal destination. Assessing mitigation requires both source and receiving-water measurements, including production, retention and oxygen conditions.
+
+## 11 Linking form and function: surface area to volume ratio
+
+Responses to nutrient enrichment depend on both morphology and physiology. High surface area relative to tissue volume can support rapid uptake when that surface is active and adequately supplied. The functional form model of Littler and Littler ([1980](#ref-Littler1980)) connects morphology with ecological performance, but form alone does not establish which species will outcompete another.
+
+[![](images/BDC223_L08a_slide39.jpeg)](images/BDC223_L08a_slide39.jpeg)
+
+Connect surface area to volume ratio with the units of nutrient uptake. At the same flux per unit active surface, more area per gram gives greater uptake per gram. Water renewal and tissue condition can change that comparison. [Concept 6: Form and nutrient supply](../BDC223/L09c-nutrients_visualised.llms.md#sec-form-and-supply) holds tissue volume constant, unfolds the exchange surfaces, and tests a canopy example with unchanged area but restricted nutrient supply.
+
+If you have questions or do not grasp a particular aspect, you are welcome to ask on WhatsApp. Please ensure you read the assigned articles and refresh your knowledge of unit conversions and SI prefixes, as you will be expected to use this knowledge fluently.
+
+Read further on eutrophication. Enrichment can alter production, competition and habitat, but the outcome depends on the organisms, other resources and losses. Test the steps between an input and the ecological response you want to explain.
+
+## 12 Nutrient uptake
+
+Today, I want to discuss the physiology of plant nutrient uptake, specifically focussing on the processes by which algae (seaweeds, in marine environments) take up nutrients from their surroundings. Throughout this lecture, I will be using the terms ‘algae’, ‘seaweed’, and ‘plant’ interchangeably; for the purposes of our discussion, they all refer to seaweeds, as the experiments we are considering were conducted with seaweeds. The uptake processes in terrestrial plant roots are similar regarding the mechanism of transfer from the environment into the plant, but the main differences lie in the environmental processes within soils.
+
+Our goal is to develop an ecophysiological understanding of how plants (seaweeds) absorb nutrients, which will also help explain how seaweeds thrive in various marine habitats, and why many can become nuisance species under eutrophic conditions.
+
+### 12.1 Pathways and barriers to nutrient uptake
+
+[![](images/BDC223_L08a_slide40.jpeg)](images/BDC223_L08a_slide40.jpeg)
+
+When a dissolved nutrient is taken up, it first travels from the surrounding water towards the thallus surface. It then passes through the cell wall and across the plasma membrane. Transport through the external water and transport across the membrane are separate steps, and either can restrict nutrient acquisition.
+
+[![](images/BDC223_L08a_slide41.jpeg)](images/BDC223_L08a_slide41.jpeg)
+
+Nutrient uptake can be described as a two-stage process:
+
+1.  **External Phase**: Water movement transports and mixes nutrients outside the thallus. Very close to the surface, molecular diffusion is important for delivery. If uptake depletes this water, its dissolved nutrient concentration is lower than that of the bulk water farther away. The resulting concentration gradient supports a net diffusive flux towards the surface.
+
+2.  **Membrane Transport and Internal Processing**: Membrane transport controls entry into the cell. Nutrients may then be stored or assimilated into organic compounds. These processes have finite capacities and need not occur at the same rate, so uptake is not necessarily followed by immediate growth.
+
+When delivery is sufficient, membrane transport or internal processing may set the rate. When delivery is restricted, the surface concentration can fall and reduce uptake. These controls are coupled, and species need not have identical transport or processing capacities.
+
+### 12.2 Factors influencing nitrogen uptake
+
+Nitrogen (and other macronutrient) uptake is influenced by many factors:
+
+- **External Conditions:** The thickness of the boundary layer and the actual concentration of nutrients in the water are crucial. These are influenced by physical conditions outside the plant.
+- **Form of Nutrient:** Nitrate and ammonium can have different uptake rates and transport systems. Neither the nutrient name nor the shape of its uptake curve identifies the mechanism on its own. Distinguish uncharged ammonia from positively charged ammonium.
+- **Nutrient Starvation History:** Nutrient-depleted tissue may show rapid uptake after a pulse; the response depends on reserves, regulation and tissue condition.
+- **Environmental Conditions:** Light and temperature can change uptake and processing within useful ranges; higher values do not always increase capacity or uptake.
+- **Surface Area to Volume Ratio:** As discussed, this has a substantial effect on uptake dynamics.
+- **Mechanisms of Uptake:** The presence of additional mechanisms (such as facilitated diffusion) can also influence overall nutrient uptake.
+
+All of these together influence the rate at which macronutrients such as nitrogen and phosphorus are taken up from the environment.
+
+### 12.3 The boundary layer concept
+
+[![](images/BDC223_L08a_slide42.jpeg)](images/BDC223_L08a_slide42.jpeg)
+
+Picture a small region of water beside the thallus. Individual molecules move randomly, including both towards and away from the surface. Uptake removes nutrients at the surface. If replacement is slow, the nearby water becomes depleted and a **concentration boundary layer** develops. This is a region within the water, not a solid skin. Molecular motion continues even when we do not stir the flask.
+
+Let $C_b$ be the dissolved concentration in the bulk water and $C_s$ the dissolved concentration at the thallus surface. For an approximately planar layer of effective thickness $\delta$, with a steady, approximately linear concentration profile, the inward diffusive flux per unit area is
+
+$$J_{\mathrm{in}} \approx D\frac{C_b-C_s}{\delta},$$
+
+where $D$ is the diffusion coefficient. Use consistent units. The flux increases with the concentration difference and decreases with diffusion distance. This external gradient ends at the **surface water concentration**, not at the total nitrogen concentration inside the tissue.
+
+Greater water movement can replenish depleted water and reduce the effective diffusion distance. At the same temperature, this does not mean that stirring makes individual molecules diffuse faster. It changes their delivery by water movement and the concentration field near the surface. The concentration boundary layer is also distinct from the **hydrodynamic boundary layer**, which describes changes in water velocity near the surface.
+
+When external delivery restricts uptake, improved water movement can increase uptake. If membrane transport or internal processing already sets the rate, the same increase in water movement may have little effect.
+
+> **TIP:**
+>
+> [Concept 1: From the flask to the surface](../BDC223/L09c-nutrients_visualised.llms.md#sec-surface-gradient) follows a nitrogen pulse towards the thallus, shows random motion and surface depletion, and tests what happens when uptake stops. Watch the profile change while the bulk concentration is held constant.
+
+### 12.4 Influence of environmental nutrient concentration
+
+[![](images/BDC223_L08a_slide43.jpeg)](images/BDC223_L08a_slide43.jpeg)
+
+Water movement is not the only factor affecting delivery. Increasing the bulk nutrient concentration can increase the difference between bulk and surface concentrations, supporting greater diffusive supply. The response also depends on how quickly the seaweed removes nutrients at the surface; $C_s$ is an outcome of the balance between delivery and uptake.
+
+In very low-flow conditions, increasing the concentration of external nutrients can compensate somewhat for a thick boundary layer, enhancing uptake despite slow water movement.
+
+These two principles, namely the thickness of the boundary layer (and thus water movement) and the nutrient concentration gradient, underlie the role of the diffusion step in limiting nutrient uptake.
+
+### 12.5 Algal nutritional history
+
+[![](images/BDC223_L08a_slide44.jpeg)](images/BDC223_L08a_slide44.jpeg)
+
+Continued growth during a period of low external N can draw down internal reserves. When functional, nutrient-depleted tissue receives a new pulse, uptake may exceed that of otherwise comparable replete tissue. Internal feedback, demand and changes in uptake machinery are possible explanations.
+
+The response depends on prior conditions and tissue health. It is not an unlimited rule that longer starvation gives faster uptake. In [concept 7](../BDC223/L09c-nutrients_visualised.llms.md#sec-storage-growth), compare reserve status while holding starting structural biomass and external concentration constant; then ask what measurements would test the explanation.
+
+## 13 Measuring nutrient uptake in the laboratory
+
+> **TIP:**
+>
+> A highly detailed protocol for conducting nutrient uptake experiments is provided in “[Lecture 9b: The Michaelis-Menten Model in Detail](../BDC223/L09b-nutrients_michaelis_menten.llms.md).”
+
+[![](images/BDC223_L08a_slide45.jpeg)](images/BDC223_L08a_slide45.jpeg)
+
+To quantify nutrient uptake in plants, algae, and seaweeds, we perform controlled experiments in laboratory flasks. Here is the protocol I followed for my PhD research:
+
+[![](images/BDC223_L08a_slide46.jpeg)](images/BDC223_L08a_slide46.jpeg)
+
+[![](images/BDC223_L08a_slide47.jpeg)](images/BDC223_L08a_slide47.jpeg)
+
+[![](images/BDC223_L08a_slide48.jpeg)](images/BDC223_L08a_slide48.jpeg)
+
+Each flask contains seawater with a known, enriched nutrient concentration and a measured piece of seaweed. At both the start and end of a timed interval (usually 20 minutes), water samples are taken to measure nutrient concentration. The decrease in nutrients reflects uptake by the seaweed.
+
+Bubbling increases water movement and can reduce external transport resistance. Its effect on uptake depends on whether delivery restricts the rate; compare matched conditions and keep this separate from a change in molecular diffusion coefficient.
+
+When we design uptake experiments and calculate depletion curves, we must be certain of the units of measurement used throughout. We place a known mass of seaweed in a known volume of water, measure the rate at which the nutrient disappears from that water over a known time. We also need to know the initial amount of nutrient in the water.
+
+Mass is usually measured in grams. Most seaweeds used in such experiments weigh a few grams to tens of grams, while some of the larger seaweeds weigh in the order of kilograms. Choose a unit appropriate to the organism being studied.
+
+Nutrient uptake can proceed over minutes, and the disappearance of nutrients from the culture medium is easily measured within less than an hour. An hour is therefore a convenient unit of time, although the choice should again suit the organism being studied.
+
+The volume of the culture medium is usually set by the size of the experimental containers. A small piece of algal tissue, excised from the whole plant, is placed in a volume of water that fits in a flask, so volumes are measured in millilitres and are usually less than a litre. In my experiments, the volume was ca. $250\;\mathrm{mL}$.
+
+Nutrient concentrations can be expressed in micromolar, $\,\mu\mathrm{mol\,L}^{-1}$ ($\,\mu\mathrm{M}$), or in micrograms per litre, $\,\mu\mathrm{g\,L}^{-1}$. Choose the unit that suits the measurements.
+
+These units must be known at the start of the experiment, because they carry through several stages of calculation and determine the unit in which the uptake rate is reported, such as moles of nutrient taken up per gram of seaweed per hour ($\,\mathrm{mol}\;\mathrm{g}^{-1}\;\mathrm{h}^{-1}$). We normalise data to a unit of seaweed, typically per gram, because different flasks may contain slightly different masses (e.g., $1.2\,\mathrm{g}$ versus $1.1\,\mathrm{g}$). Dividing the uptake by the mass of seaweed standardises it on a per-gram basis. We standardise to a unit of time in the same way, converting a measurement taken over 20 minutes to an hourly rate by multiplying by three. As covered in earlier lectures, conversion between units (micrograms and micromolar, for instance) is sometimes required.
+
+### 13.1 Types of uptake experiments
+
+#### Multiple flask experiment
+
+[![](images/BDC223_L08a_slide49.jpeg)](images/BDC223_L08a_slide49.jpeg)
+
+In a multiple flask experiment, each flask begins with a different initial concentration of nutrient (e.g., $25\,\mu\mathrm{mol}\,\mathrm{L}^{-1}$, $20\,\mu\mathrm{mol}\,\mathrm{L}^{-1}$, $15\,\mu\mathrm{mol}\,\mathrm{L}^{-1}$, etc.), the same amount of seaweed, same water volume (e.g., $500\,\mathrm{mL}$), and the same temperature (e.g., $20^\circ\mathrm{C}$). After a set duration, changes in nutrient concentration indicate how much has been taken up. Calculations are carefully outlined for you and involve correcting for flask volume, time, and seaweed mass.
+
+The treatments span a range of nutrient concentrations, including one with no added nutrient. If the measured concentration is initially zero, this treatment can reveal net nutrient release from the seaweed and its associated organisms.
+
+A separate **no-seaweed control** contains nutrient and the same water and apparatus, but no seaweed. It tests for background changes such as removal from the water or adsorption to the container. Under ideal conditions its concentration stays constant. Include suitable controls and replicate flasks when attributing nutrient disappearance to the seaweed.
+
+These controls answer different questions. A zero-added-nutrient treatment does not rule out all release or removal processes at other concentrations. Any correction requires evidence that the measured background process also applies to the treatment concerned.
+
+#### Calculating N uptake in multiple flask experiments
+
+Calculating nutrient uptake rates from the depletion curves of multiple flask experiments may at first appear complicated. The calculation involves many steps, and at several of them units must be converted from one form to another. Once you understand the process, each step follows logically from the one before.
+
+[![](images/BDC223_L08a_slide50.jpeg)](images/BDC223_L08a_slide50.jpeg)
+
+At the most basic level (practical experience helps), you need only the mass of seaweed used, the duration of exposure to the experimental conditions, and the nutrient concentrations in each flask at the start and at the end of the incubation (after, say, $20$ minutes). From these values, a systematic sequence of calculations gives the rate of nutrient uptake.
+
+The result is reported as the amount of nutrient taken up per gram of seaweed per hour, $\left(\frac{\Delta\text{units of nutrient}}{\mathrm{g\, seaweed}\cdot\mathrm{h}}\right)$. Knowing the final units (here, a rate) sets out the steps needed to get from the start of the experiment to the result.
+
+The method of calculation can often be deduced from the unit in which the result is reported. Breaking that unit into its parts shows each calculation required, provided you start with sound measurements.
+
+#### Perturbation experiments
+
+[![](images/BDC223_L08a_slide51.jpeg)](images/BDC223_L08a_slide51.jpeg)
+
+With the perturbation experiment (the approach used in the spreadsheet data for your Lab), a flask starts with, for example, $25\,\mu\mathrm{mol}\,\mathrm{L}^{-1}$ nitrate and a known mass of seaweed. At regular intervals, water samples are removed and nutrient concentration analysed. We follow the same flask as nutrient concentration declines. A stable no-seaweed control supports the absence of a background concentration change under those conditions; it does not establish that every process in the seaweed flask has been isolated.
+
+Record the volume and nutrient concentration of each sample. Removing well-mixed water exports nitrogen but does not, by itself, change the concentration left behind. The [Blender film on measuring uptake](../BDC223/L09c-nutrients_visualised.llms.md#sec-measuring-uptake) follows this inventory alongside the depletion curve and the uptake rate.
+
+This generates a depletion curve: plotting nutrient concentration over time, often for several replicate flasks at differing environmental conditions (e.g., high/low temperatures, pre-starved or already nutrient-replete seaweeds).
+
+#### Calculating depletion curves from perturbation experiments
+
+[![](images/BDC223_L08a_slide52.jpeg)](images/BDC223_L08a_slide52.jpeg)
+
+The uptake rate, denoted $V$, is the rate of nutrient uptake per gram per hour (or other unit of time). This is clearly shown in the depletion curves. The concentration slope, $\Delta S/\Delta t$, is negative during depletion. Multiply its negative by water volume $\Omega$ and divide by algal mass $M$ to obtain the positive uptake rate:
+
+$$V = -\frac{\Omega}{M}\frac{\Delta S}{\Delta t}.$$
+
+Use hours for $\Delta t$ when reporting an hourly rate. The [animated walk-through in Lecture 9b](../BDC223/L09b-nutrients_michaelis_menten.llms.md#sec-follow-nitrogen) shows each part of this conversion and the progression along the $V$–$S$ curve.
+
+[![](images/BDC223_L08a_slide53.jpeg)](images/BDC223_L08a_slide53.jpeg)
+
+As you can see in the slide above, plotting a depletion curve is very straightforward. All you need to do is recognise that time is the independent variable; that is, it will be plotted on the *x*-axis. The nutrient concentrations remaining in the flasks after each consecutive time interval are plotted on the *y*-axis, which serves as the dependent variable. Once you have constructed the plot as I have just described, you will observe a curve very similar to the one I have shown for ammonium uptake.
+
+[![](images/BDC223_L08a_slide54.jpeg)](images/BDC223_L08a_slide54.jpeg)
+
+For each interval, calculate a mean uptake rate from the concentration slope, water volume, biomass and elapsed time. The concentration slope itself is not $V$: their units differ. With fixed uptake properties, the initial high concentration supports the fastest uptake, and the depletion curve becomes shallower as concentration falls. Changes in tissue condition during a real incubation can also alter the response.
+
+Here is the sequence of steps, which are as logical and systematic as in the multiple flask experiments:
+
+[![](images/BDC223_L08a_slide55.jpeg)](images/BDC223_L08a_slide55.jpeg)
+
+These rates ($V$) are then used for the next phase of analysis.
+
+## 14 Different uptake mechanisms
+
+[![](images/BDC223_L08a_slide56.jpeg)](images/BDC223_L08a_slide56.jpeg)
+
+Before interpreting the uptake curves, distinguish the route across the membrane from the energy that drives transport.
+
+**Passive transport** proceeds down a substance’s electrochemical gradient without energy coupling. It includes simple diffusion through the lipid and facilitated diffusion through membrane proteins. **Active transport** couples movement against an electrochemical gradient to an energy source, either directly, as in an ATP-driven pump, or indirectly, through another ion’s gradient.
+
+Facilitated diffusion is therefore part of passive transport. Biphasic uptake describes a pattern in the concentration response; it is not a separate energy source or a single molecular mechanism.
+
+Multiple-flask and perturbation experiments measure net nutrient removal. They can reveal saturation or other concentration responses, but do not by themselves establish whether membrane transport is active. Keep this distinction in mind as we develop the Michaelis–Menten relationship. The [membrane film](../BDC223/L09c-nutrients_visualised.llms.md#sec-crossing-membrane) makes the mechanisms visible.
+
+## 15 Uptake kinetics: Michaelis-Menten model
+
+[![](images/BDC223_L08a_slide57.jpeg)](images/BDC223_L08a_slide57.jpeg)
+
+We then plot uptake rate ($V$) against substrate concentration ($S$). A saturable uptake system can follow the Michaelis–Menten equation, familiar from enzyme kinetics. The [capacity and concentration film](../BDC223/L09c-nutrients_visualised.llms.md#sec-capacity-concentration) develops this curve from the behaviour of individual uptake sites.
+
+- At high substrate concentrations, uptake approaches a limiting capacity under the stated conditions.
+- At lower concentrations, uptake sites can spend more time unoccupied. Uptake then falls even if external delivery is unrestricted. A declining rate alone does not demonstrate diffusion limitation.
+
+[![](images/BDC223_L08a_slide58.jpeg)](images/BDC223_L08a_slide58.jpeg)
+
+[![](images/BDC223_L08a_slide59.jpeg)](images/BDC223_L08a_slide59.jpeg)
+
+When plotting $V$ against $S$, we see:
+
+- A plateau approached at high concentrations. Its limiting value is $V_{\text{max}}$. In a perturbation experiment, uptake is **closest to this limit at the start**, provided that the initial concentration is sufficiently high and capacity remains unchanged. In a multiple flask experiment, the highest-concentration flasks come closest. Estimate their rates from the initial depletion slopes, correcting for water volume, algal mass and time units.
+- Lower rates at lower concentrations. In a depletion experiment these occur towards the tail of the concentration–time curve, provided that the organism’s uptake properties remain unchanged. The concentration response does not tell us, on its own, whether external delivery also restricts uptake.
+
+$$V = \frac{V_\text{max} \cdot S}{K_s + S}$$
+
+Here, $V_\text{max}$ is the limiting uptake capacity, $K_s$ is the half-saturation concentration, and $S$ is substrate concentration. At $S=K_s$, $V=V_\text{max}/2$. In this equation the rate approaches $V_\text{max}$ asymptotically; it does not reach it at a finite $S$.
+
+In the film’s site model, $S$ is the maintained concentration at the membrane. In a flask experiment we usually measure the bulk water. If the surface is depleted relative to the bulk, a curve fitted using bulk concentration can also reflect external delivery. Keep this distinction when interpreting fitted parameters.
+
+A rectangular hyperbola is consistent with a saturable uptake system, including active transport or passive facilitated transport. Curve shape alone does not identify the energy source. Capacity can depend on transporter abundance, turnover and internal processing. Light, temperature and nutritional history can change the response, but higher light or temperature does not invariably increase uptake.
+
+### 15.1 Reading the Michaelis-Menten graph
+
+[![](images/BDC223_L08a_slide60.jpeg)](images/BDC223_L08a_slide60.jpeg)
+
+At high $S$, uptake increasingly approaches $V_\text{max}$. Doubling an already high concentration produces a small increase in uptake because the system is operating close to its capacity. At low $S$, changing concentration has a larger proportional effect. This pattern can arise from site occupancy without an external diffusion barrier.
+
+- $V_\text{max}$: limiting uptake rate, expressed on a stated biomass or area basis.
+- $K_s$: concentration at half of that limiting rate. It is not generally an equilibrium binding constant.
+- $\alpha$ (alpha): the tangent slope at the origin, describing uptake responsiveness when $S$ is small relative to $K_s$.
+
+The initial slope is $\alpha=V_{\max}/K_s$. At the same $V_{\max}$, a lower $K_s$ gives a steeper initial slope and greater uptake at low concentration. When capacities differ, compare $\alpha$ rather than interpreting $K_s$ alone as evidence of better performance under nutrient scarcity.
+
+For example, population A has $V_{\max}=4$ and $K_s=1$, while B has $V_{\max}=12$ and $K_s=2$, using the same units and biomass basis. Their initial slopes are 4 and 6. At $S=0.5$, their uptake rates are 1.33 and 2.40: B takes up more despite its higher $K_s$. Away from the low-concentration limit, use the full equation.
+
+The [IUBMB kinetic recommendations](https://iubmb.qmul.ac.uk/kinetics/ek4t6.html) distinguish half-saturation, limiting rate and the initial slope. Here we retain the lecture’s uptake notation $K_s$; the recommendations use $K_m$ for the Michaelis constant.
+
+### 15.2 Applications and importance
+
+[![](images/BDC223_L08a_slide61.jpeg)](images/BDC223_L08a_slide61.jpeg)
+
+Understanding these parameters helps explain why some seaweeds become opportunistic, blooming in nutrient-rich environments while others persist under nutrient limitation. The values of $V_\text{max}$, $K_s$, and $\alpha$ are affected by species’ physiology, surface area to volume ratio, light, temperature, pre-conditioning, and other ecophysiological parameters.
+
+Relate these parameters to external delivery, membrane transport and internal processing. To identify which process restricts uptake, propose a controlled intervention and predict its outcome. For example, vary water movement at matched bulk concentration and physiological state, rather than diagnosing diffusion limitation from a curve’s shape alone.
+
+[![](images/BDC223_L08a_slide62.jpeg)](images/BDC223_L08a_slide62.jpeg)
+
+We have followed the depletion curve and used its slopes, with the appropriate volume and biomass corrections, to construct the uptake-rate versus concentration relationship. A rectangular hyperbola is consistent with a saturable system. Both active transport and passive facilitated transport can show this behaviour.
+
+The parameters $V_{max}$, $K_s$ and $\alpha$ describe the concentration response under the experimental conditions. To explain the membrane mechanism, we now need to ask about permeability and energy coupling.
+
+## 16 Active uptake
+
+[![](images/BDC223_L08a_slide63.jpeg)](images/BDC223_L08a_slide63.jpeg)
+
+Active transport can move a nutrient against its **electrochemical gradient** by coupling that movement to an energy source. For an ion, both concentration and membrane voltage matter. A concentration difference alone is insufficient to identify uphill transport.
+
+[![](images/BDC223_L08a_slide64.jpeg)](images/BDC223_L08a_slide64.jpeg)
+
+External dissolved concentrations may be in the micromolar range while some internal pools reach millimolar concentrations. Compare the same free dissolved species on the two sides of the membrane. Total tissue nitrogen includes organic compounds and different cellular compartments, so it is not a measure of free cytosolic nitrate.
+
+Passive diffusion supplies nutrients through the external water, and passive transport can also occur across membranes where a suitable route and electrochemical gradient exist. Active transport becomes necessary to sustain movement that is uphill for the transported substance.
+
+[![](images/BDC223_L08a_slide63_.jpeg)](images/BDC223_L08a_slide63_.jpeg)
+
+An ATP-driven proton pump provides a useful example of **primary active transport**. It exports hydrogen ions, helping maintain both a membrane voltage and a difference in proton concentration. ATP is supplied by cellular metabolism; this mechanism should not be read as requiring immediate illumination at every transport event.
+
+A separate carrier can couple proton entry to nutrient entry. The returning protons release free energy, allowing the nutrient’s own movement to be uphill while the combined movement remains favourable. This is **secondary active transport**. The nutrient carrier need not hydrolyse ATP itself.
+
+**Symport** means that coupled substances pass through the same protein in the same direction. **Antiport** means that coupled substances pass through the same transport system in opposite directions. A proton pump exporting hydrogen ions alongside a separate nitrate symporter is not an antiporter.
+
+The film uses an illustrative proton-coupled nitrate carrier. Proton coupling and alternating access have been studied in the land-plant transporter NRT1.1. The coupling ion and ratio should nevertheless be established for the particular organism and transporter. For example, sodium-dependent nitrate uptake has been demonstrated in the seagrass *Zostera marina*. This is a marine plant example, not evidence that all seaweeds use the same mechanism ([Garcı́a-Sánchez et al. 2000](#ref-garciasanchez2000sodium); [Parker and Newstead 2014](#ref-parker2014molecular)).
+
+### 16.1 Key points of active uptake
+
+Follow the energy supply. In the film, ATP hydrolysis drives proton export; the established proton electrochemical gradient then supports nitrate uptake through another protein. If the pump stops, the existing gradient can persist for a time. A brief continuation of uptake therefore does not disprove secondary active transport.
+
+The [worked membrane example](../BDC223/L09c-nutrients_visualised.llms.md#sec-crossing-membrane) adds the energy changes and then tests what happens as the driving gradient dissipates. A favourable energy change identifies a possible direction, not the actual uptake rate.
+
+### 16.2 Characteristics that define active uptake
+
+[![](images/BDC223_L08a_slide65.jpeg)](images/BDC223_L08a_slide65.jpeg)
+
+[![](images/BDC223_L08a_slide66.jpeg)](images/BDC223_L08a_slide66.jpeg)
+
+The defining feature is energy coupling that supports movement against the transported substance’s electrochemical gradient. Two other useful properties need more careful interpretation:
+
+1.  **Selectivity:** A transport protein can favour particular substrates. Passive carriers can also be selective, so selectivity alone is not evidence of active transport.
+2.  **Saturation:** Finite carrier abundance and turnover can produce a plateau at high substrate concentration. Both passive facilitated and active transport can saturate. A fitted $V_{max}$ describes capacity under the experimental conditions; it does not identify the energy source.
+
+Ammonium should not be excluded from protein-mediated uptake or assigned a universal passive mechanism. Ammonium is charged, and its transport must be considered in relation to the membrane voltage, the transport protein and any coupling. The distinction from uncharged ammonia is developed below.
+
+Environmental changes can alter transport and processing capacity. Light and temperature responses depend on the organism and the range tested; increasing either does not necessarily increase $V_{max}$ indefinitely.
+
+### 16.3 Surface area to volume ratio and uptake parameters
+
+At matched nutrient concentration and uptake activity per unit surface, more active area per gram gives greater uptake per gram. This is the geometric result demonstrated in [concept 6](../BDC223/L09c-nutrients_visualised.llms.md#sec-form-and-supply). It does not require faster transporters.
+
+Comparisons among species may also reveal differences in uptake capacity, apparent affinity, storage and growth. Geometry alone does not set a universal $V_{\max}$ or $K_s$. Match normalisation, local nutrient concentration, water movement and tissue condition before attributing a difference to physiology.
+
+A low-surface-area form can still respond to enrichment if external supply previously restricted it. Whether a species accumulates biomass depends on resource requirements, internal processing and losses as well as nutrient acquisition.
+
+### 16.4 Three useful descriptions of a changing uptake rate
+
+[![](images/BDC223_L08a_slide67.jpeg)](images/BDC223_L08a_slide67.jpeg)
+
+A time course of nutrient uptake is often discussed using three descriptions:
+
+1.  **The Surge Phase**
+2.  **The Internally Controlled Phase**
+3.  **The Externally Controlled Phase**
+
+These descriptions concern changes in the observed rate; they do not establish that membrane transport is active. Let us examine the possible controls.
+
+#### The surge phase
+
+[![](images/BDC223_L08a_slide68.jpeg)](images/BDC223_L08a_slide68.jpeg)
+
+A transient surge is a high initial uptake rate after nutrient exposure, often associated with nutrient-depleted tissue. Uptake may temporarily exceed the rate of assimilation into structural organic matter, allowing internal reserves to accumulate.
+
+Reserve filling and feedback on transport or assimilation are candidate mechanisms. Do not explain the surge simply as nitrate rushing down a gradient until total tissue N equals dissolved nitrate outside. Those quantities are not equivalent, and ion movement across a membrane depends on permeability and the electrochemical gradient.
+
+The surge’s occurrence and duration depend on prior conditions and the organism. Time and concentration also change together in a depletion experiment: as time advances, external concentration usually falls. Separate these variables when interpreting the $V$–$S$ relationship.
+
+#### The internally controlled phase
+
+[![](images/BDC223_L08a_slide69.jpeg)](images/BDC223_L08a_slide69.jpeg)
+
+Internal processing and regulation can restrict uptake even when external delivery is sufficient. Assimilation uses acquired N in organic compounds; stored pools and nutrient demand can feed back on further uptake.
+
+A plateau in a concentration-response curve does not uniquely identify nitrate reductase, vacuole filling or another single step. Transport capacity, processing capacity and the measurement interval may contribute. Test internal N fractions and processing rates rather than assigning a mechanism from shape alone.
+
+#### The externally controlled phase
+
+[![](images/BDC223_L08a_slide70.jpeg)](images/BDC223_L08a_slide70.jpeg)
+
+[![](images/BDC223_L08a_slide71.jpeg)](images/BDC223_L08a_slide71.jpeg)
+
+In a closed vessel, uptake reduces external concentration. Lower concentration can restrict uptake through reduced substrate availability at transport sites and through external delivery. A low rate at low concentration does not, by itself, prove diffusion limitation.
+
+For the water layer outside the tissue, the relevant concentration difference is between bulk water and the thallus surface, not between seawater nitrate and total tissue N. The effective diffusion distance and the local gradient matter together. Water movement can replenish the surroundings and reduce transport resistance while molecular diffusion continues.
+
+The three descriptions need not occur as clean, exclusive stages. In [concept 7](../BDC223/L09c-nutrients_visualised.llms.md#sec-storage-growth), track uptake, reserves and organic N separately; in concepts 1–2, test delivery by changing water movement.
+
+### 16.5 Influence of morphology and environmental factors
+
+Thin or finely divided thalli can provide high exchange area per gram, while nutrient storage and uptake properties affect the response to intermittent supply. Uptake can precede growth, and stored nutrients can support growth after external concentrations fall.
+
+A rapid increase in biomass also requires carbon, light, suitable temperature and other essential nutrients, with production exceeding losses. Neither high SA:V nor luxury consumption alone identifies a nuisance species or fixes its growth rate.
+
+### 16.6 Summary of factors affecting nitrogen (and other nutrient) uptake
+
+- **Physical environment:** bulk and surface nutrient concentration, water renewal and external transport resistance.
+- **Nutrient form:** nitrate and ammonium differ in transport, regulation and assimilation; their interaction must be measured.
+- **Nutritional history:** internal reserves, demand and tissue condition can change uptake. Severe deprivation can impair capacity.
+- **Light and temperature:** responses vary across useful ranges and stress conditions; greater light or temperature does not always increase uptake.
+- **Morphology:** active exchange area per gram and local delivery affect uptake; shape alone does not determine intrinsic affinity.
+- **Transport and processing:** membrane permeability, energy coupling, finite capacities and internal regulation contribute to the measured response.
+
+These influences interact. State which one your experiment changes and which measurements would distinguish its effect from alternatives.
+
+## 17 Passive uptake
+
+Passive transport proceeds down a substance’s electrochemical gradient without coupling to an energy source. It includes **simple diffusion** through the lipid bilayer and **facilitated diffusion** through a membrane protein. It is not restricted to movement through the water outside the cell.
+
+[![](images/BDC223_L08a_slide72.jpeg)](images/BDC223_L08a_slide72.jpeg)
+
+Distinguish ammonia, $\mathrm{NH_3}$, from ammonium, $\mathrm{NH_4^+}$. Ammonia is uncharged, whereas ammonium carries a positive charge. Their proportions depend on pH and solution conditions. Small non-polar molecules such as carbon dioxide can cross the lipid directly; ions generally require membrane proteins. Size and chemical properties also affect permeability, so being uncharged is not enough to establish rapid diffusion through a membrane.
+
+We should not classify all nitrate uptake as active and all ammonium uptake as passive simply from their names. Protein-mediated ammonium uptake is well established. Experiments on a plant AMT1 transporter, for example, show saturating transport, demonstrating why ammonium uptake cannot be assumed to remain linear at all concentrations. This result does not specify the mechanism in every seaweed ([Loqué et al. 2009](#ref-loque2009pore)).
+
+For the seaweed experiments used in this course, read Smit ([2002](#ref-smit2002nitrogen)) ([PDF](../docs/Smit_2002.pdf)). Use the paper to distinguish what was measured for *Gracilaria gracilis* under its experimental conditions from a general claim about all algae.
+
+Ammonium uptake can be measured using the same multiple-flask or perturbation methods used for nitrate. A depletion curve gives interval rates after correcting for water volume, biomass and time. Relating those rates to concentration describes the uptake response, but does not directly identify the membrane pathway.
+
+[![](images/BDC223_L08a_slide73.jpeg)](images/BDC223_L08a_slide73.jpeg)
+
+If the measured $V$–$S$ relationship is approximately linear over the tested range, report that range. Do not extend the line indefinitely or interpret it as proof of simple diffusion. A carrier operating well below saturation can also show an approximately linear response. Conversely, a plateau can arise from a passive carrier with finite capacity.
+
+For simple diffusion of an uncharged solute through a membrane with unchanged permeability, net flux is proportional to the concentration difference across that membrane. It is not necessarily proportional to external concentration alone, because internal concentration also matters. For ions, include the electrical contribution. External delivery can further restrict the concentration actually reaching the membrane.
+
+### 17.1 Uptake kinetics and the affinity coefficient
+
+A linear response allows us to estimate a slope. For the low-concentration portion of a Michaelis–Menten response,
+
+$$V\approx\alpha S,\qquad\alpha=\frac{V_{max}}{K_s}.$$
+
+A linear segment alone generally does not identify $V_{max}$ and $K_s$ separately. That is a limitation of the available concentration range, not evidence that cellular capacity has no influence. If the line has a non-zero intercept or describes another concentration range, state that model explicitly rather than automatically calling its slope the low-concentration affinity.
+
+At a matched low concentration, a higher $\alpha$ predicts a higher uptake rate when the low-concentration approximation applies and rates use the same normalisation. This helps compare nutrient acquisition under scarcity. It does not by itself establish which seaweed will grow faster, win a competition or form a bloom: nutrient demand, storage, losses, other resources and environmental conditions also matter.
+
+### 17.2 Membrane transport, thallus morphology and growth
+
+[![](images/BDC223_L08a_slide74.jpeg)](images/BDC223_L08a_slide74.jpeg)
+
+A high surface area to volume ratio can provide more exposed surface per unit tissue volume and shorter internal transport distances. It does not establish whether membrane transport is passive or active. Likewise, simple thallus form does not imply an absence of nutrient storage: cellular pools can occur without specialised storage tissues.
+
+[![](images/BDC223_L08a_slide75.jpeg)](images/BDC223_L08a_slide75.jpeg)
+
+Keep uptake, assimilation and growth separate. Uptake transfers nutrients across a boundary; assimilation incorporates them into organic compounds; growth produces new biomass. Rapid uptake can support rapid growth when other requirements are met, but the two rates need not change simultaneously or remain in a fixed proportion.
+
+Growth can become limited by internal processing or another resource even when nutrient delivery remains abundant. A Monod relationship describes growth rate as a saturating function of external substrate concentration. It resembles the Michaelis–Menten equation mathematically, but its response variable and fitted parameters describe growth rather than uptake. Neither curve shape identifies the membrane mechanism.
+
+Luxury consumption means uptake exceeds immediate growth requirements and adds to internal reserves. Those reserves can later support growth when external supply is low. Storage and its ecological consequences should be established from nutrient pools and growth measurements, rather than inferred solely from active or passive transport. We will return to this distinction in the visualisation on uptake, storage and growth.
+
+## 18 Facilitated uptake mechanism
+
+[![](images/BDC223_L08a_slide76.jpeg)](images/BDC223_L08a_slide76.jpeg)
+
+Facilitated diffusion is a form of **passive transport**. A membrane protein provides a route for net movement down the solute’s electrochemical gradient. For an uncharged solute, this reduces to its concentration gradient; for an ion, include membrane voltage.
+
+The [membrane film](../BDC223/L09c-nutrients_visualised.llms.md#sec-crossing-membrane) shows a generic carrier binding solute outside, closing outside access, then opening towards the cytosol and releasing it. This **alternating access** leaves an enclosed state between the two open states. The protein changes conformation while remaining in the membrane; it does not physically turn over in the bilayer. Passive carriers can support transport in either direction, according to the gradient.
+
+Channels provide another protein-mediated passive route, through a pore. They should not be confused with the carrier cycle shown here. Carriers can be selective, have finite turnover, and show saturation or inhibition. These properties therefore do not establish that a transport process is active.
+
+To distinguish passive from energy-coupled transport, ask whether the nutrient’s own movement is downhill and whether it is coupled to another process. A secondary active carrier may not use ATP directly, yet still use an ion gradient to support uphill nutrient transport.
+
+## 19 Biphasic uptake
+
+[![](images/BDC223_L08a_slide77.jpeg)](images/BDC223_L08a_slide77.jpeg)
+
+[![](images/BDC223_L08a_slide78.jpeg)](images/BDC223_L08a_slide78.jpeg)
+
+[![](images/BDC223_L08a_slide79.jpeg)](images/BDC223_L08a_slide79.jpeg)
+
+[![](images/BDC223_L08a_slide80.jpeg)](images/BDC223_L08a_slide80.jpeg)
+
+A biphasic concentration response has distinguishable behaviour over different concentration ranges. One possible description is the sum of components with different half-saturation constants and capacities. A saturating component plus an approximately linear component over the tested range is another possibility.
+
+In [concept 8](../BDC223/L09c-nutrients_visualised.llms.md#sec-physiological-environment), both model components operate simultaneously. One contributes strongly at low concentration; the second continues increasing over a wider range. This is a numerical illustration, not evidence that a seaweed switches automatically between two identified transporters.
+
+The curve alone does not establish molecular affinity, energy cost or a change from active to passive transport. Nutritional history, delivery, multiple pathways and regulation can alter the measured response. Use the fitted pattern to generate competing predictions, then test them with independent evidence.
+
+## 20 Factors modifying uptake rates
+
+[![](images/BDC223_L08a_slide81.jpeg)](images/BDC223_L08a_slide81.jpeg)
+
+### 20.1 Water movement
+
+[![](images/BDC223_L08a_slide82.jpeg)](images/BDC223_L08a_slide82.jpeg)
+
+Water movement is an important environmental variable. Consider the ocean: it is highly variable in terms of waviness and the water movement occurring both at the surface and underwater, particularly around seaweeds. Depending on the rate of water movement, there will be a direct effect on the ability of seaweeds to take up nutrients.
+
+In a short comparison where the seaweed’s physiology is unchanged, water movement can improve external delivery without changing its intrinsic uptake capacity. The measured uptake rate $V$ and the apparent low-concentration response can nevertheless change. We should distinguish this mechanism from assuming that every fitted $V_{\max}$ must remain unchanged under every flow treatment.
+
+The first mechanism is a reduction in the effective diffusion distance near the surface. Under suitable flow conditions, the concentration boundary layer becomes thinner, reducing resistance to diffusive delivery. The diffusion coefficient itself need not change.
+
+The second mechanism is replenishment of the water around the seaweed. Uptake can deplete this water. Advection and mixing bring nutrients into the region, while molecular diffusion continues to act over the concentration gradients that remain. These are connected parts of the same delivery process.
+
+> **TIP:**
+>
+> [Concept 2: Moving water and diffusion limitation](../BDC223/L09c-nutrients_visualised.llms.md#sec-moving-water) compares weak and stronger flow at the same bulk concentration and uptake capacity. It distinguishes velocity from concentration profiles, follows depletion downstream, and then repeats the comparison with lower uptake capacity. Explain why uptake responds strongly in one example and only slightly in the other.
+
+One detail is easy to miss: stronger flow can raise the surface concentration and thereby make $C_b-C_s$ smaller. Uptake can still increase because the effective diffusion distance is shorter and the concentration gradient at the surface is steeper. We must consider the difference and the distance together. These restrictions are coupled; a response to flow does not require uptake to be exclusively diffusion-limited.
+
+[![](images/BDC223_L08a_slide83.jpeg)](images/BDC223_L08a_slide83.jpeg)
+
+Let us consider the effect of water movement on nutrient uptake. To demonstrate this, examine the graph presented here, which contains two traces, one depicted as a dashed line and the other as a solid line.
+
+The dashed line represents nutrient uptake with the containers on a shaker table operating at $250$ oscillations per minute. The solid line represents zero imposed oscillations ([Smit 2002](#ref-smit2002nitrogen)). The shaker setting is an experimental treatment, rather than a direct measurement of the water velocity at the thallus. Molecular motion and diffusion continue in the treatment without shaking.
+
+In the illustrated comparison, the curve with greater water movement has a lower apparent $K_s$ and a greater initial slope $\alpha$. This pattern is consistent with improved nutrient delivery at low bulk concentrations. It does not imply that shaking has increased the molecular diffusion coefficient.
+
+Conversely, the trace with zero oscillations per minute has a higher apparent $K_s$ and a lower initial slope $\alpha$. This is consistent with a thicker diffusive boundary layer restricting delivery in still water, but the curve shape alone does not prove diffusion limitation; flow treatments, as in this experiment, are needed to test it.
+
+### 20.2 Nutritional history
+
+[![](images/BDC223_L08a_slide84.jpeg)](images/BDC223_L08a_slide84.jpeg)
+
+[![](images/BDC223_L08a_slide85.jpeg)](images/BDC223_L08a_slide85.jpeg)
+
+Prior nutrient exposure can change internal reserves, demand and uptake properties. In a controlled comparison, nutrient-depleted but functional tissue may acquire N faster than replete tissue. The response is not an unlimited rule: prolonged deprivation or damage can also reduce capacity.
+
+Smit ([2002](#ref-smit2002nitrogen)) found effects of nutritional history on ammonium and nitrate responses in *Gracilaria gracilis*. Do not assume every effect must appear as a significant change in $V_{\max}$: parameters and low-concentration responses need their own statistical evidence. A linear response is not synonymous with passive transport, nor a saturating response with active transport. [Read the experimental results](../docs/Smit_2002.pdf).
+
+The [storage comparison](../BDC223/L09c-nutrients_visualised.llms.md#sec-storage-growth) matches initial structural biomass and external concentration while changing reserves. It illustrates one feedback mechanism; it does not reconstruct the paper’s physiology or growth data.
+
+### 20.3 Light intensity and photoperiod
+
+[![](images/BDC223_L08a_slide86.jpeg)](images/BDC223_L08a_slide86.jpeg)
+
+[![](images/BDC223_L08a_slide87.jpeg)](images/BDC223_L08a_slide87.jpeg)
+
+Photosynthesis fixes inorganic carbon and supplies energy and carbon compounds that can support N assimilation and growth. Proteins and nucleic acids require N, and nucleic acids also require P. However, not every organic molecule contains both elements: glucose contains C, H and O, but no N or P.
+
+Light can therefore affect nutrient demand, transport regulation and assimilation. At low irradiance, additional light may enhance these processes. Saturation, photoinhibition or another limiting resource can change the response at higher irradiance. Measure the range rather than assuming a continuous increase.
+
+Nitrate reductase converts nitrate to nitrite. Nitrite reductase then converts nitrite to ammonium, which can enter amino-acid synthesis. Light and photoperiod can influence these processes, but uptake and assimilation are not identical to photosynthesis and need not cease immediately in darkness. Stored carbon and energy can support continued activity.
+
+The [day/night experiment in concept 8](../BDC223/L09c-nutrients_visualised.llms.md#sec-physiological-environment) tracks uptake and assimilation separately. Explain why their difference changes the internal reserve.
+
+### 20.4 Temperature
+
+[![](images/BDC223_L08a_slide88.jpeg)](images/BDC223_L08a_slide88.jpeg)
+
+Temperature affects transport, metabolism and growth over process- and species-specific ranges. A rise can increase a rate below its optimum, while further warming can reduce performance or damage tissue. Acclimation, nutritional history and nutrient form also matter.
+
+For measurements ten degrees apart, $Q_{10}=R(T+10)/R(T)$. A value of two describes a doubling across that specified interval; it does not justify indefinite doubling. Two temperatures cannot locate an optimum or describe the full response curve. Control external delivery when interpreting a temperature effect on uptake.
+
+### 20.5 Nutrient type
+
+[![](images/BDC223_L08a_slide89.jpeg)](images/BDC223_L08a_slide89.jpeg)
+
+[![](images/BDC223_L08a_slide90.jpeg)](images/BDC223_L08a_slide90.jpeg)
+
+The type and concentration of nutrients also play a role. Ammonium and nitrate can differ in transport, regulation and assimilation. Neither a linear nor a Michaelis–Menten response identifies the mechanism by itself; use the electrochemical gradients and evidence about energy coupling.
+
+[![](images/BDC223_L08a_slide91.jpeg)](images/BDC223_L08a_slide91.jpeg)
+
+Nutrients can interact. Smit ([2002](#ref-smit2002nitrogen)) reported approximately 38% suppression of nitrate uptake in *Gracilaria gracilis* with ammonium-N above 5 µmol/L. This is partial suppression under specified conditions, not a universal rule that nitrate uptake stops until ammonium is exhausted. Read Figures 6–7 and the accompanying results, then compare the evidence summary in [concept 8](../BDC223/L09c-nutrients_visualised.llms.md#sec-physiological-environment).
+
+### 20.6 Other factors
+
+[![](images/BDC223_L08a_slide92.jpeg)](images/BDC223_L08a_slide92.jpeg)
+
+Other influences include surface area to volume ratio. You need to know, in detail, how the surface area to volume ratio modulates different physiological responses in seaweeds.
+
+Some seaweeds produce **hyaline hairs**, pale filamentous structures at the thallus surface. Their effects can involve active area, local chemistry and nutrient delivery. Oxygen profiles around *Fucus vesiculosus* hair tufts revealed locally thickened, heterogeneous boundary layers; these measurements do not establish increased intrinsic nitrate affinity ([Lichtenberg et al. 2017](#ref-lichtenberg2017diffusion)). Use the [form comparison and practice](../BDC223/L09c-nutrients_visualised.llms.md#sec-form-and-supply) to distinguish the possible mechanisms.
+
+There are also things such as the reproductive state. Some seaweeds, when they become reproductive, would require an enhanced uptake of nutrients in order to sustain gamete and spore production. Sometimes as a seaweed thallus ages into something that is older and grows slower, the rate of nutrient uptake would decrease with time. When it is very young and rapidly growing, the rate of nutrient uptake would have to be high. Sometimes there are seaweeds that change between morphological appearance; they have heteromorphic alternations of generations. One morphological appearance of a seaweed would have a different kind of nutrient uptake response compared to the other morphological appearance in the same species. There can also be, within the same species, different genetic influences that can affect the uptake kinetics of seaweeds.
+
+## 21 Conclusion
+
+Read the references provided, starting with Smit ([2002](#ref-smit2002nitrogen)), the experimental anchor for this lecture. Distinguish what those experiments measured from the broader mechanisms and illustrative models developed in the nine visualisations. The models help us make predictions; their biological explanations still require evidence.
+
+That brings me to the end of this nutrient uptake lecture. [Lecture 9b](../BDC223/L09b-nutrients_michaelis_menten.llms.md) works through the uptake calculations in detail, and [Lecture 10](../BDC223/L10-plant_stress.llms.md) turns to plant stress, where nutrient excess returns as a stress.
+
+## 22 Summary
+
+- Nitrogen often limits marine production, and human fixation of nitrogen through the Haber–Bosch process has pushed the global nitrogen cycle beyond its planetary boundary, which makes nitrogen a useful model nutrient.
+- A nutrient limits a response when its supply, relative to requirements and internal reserves, constrains that response. Nutrient-addition experiments test this, whereas tissue or water ratios such as the Redfield ratio only suggest hypotheses.
+- Eutrophication develops when enrichment raises production above losses, and oxygen falls only where consumption exceeds the supply by photosynthesis and physical renewal.
+- Uptake has an external phase, in which nutrients diffuse across a concentration boundary layer to the thallus surface, and a phase of membrane transport and internal processing. Water movement and bulk concentration act mainly on the external phase.
+- The uptake rate $V$ is calculated from the decline in nutrient concentration in a flask, corrected for water volume, algal mass and time, and is then plotted against substrate concentration $S$.
+- The Michaelis–Menten parameters $V_\text{max}$ and $K_s$ describe a saturating uptake response, and $\alpha = V_\text{max}/K_s$ describes uptake at low concentration. When capacities differ, $\alpha$ is a better guide to performance under scarcity than $K_s$ alone.
+- Passive, facilitated and active transport differ in whether the nutrient moves down its electrochemical gradient and whether its movement is coupled to an energy source. Linear, saturating or biphasic curves do not identify the mechanism on their own.
+- Water movement, nutritional history, light, temperature, nutrient form and morphology all modify uptake, as the experiments on *Gracilaria gracilis* show ([Smit 2002](#ref-smit2002nitrogen)).
+
+## 23 Self-test questions
+
+> **NOTE:**
+>
+> Phosphorus permits only one unit, because each unit needs 1 µmol P. That unit uses 10 µmol N, so 10 µmol N remains unused, and P is the limiting nutrient in this fixed-requirement model. Adding another 1 µmol P allows a second unit, which uses the remaining 10 µmol N. The abundant N could not compensate for the shortage of P, which is the point of Liebig’s law.
+
+> **NOTE:**
+>
+> The ratio is 40 ÷ 2 = 20, i.e. 20:1. This is above the Redfield value of 16:1, which suggests the hypothesis that P may restrict growth. It does not diagnose limitation, because a single concentration measurement says nothing about supply rates, uptake, mixing or internal nutrient status. A nutrient-addition experiment with control, +N, +P and +N+P treatments would test the hypothesis.
+
+> **NOTE:**
+>
+> Oxygen falls only where total consumption by respiration and decomposition exceeds the oxygen supplied by photosynthesis and physical renewal (mixing and exchange with the atmosphere). At night photosynthetic supply stops but respiration continues, and in dark bottom water there may be little photosynthetic supply even by day. Whether anoxia develops therefore depends on how much organic matter is decomposed and how quickly the water is renewed, not on the bloom alone.
+
+> **NOTE:**
+>
+> Stronger flow thins the concentration boundary layer, so the effective diffusion distance $\delta$ decreases, and it replenishes the depleted water near the thallus. The surface concentration $C_s$ rises, so $C_b-C_s$ can become smaller, but the gradient at the surface is steeper because the distance is shorter. The diffusion coefficient $D$ does not change. The increase in uptake will be large only where external delivery restricts uptake; if membrane transport or internal processing sets the rate, flow has little effect.
+
+> **NOTE:**
+>
+> The concentration slope $\Delta S/\Delta t$ is negative during depletion, so the minus sign gives a positive uptake rate. Multiplying the slope (µmol L⁻¹ h⁻¹) by the water volume $\Omega$ (L) gives the amount removed from the flask per hour (µmol h⁻¹), and dividing by algal mass $M$ (g) gives µmol g⁻¹ h⁻¹. Normalising by mass allows flasks with, for example, 1.2 g and 1.1 g of seaweed to be compared. For a 20-minute interval, use $\Delta t = 1/3$ h, which is the same as multiplying the 20-minute amount by 3.
+
+> **NOTE:**
+>
+> The initial slopes are $\alpha_A = 4/1 = 4$ and $\alpha_B = 12/2 = 6$. At $S = 0.5$, $V_A = (4 \times 0.5)/(1 + 0.5) = 1.33$ and $V_B = (12 \times 0.5)/(2 + 0.5) = 2.40$. Population B takes up more despite its higher $K_s$, because its greater capacity more than compensates. When capacities differ, compare $\alpha$ (or the full equation) rather than $K_s$ alone.
+
+> **NOTE:**
+>
+> In primary active transport, a protein uses ATP directly, as in the proton pump that exports H⁺ and builds a membrane voltage and proton gradient. In secondary active transport, a separate carrier couples the downhill entry of protons to the uphill entry of a nutrient such as nitrate (symport), so the nutrient carrier need not hydrolyse ATP itself. Saturation arises from the finite number and turnover of carriers, which passive facilitated carriers also have. Only evidence that the nutrient moves against its electrochemical gradient through coupling to an energy source establishes active transport.
+
+## 24 Multiple-choice questions
+
+Click an option to check your answer. A green tick marks the correct option, and its explanation then appears below the options.
+
+**1.** A freshwater alga grown in medium lacking element X grows 30% more slowly than controls, but it still forms viable reproductive cells and completes its life cycle over several generations. All other requirements are supplied in excess. By the definitions used in this lecture, how should X be classified?
+
+- As a micronutrient, because any element whose absence slows growth is needed only in trace amounts.
+- As a macronutrient, because any element whose absence slows growth must form part of structural mass.
+- As an essential element, because its absence reduces growth when every other requirement is met.
+- As a beneficial element, because it enhances growth but is not needed to complete the life cycle.
+
+An essential element is one without which the life cycle cannot be completed. X enhances growth, but the alga completes its life cycle without it, so X is beneficial. Macro- and micronutrient refer to the quantity required, not to whether the element is needed.
+
+**2.** Iron is needed in far smaller amounts than nitrogen, yet a seaweed cannot complete its life cycle without either element. Which statement is most correct?
+
+- Both are essential; they differ in the quantity required, and iron acts mainly in catalytic roles.
+- Both are micronutrients; the classification refers to seawater concentration, not to tissue needs.
+- Both are macronutrients; any element without which the life cycle fails must be needed in bulk.
+- Only nitrogen is essential; iron is beneficial, because a trace requirement cannot halt the life cycle.
+
+Essential versus beneficial concerns whether the life cycle can be completed; macro versus micro concerns the quantity required. Iron is an essential micronutrient with catalytic roles (e.g. in nitrate reductase), whereas N is an essential macronutrient.
+
+**3.** Which statement best distinguishes the concentration boundary layer from the hydrodynamic boundary layer around a seaweed thallus?
+
+- The first forms only in perfectly still water; the second forms only when water flows rapidly past.
+- The first is nutrient-depleted water next to the surface; the second is water of reduced velocity.
+- The first is where molecular diffusion stops; the second is where water velocity exceeds the bulk flow.
+- The first is a thin solid skin on the thallus surface; the second is the water in which molecules diffuse.
+
+The concentration boundary layer is a region of water near the surface where uptake has lowered the nutrient concentration; it is not a solid skin, and molecular motion continues within it. The hydrodynamic boundary layer describes the change in water velocity near the surface.
+
+**4.** A membrane carrier moves a solute into a cell. Its rate saturates at high external concentration and is reduced by a structurally similar solute. Measurements show that the solute’s own movement is down its electrochemical gradient and is not coupled to any other process. How should this transport be classified?
+
+- Secondary active transport, because a carrier protein is required to move the solute inward.
+- Simple diffusion, because the solute moves down its gradient directly through the lipid bilayer.
+- Primary active transport, because saturation and inhibition show that energy is consumed.
+- Facilitated diffusion, a form of passive transport, despite its saturation and inhibition.
+
+Movement down the electrochemical gradient through a protein, without energy coupling, is facilitated diffusion. Passive carriers have finite capacity and can be selective, so saturation and inhibition do not show that transport is active.
+
+**5.** An H⁺-ATPase exports protons from a seaweed cell. A separate carrier then moves nitrate into the cell together with protons. Which description is correct?
+
+- The pump is facilitated diffusion; the nitrate carrier is a uniporter moving nitrate down its gradient.
+- The pump and nitrate carrier together form an antiporter, because H⁺ leaves while nitrate enters.
+- The nitrate carrier is primary active transport, because it moves nitrate uphill using ATP directly.
+- The pump is primary active transport; the nitrate carrier is a symporter in secondary active transport.
+
+The ATP-driven pump is primary active transport. The nitrate carrier couples proton entry to nitrate entry in the same direction (symport) and need not hydrolyse ATP itself, so it is secondary active transport. A pump plus a separate symporter is not an antiporter, which requires one transport system moving substances in opposite directions.
+
+**6.** Which statement about ammonia and ammonium is least wrong?
+
+- NH₃ is uncharged, and being uncharged alone proves that it diffuses rapidly across any membrane.
+- NH₄⁺ is uncharged and crosses the lipid freely; NH₃ needs a protein because it carries a charge.
+- NH₃ is uncharged and NH₄⁺ is charged; ion transport must allow for voltage and proteins.
+- NH₃ and NH₄⁺ are two names for one ion, so both forms share the same passive route into the cell.
+
+Ammonia is uncharged and ammonium is a cation, with proportions that depend on pH. Ions generally need membrane proteins, and their transport depends on membrane voltage. Being uncharged is not enough to establish rapid diffusion, because size and chemical properties also affect permeability.
+
+**7.** Organic N from a settled bloom is decomposed in oxygenated bottom water. Which description correctly separates remineralisation from nitrification?
+
+- Remineralisation and nitrification are one process that releases nitrate directly from organic matter.
+- Remineralisation releases ammonium from organic N; nitrification oxidises ammonium to nitrate via nitrite.
+- Remineralisation oxidises ammonium to nitrate via nitrite; nitrification releases ammonium from organic N.
+- Remineralisation converts nitrate into N₂ gas; nitrification then fixes the N₂ gas back into ammonium.
+
+Remineralisation returns organic N to inorganic form, principally ammonium. Nitrification is a further transformation in which ammonium is oxidised through nitrite to nitrate. Conversion of fixed N to N₂ is denitrification (or anammox), and conversion of N₂ to ammonia is fixation.
+
+**8.** In the Michaelis–Menten uptake model, what does α describe?
+
+- The initial slope Vmax/Ks, describing uptake responsiveness when S is small relative to Ks.
+- The equilibrium binding constant of the transporter, equal to Ks multiplied by the limiting rate.
+- The limiting uptake rate approached at high S, expressed per unit biomass under the conditions.
+- The concentration at which uptake reaches half of its limiting rate under the stated conditions.
+
+α is the tangent slope at the origin, α = Vmax/Ks, so V ≈ αS when S is small relative to Ks. The half-saturation concentration is Ks and the limiting rate is Vmax; Ks is generally not an equilibrium binding constant.
+
+**9.** Phytoplankton from a coastal lagoon are incubated for four days in four treatments at matched light, temperature and volume: control, +N, +P and +N+P. Chlorophyll rises by 5% in the control, 6% with +N, 4% with +P and 180% with +N+P. Three replicate bottles per treatment show the same pattern. Which interpretation is best supported?
+
+- N or P alone had no clear effect but both together had a large one; both nutrients therefore restricted the response.
+- N or P alone had no clear effect but both together had a large one; neither nutrient therefore restricted the response.
+- Both together gave a large response only because the dose doubled; total amount, not identity, set the response.
+- N alone produced the largest single-nutrient response; N was therefore the main nutrient restricting chlorophyll.
+
+Adding one nutrient while the other remains scarce does not relieve the restriction, so a lack of response to one addition does not exclude its involvement. The large +N+P response shows that both N and P constrained chlorophyll increase under these conditions. The 6% versus 5% difference is too small to identify N as the sole restriction.
+
+**10.** Seaweed discs take up nitrate from 20 µM medium. Internal free nitrate is much higher than external nitrate, and the membrane voltage is strongly negative inside. An inhibitor of the plasma-membrane H⁺-ATPase is added. Nitrate uptake continues at a near-normal rate for 4 minutes, then declines to near zero over the next 20 minutes. A solvent-only control shows no decline. Which interpretation is most consistent?
+
+- Uptake was secondary active transport; the brief continuation disproves this, as coupled carriers stop when the pump stops.
+- Uptake was limited by external delivery; the decline shows that the inhibitor thickened the boundary layer around the discs.
+- Uptake was secondary active transport; the brief continuation reflects a proton gradient that outlasted the stopped pump.
+- Uptake was passive facilitated diffusion; the brief continuation shows that nitrate moved down its electrochemical gradient.
+
+Nitrate, an anion, enters against both a concentration difference and an inside-negative voltage, so its movement is uphill and must be coupled to an energy source. Uptake that depends on the proton pump but continues briefly after inhibition fits secondary active transport: the existing proton gradient persists for a time, so a brief continuation does not disprove it.
+
+**11.** A student measures ammonium uptake by *Gracilaria gracilis* at 0, 5, 10, 20 and 30 µM in a multiple-flask experiment. V increases linearly with S across this range (r² = 0.99), with no sign of saturation. The student concludes that ammonium enters by simple diffusion and that uptake will keep rising linearly at 100 µM. Which evaluation is most correct?
+
+- The response is linear only over the tested range; a carrier well below saturation can be linear, so neither conclusion follows.
+- The response proves simple diffusion; carriers saturate at low concentrations, so the 100 µM extrapolation is justified.
+- The response proves active transport; ammonium is a charged ion, so uptake must require energy at every concentration tested.
+- The response gives Vmax and Ks directly; their ratio predicts the 100 µM rate as the slope multiplied by that concentration.
+
+Report the tested range and do not extend the line. A carrier operating well below saturation can give an approximately linear response, so linearity does not prove simple diffusion. A linear segment gives α but generally cannot separate Vmax and Ks.
+
+**12.** Two seaweeds of matched fresh mass and exposed area per gram are incubated at 2 µM nitrate, first in still water and then with vigorous shaking. Shaking raises uptake by species A from 1.0 to 2.6 µmol g⁻¹ h⁻¹, but changes uptake by species B only from 0.9 to 1.0 µmol g⁻¹ h⁻¹. Separate assays show that B has a much lower uptake capacity than A. Temperature, light and nutritional history are matched. Which interpretation is best supported?
+
+- Shaking raised the diffusion coefficient of nitrate near A; B lacks a concentration boundary layer, so it did not respond.
+- External delivery restricted A in still water; uptake by B was set mainly by membrane transport or internal processing.
+- Shaking raised the bulk nitrate concentration around A; uptake by B must therefore be passive rather than active.
+- External delivery restricted B in still water; uptake by A was set mainly by membrane transport or internal processing.
+
+Improved water movement increases uptake only where external delivery restricts it. B’s low capacity means membrane transport or internal processing sets its rate, so flow has little effect. Shaking thins the boundary layer and replenishes depleted water; it does not change D or the bulk concentration.
+
+**13.** Matched fragments of a red seaweed are held in N-free seawater for 0, 7 or 42 days and then given a 30 µM nitrate pulse. Initial uptake rates are 6, 15 and 4 µmol g⁻¹ h⁻¹ respectively. The 42-day fragments are bleached and some tips are disintegrating. Temperature, light and water movement are matched. Which interpretation is most defensible?
+
+- Moderate depletion raised uptake, consistent with low reserves; prolonged deprivation damaged tissue and reduced capacity.
+- Nutritional history has no effect on uptake; the differences reflect nitrate diffusing faster into tissue with fewer reserves.
+- Uptake rises without limit as starvation lengthens; the 42-day value must be an error, as the longest-starved tissue is fastest.
+- Starvation lowered uptake overall; the 7-day value reflects nitrate that had been stored before the fragments were collected.
+
+Depleted but functional tissue may take up N faster than replete tissue, but this is not an unlimited rule. Prolonged deprivation or damage can reduce capacity, as the bleached 42-day fragments suggest.
+
+**14.** A floating green tide accumulates on beaches near a coastal city. Local nitrate concentrations are low during the event. Satellite images trace the mats to aquaculture areas several hundred kilometres away, and winds and currents during the preceding weeks moved surface water towards the coast. Which explanation best fits the observations?
+
+- Local enrichment alone explains the accumulation; low nitrate shows algae depleted it, so transport is irrelevant.
+- Low local nitrate rules out any role for nutrients; the mats must have grown by fixing N₂ during their drift.
+- Nutrients supported growth upstream where the mats formed; wind and currents then set where biomass accumulated.
+- Wind and currents created the biomass during transport; nutrients played no part, because local nitrate was low.
+
+Explaining a bloom requires separating enrichment, production, transport and local accumulation. Here, growth was supported where nutrients were available, while wind and currents determined where the biomass appeared, as for the 2008 Qingdao green tide.
+
+**15.** In a perturbation experiment, 1.25 g fresh mass (FM) of *Ulva* is incubated in 250 mL of seawater. Nitrate falls from 30.0 to 24.0 µM during the first 20 minutes. Water volume and algal mass stay constant, and the no-seaweed control is stable. What is the mean uptake rate V over this interval?
+
+- 1.2 µmol N g⁻¹ FM h⁻¹
+- 0.06 µmol N g⁻¹ FM h⁻¹
+- 3.6 µmol N g⁻¹ FM h⁻¹
+- 14.4 µmol N g⁻¹ FM h⁻¹
+
+ΔS = 6.0 µmol L⁻¹; × 0.250 L = 1.5 µmol removed; ÷ 1.25 g = 1.2 µmol g⁻¹ per 20 min; × 3 = 3.6 µmol g⁻¹ h⁻¹. Ignoring the volume gives 14.4; omitting the conversion to hours gives 1.2; dividing by 20 min gives a per-minute rate (0.06).
+
+**16.** A multiple-flask experiment uses 500 mL of seawater and 2.0 g FM of seaweed. Nitrate-N falls from 280 to 196 µg N L⁻¹ in 30 minutes. The atomic mass of N is 14 g mol⁻¹ and the molar mass of nitrate (NO₃⁻) is 62 g mol⁻¹. What is the uptake rate V?
+
+- 0.68 µmol N g⁻¹ FM h⁻¹
+- 3.0 µmol N g⁻¹ FM h⁻¹
+- 42 µmol N g⁻¹ FM h⁻¹
+- 1.5 µmol N g⁻¹ FM h⁻¹
+
+The decrease is 84 µg N L⁻¹ ÷ 14 = 6.0 µmol N L⁻¹; × 0.5 L = 3.0 µmol; ÷ 2.0 g = 1.5 µmol g⁻¹ per 30 min; × 2 = 3.0 µmol g⁻¹ h⁻¹. Dividing by 62 wrongly treats a nitrate-N mass as nitrate mass (0.68); not converting µg to µmol gives 42; forgetting the time conversion gives 1.5.
+
+**17.** Species C has Vmax = 20 and Ks = 10 µM; species D has Vmax = 9 and Ks = 3 µM (rates in µmol g⁻¹ h⁻¹, same biomass basis). Using V = Vmax·S/(Ks + S), which comparison at S = 1 µM and S = 30 µM is correct?
+
+- At 1 µM, C is faster (18.2 vs 6.75); at 30 µM, C is faster (5.0 vs 0.82).
+- At 1 µM, D is faster (3.00 vs 2.00); at 30 µM, D is faster (90 vs 60).
+- At both, D is faster, because its lower Ks gives it the higher affinity.
+- At 1 µM, D is faster (2.25 vs 1.82); at 30 µM, C is faster (15.0 vs 8.2).
+
+C: 20 × 1/11 = 1.82 and 20 × 30/40 = 15.0. D: 9 × 1/4 = 2.25 and 9 × 30/33 = 8.2. D has the higher α (3 vs 2), so it leads at low S, but C’s higher capacity dominates at high S. Swapping Ks and S, or extending V ≈ αS to 30 µM, gives the distractors.
+
+**18.** Nitrate has D = 2.0 × 10⁻⁹ m² s⁻¹. The bulk concentration Cb is 10 µM, the concentration at the thallus surface Cs is 4 µM, and the effective boundary-layer thickness δ is 200 µm. Using J ≈ D(Cb − Cs)/δ, and noting that 1 µM = 1 µmol L⁻¹ = 1000 µmol m⁻³, what is the inward diffusive flux?
+
+- 6.0 × 10⁻³ µmol m⁻² s⁻¹
+- 6.0 × 10⁻² µmol m⁻² s⁻¹
+- 6.0 × 10⁻⁵ µmol m⁻² s⁻¹
+- 1.0 × 10⁻¹ µmol m⁻² s⁻¹
+
+Cb − Cs = 6 µM = 6000 µmol m⁻³; δ = 2.0 × 10⁻⁴ m. J = 2.0 × 10⁻⁹ × 6000 / 2.0 × 10⁻⁴ = 0.060 µmol m⁻² s⁻¹. Using Cb instead of the difference gives 0.10; taking δ as 2 mm gives 0.006; omitting the L to m³ conversion gives 6.0 × 10⁻⁵.
+
+**19.** Coastal water contains 44.8 µg L⁻¹ nitrate-N and 12.4 µg L⁻¹ phosphate-P. The atomic masses are N = 14 and P = 31 g mol⁻¹, and the Redfield N:P ratio is 16:1. Which statement is correct?
+
+- Molar N:P is 8:1, below Redfield; this proves that N limits growth, so no additions are needed.
+- Molar N:P is 3.6:1, far below Redfield; this suggests N may restrict growth, to be tested by additions.
+- Molar N:P is 8:1, below Redfield; this suggests N may restrict growth, to be tested by additions.
+- Molar N:P is 8:1, below Redfield; this suggests P may restrict growth, to be tested by additions.
+
+N = 44.8/14 = 3.2 µM and P = 12.4/31 = 0.40 µM, so N:P = 8:1 by moles; 3.6:1 is the mass ratio. A ratio below 16:1 suggests the hypothesis that N may restrict growth, but a dissolved ratio does not diagnose limitation; nutrient additions are needed.
+
+**20.** In a fixed-requirement model, each new unit of algal biomass requires 16 µmol N and 1 µmol P. A culture contains 48 µmol N and 5 µmol P, and all other requirements are in excess. Which prediction follows from Liebig’s law of the minimum?
+
+- 5 units form; P limits, 32 µmol N is left unused, and adding N alone yields no further biomass.
+- 4 units form; N and P co-limit, nothing is left unused, and adding either raises the biomass.
+- 3 units form; P limits, 2 µmol N is left unused, and adding N alone yields no further biomass.
+- 3 units form; N limits, 2 µmol P is left unused, and adding P alone yields no further biomass.
+
+N supports 48/16 = 3 units and P supports 5/1 = 5 units, so N sets the yield at 3 units. Those use 3 µmol P, leaving 2 µmol P unused; more P cannot compensate for insufficient N. Five units would need 80 µmol N.
+
+## 25 References
+
+Atkinson MJ, Smith SV (1983) C:N:P ratios of benthic marine plants. Limnology and Oceanography 28:568–574. doi: [10.4319/lo.1983.28.3.0568](https://doi.org/10.4319/lo.1983.28.3.0568)
+
+Diaz RJ, Rosenberg R (2008) Spreading dead zones and consequences for marine ecosystems. Science 321:926–929. doi: [10.1126/science.1156401](https://doi.org/10.1126/science.1156401)
+
+Elser JJ, Bracken MES, Cleland EE, Gruner DS, Harpole WS, Hillebrand H, Ngai JT, Seabloom EW, Shurin JB, Smith JE (2007) Global analysis of nitrogen and phosphorus limitation of primary producers in freshwater, marine and terrestrial ecosystems. Ecology Letters 10:1135–1142. doi: [10.1111/j.1461-0248.2007.01113.x](https://doi.org/10.1111/j.1461-0248.2007.01113.x)
+
+Epstein E (1972) Mineral nutrition of plants: Principles and perspectives. Wiley, New York
+
+Fisher DE, Fisher MJ (2001) [The nitrogen bomb](https://discovermagazine.com/environment/the-nitrogen-bomb).
+
+Garcı́a-Sánchez MJ, Jaime MP, Ramos A, Sanders D, Fernández JA (2000) Sodium-dependent nitrate transport at the plasma membrane of leaf cells of the marine higher plant *zostera marina* L. Plant Physiology 122:879–886. doi: [10.1104/pp.122.3.879](https://doi.org/10.1104/pp.122.3.879)
+
+Gruber N, Galloway JN (2008) An Earth-system perspective of the global nitrogen cycle. Nature 451:293–296. doi: [10.1038/nature06592](https://doi.org/10.1038/nature06592)
+
+Hu C, Li D, Chen C, Ge J, Muller-Karger FE, Liu J, Yu F, He M-X (2010) On the recurrent *ulva prolifera* blooms in the Yellow Sea and East China Sea. Journal of Geophysical Research: Oceans. doi: [10.1029/2009JC005561](https://doi.org/10.1029/2009JC005561)
+
+Lichtenberg M, Nørregaard RD, Kühl M (2017) Diffusion or advection? Mass transfer and complex boundary layer landscapes of the brown alga *fucus vesiculosus*. Journal of the Royal Society Interface 14:20161015. doi: [10.1098/rsif.2016.1015](https://doi.org/10.1098/rsif.2016.1015)
+
+Littler MM, Littler DS (1980) The evolution of thallus form and survival strategies in benthic marine macroalgae: field and laboratory tests of a functional form model. The American Naturalist 116:25–44.
+
+Loqué D, Mora SI, Andrade SLA, Pantoja O, Frommer WB (2009) Pore mutations in ammonium transporter AMT1 with increased electrogenic ammonium transport activity. Journal of Biological Chemistry 284:24988–24995. doi: [10.1074/jbc.M109.020842](https://doi.org/10.1074/jbc.M109.020842)
+
+Parker JL, Newstead S (2014) Molecular basis of nitrate uptake by the plant nitrate transporter NRT1.1. Nature 507:68–72. doi: [10.1038/nature13116](https://doi.org/10.1038/nature13116)
+
+Redfield AC (1958) [The biological control of chemical factors in the environment](https://www.jstor.org/stable/27827150). American Scientist 46:205–221.
+
+Rockström J, others (2009) A safe operating space for humanity. Nature 461:472–475.
+
+Smit AJ (2002) Nitrogen uptake by *gracilaria gracilis* (Rhodophyta): Adaptations to a temporally variable nitrogen environment. Botanica Marina 45:196–209. doi: [10.1515/BOT.2002.019](https://doi.org/10.1515/BOT.2002.019)
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J. and J. Smit, A.},
+  title = {Lecture 9a: {Nutrient} Uptake Theory},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BDC223/L09a-nutrient_uptake.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, J. Smit A (2026) Lecture 9a: Nutrient uptake theory. [https://tangledbank.netlify.app/BDC223/L09a-nutrient_uptake.html.](https://tangledbank.netlify.app/BDC223/L09a-nutrient_uptake.html)

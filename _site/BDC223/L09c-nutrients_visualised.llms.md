@@ -1,0 +1,1053 @@
+> **TIP:**
+>
+> - Diffusion and water movement deliver nutrients to the thallus surface and can restrict uptake.
+> - Membrane permeability and electrochemical gradients determine whether transport requires energy coupling.
+> - Uptake-site occupancy explains the Michaelis–Menten curve, including capacity, half-saturation and the initial slope.
+> - A perturbation experiment measures changing uptake rates through a nitrogen budget that accounts for controls and sampling losses.
+> - Thallus form, active surface area and water renewal influence nutrient supply.
+> - Uptake, storage and growth respond differently to light, temperature and nutrient form.
+> - Nutrient enrichment can increase organic matter production and oxygen demand in coastal water.
+
+> **TIP:**
+>
+> This page is a visual companion to [Lecture 9a](../BDC223/L09a-nutrient_uptake.llms.md) and [Lecture 9b](../BDC223/L09b-nutrients_michaelis_menten.llms.md). Nine short Blender animations follow nitrogen from the seawater, across the boundary layer and the plasma membrane, into internal reserves and growth, and finally into the coastal consequences of nutrient enrichment. Each animation isolates one process with a simple model, states what is held constant, and ends with questions that ask you to predict, calculate and design a test. The aim is to connect the mechanisms of Lecture 9a to the measurements and the Michaelis–Menten model of Lecture 9b, and to practise separating competing explanations for an observed uptake response.
+
+> **TIP:**
+>
+> By the end of this lecture, you will be able to:
+>
+> 1.  Explain how diffusion, water movement and surface uptake together set the concentration at the thallus surface, and predict when stronger water movement should increase uptake.
+> 2.  Use the electrochemical energy change to decide whether movement of an ion across the membrane is favourable, and distinguish facilitated diffusion, primary active transport and secondary active transport.
+> 3.  Explain how uptake-site occupancy produces a saturating uptake curve, and calculate uptake rates and initial slopes from $V_{\max}$ and $K_s$.
+> 4.  Calculate interval uptake rates and nitrogen budgets for a perturbation experiment, including additions and sampling losses.
+> 5.  Calculate surface area and SA:V for simple thallus forms, and explain how area and water renewal together affect whole-thallus uptake.
+> 6.  Distinguish uptake, storage, assimilation and growth, and explain how light, temperature, nutrient form and nutritional history alter them.
+> 7.  Interpret a nutrient-addition experiment, and explain how enrichment, organic matter and oxygen renewal combine to cause coastal oxygen loss.
+
+> **NOTE:**
+>
+> - [Lecture 9a: Nutrient uptake](../BDC223/L09a-nutrient_uptake.llms.md), especially the external delivery and boundary layer sections.
+> - [Smit, A. J. (2002). Nitrogen uptake by *Gracilaria gracilis* (Rhodophyta): adaptations to a temporally variable nitrogen environment. Botanica Marina, 45(2), 196–209.](../docs/Smit_2002.pdf) The experimental context used in these lectures.
+> - [Lindemann, C., Fiksen, Ø., Andersen, K. H., & Aksnes, D. L. (2016). Scaling laws in phytoplankton nutrient uptake affinity. Frontiers in Marine Science, 3, 26.](https://doi.org/10.3389/fmars.2016.00026) For the relationship between diffusive supply and uptake capacity (optional).
+
+The animations follow the sequence from nutrient delivery to membrane transport, uptake, storage and growth. Each uses an illustrative model with stated assumptions. Read the accompanying explanation and pause at the questions before opening the answers. The final animation applies these processes to nutrient enrichment and oxygen loss in coastal water.
+
+All nine animations have written explanations and no audio. Their particles and three-dimensional structures are schematic. Use the labelled graphs and numerical budgets for quantitative comparisons, and distinguish experimental time from video playback time.
+
+## 1 Concept 1: From the flask to the surface
+
+**How can random motion produce a directional flux?**
+
+An individual particle’s next displacement is uncertain. In an **unbiased random walk**, opposite directions are equally likely. Brownian motion arises from thermal collisions; the random-walk model describes their effect over suitable time intervals.
+
+In this still-water model, a concentration gradient does not bias those steps. More particles cross from the richer side because more are present there. This gives a **net flux down the gradient**, although individual particles move both ways. At uniform concentration, crossings balance on average.
+
+There is no gradient strength at which motion stops being random. Flow or a force adds **directional drift**, but thermal fluctuations remain. A biased random walk is still random: predictable net transport does not mean predictable individual paths. Here “random” describes uncertainty at the observed scale, not an absence of physical causes. See [Einstein’s Brownian diffusion model (1905)](https://www.damtp.cam.ac.uk/user/gold/pdfs/teaching/old_literature/Einstein1905.pdf).
+
+Your browser does not support embedded video. [Download the animation](animations/blender_nutrient_uptake/concept_01_supply_to_surface.mp4).
+
+The animation is 1 minute 8 seconds long. It has written explanations and no audio. The gold parcels represent nitrate-N and are enlarged so that we can see them. The seaweed is a generic thin green thallus; this is not a species-specific anatomical reconstruction.
+
+### 1.1 First, follow the nitrate
+
+A nitrate addition puts nitrogen into the water. Before the seaweed can take it up, that nitrate must reach its surface. We move from the flask to a small patch of thallus to examine this first step.
+
+The individual ions move randomly. Some move towards the surface; others move away. A molecule does not detect the gradient and steer itself towards the seaweed. The net movement of many molecules can nevertheless have a direction.
+
+Uptake removes nitrate at the surface. When removal initially exceeds replacement, the adjacent water becomes depleted. There are then more nitrate ions per unit volume farther from the surface than immediately beside it. Random movement across this unequal distribution gives a net diffusive supply towards the depleted region.
+
+### 1.2 Read the concentration profile
+
+The graph shows **concentration against distance**, rather than concentration against time. The left edge is the thallus surface. The right edge is the bulk water outside the modelled layer.
+
+- $C_b$ is the dissolved nitrate concentration in the bulk water.
+- $C_s$ is the dissolved nitrate concentration at the surface.
+- The curve shows how concentration changes between these positions.
+
+In this local model, the bulk water is maintained at $10\,\mathrm{\mu mol\,N\,L^{-1}}$. The surface concentration falls towards $2\,\mathrm{\mu mol\,N\,L^{-1}}$. The concentration profile develops because uptake and diffusion are operating together. A low surface concentration does not mean that the whole water body contains little nitrogen.
+
+This close-up is a controlled model of local delivery. It does not continue the nitrogen budget of the entire closed flask. In the [perturbation experiment](../BDC223/L09b-nutrients_michaelis_menten.llms.md#sec-follow-nitrogen), the bulk concentration also falls as nitrogen is removed from a finite volume of water.
+
+### 1.3 Relate the gradient to delivery
+
+For a planar layer with a steady, approximately linear profile,
+
+$$J_{\mathrm{in}} \approx D\frac{C_b-C_s}{\delta}.$$
+
+$J_{\mathrm{in}}$ is the inward diffusive flux per unit surface area, $D$ is the diffusion coefficient, and $\delta$ is the effective diffusion distance. A greater concentration difference supports more flux over the same distance. A shorter distance supports more flux for the same concentration difference.
+
+The animation uses an illustrative distance of $300\,\mathrm{\mu m}$ and $D=1500\,\mathrm{\mu m^2\,s^{-1}}$. Surface removal follows $J_{\mathrm{uptake}}=kC_s$, with $k=20\,\mathrm{\mu m\,s^{-1}}$. These values give a steady surface concentration of $2\,\mathrm{\mu mol\,N\,L^{-1}}$ and an inward flux of $0.040\,\mathrm{\mu mol\,N\,m^{-2}\,s^{-1}}$. They illustrate the mechanism and are not fitted measurements for a particular seaweed. This first model isolates external supply and a simple surface sink; saturation and membrane energetics come later.
+
+The smooth profile is calculated from the diffusion equation. The three-dimensional particles illustrate random motion and removal; their number, size and playback speed are not a quantitative molecular simulation of that profile. The model time shown on screen is accelerated.
+
+### 1.4 Test what maintains the gradient
+
+At 0:50, we switch surface uptake off. The individual molecules continue moving. Water in the depleted region gains nitrate by diffusion, and the profile becomes flatter. The surface reaches about $9.45\,\mathrm{\mu mol\,N\,L^{-1}}$ after 60 model seconds and would continue approaching the maintained bulk concentration.
+
+This separates the two processes. Diffusion redistributes the dissolved nitrate. Uptake maintains a sink that can sustain a concentration gradient.
+
+### 1.5 Pause and explain
+
+1.  The water has no imposed flow. Should individual nitrate ions stop moving? Explain the difference between molecular motion and water movement.
+2.  A sample taken away from the thallus contains abundant nitrate. Can delivery to the seaweed still be restricted? Use $C_b$ and $C_s$ in your answer.
+3.  Predict the concentration profile after uptake stops. State what you have kept constant and explain why your prediction follows.
+4.  In two otherwise identical incubations, one flask is stirred more vigorously. Predict when this should increase uptake and when the response might be small.
+
+> **NOTE:**
+>
+> 1.  Molecular motion continues. Imposed water movement carries solutes with the fluid; molecular diffusion results from random motion relative to that fluid.
+> 2.  Yes. Uptake can lower $C_s$ even while $C_b$ remains high. The rate at which nutrients cross the intervening water may be insufficient to support the seaweed’s uptake capacity.
+> 3.  With bulk concentration, diffusion coefficient and geometry unchanged, stopping removal lets diffusion refill the depleted region. The profile approaches the uniform bulk concentration. An immediate flat profile would be an incorrect prediction because redistribution takes time.
+> 4.  Stronger water movement can replenish the water near the thallus and shorten the effective diffusion distance. Uptake should respond when external delivery is restrictive. The response may be small when membrane transport or internal processing already limits the rate. “Stirring always increases uptake” is therefore too broad.
+
+## 2 Concept 2: Moving water and diffusion limitation
+
+Your browser does not support embedded video. [Download the animation](animations/blender_nutrient_uptake/concept_02_moving_water.mp4).
+
+This animation is 1 minute 36 seconds long, with written explanations and no audio. The opening Blender views illustrate water movement and random molecular displacements. The graphs and colour fields then show a calculated comparison. Tracer sizes, paths and speeds in the opening are chosen for visibility; their numbers are not measurements of concentration or uptake.
+
+### 2.1 Keep the comparison controlled
+
+Imagine two identical patches of thallus. The bulk nitrate concentration, temperature, exposed area and uptake machinery are the same. We change the water movement. This lets us ask whether a change in delivery, on its own, can change uptake.
+
+Water movement carries nitrate along the thallus. Molecular diffusion also moves nitrate relative to that water. In the model, water velocity falls to zero at the stationary surface, but the molecules do not stop moving. There is no requirement for a water parcel to pass through the surface before its dissolved nutrients can reach the uptake sites.
+
+### 2.2 Read velocity and concentration separately
+
+The velocity profile describes how fast water moves at different distances from the surface. The concentration profile describes how much dissolved nitrate is present at those distances. In both opening graphs, distance from the surface is on the horizontal axis. The vertical axes show water velocity and nitrate-N concentration, respectively. The moving vertical lines select the same distance in both graphs. These are different quantities, even though both vary near the thallus. The hydrodynamic and concentration boundary layers should not be treated as one layer with one universal thickness.
+
+In the animation’s local shear model, stronger flow means greater water velocity at the same distance from the surface. The diffusion coefficient $D$ is unchanged. Stirring does not need to increase molecular diffusivity to improve delivery.
+
+The colour maps are vertical sections along the thallus. Water enters from the left with the same nitrate concentration in both treatments. As it passes over the absorbing surface, uptake removes nitrate and a depleted region develops downstream. Stronger flow keeps this region closer to the surface. The white line selects a downstream position; it is not a time axis. The arrows distinguish advection along the thallus from diffusive supply towards it.
+
+### 2.3 A smaller concentration difference can support more flux
+
+Compare the profiles at the same downstream position. In the example with higher uptake capacity, stronger water movement raises $C_s$ from about $0.42$ to $1.00\,\mathrm{\mu mol\,N\,L^{-1}}$, while $C_b$ remains $10$. The bulk-to-surface concentration difference has therefore become **smaller**. Nevertheless, uptake almost doubles.
+
+The reason is the **gradient at the surface**, rather than the concentration difference alone. With $y$ increasing away from the thallus, inward flux is
+
+$$J_{\mathrm{in}}=D\left.\frac{\partial C}{\partial y}\right|_{y=0}.$$
+
+The surface gradient is steeper under stronger flow. The dashed lines in the animation are surface tangents. Extending each tangent to $C_b$ gives an *effective* diffusion distance of about $417\,\mathrm{\mu m}$ under weak movement and $202\,\mathrm{\mu m}$ under stronger movement. These are equivalent distances for calculating flux, not sharp outer edges of actual water layers. The calculated profiles are curved.
+
+At this position, the flux rises from $0.0344$ to $0.0669\,\mathrm{\mu mol\,N\,m^{-2}\,s^{-1}}$, an increase of about 94%. These are local fluxes per unit surface area. They are not the biomass-normalised whole-organism rates used in the flask experiment.
+
+### 2.4 When more delivery produces little more uptake
+
+Next, reduce uptake capacity in **both** treatments, keeping all other model parameters unchanged. The animation moves through a sequence of steady comparisons. This is not the time course following an instantaneous physiological change, and flow is not causing the reduction in capacity.
+
+With lower capacity, nitrate is removed more slowly and the surface is less depleted. Stronger flow raises $C_s$ from about $8.11$ to $9.04\,\mathrm{\mu mol\,N\,L^{-1}}$, but flux increases only from $0.00802$ to $0.00819\,\mathrm{\mu mol\,N\,m^{-2}\,s^{-1}}$: about 2%. Delivery has improved, but the uptake system cannot make much use of the improvement.
+
+This is why “more water movement always gives much faster uptake” is too broad. The response depends on the relative restrictions imposed by delivery and uptake capacity. They can both matter; there is no requirement for an abrupt switch between two completely separate modes ([Lindemann et al. 2016](#ref-lindemann2016scaling)). A small response to stirring is consistent with a capacity restriction, but does not by itself identify a membrane mechanism or establish what limits growth.
+
+### 2.5 The model behind the comparison
+
+The calculation represents a flat patch with steady laminar shear, $u(y)=\gamma y$. Water flows along the patch in the $x$ direction, and molecular diffusion supplies nitrate across the water in the $y$ direction. Neglecting diffusion along $x$ gives
+
+$$u(y)\frac{\partial C}{\partial x}=D\frac{\partial^2 C}{\partial y^2}.$$
+
+Surface uptake is coupled to the concentration actually present at the surface:
+
+$$D\left.\frac{\partial C}{\partial y}\right|_0
+=J_{\max}\frac{C_s}{K+C_s}.$$
+
+Here $J_{\max}$ is an illustrative maximum **surface flux** and $K$ is a surface half-saturation concentration. Neither is a fitted whole-organism parameter against bulk concentration. A saturating sink is useful for this comparison; it does not establish whether transport is active or facilitated.
+
+We use $D=1500\,\mathrm{\mu m^2\,s^{-1}}$, $C_b=10\,\mathrm{\mu mol\,N\,L^{-1}}$ and $K=2\,\mathrm{\mu mol\,N\,L^{-1}}$. Shear rates are $0.25$ and $2.0\,\mathrm{s^{-1}}$. Comparisons are made $2\,\mathrm{mm}$ downstream. The two endpoint capacities are $J_{\max}=0.20$ and $0.01\,\mathrm{\mu mol\,N\,m^{-2}\,s^{-1}}$. The numerical domain extends $1.5\,\mathrm{mm}$ above the surface; the figures enlarge the depleted region.
+
+These values illustrate a mechanism, rather than reproduce a particular species or shaker treatment. The model prescribes local shear instead of solving the full fluid dynamics. It omits waves, turbulent fluctuations, thallus motion, complex geometry, changes in physiology and diffusion along the flow. The inlet and outer water are maintained at $C_b$; this is not a closed depletion flask. The numerical solution has been checked using a second implicit solver, a finer grid, a more distant outer boundary and conservation of nitrate.
+
+### 2.6 Predict, explain and test
+
+1.  A student says, “Stirring makes nitrate ions diffuse faster.” Rewrite this explanation using *advection*, *surface concentration* and *diffusion coefficient*.
+2.  Stronger flow raises $C_s$, making $C_b-C_s$ smaller. Explain how uptake can nevertheless increase. Use the two surface tangents in the animation.
+3.  Predict the effect of stronger flow for a thallus that removes nitrate rapidly, then for one with low uptake capacity. State what you hold constant in each comparison.
+4.  Two flasks give similar uptake rates despite different shaker settings. Give one explanation consistent with a restriction in uptake capacity and one alternative explanation concerning the treatment itself. Suggest a measurement that could distinguish them.
+5.  Does a small uptake response to stirring show that growth is nutrient-sufficient? Explain what additional information you would need.
+
+> **NOTE:**
+>
+> 1.  Stirring changes delivery by water movement and mixing. It can replenish water near the surface, raise $C_s$ and change the concentration profile. At the same temperature and solution properties, $D$ need not change. Diffusion still acts on the gradient that remains.
+> 2.  Flux depends on the local concentration gradient. In the stronger-flow example, the effective diffusion distance decreases enough for the surface gradient to become steeper despite the smaller concentration difference. The surface tangent, rather than the bulk-to-surface difference on its own, predicts the flux.
+> 3.  At fixed bulk concentration, temperature, area and physiological state, stronger flow should have a larger effect when external delivery is restrictive. With low uptake capacity, the surface may already be close to bulk concentration and uptake may respond little. Neither prediction requires flow to change the uptake machinery.
+> 4.  Membrane transport or internal processing could restrict uptake, leaving little response to improved delivery. Alternatively, the different shaker settings might produce similar water movement at the thallus, particularly if its position or orientation differs. Measure near-thallus velocity or an appropriate mass-transfer proxy; combine this with matched uptake measurements and, where possible, surface concentration measurements.
+> 5.  No. Uptake, assimilation, internal storage and growth are different processes. We would need evidence about nutrient status and growth, such as tissue nutrient pools and a controlled nutrient-addition response, while considering other limiting conditions.
+
+## 3 Concept 3: Crossing the membrane
+
+Your browser does not support embedded video. [Download the animation](animations/blender_nutrient_uptake/concept_03_crossing_membrane.mp4).
+
+This animation is 2 minutes 16 seconds long, with written explanations and no audio. The membrane and proteins are enlarged schematic models. Gold represents nitrate, coral represents protons, and purple represents a generic solute in the passive-carrier sequence. Their paths explain the mechanism; their speeds and numbers are not measurements of molecular transport.
+
+### 3.1 Reaching the membrane is only the first step
+
+Water movement and diffusion can deliver nitrate to the thallus. Dissolved substances can pass through the porous cell wall, but the plasma membrane presents another barrier. Its lipid interior strongly restricts the passage of ions. Small non-polar molecules such as carbon dioxide can cross the lipid directly. Being uncharged is not sufficient on its own: molecular size and chemical properties also affect permeability.
+
+To explain membrane transport, establish **whether a permeable route exists and which direction of movement is energetically favourable**. A favourable gradient cannot make an impermeable membrane into a freely permeable one. Equally, providing a transport protein does not by itself establish the direction or rate of net movement.
+
+### 3.2 For ions, include the voltage
+
+At 0:26, nitrate is ten times more concentrated just outside the membrane than inside. At zero membrane voltage, its concentration difference favours entry. Now make the interior electrically negative while holding both nitrate concentrations constant. Nitrate is also negative, so the electrical contribution opposes its entry. If the voltage is sufficiently negative, this contribution outweighs the concentration contribution.
+
+The sum of these contributions is the **electrochemical energy change**. For transport from outside to inside, negative means the movement lowers free energy; positive means it requires an energy supply. This tells us about thermodynamic favourability. It does not calculate uptake rate.
+
+> **NOTE:**
+>
+> For a dilute solution in which concentration ratios approximate activity ratios,
+>
+> $$\Delta G_{\mathrm{in}}=RT\ln\!\left(\frac{C_{\mathrm{in}}}{C_{\mathrm{out}}}\right)+zF(\psi_{\mathrm{in}}-\psi_{\mathrm{out}}).$$
+>
+> $R$ is the gas constant, $T$ is absolute temperature, $z$ is the ion’s charge number, and $F$ is the Faraday constant. Here the concentrations refer to the **same free dissolved species immediately across the membrane**. Total tissue nitrogen, which includes organic compounds and different compartments, cannot substitute for cytosolic nitrate.
+>
+> The animation uses $T=298.15\,\mathrm{K}$, outside nitrate $100\,\mathrm{\mu mol\,L^{-1}}$ and inside nitrate $10\,\mathrm{\mu mol\,L^{-1}}$. For nitrate, $z=-1$. The concentration contribution is $-5.71\,\mathrm{kJ\,mol^{-1}}$. At $-80\,\mathrm{mV}$ inside relative to outside, the electrical contribution is $+7.72\,\mathrm{kJ\,mol^{-1}}$. Their sum is $+2.01\,\mathrm{kJ\,mol^{-1}}$, so uncoupled inward transport is uphill under these conditions.
+>
+> At about $-59.16\,\mathrm{mV}$, the two contributions exactly balance. Electrochemical equilibrium can therefore occur with unequal concentrations. For a positively charged ion, the electrical contribution has the opposite sign. For an uncharged molecule, this electrical term is zero.
+
+### 3.3 A protein can provide a passive route
+
+At 0:46, a generic carrier binds solute on the outside, closes access from that side, then opens towards the cytosol and releases it. The binding site is briefly enclosed. This is **alternating access**: the site is not open to both sides at once. The protein changes conformation while remaining embedded in the membrane; it does not turn over in the bilayer.
+
+If net transport proceeds down the solute’s electrochemical gradient without energy coupling, it is **facilitated diffusion**, a form of passive transport. Simple diffusion crosses the lipid directly; facilitated diffusion uses a membrane protein. Channels provide another passive route, through an accessible pore, and should not be confused with the alternating-access carrier shown here. The animation follows inward carrier cycles to illustrate net uptake, but passive carriers can also support outward movement when the gradient favours it.
+
+### 3.4 Follow the energy through two proteins
+
+At 1:04, an ATP-driven proton pump exports $\mathrm{H^+}$. Pumping can maintain both a membrane voltage and a difference in proton concentration, expressed as a pH difference. This is **primary active transport** because ATP hydrolysis is directly coupled to pumping.
+
+A separate symporter couples the return of protons to nitrate entry. The energy released by proton movement can support nitrate moving uphill. This is **secondary active transport**: the nitrate carrier uses an ion gradient maintained by other processes. It need not hydrolyse ATP itself.
+
+**Symport** means that the coupled substances pass through the same protein in the same direction. **Antiport** means that the coupled substances pass through the same transport system in opposite directions. A proton pump exporting ions alongside a separate nitrate symporter is not an antiporter.
+
+The animation uses two protons with one nitrate as a teaching example. Work on the land-plant nitrate transporter NRT1.1 supports proton coupling and alternating access ([Parker and Newstead 2014](#ref-parker2014molecular)). The animation is an original schematic, not a reconstruction of that protein.
+
+Coupling ions and ratios must be established for the organism and transporter concerned. For example, experiments on *Zostera marina* support sodium-dependent nitrate uptake ([Garcı́a-Sánchez et al. 2000](#ref-garciasanchez2000sodium)). *Zostera* is a seagrass, not a seaweed, so this result does not establish a universal marine-algal mechanism.
+
+### 3.5 Add the coupled movements, then stop the pump
+
+At 1:28, we use a deliberately simple proton-coupled example: nitrate is $10\,\mathrm{\mu mol\,L^{-1}}$ outside and $1000\,\mathrm{\mu mol\,L^{-1}}$ inside, pH is 6 outside and 7 inside, and voltage is $-80\,\mathrm{mV}$. These are illustrative conditions, **not seawater values or a fitted seaweed model**.
+
+Nitrate entry on its own costs $19.13\,\mathrm{kJ}$ per mole. Entry of two protons releases $26.85\,\mathrm{kJ}$ per mole of coupled cycles. Adding them gives $-7.72\,\mathrm{kJ}$ per mole of cycles. The combined inward movement is favourable, although nitrate’s own movement is uphill. Coupling is essential: two unrelated movements do not automatically share their energy.
+
+At 1:44, stop the proton pump. The established gradient does not disappear instantly. We let voltage and the pH difference decay while keeping the nitrate concentrations fixed. Initially, the remaining proton gradient can still support coupled entry. As it dissipates, that driving force is lost; eventually, reverse coupling becomes thermodynamically favourable.
+
+The graph shows **energy against time**, not uptake rate. The calculation imposes exponential relaxation with a chosen timescale of 5 seconds; the energy crosses zero after about 2.58 model seconds. It does not solve proton buffering, electrical capacitance, transport kinetics or changing nitrate pools. A real cell’s response would depend on those processes and on other transport systems.
+
+### 3.6 A plateau does not identify the mechanism
+
+The animation ends with two identical saturating curves, one representing a passive carrier and the other an energy-coupled carrier. Both have finite capacity. A plateau is therefore insufficient evidence for active transport. Likewise, a linear segment does not prove simple diffusion: a saturable system can look approximately linear over a restricted concentration range.
+
+Ammonia, $\mathrm{NH_3}$, is uncharged; ammonium, $\mathrm{NH_4^+}$, is positively charged. We should not use the names interchangeably or assume that all ammonium uptake is simple diffusion. Experiments with a plant ammonium transporter demonstrate protein-mediated transport with saturating kinetics ([Loqué et al. 2009](#ref-loque2009pore)), directly contradicting a universal “ammonium means passive and linear” rule. This example establishes the limitation of that rule, rather than the mechanism in every seaweed.
+
+### 3.7 Predict, explain and test membrane transport
+
+1.  Nitrate has reached the membrane and is more concentrated outside than inside. Is that enough information to predict rapid entry? Identify the missing information.
+2.  Hold nitrate concentrations constant and make the cell interior more negative. Predict the change in the electrical contribution for nitrate, then for ammonium.
+3.  A nutrient carrier does not hydrolyse ATP. Does this establish that its transport is passive? Give two possible mechanisms.
+4.  One protein exports protons and another brings protons and nitrate into the cell. A student calls the arrangement an antiporter. Explain the problem with that description.
+5.  After the proton pump stops, nitrate uptake continues briefly. Does this observation disprove secondary active transport? Explain, then suggest a stronger test.
+6.  A $V$–$S$ curve reaches a plateau. Give two different membrane mechanisms consistent with it and propose evidence that could distinguish them.
+
+> **NOTE:**
+>
+> 1.  No. We need to know whether a permeable route exists, the membrane voltage, the concentrations or activities of free nitrate across that membrane, and any energy coupling. Even favourable energetics do not tell us the rate: transporter abundance, turnover and downstream processing can matter.
+> 2.  A more negative interior increasingly opposes entry of negative nitrate and favours entry of positive ammonium. This changes the electrical contribution; the overall direction still depends on the complete electrochemical difference and any coupling.
+> 3.  No. It could be a passive carrier allowing movement down the nutrient’s electrochemical gradient. Alternatively, it could be a secondary active transporter coupled to another ion’s downhill movement. In the latter case, another process maintains the driving gradient.
+> 4.  Symport and antiport describe the directions of coupled movements within one transport system. Here the nitrate carrier is a symporter because nitrate and protons move together. The separate pump maintains the proton gradient; the pair is not an antiporter.
+> 5.  No. An existing gradient can persist after pumping stops. Measure voltage, pH and uptake through time, and test the effect of changing the proposed coupling gradient while controlling nitrate supply and cell condition. An inhibitor alone may affect several processes, so a decline in uptake needs careful interpretation.
+> 6.  A passive facilitated carrier and an energy-coupled carrier can both saturate. Test the electrochemical conditions, dependence on the proposed coupling ion, and whether uphill nutrient accumulation is supported. Control delivery, temperature and physiological state. Curve shape alone is insufficient.
+
+## 4 Concept 4: Capacity and concentration
+
+Your browser does not support embedded video. [Download the animation](animations/blender_nutrient_uptake/concept_04_capacity_and_concentration.mp4).
+
+This animation is 2 minutes 28 seconds long, with written explanations and no audio. It begins with two enlarged membrane patches, each with 12 uptake sites. Gold marks an occupied site. A green pulse marks inward transport; some bound nitrate instead returns to the outside water.
+
+### 4.1 Keep the supply constant
+
+We hold nitrate concentration at the membrane at $1.25\,\mathrm{\mu mol\,L^{-1}}$ in one treatment and $20\,\mathrm{\mu mol\,L^{-1}}$ in the other. Both have the same carriers and the same per-site rate constants. Supply replaces the nitrate removed, so neither treatment runs out.
+
+In the higher-concentration treatment, an empty site binds nitrate more frequently. It therefore spends less time waiting. Once occupied, however, it has the same probabilities per unit time of transporting or releasing the bound nitrate as a site in the lower-concentration treatment. More frequent binding does not make those steps faster.
+
+The displayed number of occupied sites fluctuates because the animation follows a small sample. The steady expectations are 20% and 80% occupied, respectively; every frame need not show exactly those fractions.
+
+### 4.2 Build the curve from occupancy
+
+For this model, the steady occupied fraction is
+
+$$f=\frac{S}{K_s+S}.$$
+
+Multiplying by the population’s limiting capacity gives
+
+$$V=V_{\max}f=\frac{V_{\max}S}{K_s+S}.$$
+
+At low $S$, many sites are waiting. At high $S$, sites are occupied much of the time, so adding more nitrate makes progressively less difference. The finite number of sites and their finite turnover give a saturating response.
+
+The animation uses $V_{\max}=10\,\mathrm{\mu mol\,N\,g^{-1}\,dry\ mass\,h^{-1}}$ and $K_s=5\,\mathrm{\mu mol\,L^{-1}}$. At $S=5$, uptake is half the limiting capacity: $V=5$. In the equation, $V_{\max}$ is approached asymptotically. A finite concentration does not produce a steady mean rate exactly equal to $V_{\max}$.
+
+All population rates in this animation use **dry mass**. The worked flask example in Lecture 9b uses **fresh mass**. These normalisations are not interchangeable without a measured conversion.
+
+Here $S$ is the maintained concentration **at the membrane**. The model contains no external diffusion layer. It shows why a low-concentration decline in uptake does not, on its own, establish diffusion limitation. Return to concept 2 to examine how restricted delivery can change the surface concentration.
+
+### 4.3 Double the concentration
+
+Keep $V_{\max}=10$ and $K_s=5$:
+
+| Change in surface concentration ($\mathrm{\mu mol\,L^{-1}}$) | Initial uptake | Final uptake | Increase |
+|----|---:|---:|---:|
+| 1 to 2 | 1.67 | 2.86 | 71.4% |
+| 20 to 40 | 8.00 | 8.89 | 11.1% |
+
+Uptake units are $\mathrm{\mu mol\,N\,g^{-1}\,dry\ mass\,h^{-1}}$. Both concentrations double, but uptake does not. Proportionality is an approximation when $S$ is much smaller than $K_s$. Even $S=1$ is not sufficiently small relative to $K_s=5$ for doubling to be exact.
+
+### 4.4 Change capacity, then half-saturation
+
+First, double the abundance of identical carriers **per gram** while keeping their binding, release and transport rate constants unchanged. In this model $V_{\max}$ doubles from 10 to 20, $K_s$ stays at 5, and uptake doubles at every maintained concentration. The site icons in this section represent relative abundance.
+
+Next, restore $V_{\max}=10$ and lower $K_s$ from 5 to 2 by increasing the binding rate constant. Keep carrier abundance and the release and transport rate constants fixed. At the same $S=2$, uptake rises from 2.86 to 5.00. With equal capacity, lower $K_s$ gives more uptake at any positive concentration.
+
+These are specific interventions. Increasing turnover instead of carrier abundance can change **both** $V_{\max}$ and $K_s$. We should not assume that every biological change in capacity leaves half-saturation unchanged.
+
+### 4.5 Compare uptake at low concentration
+
+The tangent slope at the origin is
+
+$$\alpha=\left.\frac{dV}{dS}\right|_{S=0}=\frac{V_{\max}}{K_s}.$$
+
+For $S\ll K_s$, $V\approx\alpha S$. With the animation’s units, $\alpha$ has units $\mathrm{L\,g^{-1}\,dry\ mass\,h^{-1}}$.
+
+At 1:56, pause and compare two populations:
+
+| Population | $V_{\max}$ | $K_s$ | $\alpha$ |
+|------------|-----------:|------:|---------:|
+| A          |          4 |     1 |        4 |
+| B          |         12 |     2 |        6 |
+
+Use the same uptake and concentration units as above. B has the higher $K_s$, but its larger capacity gives it the steeper initial slope. At $S=0.5$, the full equation gives $V_A=1.33$ and $V_B=2.40$. The lowest $K_s$ does not necessarily identify the population with the greatest uptake under nutrient scarcity.
+
+The dashed lines after the reveal are tangents at the origin. Their straight-line approximation becomes less accurate as concentration rises. Use the full equation when comparing uptake at a specified concentration.
+
+> **NOTE:**
+>
+> An empty site binds nitrate at rate $k_{\mathrm{on}}S$. A bound site either releases nitrate outside at rate $k_{\mathrm{off}}$ or transports it inward at rate $k_{\mathrm{cat}}$. These are transition probabilities per unit time, not fixed waiting periods.
+>
+> The occupied fraction changes according to
+>
+> $$\frac{df}{dt}=k_{\mathrm{on}}S(1-f)-(k_{\mathrm{off}}+k_{\mathrm{cat}})f.$$
+>
+> Set this change to zero for steady conditions. Rearranging gives
+>
+> $$f=\frac{S}{K_s+S},\qquad K_s=\frac{k_{\mathrm{off}}+k_{\mathrm{cat}}}{k_{\mathrm{on}}}.$$
+>
+> The illustrative constants are $k_{\mathrm{on}}=0.04\,\mathrm{L\,\mu mol^{-1}\,s^{-1}}$, $k_{\mathrm{off}}=0.08\,\mathrm{s^{-1}}$, and $k_{\mathrm{cat}}=0.12\,\mathrm{s^{-1}}$. Thus $K_s=5\,\mathrm{\mu mol\,L^{-1}}$. Mean waiting time for binding is 20 model seconds at $S=1.25$, versus 1.25 seconds at $S=20$. Mean bound residence time is 5 seconds in both treatments.
+>
+> The equilibrium dissociation constant would be $K_d=k_{\mathrm{off}}/k_{\mathrm{on}}=2\,\mathrm{\mu mol\,L^{-1}}$. It differs from the uptake half-saturation concentration because transport also empties the bound state. $K_s$ is therefore not generally a direct measure of binding affinity. We use the course’s uptake notation; the [IUBMB recommendations](https://iubmb.qmul.ac.uk/kinetics/ek4t6.html) use $K_m$ for the Michaelis constant.
+>
+> If carrier abundance is $\rho_T$ in $\mathrm{\mu mol\ sites\,g^{-1}\,dry\ mass}$, then $V_{\max}=3600\rho_Tk_{\mathrm{cat}}$ in the hourly uptake units used here. Choosing $\rho_T=0.02315$ gives approximately 10. The 12 displayed sites illustrate stochastic behaviour; their number does not establish carrier abundance per gram.
+>
+> The model combines several molecular steps into two states. Inward transport is assumed to be energetically supported, with constant energy supply and negligible reverse transport from inside. The opening starts at statistical steady state, so it is not a simulation of the transient response to a nutrient pulse. Site geometry, nitrate size and the surrounding particle paths are illustrative. Internal pools, external diffusion, physiology and growth are not calculated here.
+
+### 4.6 Predict, calculate and test the explanation
+
+1.  All 12 sites are occupied in one frame at a finite concentration. Does this contradict the statement that the Michaelis–Menten curve approaches $V_{\max}$ asymptotically?
+2.  At $S=20$, compare doubling the nitrate concentration with doubling the abundance of identical carriers per gram. State which properties you keep fixed.
+3.  Two populations have equal $V_{\max}$, but one has lower $K_s$. Predict their relative uptake at the same positive $S$. Will their rates differ substantially when $S$ is much greater than both half-saturation concentrations?
+4.  Use the values for A and B above to calculate uptake at $S=0.5$. Explain why ranking them by $K_s$ alone gives the wrong answer.
+5.  A student says, “Uptake rises almost linearly at low nutrient concentration, so external diffusion must be limiting it.” Use this animation to test that explanation. Propose a useful experimental intervention.
+6.  All your measurements lie at concentrations far below $K_s$. Which combination of parameters can you estimate most directly? What additional measurements would help distinguish capacity from half-saturation?
+7.  In the two-state model, double $k_{\mathrm{cat}}$ while keeping carrier abundance, $k_{\mathrm{on}}$ and $k_{\mathrm{off}}$ fixed. Predict both $V_{\max}$ and $K_s$ before calculating them.
+
+> **NOTE:**
+>
+> 1.  No. Twelve sites are a finite sample with a fluctuating occupancy. The curve describes the steady population mean. A moment with all sites occupied does not establish that the mean occupied fraction is one.
+> 2.  With $V_{\max}=10$ and $K_s=5$, increasing $S$ from 20 to 40 raises $V$ from 8.00 to 8.89. Doubling carrier abundance while holding all per-carrier constants and $S=20$ fixed raises $V$ from 8.00 to 16.00. The latter also doubles $V_{\max}$ to 20.
+> 3.  The population with lower $K_s$ has greater uptake at every positive $S$. At concentrations much greater than both $K_s$ values, both rates are close to their common limiting capacity and the difference becomes small.
+> 4.  $V_A=4(0.5)/(1+0.5)=1.33$; $V_B=12(0.5)/(2+0.5)=2.40$. B’s larger capacity outweighs its higher half-saturation concentration. Its initial slope is also steeper, although the exact rates here require the full equation.
+> 5.  This model has a nearly linear low-$S$ response without an external diffusion layer. Curve shape alone therefore cannot establish that mechanism. Compare water movement while holding bulk concentration, biomass, temperature and physiological condition constant. Increased uptake would be consistent with improved delivery; also measure or estimate surface concentration where possible. A small flow response may mean delivery is already adequate, and is not proof that diffusion is absent.
+> 6.  The slope $\alpha=V_{\max}/K_s$ is the directly constrained combination. Many capacity and half-saturation pairs can give similar slopes over a narrow low-concentration range. Measurements near half-saturation and towards the plateau help separate the parameters, provided that physiological state and delivery conditions remain comparable.
+> 7.  $V_{\max}$ doubles from 10 to 20. Half-saturation rises from 5 to $(0.08+0.24)/0.04=8\,\mathrm{\mu mol\,L^{-1}}$. Faster transport empties occupied sites more frequently, so a higher concentration is needed to keep half occupied. This differs from doubling the number of otherwise unchanged carriers.
+
+## 5 Concept 5: Measuring a changing uptake rate
+
+Your browser does not support embedded video. [Download the animation](animations/blender_nutrient_uptake/concept_05_measuring_uptake.mp4).
+
+The animation is 3 minutes 24 seconds long, with written explanations and no audio. It uses the same numerical example as the [Manim animation in Lecture 9b](../BDC223/L09b-nutrients_michaelis_menten.llms.md#sec-follow-nitrogen). Experimental minutes are shown separately from viewing time. The first depletion sequence covers 60 experimental minutes, and a second pulse is followed for another 20.
+
+### 5.1 Start with the nitrogen budget
+
+Place $4.5\,\mathrm{g}$ fresh mass of seaweed in $0.50\,\mathrm{L}$ seawater. Add nitrate to give $S_0=25\,\mathrm{\mu mol\,N\,L^{-1}}$ after mixing. Define that moment as experimental time zero. The initial amount added is
+
+$$N_0=\Omega S_0=0.50\times25=12.50\,\mathrm{\mu mol\,N},$$
+
+where $\Omega$ is the water volume in litres. The model begins with nitrate-free water and tracks this newly added nitrogen. The seaweed’s pre-existing nitrogen is outside this particular budget.
+
+As nitrate leaves the water, the amount acquired by the tissue increases:
+
+$$N_{\mathrm{water}}(t)+U(t)=N_0,\qquad
+N_{\mathrm{water}}(t)=\Omega S(t),\qquad
+U(t)=\Omega[S_0-S(t)].$$
+
+$U$ is an **amount**, in $\mathrm{\mu mol\,N}$. It is not an uptake rate, and it need not represent nitrogen already incorporated into new tissue. Uptake, storage, assimilation and growth are different processes.
+
+The gold parcels become green markers in the thallus. In the main flask sequence, most represent $0.1\,\mathrm{\mu mol\,N}$ in this visual inventory, rather than individual ions. Their transfer is rounded to that resolution; the numbers and graphs use the continuous budget. Near the end, a very small amount of dissolved nitrate can remain even when no gold parcel is visible. Particle paths and thallus geometry are illustrative.
+
+### 5.2 Connect the two slopes
+
+The concentration–time curve falls while accumulated uptake rises. Their tangents describe the same transfer:
+
+$$V(t)=-\frac{60\Omega}{M}\frac{dS}{dt}
+=\frac{60}{M}\frac{dU}{dt},$$
+
+with $t$ in minutes, $M$ in grams fresh mass and $V$ in $\mathrm{\mu mol\,N\,g^{-1}\,fresh\ mass\,h^{-1}}$. The factor 60 converts a per-minute rate to a per-hour rate. If time is already in hours, omit it.
+
+A steep negative concentration slope means rapid uptake. A high accumulated amount means that much nitrogen has already entered the tissue. Late in the experiment, $U$ is high but both tangents are shallow. There is no contradiction: an amount records the history of transfer, whereas its slope gives the current rate.
+
+This animation uses **fresh mass**, matching Lecture 9b. Concept 4 used a separate illustrative capacity per gram **dry mass**. The two numerical capacities should not be compared without a measured fresh-to-dry-mass conversion.
+
+### 5.3 Calculate one interval
+
+In the first five minutes, concentration falls from 25.00 to approximately $21.30\,\mathrm{\mu mol\,L^{-1}}$. We calculate
+
+$$\overline V=
+\frac{[S(0)-S(5)]\,\Omega}{M(5/60)}
+\approx4.93\,\mathrm{\mu mol\,N\,g^{-1}\,fresh\ mass\,h^{-1}}.$$
+
+Multiply the decrease in concentration by water volume to find the amount taken up, then divide by fresh mass and elapsed hours to obtain the uptake rate. The concentrations are rounded for display; the calculation uses the unrounded values.
+
+The coral secant joins two measurements and gives an **interval mean**. A tangent gives an instantaneous slope. They become close over a sufficiently short interval, but should not be treated as identical over a long period of depletion. The [illustrative sample table](animations/blender_nutrient_uptake/concept_05_illustrative_samples.csv) supplies all twelve five-minute intervals.
+
+### 5.4 Let time carry you along the uptake curve
+
+Pair each interval’s uptake rate with a representative concentration. The mean of its two endpoint concentrations is a convenient short-interval approximation. In the animation, these pairs appear as blue circles beside the instantaneous model trajectory.
+
+Read the axes before interpreting the movement. The horizontal axis of the depletion graph is **time**. The horizontal axis of the uptake graph is **concentration**. Early points are high and towards the right on the $V$–$S$ graph. As time advances and nitrate is depleted, the point moves left and down.
+
+The model uses
+
+$$V=\frac{6S}{5+S}.$$
+
+Here $V_{\max}=6\,\mathrm{\mu mol\,N\,g^{-1}\,fresh\ mass\,h^{-1}}$ and $K_s=5\,\mathrm{\mu mol\,L^{-1}}$. The initial rate at $S=25$ is 5.00. It falls to 3.00 when $S=K_s$, about 31.16 minutes into this experiment. Half-saturation is a concentration, not a duration: changing the biomass-to-water-volume ratio changes the time required to reach it.
+
+### 5.5 Compare the two experimental designs
+
+In a multiple-flask experiment, matched pieces of seaweed start at different concentrations. The animation shows $S=1,3,5,10$ and $25$, whose instantaneous initial model rates are $1.00,2.25,3.00,4.00$ and $5.00$. The dots in this row illustrate relative concentrations; their display density differs from the main flask sequence. Use the labelled concentrations and water volume to calculate amounts. Estimate initial slopes before depletion or physiological change substantially alters the comparison.
+
+In a perturbation experiment, successive intervals from the same flask cover declining concentrations. Both designs can describe a concentration response, but they have different practical limitations. Independent flasks can differ in tissue condition; a long depletion run allows the condition of the same tissue to change. Use replicate incubations, suitable controls, and measurements that address these possible explanations.
+
+A no-seaweed control at a matched nutrient concentration tests for background changes in the water or apparatus. A seaweed treatment with no added nitrate addresses a different question, such as net nutrient release. Neither control, by itself, guarantees that all processes in a seaweed incubation have been isolated.
+
+### 5.6 Restore nitrate and test the slowdown
+
+At 2:12 in the animation, pause before the second pulse. After 60 experimental minutes, $S\approx0.07457\,\mathrm{\mu mol\,L^{-1}}$, and the seaweed has taken up about $12.46\,\mathrm{\mu mol\,N}$. The model’s current uptake rate is only about $0.088\,\mathrm{\mu mol\,N\,g^{-1}\,fresh\ mass\,h^{-1}}$.
+
+Now restore $S$ to 25, keeping the uptake system unchanged. Because a little nitrate remains, the required addition is
+
+$$\Delta N=\Omega[25-S(60^-)]
+\approx12.46272\,\mathrm{\mu mol\,N}.$$
+
+The model assumes that this stock addition changes water volume negligibly. Concentration jumps and the uptake rate returns to 5.00. The point moves up and right on the same $V$–$S$ curve; the new depletion segment is steep again.
+
+Accumulated uptake does **not** reset. Immediately after addition, water N is 12.50, acquired N remains about 12.46, and total added N is about $24.96\,\mathrm{\mu mol}$. The input changes the budget, not the history of uptake.
+
+The blue jump in concentration represents the input. Do not interpret its slope as uptake, or apply the simple depletion formula across an interval containing an addition without including that input in the nitrogen balance.
+
+This is a prediction under fixed uptake properties. Recovery in a real experiment would support the explanation that declining nutrient availability contributed to the slowdown. Failure to recover would prompt tests of tissue condition, internal nutrient status, delivery and the incubation environment. A second pulse alone does not identify which alternative process is responsible.
+
+### 5.7 Change biomass, then account for sampling
+
+Double fresh mass to 9.0 g while holding volume, initial concentration and uptake properties per gram constant. The initial rate per gram remains 5.00, but the whole-flask uptake rate doubles from 22.5 to $45.0\,\mathrm{\mu mol\,N\,h^{-1}}$. The initial concentration slope changes from $-0.75$ to $-1.50\,\mathrm{\mu mol\,L^{-1}\,min^{-1}}$.
+
+The larger biomass reaches any specified concentration in half the time in this model. It still has only $12.50\,\mathrm{\mu mol\,N}$ available from the first pulse. Compare rates **at the same concentration**, because the two flasks have different concentrations at the same elapsed time.
+
+The final demonstration isolates sampling. Take 10 mL from 0.50 L of well-mixed water at $S=10\,\mathrm{\mu mol\,L^{-1}}$, with no uptake during withdrawal. The sample contains $0.10\,\mathrm{\mu mol\,N}$. The flask now contains 0.49 L and $4.90\,\mathrm{\mu mol\,N}$, but its concentration is still 10. Nitrogen has left in a sample, not entered the seaweed.
+
+For a sequence of withdrawals, a suitable inventory is
+
+$$N_{\mathrm{added}}(t)=\Omega(t)S(t)+U(t)+N_{\mathrm{sampled}}(t),$$
+
+provided there are no other inputs or losses. Sum each sample’s volume times its concentration to obtain $N_{\mathrm{sampled}}$. Account separately for replacement water or stock additions. For intervals between withdrawals, use the actual remaining water volume in the uptake calculation. Record whether each concentration refers to the state before or after a withdrawal.
+
+> **NOTE:**
+>
+> The water is treated as well mixed, and external delivery is adequate for the stated uptake response. Water volume and fresh mass remain fixed in the main animation; analytical sampling has negligible volume there. The separate withdrawal example explains how that assumption can fail.
+>
+> The depletion equation is
+>
+> $$\frac{dS}{dt}=-\frac{M}{60\Omega}\frac{V_{\max}S}{K_s+S}.$$
+>
+> Between pulses it integrates to
+>
+> $$S-S_0+K_s\ln(S/S_0)=-\frac{MV_{\max}}{60\Omega}t.$$
+>
+> The animation solves this relationship and calculates the nitrogen compartments from the same solution. An independent numerical integration of both compartments checks the result, including the second pulse.
+>
+> Temperature, light, mixing and uptake parameters are held constant. There is no efflux, microbial removal, adsorption, internal feedback or growth in this calculation. The animation therefore explains how the measurements are connected; it is not a fit to a particular seaweed. The nitrate experiments of Smit ([2002](#ref-smit2002nitrogen)) provide the course’s biological context and show why experimental conditions and nutritional history also matter.
+
+### 5.8 Predict, calculate and distinguish explanations
+
+1.  At the end of the first depletion run, accumulated uptake is large and uptake rate is small. Explain both observations using the two tangents.
+2.  Over five minutes, concentration falls by $3.70\,\mathrm{\mu mol\,L^{-1}}$ in 0.50 L containing 4.5 g fresh mass. Calculate the interval uptake rate. State what each operation contributes to the units.
+3.  Why does advancing time move the point leftwards on the $V$–$S$ graph? Would reading its horizontal axis as time give a sensible interpretation?
+4.  A student calls 31.16 minutes the half-saturation constant. Correct the statement. What happens to this time if biomass doubles under the model’s assumptions?
+5.  Restore nitrate after uptake has slowed. Predict the depletion slope, the position on the uptake curve and accumulated uptake if the uptake system is unchanged. Suggest an additional comparison if recovery fails.
+6.  A 10 mL sample is withdrawn at $S=10$ from a 0.50 L flask. With no uptake, calculate the amount remaining, the amount sampled and the new concentration.
+7.  Explain why a zero-added-nitrate treatment with seaweed and a nitrate-containing control without seaweed answer different questions.
+8.  A very long interval gives a mean uptake rate and a mean of its endpoint concentrations. Must their pair lie exactly on the instantaneous Michaelis–Menten curve? Explain why interval length matters.
+
+> **NOTE:**
+>
+> 1.  Much of the pulse has already entered the seaweed, so $U$ is high. Little nitrate remains available, so the current slope of $U$ is small and the concentration slope is only weakly negative. Curve height and slope describe different quantities.
+> 2.  $3.70\times0.50/[4.5(5/60)]\approx4.93\,\mathrm{\mu mol\,N\,g^{-1}\,fresh\ mass\,h^{-1}}$. Volume converts concentration to amount; mass gives a per-gram value; division by elapsed hours gives the hourly rate. Small differences from using rounded intermediate values are expected.
+> 3.  The flask loses nitrate, so concentration decreases. Concentration is the uptake graph’s horizontal variable. Time orders the successive points but is not that axis.
+> 4.  $K_s=5\,\mathrm{\mu mol\,L^{-1}}$ is the concentration where $V=V_{\max}/2$. The time to reach it depends on initial concentration, biomass, water volume and uptake properties. Doubling biomass halves the model time to about 15.58 minutes.
+> 5.  The new concentration decline is steep, and the $V$–$S$ point returns up and right to $(25,5)$. Previously acquired N remains in the seaweed. If uptake remains slow, compare with fresh tissue under matched nitrate, temperature, light and mixing; measure tissue N if internal status is the proposed explanation. Specify the contrasting predictions before interpreting the result.
+> 6.  Initially there are $0.50\times10=5.00\,\mathrm{\mu mol}$. The sample exports $0.010\times10=0.10\,\mathrm{\mu mol}$. The remaining $4.90\,\mathrm{\mu mol}$ in 0.49 L still gives $S=10\,\mathrm{\mu mol\,L^{-1}}$. The inventory changes while concentration stays constant.
+> 7.  The zero-added treatment can reveal net release by the seaweed and its associated organisms. The no-seaweed control tests changes in the water and apparatus at a supplied concentration. Neither justifies assuming that all background processes are identical across treatments or that a single correction applies at every concentration.
+> 8.  No. One value averages uptake through time; the other averages two endpoint concentrations. The model is nonlinear, and concentration may change substantially during the interval. Short intervals reduce this mismatch, although very small concentration differences can increase the relative importance of measurement error.
+
+## 6 Concept 6: Form and nutrient supply
+
+Your browser does not support embedded video. [Download the animation](animations/blender_nutrient_uptake/concept_06_form_and_supply.mp4).
+
+The animation lasts 3 minutes 10 seconds and connects [Lecture 2’s geometry](../BDC223/L02-SA_V.llms.md) to the uptake measurements in Lecture 9. It compares forms with equal tissue volume, then examines how restricted water renewal affects nutrient supply.
+
+### 6.1 Hold tissue volume constant, then count the surface
+
+We compare a thin sheet, eight fine cylindrical axes and one thick cylindrical axis. Each contains $1.00\,\mathrm{cm^3}$ of tissue. Assume an equal fresh density of $1.00\,\mathrm{g\,cm^{-3}}$, so each also has $1.00\,\mathrm{g}$ fresh mass. Equal volume only gives equal mass if density is matched.
+
+These are geometric examples, not anatomical reconstructions. The fine axes represent separate branch segments; no branch junctions or holdfast are included. Every face is exposed to water. We include both sheet faces, its edges, and the ends of the cylinders.
+
+| Form | Dimensions | Tissue volume (cm³) | Surface area (cm²) | SA:V (cm⁻¹) |
+|----|----|---:|---:|---:|
+| Thin sheet | $2.5\times4.0\times0.1$ cm | 1.00 | 21.30 | 21.30 |
+| Eight fine axes | Radius 0.10 cm; each length approximately 3.979 cm | 1.00 | 20.50 | 20.50 |
+| Thick axis | Radius 0.50 cm; length approximately 1.273 cm | 1.00 | 5.57 | 5.57 |
+
+At 0:24, the animation unfolds the surfaces at a common area scale. The green rectangles represent the two broad sheet faces or unrolled cylinder walls. The gold strips represent the sheet’s four narrow edge faces, and the gold circles represent the cylinders’ end faces. A white reference square represents $1\,\mathrm{cm^2}$. Gaps separate the patches so that each surface can be counted. For a rectangular sheet, $A=2(lw+lh+wh)$. For $n$ cylinders, $A=n(2\pi rL+2\pi r^2)$ and tissue volume is $n\pi r^2L$.
+
+The sheet and fine axes happen to have similar surface areas in this example. A name such as “filamentous” does not determine a numerical SA:V ratio. Radius, thickness, length, branching and contact between surfaces matter. The [geometry table](animations/blender_nutrient_uptake/concept_06_geometry.csv) gives the unrounded values used in the animation.
+
+### 6.2 Distinguish uptake per surface, per thallus and per gram
+
+Let $j$ be uptake per unit active surface, and $Q$ the whole-thallus uptake rate. If every part of the counted surface has the same areal flux,
+
+$$Q=Aj,\qquad V=\frac{Q}{M}=j\frac{A}{M}.$$
+
+Here $j$ has units $\mathrm{\mu mol\,N\,cm^{-2}\,h^{-1}}$, $Q$ has units $\mathrm{\mu mol\,N\,h^{-1}}$, and $V$ is per gram fresh mass per hour. With tissue density $\rho$, $A/M=(A/\mathcal V)/\rho$, where $\mathcal V$ is **tissue volume**, not water volume.
+
+For this separate illustrative example,
+
+$$j(C)=j_{\max}\frac{C}{K+C},\qquad
+j_{\max}=0.10\,\mathrm{\mu mol\,N\,cm^{-2}\,h^{-1}},\qquad
+K=5\,\mathrm{\mu mol\,L^{-1}}.$$
+
+Hold concentration at the active surface at $C=10\,\mathrm{\mu mol\,L^{-1}}$. Then $j=0.06667$ and the three whole-thallus rates are approximately 1.420, 1.367 and $0.371\,\mathrm{\mu mol\,N\,h^{-1}}$. Their numerical per-gram rates are the same because each example contains one gram. Likewise, surface area and SA:V have matching numerical values here only because tissue volume is exactly $1\,\mathrm{cm^3}$; their units and meanings differ. These are not the per-gram capacities from animations 4 or 5.
+
+More area raises whole-thallus uptake here because **areal activity and surface concentration are matched**. Holding areal capacity constant does not hold capacity per gram constant when area per gram changes. In real tissue, not all geometric surface need be equally active or supplied. More generally, total uptake sums the local flux over the active surface.
+
+### 6.3 Separate internal distance, external delivery and size
+
+The greatest distance from the tissue interior to its nearest surface is 0.5 mm in the sheet, 1.0 mm in a fine axis and 5.0 mm in the thick axis. The animation draws these thicknesses at one scale, with the sheet section cropped laterally. These are geometric distances **inside tissue**. They are not the thickness of a concentration boundary layer in the surrounding water. Internal membranes, pathways and transport processes determine how nutrients move after entry; the animation does not calculate that movement.
+
+Next, we change size while keeping shape similar. Doubling all linear dimensions multiplies surface area by four and tissue volume by eight. SA:V halves. This comparison allows tissue volume to change, whereas the opening form comparison holds it constant. The scaling rule does not describe every way an organism can grow: adding branches or spreading a sheet can change shape.
+
+### 6.4 Keep the area, change water renewal
+
+At 1:26, compare two groups with the same eight axes, surface area and uptake parameters per square centimetre. The water arriving from outside remains at $C_b=10$. What happens if exchange with the surrounding water is restricted?
+
+The model treats the water among the axes as one well-mixed compartment, with concentration $C$. It can be well mixed internally while exchanging slowly with the surrounding reservoir. We prescribe water exchange $F$ in litres per hour. At steady state,
+
+$$\underbrace{FC_b}_{\text{N entering}}-
+\underbrace{FC}_{\text{N leaving}}=
+\underbrace{Aj(C)}_{\text{N taken up}}=Q.$$
+
+| Prescribed renewal | $F$ (L/h) | Local $C$ (µmol/L) | Whole-thallus $Q$ (µmol N/h) |
+|----|---:|---:|---:|
+| Freely renewed example | 1.00 | 8.70 | 1.302 |
+| Sheltered example | 0.03 | 0.78 | 0.277 |
+
+The large difference occurs with **the same total surface area**. Water replacement supports different local concentrations, and those concentrations give different areal rates. Incoming N minus outgoing N matches uptake in both treatments.
+
+The spacing illustrates canopy shelter. The stated exchange rates are imposed; they are not predictions from the spacing. This simple model does not calculate currents, turbulence or individual surface boundary layers. It assumes sufficient delivery within the compartment for active surfaces to experience its concentration. Particle paths illustrate renewal and do not supply the numerical budget.
+
+At 2:06, the comparison increases area while keeping renewal at $0.03\,\mathrm{L/h}$. Total incoming N is only $FC_b=0.300\,\mathrm{\mu mol/h}$. Uptake approaches that ceiling as area increases and local concentration falls. Extra surface brings progressively less additional uptake. These are **separate steady comparisons**, not a time course of growth. This area sweep neither fixes biomass nor calculates a per-gram response.
+
+### 6.5 Treat hairs as a testable mechanism
+
+Hyaline hairs add structure at the thallus surface. In *Fucus vesiculosus*, oxygen-profile measurements showed locally thickened, spatially variable boundary layers around hair tufts ([Lichtenberg et al. 2017](#ref-lichtenberg2017diffusion)). This was not a measurement of nitrate uptake or proof of altered transporter affinity.
+
+Ask separately whether hairs change active exchange area, local nutrient chemistry or delivery. A change in apparent uptake at a given bulk concentration does not establish a lower intrinsic $K_s$. Useful measurements include total surface, uptake per unit surface, local concentrations and the response to a controlled change in renewal. Comparisons among Baltic macroalgae found uptake differences associated with morphology ([Wallentinus 1984](#ref-wallentinus1984comparisons)), but comparisons among species do not isolate geometry from all physiological differences.
+
+### 6.6 Practice: test an explanation about form
+
+1.  Calculate the sheet’s volume and full surface area. What would you miss by counting only one broad face?
+2.  At equal $j=0.06667$, compare whole-thallus uptake in the sheet and thick axis. Explain why this does not mean the sheet has faster transporters.
+3.  A student says doubling an organism’s length always halves SA:V. State the geometric condition needed. How does this differ from the opening comparison?
+4.  Explain why 5 mm of tissue depth and a 5 mm concentration boundary layer are different statements, even though their units match.
+5.  Check the sheltered canopy’s N balance using $F=0.03$, $C_b=10$ and $C\approx0.78$. Why is uptake much lower than in freely renewed water despite equal area?
+6.  Could the sheltered model sustain $0.50\,\mathrm{\mu mol/h}$ uptake at steady state just by adding area? State the numerical constraint.
+7.  Hairy tissue has greater uptake per gram than hairless tissue at the same bulk concentration. Does this establish increased intrinsic affinity? Propose measurements that distinguish area from delivery.
+8.  Two forms have the same uptake per unit surface at matched local concentration, but different uptake per gram. Give a geometric explanation. What would differing rates per surface require you to investigate?
+
+> **NOTE:**
+>
+> 1.  Volume is $2.5\times4.0\times0.1=1.00\,\mathrm{cm^3}$. Full area is $2(10+0.25+0.40)=21.30\,\mathrm{cm^2}$. One broad face gives only 10 cm²; it omits the other face and all four edges.
+> 2.  The rates are about 1.420 and 0.371 µmol N/h, a ratio of about 3.82. Areal uptake activity is identical. The sheet has more exchange surface per gram in this comparison.
+> 3.  All linear dimensions must increase by the same factor so that shapes remain geometrically similar. Doubling length alone, or adding branches, does not guarantee this scaling. The opening comparison instead redistributes equal tissue volumes among different forms.
+> 4.  One distance lies within living tissue; the other describes a concentration field in water outside it. They involve different barriers and transport processes. Neither distance alone establishes an uptake rate or transport time.
+> 5.  Input is $0.03\times10=0.300$ µmol/h. Output is about $0.03\times0.78=0.0234$ µmol/h. Uptake is their difference, about 0.277 µmol/h. Restricted renewal lowers local concentration and hence the rate per unit active surface.
+> 6.  No. Total input is only 0.300 µmol/h. At steady state with no other nutrient source, uptake cannot exceed input. Adding area does not create N. A transient could also draw down N already in the water; the stated ceiling concerns steady state.
+> 7.  No. Compare area per gram and uptake per area, measure local nutrient concentrations, and alter renewal under matched tissue condition. A difference at equal bulk concentration can reflect different concentrations at the active surface.
+> 8.  Different area per gram can explain the first pattern because $V=jA/M$. If $Q/A$ still differs at matched local concentration, area alone is insufficient. Investigate active surface fraction, uptake properties, tissue condition and measurement uncertainty.
+
+## 7 Concept 7: Uptake, storage and growth
+
+[Download the animation](animations/blender_nutrient_uptake/concept_07_uptake_storage_growth.mp4).
+
+The animation is 3 minutes long, with written explanations and no audio. [Download the illustrative time course](animations/blender_nutrient_uptake/concept_07_timecourse.csv).
+
+### 7.1 Nitrogen entering the tissue need not become new tissue immediately
+
+Suppose we put N-depleted seaweed into a flask containing a nitrogen pulse. The water loses N rapidly. Does that mean the seaweed has already produced an equivalent amount of new biomass? We cannot tell from the water measurement alone. Some acquired N may enter internal reserves before being incorporated into the organic compounds used in growth.
+
+The opening diagram follows **external water, an internal reserve and structural organic N**. A green boundary encloses both internal pools within the same tissue. Blue represents N in the water, gold represents reserve N and green represents organic N. The arrows show transfer rates in µmol N/h; the boxes and bars show amounts in µmol N. The stacked bar accounts for all 31 µmol N, including the grey portion removed during water replacement. The reserve represents N available for later use and does not resolve its chemical forms or subcellular locations.
+
+Let $E$, $R$ and $G$ be the amounts in those three pools. If uptake is $U$ and assimilation is $A$, then:
+
+$$\frac{dE}{dt}=-U,\qquad \frac{dR}{dt}=U-A,\qquad \frac{dG}{dt}=A.$$
+
+When $U>A$, the reserve increases. When $A>U$, the reserve decreases. Neither statement says that dissolved nitrate outside the tissue must equal total N inside it. We have already distinguished the external water gradient from the electrochemical conditions across a membrane.
+
+### 7.2 End the pulse and watch what happens
+
+At 1:04 in the animation, we replace the water at experimental hour 6 with N-free medium. The N removed is recorded as exported from the vessel. This is an experimental intervention; the nitrogen has not vanished.
+
+| Experimental time                 | Water N | Reserve N | Organic N | Exported N |
+|-----------------------------------|--------:|----------:|----------:|-----------:|
+| Start                             |   20.00 |      1.00 |     10.00 |       0.00 |
+| Just after water replacement, 6 h |    0.00 |      8.11 |     13.33 |       9.56 |
+| End, 30 h                         |    0.00 |      0.02 |     21.42 |       9.56 |
+
+All entries are µmol N, rounded. Each row accounts for 31 µmol N, allowing for rounding. Read the CSV for unrounded values and separate rows immediately before and after water replacement.
+
+External uptake becomes zero. Assimilation continues using the reserve, and structural biomass rises from about 1.33 to 2.14 model biomass units. **Growth can continue after external uptake stops**, provided stored N and the other requirements remain available. Here carbon, light and other nutrients are supplied. The model assumes 10 µmol structural organic N per model biomass unit; reserve N is accounted for separately. It does not claim that a real thallus has a fixed total tissue quota or that N alone produces biomass.
+
+This is the value of luxury consumption in a fluctuating environment: acquisition and use can occur at different times. Storage capacity and nutritional history vary among species and conditions. Do not assign luxury consumption exclusively to a particular functional form.
+
+### 7.3 Explain a changing uptake rate carefully
+
+At 2:12 we compare equal starting structural biomass and equal external concentration, but different reserves. The illustrative feedback law gives initial uptake rates of 3.42 and 0.73 µmol N/h for low and high reserves. It imposes one possible mechanism: accumulated reserves reduce further uptake. This is not a fit to the experiments in the lecture.
+
+An initial surge, internal regulation and declining external supply are useful descriptions, but they can overlap. A surge does not establish passive diffusion into an empty vacuole. A plateau does not uniquely identify the enzyme controlling it. Strong deprivation can also impair the machinery required for uptake. Measure internal N and tissue condition rather than assuming that the most starved tissue must always take up N fastest. Smit’s experiments tested nutritional history and uptake ([Smit 2002](#ref-smit2002nitrogen)); they did **not** directly fit a storage-to-growth model.
+
+### 7.4 Practice: test storage and growth
+
+1.  The water loses 5 µmol N while organic tissue gains 1 µmol N. Assuming no other fluxes, what happened to the reserve?
+2.  Why would water disappearance alone be insufficient evidence of growth?
+3.  Close the N budget immediately after water replacement. Where is the missing external N?
+4.  Can the model grow after hour 6? State what supplies N and what other conditions are assumed.
+5.  Would an empty vacuole establish that nitrate enters by simple diffusion? Explain using the membrane concepts.
+6.  How would you test whether a lower uptake rate reflects internal feedback or poorer external delivery?
+7.  Design a pulse-and-wash experiment that traces acquired N into later organic tissue. What would you measure?
+8.  A badly damaged, severely starved thallus takes up N slowly. Does this contradict the low-reserve example?
+
+> **NOTE:**
+>
+> 1.  It increased by 4 µmol N: uptake exceeded assimilation by that amount.
+> 2.  N may enter reserves before structural growth. Losses, microbes and sampling can also affect water measurements, so use the controls discussed in concept 5.
+> 3.  The budget accounts for approximately $8.11+13.33+9.56=31.00$ µmol N. The 9.56 µmol was removed with the replaced water and belongs in the export account.
+> 4.  Yes. Reserve N supports assimilation after uptake stops. Carbon, light, other nutrients and functional tissue are assumed sufficient. Growth eventually slows as the reserve is depleted.
+> 5.  No. The internal pool’s volume or total N content does not establish nitrate’s electrochemical gradient or membrane permeability. A charged ion may require a transport protein and energy coupling.
+> 6.  Match external supply and measure surface concentration, uptake and internal reserves. Alter water movement separately from nutritional pre-treatment. State how each explanation predicts the outcome.
+> 7.  Give a short labelled-N pulse, wash into unlabelled N-free medium and measure dissolved N, internal soluble/reserve N, organic labelled N and biomass through time. Account for carry-over, exported N and other losses; include matched controls.
+> 8.  No. The illustrative comparison changes reserve feedback while retaining functional tissue. Damage changes another condition and can lower capacity. Record both nutritional status and tissue health.
+
+## 8 Concept 8: A changing physiological environment
+
+[Download the animation](animations/blender_nutrient_uptake/concept_08_physiological_environment.mp4).
+
+The animation is 3 minutes 20 seconds long, with written explanations and no audio. [Download the illustrative photoperiod data](animations/blender_nutrient_uptake/concept_08_photoperiod.csv).
+
+### 8.1 Separate transport, assimilation and demand
+
+Nitrate must first reach the tissue and cross a membrane. Once inside, nitrate reductase converts nitrate to nitrite; nitrite reductase then converts nitrite to ammonium. Ammonium N can be incorporated into amino acids. The opening diagram places membrane transport before these reactions and labels each conversion beside its arrow. The boundary separates external water from the processes inside the tissue. This is a pathway outline: it omits enzyme structure, carbon skeletons, energy inputs and full reaction stoichiometry.
+
+Photosynthesis supplies fixed carbon and energy that can support N assimilation and growth. This does not mean that every organic molecule must contain N and P: glucose, for example, contains neither. The organism needs these elements for particular compounds and processes, including proteins and nucleic acids.
+
+In the day/night example, the upper graph shows uptake in blue and assimilation in green, while the lower graph shows reserve N in gold. The graphs share a time axis, and shaded intervals indicate darkness. External N is maintained and the reference tissue has a changing internal reserve. Light and darkness change the prescribed uptake and assimilation capacities. Both rates remain positive in darkness. Reserve carbon and energy are assumed sufficient; their depletion and structural growth are not calculated here. The N account is still closed: initial reserve plus cumulative uptake equals current reserve plus cumulative assimilation.
+
+Night-time uptake is therefore possible, but its magnitude and duration require measurement. Do not treat a twelve-hour photoperiod as twelve hours of uptake followed by twelve hours of no uptake.
+
+### 8.2 Light and temperature responses have limits
+
+From 1:12, the cursor moves across an illustrative light-response curve. Increasing irradiance helps on the rising part and reduces processing on the declining part. The chosen peak of 250 µmol photons/m²/s is not a recommendation or a measured optimum for the seaweeds in the lecture.
+
+The temperature example peaks at 20°C, also by construction. For two measurements ten degrees apart,
+
+$$Q_{10}=\frac{R(T+10)}{R(T)}.$$
+
+State the process and temperature interval. A rate doubling from 10 to 20°C does not predict another doubling from 20 to 30°C. Different processes, species, acclimation states and nutrient forms can respond differently. A measured uptake response can also contain a delivery effect, so control water movement and examine the concentration reaching the tissue.
+
+### 8.3 Keep the measured ammonium interaction in context
+
+Smit ([2002](#ref-smit2002nitrogen)) found approximately 38% suppression of nitrate uptake in *Gracilaria gracilis* when ammonium-N exceeded 5 µmol/L. **Suppression did not mean nitrate uptake was universally zero until all ammonium disappeared.** The animation expresses this result relative to a reference uptake of 100, giving approximately 62 with ammonium present. The bars summarise the reported percentage and do not represent raw paired observations or a fitted inhibition law. Consult the experimental conditions and Figures 6–7 in the [paper](../docs/Smit_2002.pdf).
+
+The final kinetic example adds two saturating components:
+
+$$V=\frac{2S}{1+S}+\frac{6S}{30+S}.$$
+
+The components respond over different concentration ranges and act simultaneously in this model. Such a description does not identify two actual proteins, show a switch from active to passive transport, or determine energy costs. Use the curve to propose an explanation and then seek measurements that distinguish it from alternatives.
+
+### 8.4 Practice: test physiological explanations
+
+1.  Name the two reduction steps between nitrate and ammonium. Which enzyme catalyses each?
+2.  The light goes off but N uptake continues. Give a possible explanation and one measurement that would test it.
+3.  During one hour, uptake is 0.4 and assimilation 0.3 µmol N/h. What happens to the reserve?
+4.  A rate doubles between 10 and 20°C. What is $Q_{10}$ over that interval? What can you infer about 30°C?
+5.  Explain why higher light can increase uptake in one comparison but decrease it in another.
+6.  If reference nitrate uptake is 10 units, what would 38% suppression give? Why should you not apply that percentage to every seaweed?
+7.  A biphasic curve is fitted well by two components. What has been described, and what has not been demonstrated?
+8.  Design a comparison that distinguishes a water-delivery explanation from a light-dependent physiological explanation.
+
+> **NOTE:**
+>
+> 1.  Nitrate reductase reduces nitrate to nitrite, and nitrite reductase reduces nitrite to ammonium. The ammonium can then be incorporated into amino acids.
+> 2.  Stored carbon and energy, together with existing transport machinery, may support continued uptake. Measure dark uptake through time alongside reserves and assimilation; a finite energy reserve cannot sustain every rate indefinitely.
+> 3.  It increases by 0.1 µmol N, assuming no other internal N fluxes.
+> 4.  $Q_{10}=2$. The two measurements do not establish the rate at 30°C or locate an optimum. Measure the wider response range.
+> 5.  One comparison may lie below light saturation; the other may involve photoinhibition, stress or a different limiting resource. Match the other conditions and measure the response curve.
+> 6.  Uptake would be 6.2 units. The percentage describes particular experiments with *Gracilaria gracilis*, specified nutrient concentrations and tissue conditions. It is not a universal inhibition constant.
+> 7.  The concentration response has been described. Protein identity, energy coupling, regulation and the number of actual transport pathways need independent evidence.
+> 8.  Cross light treatments with water movement, using matched tissue history, temperature and nutrient supply. Measure surface concentration and uptake per unit tissue or active surface. A difference that persists at matched local concentration requires more than a delivery-only explanation.
+
+## 9 Concept 9: From nutrient limitation to oxygen loss
+
+[Download the animation](animations/blender_nutrient_uptake/concept_09_enrichment_and_oxygen.mp4).
+
+The animation is 3 minutes 20 seconds long, with written explanations and no audio. Download the illustrative [N/P experiment](animations/blender_nutrient_uptake/concept_09_enrichment.csv) and [oxygen time courses](animations/blender_nutrient_uptake/concept_09_oxygen.csv).
+
+### 9.1 Test which nutrient restricts the response
+
+We return to the coast, where river inputs, upwelling and recycling can supply nutrients. Their effects depend on the receiving system. The coastal view is a conceptual sequence; it is not a forecast for a particular bay. We then move into controlled experiments to examine two parts of that sequence.
+
+At 0:30, compare four cultures: a control, +N, +P and +N+P. All start with one biomass unit. For this deliberately simple example, each additional unit requires 10 µmol N and 1 µmol P. Carbon, light and other requirements are sufficient; losses are omitted.
+
+| Treatment | Initial available N, µmol | Initial available P, µmol | Maximum additional biomass units |
+|----|---:|---:|---:|
+| Control | 5 | 1 | 0.5 |
+| +N | 20 | 1 | 1.0 |
+| +P | 5 | 2 | 0.5 |
+| +N+P | 20 | 2 | 2.0 |
+
+In this fixed-composition model, the ceiling is $\min(N/10,P/1)$. N addition increases the yield. P alone does not, but adding P alongside N gives a further increase. Thus a lack of response to P alone does not mean P can never restrict growth. N and P restrictions can occur together or sequentially; use the full treatment pattern, timing and uncertainty when interpreting a real experiment ([Elser et al. 2007](#ref-elser2007global)).
+
+Redfield’s 106C:16N:1P is an empirical summary associated with marine plankton, not a fixed recipe for every cell. The often-cited 550C:30N:1P for benthic marine plants is also a summary across variable material ([Atkinson and Smith 1983](#ref-atkinson1983cnp)). It is not the ratio used in this model. Tissue composition, internal stores, nutrient forms and supply rates all matter; a single dissolved N:P ratio cannot establish the limiting nutrient.
+
+### 9.2 Explain oxygen loss using its sources and sinks
+
+A bloom accumulates when production exceeds losses. Living organisms respire, and organic matter from the bloom can also support microbial respiration. Photosynthesis supplies oxygen in illuminated water, while renewal supplies or removes oxygen according to the concentration difference. Darkness and poor renewal can therefore expose a large oxygen demand that was less evident during the day.
+
+At 1:52, the animation isolates **dark bottom water after organic matter has arrived**. Both examples start with 6 mg organic C/L and 8 mg O₂/L. The source water stays at 8 mg O₂/L. Only the prescribed oxygen-renewal coefficient differs: 0.08 versus 1.2 per day. These are exchange coefficients, not current velocities or outputs from a fluid model.
+
+Aerobic decomposition consumes O₂ and releases ammonium-N. The model assumes a molar organic C:N ratio of 8:1 and one mole of O₂ consumed per mole of organic C decomposed. These assumptions determine the calculated N regeneration and oxygen demand. Oxygen scarcity slows decomposition in this model. Minimum O₂ is about 0.49 mg/L under weak renewal and 6.11 mg/L under stronger renewal. The initial organic loading and process parameters are identical; the realised decomposition histories differ because oxygen availability differs.
+
+$$\text{O₂ remaining}=\text{initial O₂}+\text{O₂ supplied}-\text{O₂ consumed}.$$
+
+The bottom-water calculation has no photosynthesis, nitrification or anaerobic metabolism. It assumes a fixed volume and idealised oxygen supply without separately advecting the other model pools. It is an oxygen-budget experiment, not a complete estuary circulation model. Nutrient enrichment, organic matter accumulation and oxygen supply must be connected explicitly when explaining coastal oxygen loss ([Diaz and Rosenberg 2008](#ref-diaz2008spreading)).
+
+### 9.3 Uptake is a transfer, not automatically permanent removal
+
+When a seaweed acquires N, it transfers N from water to tissue. Grazing, excretion and decomposition can return it. Remineralisation of organic N produces ammonium; nitrification can oxidise ammonium through nitrite to nitrate. Neither step alone removes fixed N from the ecosystem. Nitrogen fixation makes N₂ available as fixed N; denitrification and anammox can return fixed N to N₂.
+
+Harvest or export can remove N from a defined local system, but then measure and account for that flux. The same boundary matters when assessing nutrient capture in aquaculture or mitigation. Harvesting can remove stored nutrients while source control addresses continuing enrichment.
+
+### 9.4 Practice: test the enrichment explanation
+
+1.  Explain the different yields in +N and +N+P using the numerical nutrient budgets.
+2.  Does no response to P alone demonstrate that P is irrelevant? Use the full treatment pattern.
+3.  Why is an observed N:P ratio of 30:1 insufficient to diagnose limitation in a real seaweed?
+4.  Extra nutrients enter a bay but biomass does not accumulate. Give two explanations and measurements that distinguish them.
+5.  The two oxygen models have identical initial organic loads. Why do their oxygen minima differ?
+6.  Can a dense bloom coexist with high daytime O₂ and low night-time O₂? Explain the sources and sinks.
+7.  A water sample loses DIN while seaweed tissue gains N. Has the local ecosystem permanently lost that N?
+8.  Design a small study to test the proposed chain: enrichment, organic matter accumulation, respiration and oxygen loss.
+
+> **NOTE:**
+>
+> 1.  +N has 20 µmol N and 1 µmol P. P restricts additional biomass to one unit, leaving 10 µmol N. +N+P has 20 µmol N and 2 µmol P, sufficient for two additional units.
+> 2.  No. N masks the response to P in the initial treatment. After N addition, P restricts the extra yield. In a real experiment, replication, effect sizes and uncertainty are also needed.
+> 3.  It omits actual demand, tissue stores, nutrient availability, supply rates and other constraints. Empirical composition ratios are not universal optima. Test nutrient additions and measure tissue responses.
+> 4.  Light or another resource may restrict production; grazing, mortality or export may balance it. Measure production and losses separately, alongside light, nutrients and water renewal. Standing biomass alone does not identify the cause.
+> 5.  Stronger renewal supplies oxygen more quickly relative to aerobic consumption. Under weak renewal, O₂ becomes scarce and decomposition itself slows. Equal loading does not guarantee equal realised respiration at every time.
+> 6.  Yes. Photosynthesis supplies O₂ in the light, while respiration continues through day and night. At night, oxygen loss depends on respiration relative to renewal and the starting oxygen inventory; complete depletion is not inevitable.
+> 7.  No. N has crossed from water into tissue. It may be recycled locally. Permanent or longer-term removal requires a defined boundary and evidence for harvest, export, burial or transformations such as loss of fixed N as N₂.
+> 8.  Use replicated nutrient treatments with matched controls, monitor biomass and organic matter, measure respiration and oxygen over day/night cycles, and quantify renewal. State predictions for each causal step and account for other nutrient inputs and losses. Low O₂ and high nutrients observed together do not by themselves establish the entire chain.
+
+## 10 Bring the nine concepts together
+
+Start with a specific observation: the nitrate concentration in a flask falls, or a coastal bay accumulates algae. Work through delivery, membrane transport, internal processing, growth and losses. Name the process you think restricts the response, state what would change if that explanation were correct, and choose measurements that could show it to be wrong.
+
+For the animation connecting the perturbation experiment to interval uptake rates and the $V$–$S$ curve, return to [Lecture 9b](../BDC223/L09b-nutrients_michaelis_menten.llms.md#sec-follow-nitrogen).
+
+## 11 Summary
+
+- Uptake lowers the nutrient concentration at the thallus surface, and diffusion across the depleted water supplies nutrients from the bulk water; a high bulk concentration does not guarantee a high surface concentration.
+- Water movement increases uptake by steepening the concentration gradient at the surface, without changing the diffusion coefficient, and it has little effect when uptake capacity rather than delivery restricts the rate.
+- Whether an ion can enter a cell depends on its electrochemical gradient as well as its concentration gradient; nitrate entry into a cell with a negative interior is usually uphill and requires coupling to another gradient, such as that of protons or sodium.
+- The Michaelis–Menten curve can be explained by the occupancy of a finite number of uptake sites; neither a plateau nor a near-linear section identifies the transport mechanism.
+- In a perturbation experiment, nitrogen budgets that track water, tissue, additions and samples separate the amount taken up from the uptake rate and prevent sampling losses from being counted as uptake.
+- Thallus form changes surface area per gram, but whole-thallus uptake also depends on how fast water renewal can resupply the water around the surface.
+- Nitrogen taken up can be stored and used for growth later, and light, temperature, nutrient form and nutritional history change uptake and assimilation.
+- Nutrient enrichment can raise algal production, and the decomposition of the resulting organic matter can deplete oxygen where water renewal is slow.
+
+## 12 Self-test questions
+
+> **NOTE:**
+>
+> $J_{\mathrm{in}} \approx D(C_b - C_s)/\delta = 1500 \times 8/300 = 40\,\mathrm{\mu m\,s^{-1}} \times \mathrm{\mu mol\,L^{-1}}$. Surface removal is $kC_s = 20 \times 2 = 40$ in the same units, so supply and removal balance and the profile is steady. Because $1\,\mathrm{\mu mol\,L^{-1}} = 1000\,\mathrm{\mu mol\,m^{-3}}$ and $40\,\mathrm{\mu m\,s^{-1}} = 4 \times 10^{-5}\,\mathrm{m\,s^{-1}}$, the flux is $0.040\,\mathrm{\mu mol\,N\,m^{-2}\,s^{-1}}$.
+
+> **NOTE:**
+>
+> The concentration contribution favours entry ($-5.71\,\mathrm{kJ\,mol^{-1}}$), but nitrate is negatively charged and the negative interior opposes its entry ($+7.72\,\mathrm{kJ\,mol^{-1}}$). The sum is $+2.01\,\mathrm{kJ\,mol^{-1}}$, so net uncoupled entry is uphill. Individual ions may still cross in either direction if a permeable route exists, but these conditions favour net passive movement outwards. The cell can take up nitrate by secondary active transport, coupling its entry to the downhill movement of protons (or sodium in *Zostera marina*), whose gradient is maintained by a pump.
+
+> **NOTE:**
+>
+> At $S = 1.25$: $f = 1.25/(5 + 1.25) = 0.20$ and $V = 2.0$. At $S = 20$: $f = 20/25 = 0.80$ and $V = 8.0\,\mathrm{\mu mol\,N\,g^{-1}\,dry\ mass\,h^{-1}}$. At high $S$, most sites are already occupied, so more nitrate shortens the waiting time of only a few empty sites. The finite number of sites and their finite turnover limit the rate.
+
+> **NOTE:**
+>
+> At low bulk concentration, uptake can lower the surface concentration well below the bulk value, so delivery restricts the rate and stirring, by steepening the surface gradient, raises $C_s$ and uptake. At high bulk concentration, the uptake sites are closer to saturation and the surface is less depleted relative to the bulk, so the uptake system cannot make much use of improved delivery. Both restrictions act together, and their relative importance shifts with concentration.
+
+> **NOTE:**
+>
+> Organic N increased by $21.42 - 13.33 = 8.09\,\mu\mathrm{mol}$. The reserve fell by $8.11 - 0.02 = 8.09\,\mu\mathrm{mol}$ over the same period. With no external N available, growth was supported entirely by assimilation of stored N, and the total of 31 µmol N (including the 9.56 µmol exported) is conserved.
+
+> **NOTE:**
+>
+> Uptake transfers N from water to tissue; remineralisation releases organic N as ammonium; nitrification oxidises ammonium through nitrite to nitrate. None of these removes fixed N from the ecosystem. Denitrification and anammox convert fixed N to N₂, and nitrogen fixation converts N₂ to fixed N. Harvest or export removes N only from a defined local system.
+
+## 13 Multiple-choice questions
+
+Click an option to check your answer. A green tick marks the correct option, and its explanation then appears below the options.
+
+**1.** Uptake at a thallus surface has depleted the adjacent water of nitrate. Which statement best describes how nitrate then reaches the surface by diffusion?
+
+- Each ion detects the lower concentration at the surface and steers itself towards the thallus along the steepest gradient.
+- Each ion is drawn towards the surface by the uptake sites, which attract nitrate from the bulk water across the depleted layer.
+- Each ion moves randomly, but more ions cross from the richer water than return, so the net flux is towards the surface.
+- Each ion stops moving once the water is still, so nitrate reaches the surface only when the water is moving past the thallus.
+
+Individual ions move randomly in all directions. Because there are more ions per unit volume farther from the surface, more cross towards the depleted region than away from it, giving a net diffusive flux. No ion senses the gradient.
+
+**2.** Stirring a flask increases nitrate uptake by a seaweed. Which explanation is most correct?
+
+- Stirring replenishes water near the thallus and steepens the surface gradient, without changing D.
+- Stirring raises the bulk nitrate concentration in the flask, so more nitrate is present in the water.
+- Stirring raises the number of uptake sites in the membrane, so the alga gains a higher capacity.
+- Stirring raises the diffusion coefficient D of nitrate, so each ion now diffuses faster through water.
+
+At the same temperature and solution properties, D is unchanged. Water movement carries nitrate along the thallus and shortens the effective diffusion distance, so the gradient at the surface is steeper and inward flux rises.
+
+**3.** A proton-coupled nitrate symporter in an algal membrane does not hydrolyse ATP itself, yet it moves nitrate into the cell against its electrochemical gradient. A separate ATP-driven pump maintains the proton gradient. Which description is most correct?
+
+- Facilitated diffusion, because the carrier moves nitrate without any energy supply of its own.
+- Secondary active transport, using a proton gradient maintained by a separate ATP-driven pump.
+- Primary active transport, because the nitrate carrier directly couples ATP hydrolysis to entry.
+- Simple diffusion, because the nitrate crosses the lipid bilayer by moving down a voltage gradient.
+
+Uphill movement needs energy. The symporter couples nitrate entry to downhill proton movement, and a separate pump hydrolyses ATP to maintain that proton gradient. This is secondary active transport. Facilitated diffusion is passive and moves solute only down its electrochemical gradient.
+
+**4.** In a cell membrane, an ATP-driven pump exports H⁺, and a separate carrier moves H⁺ and nitrate together into the cell. Which term correctly describes the carrier?
+
+- An antiporter, because H⁺ leaves through the pump and nitrate enters through the carrier.
+- A uniporter, because the carrier moves nitrate alone while the pump moves the H⁺ ions.
+- A symporter, because H⁺ and nitrate pass through the same protein in the same direction.
+- An antiporter, because H⁺ and nitrate pass through the same protein in opposite directions.
+
+Symport and antiport describe coupled movements within one transport system. Here H⁺ and nitrate move together, inwards, through the same carrier. The pump is a separate protein, so the pair does not form an antiporter.
+
+**5.** In the two-state occupancy model, the uptake half-saturation constant is Kₛ = (k_off + k_cat)/k_on, whereas the equilibrium dissociation constant is K_d = k_off/k_on. Which statement is most correct?
+
+- Kₛ is less than K_d because transport fills empty sites, so Kₛ overstates the binding affinity.
+- Kₛ exceeds K_d because transport also empties bound sites, so Kₛ is not simply a binding affinity.
+- Kₛ equals K_d because transport does not affect occupancy, so Kₛ is simply a binding affinity.
+- Kₛ exceeds K_d because binding becomes slower at high S, so Kₛ falls as the concentration rises.
+
+Bound sites empty either by release (k_off) or by inward transport (k_cat). Adding k_cat raises Kₛ above K_d, so a higher concentration is needed to keep half the sites occupied. The whole-alga Kₛ therefore need not measure binding affinity.
+
+**6.** Which statement about ammonium uptake is best supported by the evidence discussed in the lecture?
+
+- NH₄⁺ is charged, so its uptake is simple diffusion down the voltage with a linear response.
+- NH₄⁺ is uncharged, and a plant transporter shows that its uptake is passive and does not saturate.
+- NH₄⁺ is uncharged, so its uptake is simple diffusion through the lipid bilayer, with a linear response.
+- NH₄⁺ is charged, and a plant transporter shows that its uptake can be protein-mediated and saturating.
+
+Ammonia (NH₃) is uncharged; ammonium (NH₄⁺) is charged. Experiments with a plant ammonium transporter show protein-mediated transport with saturating kinetics, which contradicts a general rule that ammonium uptake is passive and linear.
+
+**7.** A seaweed takes up ammonium, is later grazed, and the N is remineralised and then nitrified. Which statement about the fate of this fixed N is most correct?
+
+- It has been removed from the ecosystem, because nitrification converts ammonium to N₂ gas.
+- It has changed form within the ecosystem, and remineralisation alone has returned it to N₂.
+- It has changed form within the ecosystem, and none of these steps alone has returned it to N₂.
+- It has been removed from the ecosystem, because uptake into tissue takes the N out of circulation.
+
+Uptake moves N from water to tissue; grazing and remineralisation return it as ammonium; nitrification oxidises ammonium through nitrite to nitrate. Fixed N returns to N₂ only through processes such as denitrification and anammox.
+
+**8.** Two thallus patches of the same species are compared at a maintained bulk nitrate concentration of 10 µmol L⁻¹, at equal area and temperature. Patch X has a high uptake capacity and patch Y a low one. Increasing water movement raises the surface concentration of X from 1.0 to 2.5 µmol L⁻¹ and nearly doubles its uptake. For Y, the surface concentration rises from 8.0 to 9.0 µmol L⁻¹, but uptake rises by only 3%. Which interpretation is most correct?
+
+- Delivery restricted X more than Y; Y’s surface was already near bulk concentration, so its capacity limited the response.
+- Delivery restricted neither patch; X’s larger response shows that faster water raised the diffusion coefficient D.
+- Delivery restricted both equally; Y’s small response shows that its membrane has no transport proteins for nitrate.
+- Delivery restricted Y more than X; X’s surface was already near bulk concentration, so its capacity limited the response.
+
+When uptake capacity is high, the surface is strongly depleted and better delivery raises Cₛ and uptake markedly. When capacity is low, the surface is already close to the bulk concentration, so improved delivery adds little. Both restrictions act together; their relative importance differs.
+
+**9.** A researcher stops the ATP-driven proton pump in algal cells while holding external nitrate constant. Nitrate uptake continues for a short time and then declines as the membrane voltage and pH difference decay. Tissue condition and temperature are unchanged. A student argues that the continued uptake disproves proton-coupled secondary active transport. Which evaluation is most correct?
+
+- The argument fails; an existing proton gradient can drive coupled entry until it dissipates, which matches the decline.
+- The argument holds; continued uptake after the pump stops shows that nitrate enters by simple diffusion alone.
+- The argument holds; secondary active transport stops at once when the pump stops, so the uptake must be passive.
+- The argument fails; the pump transports nitrate directly, so uptake continues only while ATP remains in the cell.
+
+Stopping the pump does not remove the established gradient at once. Coupled entry continues while the proton gradient persists and declines as it decays. A stronger test would change the proposed coupling gradient while measuring voltage, pH and uptake.
+
+**10.** Fragments of a brown seaweed bearing dense hyaline hairs take up more nitrate per gram than hairless fragments of the same species, at the same bulk nitrate concentration and in still water. Mass, temperature and nutritional history are matched. A student concludes that hairs lower the intrinsic Kₛ of the nitrate transporters. Which evaluation is most correct?
+
+- Not established; hairs thicken the boundary layer around tufts, so the hairy fragments must in fact have lower uptake per unit area.
+- Not established; hairs could change active area or local delivery, so uptake per area and local concentration should be measured.
+- Established; hairs add surface area to the thallus, so a larger area per gram is itself a direct measure of a lower intrinsic Kₛ.
+- Established; hairs raise uptake per gram at the same bulk concentration, so the transporters must have a higher binding affinity.
+
+A higher apparent uptake at the same bulk concentration can arise from more active surface per gram or a different concentration at the surface. Measuring area, uptake per unit area, local concentrations and the response to controlled changes in renewal can separate these from intrinsic transporter properties.
+
+**11.** Four cultures each start with one biomass unit. Each additional unit needs 8 µmol N and 0.5 µmol P; light, carbon and other nutrients are sufficient and losses are omitted. The control has 4 µmol N and 0.5 µmol P; +N has 12 µmol N and 0.5 µmol P; +P has 4 µmol N and 1.0 µmol P; +N+P has 12 µmol N and 1.0 µmol P. Which interpretation of the maximum additional yields is most correct?
+
+- N restricts the control (0.5 units); after N is added, P restricts +N (1.0 units), and +N+P reaches 1.5 units.
+- N restricts the control (0.5 units); P plays no role in any treatment, since +P is unchanged at 0.5 units.
+- P restricts the control (1.0 units); after P is added, N restricts +P (0.5 units), and +N+P reaches 1.5 units.
+- N restricts the control (0.5 units); after N is added, N still restricts +N (1.5 units) and +N+P alike.
+
+Yield = min(N/8, P/0.5). Control: min(0.5, 1.0) = 0.5; +N: min(1.5, 1.0) = 1.0; +P: min(0.5, 2.0) = 0.5; +N+P: min(1.5, 2.0) = 1.5. No response to P alone does not mean P is irrelevant; it restricts yield once N is added.
+
+**12.** Two dark bottom-water parcels receive the same load of organic matter and start with the same oxygen concentration. The source water supplying oxygen is identical, but one parcel has a weak oxygen-renewal coefficient and the other a strong one. There is no photosynthesis. The weakly renewed parcel reaches a much lower oxygen minimum. Which explanation is most correct?
+
+- Renewal supplied extra organic matter to the weak parcel, so its respiration exceeded that in the strongly renewed parcel.
+- Renewal is unrelated to O₂ loss, so the lower minimum reflects more microbes in the weakly renewed parcel.
+- Renewal supplied O₂ more slowly relative to aerobic consumption, so O₂ fell further despite equal organic loading.
+- Renewal removed O₂ from the strong parcel faster, so respiration there was lower despite equal loading.
+
+O₂ remaining = initial O₂ + O₂ supplied − O₂ consumed. With equal loading and no photosynthesis, the parcel with weaker renewal receives less O₂ to replace that used in decomposition, so its minimum is lower.
+
+**13.** Two thalli of equal structural biomass are placed at the same external nitrate concentration and water movement. One was pre-grown in nitrate-rich water and has a large internal N reserve; the other was pre-grown in low nitrate and has a small reserve. Both are undamaged. The high-reserve thallus takes up nitrate much more slowly. Which interpretation is best supported?
+
+- Poorer external delivery explains the difference, since the high-reserve thallus would have a thicker layer of depleted water around it.
+- Higher growth demand explains the difference, since the high-reserve thallus should need more N to support its rapid growth.
+- Tissue damage explains the difference, since thalli grown in nitrate-rich water lose part of their uptake machinery.
+- Reserve feedback is a plausible explanation; measuring internal N and surface concentration would help test it.
+
+Accumulated reserves can suppress further uptake, so the result is consistent with reserve feedback. However, matched bulk concentration and water movement do not guarantee identical concentrations at the tissue surface, and pre-treatment can also alter transporter abundance or assimilation. Measure internal reserves, surface concentration and uptake before attributing the difference specifically to reserve feedback.
+
+**14.** Nitrate diffuses towards a thallus across an effective diffusion distance δ = 450 µm, with D = 1800 µm² s⁻¹. The bulk concentration is 12 µmol L⁻¹ and the surface concentration is 3 µmol L⁻¹. Using J ≈ D(C_b − Cₛ)/δ and 1 µmol L⁻¹ = 1000 µmol m⁻³, what is the inward flux?
+
+- 0.0036 µmol N m⁻² s⁻¹
+- 36.0 µmol N m⁻² s⁻¹
+- 0.048 µmol N m⁻² s⁻¹
+- 0.036 µmol N m⁻² s⁻¹
+
+D/δ = 1800/450 = 4 µm s⁻¹ = 4 × 10⁻⁶ m s⁻¹. ΔC = 9 µmol L⁻¹ = 9000 µmol m⁻³. J = 4 × 10⁻⁶ × 9000 = 0.036 µmol m⁻² s⁻¹. Using C_b instead of the difference gives 0.048; omitting the unit conversions gives 36; 0.0036 misplaces a factor of ten.
+
+**15.** For the same thallus (D = 1800 µm² s⁻¹, δ = 450 µm, C_b = 12 µmol L⁻¹), surface removal is kCₛ with k = 12 µm s⁻¹. At steady state, supply D(C_b − Cₛ)/δ equals removal kCₛ. What is the steady surface concentration?
+
+- 4.0 µmol L⁻¹, one third of the bulk concentration
+- 9.0 µmol L⁻¹, three quarters of the bulk concentration
+- 6.0 µmol L⁻¹, one half of the bulk concentration
+- 3.0 µmol L⁻¹, a quarter of the bulk concentration
+
+D/δ = 4 µm s⁻¹. 4(12 − Cₛ) = 12Cₛ, so 48 = 16Cₛ and Cₛ = 3.0 µmol L⁻¹. Check: supply 4 × 9 = 36 = removal 12 × 3. The value 9.0 swaps the two coefficients in the numerator; 4.0 is C_b(D/δ)/k, which ignores the C_b − Cₛ difference.
+
+**16.** Ammonium (z = +1) is 5 µmol L⁻¹ outside a cell and 50 µmol L⁻¹ inside. The interior is at −100 mV relative to the outside. Use ΔG_in = RT ln(C_in/C_out) + zFΔψ, with RT ln(10) = 5.71 kJ mol⁻¹ and F = 96.5 kJ V⁻¹ mol⁻¹. What is ΔG for entry, and what does it mean?
+
+- −15.36 kJ mol⁻¹; entry is downhill because both of the contributions favour the entry
+- −3.94 kJ mol⁻¹; entry is downhill despite the higher concentration inside the cell
+- +5.71 kJ mol⁻¹; entry is uphill because the concentration inside the cell is higher
+- +15.36 kJ mol⁻¹; entry is uphill because both of the contributions oppose the entry
+
+Concentration term = RT ln(50/5) = +5.71 kJ mol⁻¹. Electrical term = (+1)(96.5)(−0.100) = −9.65 kJ mol⁻¹. Sum = −3.94 kJ mol⁻¹, so passive entry is thermodynamically favourable. Ignoring the voltage gives +5.71; using z = −1, as for nitrate, gives +15.36.
+
+**17.** In the two-state occupancy model, k_on = 0.05 L µmol⁻¹ s⁻¹, k_off = 0.10 s⁻¹ and k_cat = 0.20 s⁻¹, so Kₛ = (k_off + k_cat)/k_on. What fraction of uptake sites is occupied at a maintained membrane concentration S = 3 µmol L⁻¹?
+
+- 0.67, because Kₛ = 6 µmol L⁻¹ and f = Kₛ/(Kₛ + S)
+- 0.33, because Kₛ = 6 µmol L⁻¹ and f = S/(Kₛ + S)
+- 0.60, because Kₛ = 2 µmol L⁻¹ and f = S/(Kₛ + S)
+- 0.95, because Kₛ = 0.17 µmol L⁻¹ and f = S/(Kₛ + S)
+
+Kₛ = (0.10 + 0.20)/0.05 = 6 µmol L⁻¹, and f = 3/(6 + 3) = 0.33. Using K_d = k_off/k_on = 2 omits transport and gives 0.60; Kₛ/(Kₛ + S) is the empty fraction; inverting the rate-constant ratio gives Kₛ ≈ 0.17.
+
+**18.** A flask starts with 0.60 L of seawater at 20 µmol N L⁻¹ of added nitrate. Two 20 mL samples are withdrawn, at S = 15 and S = 9 µmol L⁻¹. At the end, 0.56 L remains at S = 4 µmol L⁻¹. There are no other inputs or losses. How much of the added N has the seaweed taken up?
+
+- 9.60 µmol N, from the concentration fall of 16 µmol L⁻¹ times the original 0.60 L
+- 8.96 µmol N, from the concentration fall of 16 µmol L⁻¹ times the remaining 0.56 L
+- 9.28 µmol N, after subtracting 2.24 µmol in the water and 0.48 µmol in samples
+- 9.76 µmol N, after subtracting 2.24 µmol in the water but ignoring the 0.48 µmol sampled
+
+N added = 0.60 × 20 = 12.00 µmol. Water at the end = 0.56 × 4 = 2.24 µmol. Sampled = 0.020 × 15 + 0.020 × 9 = 0.48 µmol. Uptake = 12.00 − 2.24 − 0.48 = 9.28 µmol. The other values count sampled N as uptake or use a single volume throughout.
+
+**19.** Water among a sheltered group of thallus axes exchanges with the surroundings at F = 0.05 L h⁻¹. Incoming water has C_b = 8 µmol L⁻¹, and the well-mixed water among the axes is at C = 1.2 µmol L⁻¹ at steady state. Using F C_b − F C = Q, what is the whole-thallus uptake Q, and what is the steady-state ceiling on uptake however much area is added?
+
+- Q = 0.40 µmol N h⁻¹; ceiling 0.34 µmol N h⁻¹
+- Q = 0.46 µmol N h⁻¹; no ceiling at steady state
+- Q = 0.06 µmol N h⁻¹; ceiling 0.40 µmol N h⁻¹
+- Q = 0.34 µmol N h⁻¹; ceiling 0.40 µmol N h⁻¹
+
+Q = 0.05 × (8 − 1.2) = 0.34 µmol N h⁻¹. At steady state uptake cannot exceed the N entering, F C_b = 0.05 × 8 = 0.40 µmol N h⁻¹. F C = 0.06 is the N leaving, not the uptake; adding the terms gives 0.46, and adding area cannot create N.
+
+**20.** Uptake sites follow V = Vmax S/(Kₛ + S), with Kₛ = 6 µmol L⁻¹. The concentration maintained at the membrane is doubled from 2 to 4 µmol L⁻¹. By what percentage does the uptake rate increase?
+
+- By 60%, because S is not far enough below Kₛ for V to rise in proportion
+- By 50%, because doubling S raises occupancy from one quarter to one half
+- By 40%, because the rate rises from one quarter of Vmax to four tenths of it
+- By 100%, because uptake is proportional to S at any concentration below Kₛ
+
+V/Vmax = 2/8 = 0.25 at S = 2 and 4/10 = 0.40 at S = 4. The ratio is 0.40/0.25 = 1.6, an increase of 60%. Proportionality holds only for S ≪ Kₛ; 40% mistakes the new fraction of Vmax (0.40) for the increase.
+
+## 14 References
+
+Atkinson MJ, Smith SV (1983) C:N:P ratios of benthic marine plants. Limnology and Oceanography 28:568–574. doi: [10.4319/lo.1983.28.3.0568](https://doi.org/10.4319/lo.1983.28.3.0568)
+
+Diaz RJ, Rosenberg R (2008) Spreading dead zones and consequences for marine ecosystems. Science 321:926–929. doi: [10.1126/science.1156401](https://doi.org/10.1126/science.1156401)
+
+Elser JJ, Bracken MES, Cleland EE, Gruner DS, Harpole WS, Hillebrand H, Ngai JT, Seabloom EW, Shurin JB, Smith JE (2007) Global analysis of nitrogen and phosphorus limitation of primary producers in freshwater, marine and terrestrial ecosystems. Ecology Letters 10:1135–1142. doi: [10.1111/j.1461-0248.2007.01113.x](https://doi.org/10.1111/j.1461-0248.2007.01113.x)
+
+Garcı́a-Sánchez MJ, Jaime MP, Ramos A, Sanders D, Fernández JA (2000) Sodium-dependent nitrate transport at the plasma membrane of leaf cells of the marine higher plant *zostera marina* L. Plant Physiology 122:879–886. doi: [10.1104/pp.122.3.879](https://doi.org/10.1104/pp.122.3.879)
+
+Lichtenberg M, Nørregaard RD, Kühl M (2017) Diffusion or advection? Mass transfer and complex boundary layer landscapes of the brown alga *fucus vesiculosus*. Journal of the Royal Society Interface 14:20161015. doi: [10.1098/rsif.2016.1015](https://doi.org/10.1098/rsif.2016.1015)
+
+Lindemann C, Fiksen Ø, Andersen KH, Aksnes DL (2016) Scaling laws in phytoplankton nutrient uptake affinity. Frontiers in Marine Science 3:26. doi: [10.3389/fmars.2016.00026](https://doi.org/10.3389/fmars.2016.00026)
+
+Loqué D, Mora SI, Andrade SLA, Pantoja O, Frommer WB (2009) Pore mutations in ammonium transporter AMT1 with increased electrogenic ammonium transport activity. Journal of Biological Chemistry 284:24988–24995. doi: [10.1074/jbc.M109.020842](https://doi.org/10.1074/jbc.M109.020842)
+
+Parker JL, Newstead S (2014) Molecular basis of nitrate uptake by the plant nitrate transporter NRT1.1. Nature 507:68–72. doi: [10.1038/nature13116](https://doi.org/10.1038/nature13116)
+
+Smit AJ (2002) Nitrogen uptake by *gracilaria gracilis* (Rhodophyta): Adaptations to a temporally variable nitrogen environment. Botanica Marina 45:196–209. doi: [10.1515/BOT.2002.019](https://doi.org/10.1515/BOT.2002.019)
+
+Wallentinus I (1984) Comparisons of nutrient uptake rates for Baltic macroalgae with different thallus morphologies. Marine Biology 80:215–225. doi: [10.1007/BF02180189](https://doi.org/10.1007/BF02180189)
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J. and J. Smit, A.},
+  title = {Lecture 9c: {Nutrients,} from Seawater to Growth},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BDC223/L09c-nutrients_visualised.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, J. Smit A (2026) Lecture 9c: Nutrients, from seawater to growth. [https://tangledbank.netlify.app/BDC223/L09c-nutrients_visualised.html.](https://tangledbank.netlify.app/BDC223/L09c-nutrients_visualised.html)

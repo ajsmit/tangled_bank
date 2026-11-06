@@ -1,0 +1,371 @@
+> **NOTE:**
+>
+> **This material must be reviewed by BCB743 students in Week 1 of Quantitative Ecology.**
+
+> **NOTE:**
+>
+> **Please see the [BDC334 Lecture Transcript](../BDC334/BDC334-Lecture-Transcripts.llms.md) for the main content of all lectures.**
+
+> **TIP:**
+>
+> - [Lab 2b. Environmental Distance](../BDC334/Lab-02b-env_dist.llms.md)
+> - [Lab 3. Quantifying Biodiversity](../BDC334/Lab-03-biodiversity.llms.md)
+
+> **TIP:**
+>
+> - [Gotelli and Chao (2013)](../docs/Gotelli_and_Chao_2013.pdf)
+> - [Shade et al. (2018)](../docs/Shade_et_al_2018.pdf)
+
+# 1 What biodiversity means and why we quantify it
+
+When we talk about ‘biodiversity,’ we typically refer to the variety of life in a given area or ecosystem. This encompasses species diversity, genetic diversity within species, and the diversity of ecosystems or habitats.
+
+Biodiversity data typically include:
+
+- Species identities (composition).
+- Species abundances.
+- Spatial location of samples.
+- Environmental variables associated with samples.
+
+These datasets allow us to calculate biodiversity metrics and compare communities across sites, habitats, and regions.
+
+This lecture quantifies biodiversity. We begin with partitioning across scales ($\alpha$, $\beta$, $\gamma$), then move to diversity indices, and finally to resemblance-based comparisons among communities.
+
+Lecture 3 explained why communities differ; this lecture deals with how we measure those differences.
+
+Biodiversity metrics can be broadly categorised into three groups based on the type of information they provide:
+
+- **Biodiversity metrics** ($\alpha$-diversity, $\beta$-diversity, $\gamma$-diversity).
+- **Diversity indices** (e.g., Shannon’s Entropy, Gini Index, Herfindahl-Hirschman Index (HHI)).
+- **Distance measures** (e.g., Euclidean, Manhattan) and **Dissimilarity indices** (e.g., Bray-Curtis, Jaccard, Sørensen).
+
+The first two categories reduce biodiversity to synthetic summaries. Distance measures and dissimilarity indices retain more of the multivariate structure in the data, which makes them more informative when we want to interpret process rather than only describe pattern.
+
+| Topic block | Core question | Typical data | Output / interpretation |
+|----|----|----|----|
+| Biodiversity partitioning ($\alpha, \beta, \gamma$) | How is diversity distributed within and among communities? | Site-by-species data (presence-absence or abundance) | Local richness, turnover, regional diversity |
+| Diversity indices | How diverse is a community when richness and abundance are both considered? | Species abundances per site | Univariate index values (e.g., Shannon, Simpson, Margalef) |
+| Distance measures | How different are sites environmentally? | Site-by-environment table | Environmental distance matrix |
+| Species dissimilarities | How different are communities in composition? | Site-by-species table | Species dissimilarity matrix (e.g., Bray-Curtis) |
+
+# 2 Biodiversity partitioning
+
+## 2.1 $\alpha$-diversity (species richness)
+
+$\alpha$-diversity quantifies the diversity of species within a specific, localised area or community. This could be a site, plot, quadrat, a field, or any other small unit of (typically) replication in the study. This measure provides information about the ecological structure and complexity of a given habitat at a fine scale.
+
+There are several ways to represent $\alpha$-diversity. The simplest and most straightforward measure is **species richness**, which is simply a count of the number of different species present in the sampling area. Simply put, this is a list of species within the local scale. If we have multiple local scale sites, we can calculate the average species richness across all sites ([Figure 1](#fig-alphadiversity)).
+
+[![](../images/alpha-diversity.png)](../images/alpha-diversity.png "Figure 1: \alpha-diversity in one sense is the simple expression of the average species richness (number of species) across a landscape.")
+
+Figure 1: $\alpha$-diversity in one sense is the simple expression of the average species richness (number of species) across a landscape.
+
+Species richness measures the number of species present, whereas diversity indices combine richness and relative abundance information.
+
+Species richness is easy to understand and implement, but it does not account for relative abundance. To include evenness and dominance, ecologists often use univariate indices such as Shannon’s H’ and Simpson’s $\lambda$ (see [Diversity Indices](#sec-diversity-indices) below). These indices are closely related, and the choice between them is often pragmatic rather than absolute.
+
+## 2.2 $\beta$-diversity (variation in diversity)
+
+A related concept of diversity is one that considers the variation between sites ([Figure 2](#fig-betadiversity)). This is known as $\beta$-diversity. $\beta$-diversity refers to the measure of diversity between different communities or ecosystems within a larger region. It quantifies the variation in species composition from one habitat or site to another and captures the degree of differentiation or turnover of species across spatial scales. $\beta$-diversity helps to understand how species diversity is distributed across different environments and can indicate the impact of environmental gradients, habitat fragmentation, and ecological processes on community composition. It links local ($\alpha$-diversity) and regional ($\gamma$-diversity) scales and offers a processed-based view on biodiversity formation.
+
+[![](../images/beta-diversity.png)](../images/beta-diversity.png "Figure 2: \beta-diversity quantifies the variation in species richness (number of species) and composition (number of individuals of a particular species) across the landscape.")
+
+Figure 2: $\beta$-diversity quantifies the variation in species richness (number of species) and composition (number of individuals of a particular species) across the landscape.
+
+$\beta$-diversity has a long history in ecology and has undergone several major revisions over the years. The concept was first introduced by Whittaker ([1960](#ref-whittaker1960vegetation)) to describe the variation in species composition between different sites.
+
+### A. What $\beta$-diversity measures
+
+At its core, $\beta$-diversity links local and regional diversity: it describes how variation among local communities ($\alpha$) contributes to total regional diversity ($\gamma$).
+
+Whittaker’s initial idea was that of **true** $\beta$-diversity (hence it sometimes being called Whittaker’s $\beta$-diversity), often defined as the effective number of distinct communities in a region. It can be calculated as the ratio of $\gamma$-diversity to $\alpha$-diversity when these are expressed as Hill numbers or effective numbers of species:
+
+$$\beta = \frac{\gamma}{\alpha}$$
+
+where $\beta$ is true $\beta$-diversity, $\gamma$ is the total diversity of the region, and $\alpha$ is the mean diversity of the individual communities.
+
+Another approach is **absolute species turnover**, a measure of the total amount of species change between communities or along environmental gradients. One common expression is Whittaker’s $\beta$-diversity index:
+
+$$\beta_w = \frac{S}{\alpha} - 1$$
+
+where $S$ is the total number of species in all communities combined ($\gamma$-diversity), and $\alpha$ is the average number of species found in all the local scale samples that comprise the region.
+
+This measure of turnover ranges from 0 (when all communities have identical species composition) to a maximum value that depends on the number of communities being compared. It provides a quantitative measure of how much species composition changes across communities or sites.
+
+Contemporary views of $\beta$-diversity ([Nekola and White 1999](#ref-nekola1999distance); [Baselga 2010](#ref-baselga2010partitioning); [Anderson et al. 2011](#ref-anderson2011navigating)) are often implemented with pairwise dissimilarity matrices (see [Species Dissimilarities](#sec-dissimilarity-indices)). These formulations separate two components: turnover and nestedness.
+
+**Turnover example:** If a region comprises species A, B, C, …, M (i.e. $\gamma$-diversity is 13), one quadrat might contain **A**, **D**, E while another contains **A**, **D**, F. Here, $\alpha$-diversity is three in both quadrats, but composition differs by replacement (E vs F). This is species **turnover**, often denoted $\beta_\text{sim}$. The function `beta()` in **BAT** labels this component as **replacement** ($\beta_{repl}$) ([Cardoso et al. 2015](#ref-cardoso2015bat)).
+
+**Nestedness example:** Consider again species A, B, C, …, M. One quadrat has **A**, **B**, C, D, **G**, H ($\alpha = 6$), while another has a subset (**A**, **B**, **G**; $\alpha = 3$). This is **nestedness-resultant** $\beta$-diversity, $\beta_\text{sne}$: the poorer community is a subset of the richer one. In **BAT**, this is labelled **richness difference** ($\beta_{rich}$) ([Cardoso et al. 2015](#ref-cardoso2015bat)).
+
+Together, these examples show that $\beta$-diversity depends on both species identities and differences in local richness ($\alpha$-diversity).
+
+So, turnover occurs when *species replace one another* across sites while richness remains similar. Nestedness emphasise richness differences and occurs when *species-poor communities form subsets of richer communities*.
+
+### B. Mechanisms generating $\beta$-diversity
+
+The metrics above describe *how much* communities differ. Mechanistic interpretation asks *why* they differ. A useful framing is the two causes of ecological distance decay described by Nekola and White ([1999](#ref-nekola1999distance)).
+
+The first cause is **environmental filtering** (often framed as niche difference): similarity decreases with distance because environments differ more across space. This is common along strong gradients such as elevation, latitude, or depth, and is a dominant pattern in many island biogeographic settings.
+
+The second cause is **dispersal limitation**: species differ in dispersal ability, so distance decay can emerge even when environmental tolerances are similar. Historical contingencies can reinforce these patterns when communities are not yet at dispersal equilibrium, and real landscapes further modify outcomes through spatial heterogeneity.
+
+## 2.3 $\gamma$-diversity (regional diversity)
+
+While $\alpha$-diversity focuses on the local scale and measures species richness within a specific area or community, $\gamma$-diversity refers to the overall diversity of a larger area or region encompassing multiple local-scale units of observation or quantification ([Figure 3](#fig-gammadiversity)). The transition from $\alpha$- to $\gamma$-diversity occurs as we aggregate data from multiple sampling units or sites within a broader landscape or ecosystem. $\gamma$-diversity captures the total species diversity across all the local communities in a region. It reflects both the diversity within each local community ($\alpha$-diversity) and the diversity between communities ($\beta$-diversity).
+
+Stated directly, $\gamma$-diversity reflects both within-community diversity ($\alpha$) and turnover among communities ($\beta$).
+
+[![](../images/gamma-diversity.png)](../images/gamma-diversity.png "Figure 3: \gamma-diversity is the total species list (number of species) across a landscape taking into account all sampling units representative of that landscape.")
+
+Figure 3: $\gamma$-diversity is the total species list (number of species) across a landscape taking into account all sampling units representative of that landscape.
+
+# 3 Diversity indices
+
+A diversity index is a metric that quantifies species diversity within a community. While species richness counts how many species are present, diversity indices also account for relative abundances. For instance, consider two communities: community A comprises 10 individuals of each of 10 species (totalling 100 individuals) and community B has 9 species with 1 individual each, and a 10th species with 91 individuals (also totalling 100 individuals). Which community is more diverse? Diversity indices address this by combining richness and evenness information.
+
+For this module, the core indices are Shannon’s and Simpson’s (with Margalef as a richness-focused complement). Different indices emphasise different aspects of community structure.
+
+## 3.1 Margalef’s index
+
+Margalef’s Index is a simple measure of species richness that accounts for the number of species in a community and the total number of individuals. The formula for Margalef’s Index is:
+
+$$D = \frac{S - 1}{\ln(N)}$$
+
+where $S$ is the total number of species in the community, and $N$ is the total number of individuals. A higher value of $D$ indicates greater diversity.
+
+## 3.2 Shannon’s entropy
+
+Shannon’s Entropy, or Shannon’s H’, comes out of the field of information theory and was developed by Claude Shannon. It measures the uncertainty or diversity within a system. It is a general measure of information content and is applicable to a variety of data types beyond species diversity, such as genetic diversity, linguistic diversity, or even the distribution of different types of land use in a landscape. The formula for Shannon’s H’ is as used by ecologists is:
+
+$$H' = -\sum_{i=1}^{S} p_i \ln(p_i)$$
+
+where $S$ is the total number of species in the community, and $p_i$ is the proportion of individuals belonging to species $i$. A higher H’ value indicates greater diversity, with values typically ranging from 0 to about 4.5, rarely exceeding 5 in extremely diverse communities. We use this index to help us understand the evenness and richness of species within a community, and it is used when we need to emphasise the contribution of rare species.
+
+## 3.3 Simpson’s indices
+
+Simpson’s Indices are a group of related diversity measures developed by Edward H. Simpson. These indices focus on the dominance or evenness of species in a community, giving more weight to common species and being less sensitive to species richness compared to Shannon’s H’.
+
+### Simpson’s dominance index
+
+Simpson’s Dominance Index ($\lambda$) measures the probability that two individuals randomly selected from a sample will belong to the same species. The formula for Simpson’s Dominance Index is:
+
+$$\lambda = \sum_{i=1}^{S} p_i^2$$
+
+where $S$ is the total number of species, and $p_i$ is the proportion of individuals belonging to species $i$. Values range from 0 to 1, with higher values indicating lower diversity (higher dominance). A value of 1 represents no diversity (only one species present), while a value approaching 0 indicates very high diversity.
+
+### Simpson’s diversity index
+
+To make the index more intuitive we prefer to use Simpson’s Diversity Index, which is calculated as:
+
+$$1 - \lambda = 1 - \sum_{i=1}^{S} p_i^2$$
+
+This form ensures that the index increases with increasing diversity. Values range from 0 to 1, with higher values indicating higher diversity.
+
+### Simpson’s reciprocal index
+
+Another common form is Simpson’s Reciprocal Index, calculated as:
+
+$$\frac{1}{\lambda} = \frac{1}{\sum_{i=1}^{S} p_i^2}$$
+
+This index starts with a value of 1 as the lower limit, representing a community containing only one species. The upper limit is the number of species in the sample (S). Higher values indicate greater diversity.
+
+Different forms of Simpson’s index are algebraic transformations of the same underlying probability measure. They are less sensitive to species richness and more sensitive to evenness compared to Shannon’s Entropy. These indices are useful when you want to give more weight to common species in your diversity assessment.
+
+## 3.4 Other indices
+
+These indices are rarely used in ecological field studies but illustrate the broader mathematical connections between diversity and inequality metrics.
+
+### 3.4.1 Gini index
+
+The Gini Index (Gini Coefficient) is best known from economics as a measure of inequality. In ecology, it can be used to quantify inequality in species abundances (dominance vs evenness). The formula is:
+
+$$G = \frac{\sum_{i=1}^{N} \sum_{j=1}^{N} |x_i - x_j|}{2N^2 \bar{x}}$$
+
+where $N$ is the total number of observations, $x_i$ and $x_j$ are the values of the observations, and $\bar{x}$ is the mean. In ecological applications, higher Gini values indicate greater dominance by a few species.
+
+### 3.4.2 Herfindahl-Hirschman index (HHI)
+
+The Herfindahl-Hirschman Index (HHI) is another concentration metric from economics. In ecology, it is used to summarise how strongly individuals are concentrated in a small number of species. The formula is:
+
+$$HHI = \sum_{i=1}^{N} s_i^2$$
+
+where $N$ is the total number of species, and $s_i$ is the proportion of individuals belonging to species $i$. Higher HHI indicates stronger dominance (lower evenness).
+
+## 3.5 From diversity metrics to multivariate structure
+
+So far, we have focused on univariate summaries of biodiversity (single-number descriptors such as richness and diversity indices). We now shift to multivariate community structure, where pairwise resemblance among sites is represented with matrices derived from species and environmental tables.
+
+# 4 Resemblance matrices
+
+Resemblance matrices are mathematical representations used to quantify the similarity or dissimilarity between pairs of samples, communities, or ecological sampling units based on various criteria such as species composition, abundance, functional traits, phylogenetic relatedness, or environmental properties. Well-structured raw data about species composition typically come in the form of a table with rows representing sites or samples, and columns representing species. Similarly, data about environmental variables are structured as a table with rows representing sites or samples, and columns representing environmental variables.
+
+The diagram below ([Figure 4](#fig-data-tables)) summarises the species and environmental data tables, and what we can do with them. These tables are the starting points of many additional analyses, and we will explore some of these deeper insights later in this module.
+
+[![](../images/spp_env_data.png)](../images/spp_env_data.png "Figure 4: Species and environmental tables, resemblance matrices, and deeper analyses possible from the various kinds of ecological data. The ordinations (e.g. PCA, CA, nMDS, etc.) will only be covered in BCB743 in your Honours year.")
+
+Figure 4: Species and environmental tables, resemblance matrices, and deeper analyses possible from the various kinds of ecological data. The ordinations (e.g. PCA, CA, nMDS, etc.) will only be covered in BCB743 in your Honours year.
+
+> **NOTE:**
+>
+> Although we often use the terms ‘matrix’ and ‘table’ interchangeably, in this book I use matrix to refer to a mathematical object with rows and columns and with the cell content derived from calculations of distances and dissimilarities. In these situations they tend to be square and symmetrical. I then use the term table to refer to a more general data structure, also with rows and columns, but here representing samples or sites (as rows) and columns representing species or environmental variables. My use of ‘table’ generally refers to the raw data we use as a starting point for our calculations (including of the matrices).
+>
+> This is my notations and authors such as Borcard et al. ([2011](#ref-borcard2011numerical)), [David Zelený](https://www.davidzeleny.net/), and [Michael Palmer](https://ordination.okstate.edu) may not make this distinction and use both terms to refer to a rectangular data structure.
+
+When the focus is on comparing sites (i.e., the information about objects in the rows of site × species or site × environment tables) based on their species composition or environmental characteristics, we call this type of analysis an **R-mode analysis**. Such resemblance matrices typically manifest as square matrices, with rows and columns representing the samples or units being compared.
+
+Other cases of square resemblance matrices include: i) Species-by-species matrices (**association matrices**), where both rows and columns represent species, and the values in the matrix represent the association between each pair of species. ii) Environmental-by-environmental matrices (**correlation matrices**), where both rows and columns represent environmental variables, and the values in the matrix represent the correlation between each pair of variables. In these cases, the focus falls onto the information initially contained in the columns (species or descriptors) of the sites × species table or the sites × environmental variables table. This is called a **Q-mode analysis**.
+
+Environmental resemblance matrices, or [**environmental distance matrices**](#sec-distance-metrics), are used to quantify the similarity between pairs of sites based on their environmental variables. They can also be used in more advanced analyses, such as various kinds of ordinations and clustering. These matrices have zeros down the diagonal, as the distance between a site and itself is zero. The subdiagonal values are typically the same as the superdiagonal values, as the dissimilarity between samples $i$ and $j$ is the same as the dissimilarity between samples $j$ and $i$, i.e., the matrices are symmetrical. The off-diagonal values represent the distance between pairs of sites, with higher values indicating greater dissimilarity.
+
+In [**species dissimilarity matrices**](#sec-dissimilarity-indices) (species resemblance matrices), the values represent the degree of dissimilarity between each pair of samples. Dissimilarity matrices are characterised by a diagonal filled with zeros, because the dissimilarity between a sample and itself is zero. The off-diagonal values represent the dissimilarity between pairs of samples, with higher values indicating greater dissimilarity. They are also symmetrical for the same reasons given for the environmental matrices. Species dissimilarity matrices are used in various multivariate analyses, such as cluster analysis, ordination, and diversity partitioning.
+
+Legendre and Legendre ([2012](#ref-legendre2012numerical)) provide a full chapter (Chapter 7) on ecological resemblance, including an in-depth look at the various kinds of ‘association coefficients,’ which is what we will cover next. The next two sub-sections will thus introduce a few frequently used association coefficients to study species dissimilarity and environmental distances across the landscape.
+
+| Matrix type | Built from | Common metric examples | Typical range interpretation |
+|----|----|----|----|
+| Environmental distance matrix | Site-by-environment table | Euclidean, Manhattan, Gower | Lower values = more similar environments; higher values = more different environments |
+| Species dissimilarity matrix | Site-by-species table | Bray-Curtis, Jaccard, Sørensen | Values near 0 = similar communities; values near 1 = distinct communities |
+| Association/correlation matrix (Q-mode) | Species columns or environmental variable columns | Correlation/association coefficients | Higher absolute values = stronger associations |
+
+## 4.1 Distance measures
+
+Sometimes we need to quantify the environmental similarities or differences between sampling sites, such as plots, quadrats, or transects. This is typically achieved through the use of distance matrices (one kind of [resemblance matrix](#sec-resemblance-metrics)), which provide an overall view of how all the sites relate to one another. These matrices are derived from data tables containing information on environmental variables (sites in rows and variables in columns).
+
+There are several kinds of distance metrics available for use with environmental data. Regardless of which index one chooses, the resulting matrix provides pairwise differences (or distances) or similarities in a metric that relates to the ecological distance between all sites (and which might also link to their community composition, which is the thing we are trying to determine). Such pairwise matrices are foundational for various multivariate analyses and can reveal patterns in ecological data that might not be apparent from raw measurements of individual variables alone.
+
+Because environmental variables often have different units and ranges, they are commonly standardised before distance calculations.
+
+**Euclidean distance** is in my experience the commonly used in spatial analysis. It defined as the straight-line distance between two points in Euclidean space. In its simplest form, it applies to a planar area such as a graph with $x$- and $y$-axes, but it can be extended to higher dimensions. In two or three dimensions, it gives the Cartesian distance between points on a plane ($x$, $y$) or in a volume ($x$, $y$, $z$), and this concept can be further extended to higher-dimensional spaces. Euclidean distance conforms to our intuitive physical concept of distance, making it useful for applications like measuring short geographic distances between points on a map. However, over large distances on Earth’s surface, Euclidean distance loses accuracy due to the Earth’s spherical shape. In such cases, great circle distances, calculated using formulas like the Haversine formula, provide more accurate measurements.
+
+Mathematically, Euclidean distance is calculated using the Pythagorean theorem. This method squares the differences between coordinates, which means that single large differences become disproportionately important in the final distance calculation. While this property makes Euclidean distance useful for environmental data, where it effectively calculates the ‘straight-line distance’ between two points in multidimensional space (with each dimension representing an environmental variable), it is ill suited to species data because species tables are often sparse (many zeros) and relationships among species responses are frequently non-linear.
+
+The Euclidean distance between two points $A$ and $B$ in a $n$-dimensional space is calculated as:
+
+$$d_{jk} = \sqrt{\sum_{i=1}^{n} (j_i - k_i)^2}$$
+
+where $j_i$ and $k_i$ are the values of the $i$-th variable at points $j$ and $k$, respectively.
+
+Other distance metrics are the **Mahalanobis Distance**, **Manhattan Distance**, **Canberra Distance**, **Gower Distance**, and **Bray-Curtis Dissimilarity**. I’ll not discuss them here and you can refer to Chapter 3 in the book by Borcard et al. ([2011](#ref-borcard2011numerical)) for more information. Additionally, **vegan**’s `vegdist()` function does a very good job of providing a wide range of distance metrics and you can find a discussion of many of them in the function’s help file, which you can access as `?vegan::vegdist`.
+
+## 4.2 Species dissimilarities
+
+Ecological similarity between sites is fundamentally tied to their species composition, which is a function of both species richness and abundance. Sites that share similar species compositions are considered ecologically similar and exhibit a low dissimilarity metric. The factors influencing this similarity are complex and influenced by many properties of the environment and processes operating there.
+
+As we have already seen, the degree of similarity between sites can be attributed to measurable environmental differences (i.e. hopefully captured in the [environmental distance matrices](#sec-distance-metrics) we saw above) that directly influence species composition. These might include variables like soil type, climate, or topography. However, similarity can also be affected by unmeasured, often overlooked influences that are not immediately apparent or easily quantifiable. Additionally, some degree of variation may simply be attributed to ecological ‘noise’—random fluctuations or stochastic events that affect species distributions.
+
+It is our role to disentangle these various influences and determine the primary drivers of similarity or dissimilarity among sites. To aid in this analysis, we use a class of matrices known as dissimilarity matrices (a type of [resemblance matrix](#sec-resemblance-metrics)). These matrices quantify the dissimilarity between sites based on their species composition.
+
+Various indices have been developed to compare the composition of different groups or communities. These diversity indices quantify how different or similar groups are based on their attributes, primarily species richness and/or relative abundances. While the simplest application is to compare the species composition of two sites, these indices can be extended to compare multiple groups or communities. They are core to the study of β-diversity, which examines the variation in species composition among sites within a geographic area.
+
+I’ll present the **Bray-Curtis dissimilarity** as an example, which is a widely-used metric for comparing species composition between two sites. For abundance data, it is calculated as follows:
+
+$$d_{jk} = \frac{\sum_i |x_{ij} - x_{ik}|}{\sum_i (x_{ij} + x_{ik})}$$
+
+where $x_{ij}$ and $x_{ik}$ are the abundances of species $i$ (the columns) at sites $j$ and $k$ (the rows) respectively.
+
+For presence-absence data, the Bray-Curtis dissimilarity simplifies to a form equivalent to Sørensen dissimilarity:
+
+$$d_{AB} = \frac{A+B-2J}{A+B-J}$$
+
+where $J$ is the number of species present in both sites being compared, $A$ is the number unique to site A, and $B$ is the number unique to site B.
+
+The Bray-Curtis dissimilarity ranges from 0 to 1. Ecologically, values close to 0 indicate similar communities, while values close to 1 indicate distinct communities. This metric can be used to construct dissimilarity matrices for multivariate analyses, where each cell in the matrix represents the ecological distance between a pair of sites based on their species composition.
+
+In practice, these dissimilarity indices and distances can be calculated using the **vegan** R package’s `vegdist()` function. Refer to `?vegan::vegdist` for information and a deeper look.
+
+Common dissimilarities suited to presence-absence data are the **Jaccard Dissimilarity**, **Sørensen-Dice index**, and **Ochiai index**. For abundance data, we have already seen the Bray-Curtis dissimilarity, but you also have the **Morisita-Horn index**, which is also commonly used. The **Raup-Crick index** is used to compare the dissimilarity between two groups to the expected dissimilarity between two random groups, whilst the **Chao-Jaccard** and **Chao-Sørensen indices** are probabilistic versions of the Jaccard and Sørensen indices that account for unseen shared species.
+
+# 5 Practical integration with labs 2b-3 workflow
+
+The practicals linked to this lecture implement biodiversity partitioning, indices, and resemblance frameworks:
+
+- [Lab 2b. Environmental Distance](../BDC334/Lab-02b-env_dist.llms.md): environmental distance matrices for among-site abiotic separation.
+- [Lab 3. Quantifying Biodiversity](../BDC334/Lab-03-biodiversity.llms.md): $\alpha$-, $\beta$-, and $\gamma$-diversity calculations and interpretation.
+
+Use this workflow when transitioning from lecture theory to practical analysis:
+
+1.  define the biodiversity question (within-site diversity, among-site turnover, or regional richness),
+2.  select the corresponding metric class ($\alpha$/$\beta$/$\gamma$ partitioning, univariate indices, or dissimilarity),
+3.  standardise effort and data form (presence-absence vs abundance) before comparison,
+4.  estimate indices/matrices and inspect numerical outputs and plots,
+5.  interpret results in scale-aware terms (local structure, turnover, regional pool),
+6.  cross-check conclusions by comparing index-based summaries with matrix-based dissimilarity patterns.
+
+# 6 Example questions
+
+> **NOTE:**
+>
+> **Question 1. Biodiversity partitioning and interpretation**
+>
+> 1.  Define $\alpha$-, $\beta$-, and $\gamma$-diversity in ecological terms. (6)
+>
+> 2.  Explain how turnover and nestedness represent different components of $\beta$-diversity. (8)
+>
+> 3.  Show how $\gamma$-diversity depends on both within-community diversity and among-community turnover. (6)
+>
+> Total: **20 marks**
+>
+> ------------------------------------------------------------------------
+>
+> **Question 2. Indices and ecological meaning**
+>
+> 1.  Distinguish species richness from diversity indices. (5)
+>
+> 2.  Compare Shannon and Simpson indices in terms of sensitivity to rare versus common species. (7)
+>
+> 3.  Explain why two communities can have similar univariate index values but different abundance structure. (8)
+>
+> Total: **20 marks**
+>
+> ------------------------------------------------------------------------
+>
+> **Question 3. From univariate to multivariate analysis**
+>
+> 1.  Explain the difference between environmental distance matrices and species dissimilarity matrices. (8)
+>
+> 2.  Describe why variable standardisation is often required before environmental distance calculation. (4)
+>
+> 3.  Explain how Bray-Curtis values near 0 and near 1 should be interpreted ecologically. (4)
+>
+> 4.  Propose a short analysis sequence that links biodiversity indices to resemblance-based inference. (4)
+>
+> Total: **20 marks**
+
+## References
+
+Anderson MJ, Crist TO, Chase JM, Vellend M, Inouye BD, Freestone AL, Sanders NJ, Cornell HV, Comita LS, Davies KF, others (2011) Navigating the multiple meanings of $\beta$ diversity: A roadmap for the practicing ecologist. Ecology Letters 14:19–28.
+
+Baselga A (2010) Partitioning the turnover and nestedness components of beta diversity. Global Ecology and Biogeography 19:134–143.
+
+Borcard D, Gillet F, Legendre P, others (2011) Numerical ecology with R. Springer
+
+Cardoso P, Rigal F, Carvalho JC (2015) BAT–biodiversity assessment tools, an r package for the measurement and estimation of alpha and beta taxon, phylogenetic and functional diversity. Methods in Ecology and Evolution 6:232–236.
+
+Legendre P, Legendre L (2012) Numerical ecology. Elsevier
+
+Nekola JC, White PS (1999) The distance decay of similarity in biogeography and ecology. Journal of Biogeography 26:867–878.
+
+Whittaker RH (1960) Vegetation of the Siskiyou mountains, Oregon and California. Ecological Monographs 30:279–338.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J. and J. Smit, A.},
+  title = {Lecture 4: {Biodiversity} Concepts},
+  date = {2026-08-19},
+  url = {https://tangledbank.netlify.app/BDC334/Lec-04-biodiversity.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, J. Smit A (2026) Lecture 4: Biodiversity concepts. [https://tangledbank.netlify.app/BDC334/Lec-04-biodiversity.html.](https://tangledbank.netlify.app/BDC334/Lec-04-biodiversity.html)

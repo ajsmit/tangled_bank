@@ -1,0 +1,82 @@
+# Reproducible research and the information economy
+
+Code
+
+Author
+
+Affiliation
+
+[A. J. Smit](https://tangledbank.netlify.app) [![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==)](https://orcid.org/0000-0002-3799-6126)
+
+[University of the Western Cape](https://uwc.ac.za)
+
+## eResearch and the information economy
+
+The information economy refers to the modern-day and continually evolving economic system where information, knowledge, and data are the primary drivers of productivity, growth, and innovation. In this economy, the creation, distribution, and consumption of information are more valuable than in traditional industries. The information economy relies on technological advancements, particularly in information and communication technologies (ICTs), to enable efficient processing, storage, and data sharing. Tech companies, digital service providers, and knowledge-intensive industries are typically seen as key players in the information economy. As biologists, however, we often overlook how our information pipelines and knowledge-sharing approaches might benefit from the principles that are now deeply ingrained in just about every aspect of our daily lives.
+
+## Embracing technological advancements: a pathway to enhanced research and collaboration
+
+Over the years, I have enthusiastically adopted various technological advancements, recognising their potential to elevate my research impact both locally and globally and to keep pace with the evolving global landscape. However, I have observed that not all scientists share my enthusiasm for technology, leading to a sense of alienation among some colleagues who prefer traditional research methods where buckets and spades still rule.
+
+It appears that, for some individuals, particularly in fields such as biology or ecology, there is a belief that focusing solely on their discipline-specific subject matter is sufficient and that insights from Computer Science Departments hold little relevance. This narrow perspective, in my view, is limiting and stifles creativity.
+
+By embracing technology, we can not only broaden our horizons but also enhance our research capabilities and expand collaboration. We must remain open-minded, explore the potential of interdisciplinary learning, and leverage technology to maximise the possibilities in our respective fields.
+
+## The interconnected nature of science and technology: an ongoing journey
+
+As the practice of science has undergone dramatic changes in recent years, driven in part by Moore’s Law, we are now tackling global issues across vast timescales. This transformation is largely attributed to the availability of vast amounts of data, which has necessitated the development of efficient algorithms to establish connections, access subsets, and distil complex information using supervised and unsupervised data-analytical techniques.
+
+Concurrently, this data explosion has spurred the advancement of hardware capable of handling the computational, memory, and data transfer demands of big data. While it is debatable whether hardware development has facilitated the collection of increasing amounts of data or vice versa, the ultimate takeaway remains the same: technological progress is relentless, and the practice of science must adapt swiftly to keep up. By acknowledging this interconnected nature of science and technology, we can work with agility, ensuring we remain at the forefront of scientific discovery and innovation.
+
+## Navigating modern science: interdisciplinary collaboration, transparency, and data sharing
+
+Contemporary science is characterised by the convergence of diverse skill sets to address complex problems through interdisciplinary and transdisciplinary research. This approach, however, presents challenges in team dynamics, data sharing, and code management. Additionally, there is an increasing demand for transparency in research methodologies, as exemplified by the International Panel for Climate Change, and the emergence of reproducible research.
+
+Compliance with data and information-sharing policies, such as the FAIR principles, global standards, national legislative acts, and discipline-specific norms, has become essential. Recognising the value of metadata alongside primary datasets is now the norm. While software offers solutions to these challenges, only a fraction of us, primarily the tech-savvy, possess the willingness to keep pace and fully embrace the opportunities.
+
+To advance modern science, it is imperative that we adapt and cultivate the skills necessary to navigate interdisciplinary collaboration, ensure transparency, and adhere to evolving data-sharing standards.
+
+## Embracing modern technologies across disciplines for a future-ready workforce
+
+Modern technologies are indispensable for those of us working with extensive datasets, whether in climate change, computational linguistics, or small-scale studies. My disregard for traditional disciplinary boundaries has enabled me to stay informed about relevant advancements, driving my determination to develop this website, The Tangled Bank. My motivation is further fuelled by the concern that many colleagues are failing to maintain the necessary interest for continuous advancement.
+
+A reluctance to embrace change not only affects ourselves but also has a domino effect on postgraduate and undergraduate students. By not nurturing the required skills in students, academics hinder their ability to become well-rounded graduates equipped for the modern workplace and to develop transferable skills that transcend disciplinary boundaries. It is crucial to remember that many graduates, particularly those with Bachelor and Honours degrees, will pursue careers unrelated to their original fields of study. Yet, they want to have a degree that provides skills anywhere their future selves might find themselves.
+
+To foster a future-ready workforce, it is necessary that we embrace technological advancements and cultivate adaptable, interdisciplinary skill sets in the next generation of graduates.
+
+## Exemplifying the importance of reproducible research and eResearch frameworks
+
+Consider the challenge of conducting reproducible research, which, when addressed, can resolve many eResearch framework issues. A typical PhD student spends a few months writing their thesis, which often serves as the sole evidence of degree completion. However, the majority of the learning and methodological expertise developed during the rest of the degree remains undocumented and eventually forgotten. This wealth of knowledge is rarely shared, leading to repeated dead-ends in knowledge transfer as new candidates embark on similar journeys.
+
+Most research neglects the full data lifecycle, focusing mainly on the initial steps. The failure to share behind-the-scenes solutions results in non-reproducible research, making the scientific process opaque and fostering public mistrust. This opacity hinders collaboration among supervisors and co-investigators, increases error-proneness, and scales poorly as datasets and complexities grow. Additionally, the research process becomes less efficient due to inadequate documentation of data selection, filtering justifications, metadata tracking, data versions, and processing changes.
+
+Addressing these challenges is essential to promote reproducible research, enhance collaboration, and build public trust in science, ultimately contributing to a more efficient and transparent research process. This makes the research process extremely wasteful in as far as preserving the full complexity of what a typical student learns.
+
+## Promoting reproducible research through lab notebooks and proper workflow management
+
+Many solutions exist to address research reproducibility, but I find lab notebooks using RStudio’s markdown (for R users) or Jupyter Lab/Notebooks (for Python users) particularly effective. Version tracking can be achieved using git, such as in GitHub. These notebooks integrate code with text, allowing automatic updates of tables and figures with new data. My students are proficient in this approach, ensuring their work is reproducible.
+
+I advocate for the widespread adoption of lab notebooks at universities, making them a prerequisite for thesis submission in applicable disciplines. The thesis can be a reproducible document written in markdown, and typeset to various formats such as PDF, HTML, MS Word, or eBook. This method also incorporates proper bibliography management.
+
+This reproducible workflow complies with funding instruments requiring data and code sharing, reproducibility, and open publication per FAIR principles. It is already prevalent in disciplines like ecology. While this example focuses on paper or thesis writing, technology impacts research practice across disciplines, commerce, arts, and law. A comprehensive overview is beyond our scope, but the examples provided illustrate the broader possibilities.
+
+## Reuse
+
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit,
+  author = {Smit, A. J.},
+  title = {Reproducible Research and the Information Economy},
+  url = {https://tangledbank.netlify.app/pages/reproducible_research.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ Reproducible research and the information economy. [https://tangledbank.netlify.app/pages/reproducible_research.html.](https://tangledbank.netlify.app/pages/reproducible_research.html)
