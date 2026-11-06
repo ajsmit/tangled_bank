@@ -1,0 +1,379 @@
+[![Colour palette inspiration.](../../images/IMG_7089.PNG)](../../images/IMG_7089.PNG "Colour palette inspiration.")
+
+Colour palette inspiration.
+
+> “*Microbiology and meteorology now explain what only a few centuries ago was considered sufficient cause to burn women to death.*”
+>
+> — Carl Sagan
+
+> “*Knowledge is not a resource we simply stumble upon. It’s not something that we pluck out of the air. Knowledge is created. It is coaxed into existence by thoughtful, creative people. It is not a free good. It comes only to the prepared mind.*”
+>
+> — Frank H. T. Rhodes
+
+Now we turn to colour. Colour tells the reader whether values differ by category, by magnitude, or by deviation from a midpoint. Used well, it makes a figure easier to read. Used badly, it lies.
+
+Before we touch the tools, note the following: **colour can encode magnitude or category**. If the variable is numeric and ordered, use a **continuous** scale that shows gradients. If the variable is categorical, use a **discrete** scale that separates groups. Everything that follows is an application of this single decision.
+
+> **NOTE:**
+>
+> 1.  **Is the variable ordered with meaningful distance?**\
+>     Yes → use a **continuous** scale.\
+>     No → use a **discrete** scale.
+> 2.  **Is there a meaningful midpoint (*e.g.* above vs below zero)?**\
+>     Yes → use a **diverging** palette.\
+>     No → use a **sequential** palette.
+> 3.  **How many categories do you need to distinguish?**\
+>     More categories require more separable hues — keep the legend visible.
+
+> **WARNING:**
+>
+> Colour choices are part of your evidence. Aim for palettes that remain legible for colour‑blind viewers and print well in greyscale. Keep your palette definitions in code so others can reproduce the exact mapping.
+
+# 1 R data (choosing a dataset for colour)
+
+This chapter is about colour, so we need a dataset where colour **matters**. We will use a dataset with both continuous and categorical variables. That way, we can see how colour behaves differently for magnitude versus category. The base R program already comes with heaps of example dataframes that you may use for practice. You do not need to load your own data. Additionally, whenever you install a new package (and by now you have already installed several) it usually comes with some new dataframes. There are many ways to look at the data that you have available from your packages. Below I will show two of the many options.
+
+``` numberSource
+# To create a list of ALL available data
+  # Not really recommended as the output is overwhelming
+data(package = .packages(all.available = TRUE))
+
+# To look for datasets within a single known package
+  # type the name of the package followed by '::'
+  # This tells R you want to look in the specified package
+  # When the autocomplete bubble comes up you may scroll
+  # through it with the up and down arrows
+  # Look for objects that have a mini spreadsheet icon
+  # These are the datasets
+
+# Try typing the following code and see what happens...
+datasets::
+```
+
+You have an amazing amount of data available to you. So the challenge is not to find a dataframe that works for you, but to just decide on one. My preferred method is to read the short descriptions of the dataframes, pick the one that sounds the funniest. But please use whatever method makes the most sense to you. One note of caution and in R there are generally two different forms of data: wide OR long. You will see in detail what this means on Day 4, and what to do about it. For now you need to know that **ggplot2** works much better with long data. To look at a dataframe of interest, you use the same method you would use to look up a help file for a function.
+
+Over the years I have installed so many packages on my computer that it is difficult to chose a dataframe. The package **`boot`** has some particularly interesting dataframes with a biological focus. Please install this now to access to these data. I have decided to load the `urine` dataframe here. Note that [`library(boot)`](https://rdrr.io/r/base/library.html) will not work on your computer if you have not installed the package yet. With these data you will now make a scatterplot with two of the variables, while changing the colour of the dots with a third variable.
+
+``` numberSource
+# Load libraries
+library(tidyverse)
+library(boot)
+
+# Load data
+urine <- boot::urine
+
+# Look at help file for more info
+# ?urine
+
+# Create a quick scatterplot
+ggplot(data = urine, aes(x = osmo, y = ph)) +
+  geom_point(aes(colour = cond))
+```
+
+[![](08-brewing_files/figure-html/fig-brew-1-1.svg)](08-brewing_files/figure-html/fig-brew-1-1.svg "Figure 1: Urine osmolality vs. pH coloured by conductivity (continuous palette).")
+
+Figure 1: Urine osmolality vs. pH coloured by conductivity (continuous palette).
+
+This scatterplot shows urine osmolarity against pH, with conductivity mapped to colour. The legend is continuous: a smooth gradient with ordered values. That tells you immediately that `cond` is being treated as numeric.
+
+Rule of thumb: **if your variable has a meaningful order and distance, treat it as continuous; otherwise treat it as discrete.** Using a continuous palette for categories may look nice, but it suggests a false ordering and is misleading.
+
+Let us look at the same figure but use a discrete variable for colouring.
+
+``` numberSource
+ggplot(data = urine, aes(x = osmo, y = ph)) +
+  geom_point(aes(colour = as.factor(r)))
+```
+
+[![](08-brewing_files/figure-html/fig-brew-2-1.svg)](08-brewing_files/figure-html/fig-brew-2-1.svg "Figure 2: Urine osmolality vs. pH coloured by r as a discrete factor.")
+
+Figure 2: Urine osmolality vs. pH coloured by r as a discrete factor.
+
+What is the first thing you notice about the difference in the colours? Notice the **distinct hues** and the **key-style legend** (one swatch per category). Why did you use [`as.factor()`](https://rdrr.io/r/base/factor.html) for the colour aesthetic for our points? What happens if you do not use this? Try it now.
+
+> **WARNING:**
+>
+> - **Categorical data shown with a gradient** → implies a false order.
+> - **Ordered magnitudes shown with random hues** → hides trends and distances.
+> - **Too many categories in one palette** → colours become indistinguishable and the legend stops working.
+
+# 2 RColorBrewer
+
+Central to the purpose of **ggplot2** is the creation of beautiful figures. For this reason there are many built in functions that you may use in order to have precise control over the colours, as well as additional packages that extend your options even further. The **RColorBrewer** package should have been installed on your computer, activated automatically when you installed and activated the **tidyverse**. You will use this package for its colour palettes.
+
+**RColorBrewer** groups palettes by **purpose**: sequential (magnitude), diverging (deviation from a midpoint), and qualitative (categories). This matters more than style. Also remember that some palettes are not colour-blind safe and may not reproduce well in print. When in doubt, favour clarity over prettiness.
+
+In **ggplot2**, scale functions control how data are translated into colours. `scale_colour_*()` changes that translation. Next we will take the same plot and change the palette without changing the underlying mapping.
+
+> **NOTE:**
+>
+> - **Continuous**: `scale_colour_gradient()`, `scale_colour_gradientn()`, `scale_colour_distiller()`
+> - **Discrete**: `scale_colour_brewer()`, `scale_colour_manual()`
+> - **Fill versions**: replace `colour` with `fill` (*e.g.* `scale_fill_brewer()`). Think of these as a family of translators between data and appearance.
+
+``` numberSource
+# The continuous colour scale figure
+ggplot(data = urine, aes(x = osmo, y = ph)) +
+  geom_point(aes(colour = cond)) +
+  scale_colour_distiller() # Change the continuous variable colour palette
+```
+
+[![](08-brewing_files/figure-html/fig-brew-3-1.svg)](08-brewing_files/figure-html/fig-brew-3-1.svg "Figure 3: Urine osmolality vs. pH with a sequential distiller palette.")
+
+Figure 3: Urine osmolality vs. pH with a sequential distiller palette.
+
+Does this look different? If so, how? The second page of the colour cheat sheet we included in the module material shows some different colour brewer palettes. Let us look at how to use those here.
+
+``` numberSource
+ggplot(data = urine, aes(x = osmo, y = ph)) +
+  geom_point(aes(colour = cond)) +
+  scale_colour_distiller(palette = "Spectral")
+```
+
+[![](08-brewing_files/figure-html/fig-brew-4-1.svg)](08-brewing_files/figure-html/fig-brew-4-1.svg "Figure 4: Urine osmolality vs. pH with the Spectral continuous palette.")
+
+Figure 4: Urine osmolality vs. pH with the Spectral continuous palette.
+
+Does that help you to see a pattern in the data? What do you see? Does it look like there are any significant relationships here? How would you test that?
+
+If you want to use **RColorBrewer** with a discrete variable, you use a slightly different function.
+
+``` numberSource
+ggplot(data = urine, aes(x = osmo, y = ph)) +
+  geom_point(aes(colour = as.factor(r))) +
+  scale_colour_brewer() # This is the different function
+```
+
+[![](08-brewing_files/figure-html/fig-brew-5-1.svg)](08-brewing_files/figure-html/fig-brew-5-1.svg "Figure 5: Urine osmolality vs. pH coloured by r with a discrete brewer palette.")
+
+Figure 5: Urine osmolality vs. pH coloured by r with a discrete brewer palette.
+
+The default colour scale here is not helpful at all. So let us pick a better one. If you look at our cheat sheet you will see a list of different continuous and discrete colour scales. All you need to do is copy and paste one of these names into your colour brewer function with inverted commas.
+
+``` numberSource
+ggplot(data = urine, aes(x = osmo, y = ph)) +
+  geom_point(aes(colour = as.factor(r))) +
+  scale_colour_brewer(palette = "Set1") # Here I used "Set1", but use what you like
+```
+
+[![](08-brewing_files/figure-html/fig-brew-6-1.svg)](08-brewing_files/figure-html/fig-brew-6-1.svg "Figure 6: Urine osmolality vs. pH coloured by r with the Set1 palette.")
+
+Figure 6: Urine osmolality vs. pH coloured by r with the Set1 palette.
+
+Notice the pattern: `scale_colour_distiller()` is typically used for **continuous** variables, while `scale_colour_brewer()` is typically used for **discrete** variables. They are not interchangeable because they encode different kinds of meaning.
+
+> **WARNING:**
+>
+> Using a continuous palette for categorical data suggests a false order. Using a discrete palette for ordered magnitudes hides gradients. If the palette and the data type do not match, the figure becomes misleading.
+
+# 3 Worked examples with a new dataset (Iris)
+
+Let us reinforce the ideas using a fresh dataset. The built-in `iris` data give us both continuous variables (*e.g.* petal length) and categories (species), which makes it perfect for colour decisions.
+
+``` numberSource
+# Load data
+iris_df <- datasets::iris
+
+# Continuous colour: petal length (magnitude)
+ggplot(data = iris_df, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point(aes(colour = Petal.Length)) +
+  labs(x = "Sepal length", y = "Sepal width", colour = "Petal length") +
+  scale_colour_distiller(palette = "YlGnBu")
+```
+
+[![](08-brewing_files/figure-html/fig-brew-iris-1-1.svg)](08-brewing_files/figure-html/fig-brew-iris-1-1.svg "Figure 7: Iris sepal scatterplot coloured by petal length (sequential palette).")
+
+Figure 7: Iris sepal scatterplot coloured by petal length (sequential palette).
+
+Notice the smooth gradient and the bar-style legend — this signals an ordered, numeric scale. If you want to emphasise departures above and below a midpoint, use a diverging palette:
+
+``` numberSource
+# Diverging colour around a midpoint (mean petal length)
+ggplot(data = iris_df, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point(aes(colour = Petal.Length)) +
+  labs(x = "Sepal length", y = "Sepal width", colour = "Petal length") +
+  scale_colour_distiller(palette = "RdBu")
+```
+
+[![](08-brewing_files/figure-html/fig-brew-iris-2-1.svg)](08-brewing_files/figure-html/fig-brew-iris-2-1.svg "Figure 8: Iris sepal scatterplot with a diverging palette for petal length.")
+
+Figure 8: Iris sepal scatterplot with a diverging palette for petal length.
+
+Now compare a discrete scale where colour represents species (categories):
+
+``` numberSource
+ggplot(data = iris_df, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point(aes(colour = Species)) +
+  labs(x = "Sepal length", y = "Sepal width", colour = "Species") +
+  scale_colour_brewer(palette = "Set2")
+```
+
+[![](08-brewing_files/figure-html/fig-brew-iris-3-1.svg)](08-brewing_files/figure-html/fig-brew-iris-3-1.svg "Figure 9: Iris sepal scatterplot coloured by species (discrete palette).")
+
+Figure 9: Iris sepal scatterplot coloured by species (discrete palette).
+
+Finally, here is a **bad choice** and the fix. A continuous palette for species implies ordering that does not exist:
+
+``` numberSource
+# Misleading: forcing categories into a continuous scale
+ggplot(data = iris_df, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point(aes(colour = as.numeric(Species))) +
+  scale_colour_distiller(palette = "Spectral")
+```
+
+[![](08-brewing_files/figure-html/fig-brew-iris-4-1.svg)](08-brewing_files/figure-html/fig-brew-iris-4-1.svg "Figure 10: Iris sepal scatterplot with a misleading continuous palette for species.")
+
+Figure 10: Iris sepal scatterplot with a misleading continuous palette for species.
+
+``` numberSource
+# Fix: discrete palette for categorical data
+ggplot(data = iris_df, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point(aes(colour = Species)) +
+  scale_colour_brewer(palette = "Set1")
+```
+
+[![](08-brewing_files/figure-html/fig-brew-iris-5-1.svg)](08-brewing_files/figure-html/fig-brew-iris-5-1.svg "Figure 11: Iris sepal scatterplot with a correct discrete palette for species.")
+
+Figure 11: Iris sepal scatterplot with a correct discrete palette for species.
+
+The rule remains the same: **match the data type to the scale type**, and make the legend explain the mapping.
+
+# 4 Make your own palettes
+
+This is all well and good. But did not I claim that this should give you complete control over our colours? So far it looks like it has just given you a few more palettes to use. And that is nice, but it is not “infinite choices”. That is where the Internet comes to your rescue. There are many places you may go to for support in this regard. The following links, in descending order, are very useful. And fun!
+
+- <http://tristen.ca/hcl-picker/#/hlc/6/0.95/48B4B6/345363>
+- <http://tools.medialab.sciences-po.fr/iwanthue/index.php>
+- <http://jsfiddle.net/d6wXV/6/embedded/result/>
+
+I find the first link the easiest to use. But the second and third links are better at generating discrete colour palettes. Take several minutes playing with the different websites and decide for yourself which one(s) you like.
+
+# 5 Use your own palettes
+
+Before you commit to a custom palette, run a quick checklist:
+
+- How many categories do you need to distinguish?
+- Is there a meaningful order or magnitude?
+- Who is your audience, and will this be printed or viewed on screen?
+- Do the legend labels and title communicate what the colours mean?
+
+Now that you have had some time to play around with the colour generators let us look at how to use them with our figures. I have used the first web link to create a list of five colours. I then copy and pasted them into the code below, separating them with commas, placing them inside of [`c()`](https://rdrr.io/r/base/c.html) and inverted commas. Be certain that you insert commas and inverted commas as necessary or you will get errors. Note also that you are using a new function to use our custom palette.
+
+``` numberSource
+ggplot(data = urine, aes(x = osmo, y = ph)) +
+  geom_point(aes(colour = cond)) +
+  scale_colour_gradientn(colours = c("#A5A94D", "#6FB16F", "#45B19B",
+                                    "#59A9BE", "#9699C4", "#CA86AD"))
+```
+
+[![](08-brewing_files/figure-html/fig-brew-7-1.svg)](08-brewing_files/figure-html/fig-brew-7-1.svg "Figure 12: Urine osmolality vs. pH with a custom continuous gradient.")
+
+Figure 12: Urine osmolality vs. pH with a custom continuous gradient.
+
+To use your custom colour palettes with a discrete colour scale, you use a different function as seen in the code below. While you are at it, also see how to correct the title of the legend, its text labels. Sometimes the default output is not what you want for our final figure and especially if you are going to be publishing it. Also note in the following code chunk that rather than using hexadecimal character strings to represent colours in your custom palette, you are simply writing in the human name for the colours you want. This will work for the continuous colour palettes above, too.
+
+``` numberSource
+ggplot(data = urine, aes(x = osmo, y = ph)) +
+  geom_point(aes(colour = as.factor(r))) +
+  scale_colour_manual(values = c("pink", "maroon"), # How to use custom palette
+                     labels = c("no", "yes")) + # How to change the legend text
+  labs(colour = "crystals") # How to change the legend title
+```
+
+[![](08-brewing_files/figure-html/fig-brew-8-1.svg)](08-brewing_files/figure-html/fig-brew-8-1.svg "Figure 13: Urine osmolality vs. pH with a custom discrete palette and legend.")
+
+Figure 13: Urine osmolality vs. pH with a custom discrete palette and legend.
+
+> **NOTE:**
+>
+> For discrete palettes, the number of colours should match the number of categories. For continuous palettes, colours should change smoothly and monotonically. Also consider cultural or semantic associations (*e.g.*, red for danger), especially if your audience is non-technical.
+
+So now you have seen how to control the colour palettes in your figures. I know it is a bit much. Four new functions just to change some colours! That is a bummer. Do not forget that one of the main benefits of R is that all of your code is written down, annotated, saved. You do not need to remember which button to click to change the colours and you just need to remember where you saved the code that you will need. And that is pretty great in my opinion.
+
+# 6 Worked examples with the colorspace package
+
+Let us add one more worked example using the [**colorspace**](https://colorspace.r-forge.r-project.org) package. It is useful because it provides palettes that are designed to be perceptually uniform and more robust for colour‑blind viewing and print. The dataset below (`mtcars`) gives us a continuous variable (horsepower) and a categorical variable (number of cylinders).
+
+``` numberSource
+# Load libraries
+library(colorspace)
+
+# Load data
+cars_df <- datasets::mtcars
+
+# Continuous colour: horsepower (magnitude)
+ggplot(data = cars_df, aes(x = wt, y = mpg)) +
+  geom_point(aes(colour = hp)) +
+  labs(x = "Weight", y = "Fuel efficiency (mpg)", colour = "Horsepower") +
+  scale_colour_continuous_sequential(palette = "BluGrn")
+```
+
+[![](08-brewing_files/figure-html/fig-brew-colorspace-1-1.svg)](08-brewing_files/figure-html/fig-brew-colorspace-1-1.svg "Figure 14: mtcars weight vs. mpg coloured by horsepower (sequential palette).")
+
+Figure 14: mtcars weight vs. mpg coloured by horsepower (sequential palette).
+
+Here the sequential palette reinforces magnitude (low → high) without sudden jumps. Now map a categorical variable with a qualitative palette:
+
+``` numberSource
+ggplot(data = cars_df, aes(x = wt, y = mpg)) +
+  geom_point(aes(colour = as.factor(cyl))) +
+  labs(x = "Weight", y = "Fuel efficiency (mpg)", colour = "Cylinders") +
+  scale_colour_discrete_qualitative(palette = "Dark 3")
+```
+
+[![](08-brewing_files/figure-html/fig-brew-colorspace-2-1.svg)](08-brewing_files/figure-html/fig-brew-colorspace-2-1.svg "Figure 15: mtcars weight vs. mpg coloured by cylinders (qualitative palette).")
+
+Figure 15: mtcars weight vs. mpg coloured by cylinders (qualitative palette).
+
+Notice the legend structure again: a **continuous bar** for horsepower and **discrete keys** for cylinders. This is the same diagnostic pattern we used earlier.
+
+``` numberSource
+# Diverging palette for deviations around a midpoint
+ggplot(data = cars_df, aes(x = wt, y = mpg)) +
+  geom_point(aes(colour = hp - mean(hp))) +
+  labs(x = "Weight", y = "Fuel efficiency (mpg)", colour = "HP deviation") +
+  scale_colour_continuous_diverging(palette = "Blue-Red 3")
+```
+
+[![](08-brewing_files/figure-html/fig-brew-colorspace-3-1.svg)](08-brewing_files/figure-html/fig-brew-colorspace-3-1.svg "Figure 16: mtcars weight vs. mpg coloured by horsepower deviation (diverging palette).")
+
+Figure 16: mtcars weight vs. mpg coloured by horsepower deviation (diverging palette).
+
+Use diverging palettes when the midpoint is meaningful (*e.g.* above vs below average). If the midpoint is not meaningful, use a sequential palette instead.
+
+> **IMPORTANT:**
+>
+> Today we learned the basics of **ggplot2**, how to facet, how to brew colours, and how to plot some basic summary statistics. Sjog, that is a lot of stuff to remember… which is why we will now spend the rest of Day 3 putting our new found skills to use.
+>
+> Please group up as you see fit to produce your very own **ggplot2** figures. We have not yet learned how to manipulate/tidy up our data so it may be challenging to grab any ol’ dataset and make a plan with it. But try! Explore some of the other built-in datasets and find two or three you like. Or use your own data!
+>
+> The goal by the end of today is to have created four figures and join them together via faceting and the options offered by `ggarrange()`. We will be walking the room to help with any issues that may arise.
+>
+> Success criteria:
+>
+> - At least one figure uses a continuous colour scale and one uses a discrete scale.
+> - Legends are correctly titled and interpretable.
+> - Colour choices match the data type (no false ordering).
+> - The grid or facet layout helps comparison rather than obscures it.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2021,
+  author = {Smit, A. J.},
+  title = {8. {Brewing} Colours},
+  date = {2021-01-01},
+  url = {https://tangledbank.netlify.app/BCB744/intro_r/08-brewing.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2021) 8. Brewing colours. [https://tangledbank.netlify.app/BCB744/intro_r/08-brewing.html.](https://tangledbank.netlify.app/BCB744/intro_r/08-brewing.html)

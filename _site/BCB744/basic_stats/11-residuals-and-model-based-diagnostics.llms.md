@@ -1,0 +1,432 @@
+> **NOTE:**
+>
+> - the shift from raw-data checks to model-based checks;
+> - what a fitted model, a predicted value, an error, and a residual are;
+> - why regression assumptions apply to residuals;
+> - how to read residual-versus-fitted and residual Q-Q plots;
+> - how diagnostic patterns guide model revision.
+
+> **IMPORTANT:**
+>
+> - None
+
+In earlier chapters, I often began with raw-data displays and simple checks on the quantities being analysed. In [Chapter 6](../../BCB744/basic_stats/06-assumptions-and-transformations.llms.md), for example, I asked whether values within groups, paired differences, or observed associations were well behaved enough for the planned test. That remains a sensible starting point for simple procedures such as *t*-tests.
+
+ANOVA already sits partly inside the linear-model framework, even if I introduced it earlier through grouped means and exploratory plots. For ANOVA, as for regression more generally, the formal assumptions concern the model errors and are therefore checked most directly through residuals from the fitted model.
+
+Regression changes the object being checked. A regression model splits the response into a systematic component that the model tries to explain and an error component that remains unexplained. After fitting the model, I inspect the residuals because they are the observed estimates of that remaining error.
+
+In this chapter, I first define the model structure, fitted values, errors, and residuals. I then map the main regression assumptions to the plots or design checks that address them. I end by showing how those diagnostics guide model revision in later chapters.
+
+# 1 Models, errors, and fitted values
+
+A **model** is a mathematical description of how a response changes with one or more predictors.
+
+A **response variable** is the outcome being explained or predicted. Sometimes it is called the outcome or dependent variable.
+
+A **predictor variable** is a measured quantity used to explain or predict the response. It is also known as the independent variable.
+
+A **fitted model** is the version of the model after its unknown quantities have been estimated from the data.
+
+A **predicted value** is the value the fitted model expects for the response at a given predictor value.
+
+For a simple linear regression, I can write the model for observation $i$ as
+
+$$Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i$$
+
+The term $\beta_0 + \beta_1 X_i$ is the **systematic component** or **mean structure**. It gives the conditional mean $E[Y_i \mid X_i]$ when the model is appropriate. The term $\varepsilon_i$ is the **error**. It is the unobserved departure of the observed response from that conditional mean.
+
+This decomposition is important because two different parts of the model are being checked. Linearity concerns the mean structure, while constant variance concerns the spread of the errors around that mean structure.
+
+Consider a biological question: how does plant height change with light availability? Here, plant height is the response and light availability is the predictor. A fitted model would describe the expected plant height at each light level. The predicted value is therefore the height that the fitted model gives for a plant growing under a specific amount of light.
+
+The purpose of this chapter is exlpain what is being checked once a model has been fitted, and in the next chapter I fit the straight-line model and assess its fit.
+
+# 2 Residuals
+
+A **residual** is the difference between an observed value and its predicted value:
+
+$$\text{residual} = \text{observed value} - \text{predicted value}$$
+
+Residuals are observed quantities. Errors are theoretical quantities in the model and are not observed directly. Residuals estimate those unobserved errors and are used for diagnostic checks.
+
+In practical terms, residuals carry information about that remaining variation, which may arise from omitted predictors, measurement error, natural biological variation, or a model form that is too simple for the pattern in the data.
+
+For the real-data sections of this chapter, I will use the `penguins` dataset from the `palmerpenguins` package. After removing missing values, I will treat body mass (`body_mass_g`) as the response and flipper length (`flipper_length_mm`) as the predictor.
+
+``` numberSource
+data("penguins", package = "palmerpenguins")
+
+penguins_tbl <- as_tibble(penguins) |>
+  drop_na(flipper_length_mm, body_mass_g) |>
+  mutate(obs_id = row_number())
+
+model <- lm(body_mass_g ~ flipper_length_mm, data = penguins_tbl)
+
+penguin_resids <- penguins_tbl |>
+  mutate(
+    predicted_mass = fitted(model),
+    residual = residuals(model)
+  )
+
+penguin_resids |>
+  select(obs_id, species, flipper_length_mm, body_mass_g, predicted_mass, residual) |>
+  slice_head(n = 8) |>
+  knitr::kable(
+    digits = 2,
+    col.names = c("Observation", "Species", "Flipper length", "Observed body mass", "Predicted body mass", "Residual")
+  )
+```
+
+| Observation | Species | Flipper length | Observed body mass | Predicted body mass | Residual |
+|---:|:---|---:|---:|---:|---:|
+| 1 | Adelie | 181 | 3750 | 3212.26 | 537.74 |
+| 2 | Adelie | 186 | 3800 | 3460.68 | 339.32 |
+| 3 | Adelie | 195 | 3250 | 3907.85 | -657.85 |
+| 4 | Adelie | 193 | 3450 | 3808.48 | -358.48 |
+| 5 | Adelie | 190 | 3650 | 3659.43 | -9.43 |
+| 6 | Adelie | 181 | 3625 | 3212.26 | 412.74 |
+| 7 | Adelie | 195 | 4675 | 3907.85 | 767.15 |
+| 8 | Adelie | 193 | 3475 | 3808.48 | -333.48 |
+
+Each row in the table shows the same calculation. The fitted model predicts body mass from flipper length and the residual records the remaining difference between the observed and predicted body mass.
+
+The steps to extract the predicted values and residuals are:
+
+``` numberSource
+model <- lm(body_mass_g ~ flipper_length_mm, data = penguins_tbl)
+
+fitted(model) # predicted values
+residuals(model) # raw residuals
+```
+
+Throughout this chapter, I use raw residuals because the goal is to establish the basic thinking behind the diagnostics. Later chapters introduce standardised and studentised residuals when I discuss unusual and influential observations.
+
+> **IMPORTANT:**
+>
+> Look at the table printed above. For observations 1 and 4, verify by hand that `residual = observed body mass - predicted body mass`. Then answer: which of the eight penguins shown is most strongly over-predicted by the model, and which is most strongly under-predicted?
+
+# 3 Why Assumptions Apply to Residuals
+
+A fitted model aims to describe the systematic part of the relationship between a response and its predictors. Fitting a linear model removes the conditional mean $E[Y \mid X]$, leaving residuals centred at zero.
+
+I can show that visually with a small simulated example. In panel A of [Figure 1](#fig-slope-removed), the response increases with the predictor and the fitted line has a clear positive slope. In panel B, I plot the residuals from that fitted model against the same predictor. The slope has been removed, so the fitted line is now horizontal around zero. The residuals are therefore the remainder after fitting, which is why they become the object of diagnosis.
+
+Fitting a linear model therefore amounts to subtracting the fitted mean trend from the data and then asking whether any structure remains.
+
+Show Code
+
+``` numberSource
+set.seed(74411)
+
+sim_dat <- tibble(
+  light = seq(1, 10, length.out = 100),
+  height = 5 + 1.8 * light + rnorm(100, sd = 2)
+)
+
+sim_mod <- lm(height ~ light, data = sim_dat)
+
+sim_plot_dat <- bind_rows(
+  sim_dat |>
+    transmute(light, value = height, panel = "A. Observed Data"),
+  sim_dat |>
+    transmute(light, value = residuals(sim_mod), panel = "B. Residuals After Fitting")
+)
+
+zero_line <- tibble(
+  panel = "B. Residuals After Fitting",
+  yint = 0
+)
+
+ggplot(sim_plot_dat, aes(x = light, y = value)) +
+  geom_hline(
+    data = zero_line,
+    aes(yintercept = yint),
+    inherit.aes = FALSE,
+    colour = "grey40",
+    linewidth = 0.5
+  ) +
+  geom_point(size = 1.9, colour = "steelblue4") +
+  geom_smooth(method = "lm", se = FALSE, colour = "firebrick", linewidth = 0.8) +
+  facet_wrap(~panel, scales = "free_y") +
+  labs(
+    x = "Predictor value",
+    y = "Response value"
+  )
+```
+
+[![](11-residuals-and-model-based-diagnostics_files/figure-html/fig-slope-removed-1.svg)](11-residuals-and-model-based-diagnostics_files/figure-html/fig-slope-removed-1.svg "Figure 1: The systematic part of a relationship is removed when residuals are extracted. Panel A shows sloped scattered data with a fitted line. Panel B shows the residuals from that same fitted model against the predictor. The fitted line is now horizontal because the linear trend has been removed.")
+
+Figure 1: The systematic part of a relationship is removed when residuals are extracted. Panel A shows sloped scattered data with a fitted line. Panel B shows the residuals from that same fitted model against the predictor. The fitted line is now horizontal because the linear trend has been removed.
+
+Assumptions therefore apply to the residuals because the residuals represent the unexplained variation. If the residuals still show a pattern, the model has left structure behind, and if they have unstable spread, the uncertainty estimates become less reliable.
+
+> **IMPORTANT:**
+>
+> Reproduce [Figure 1](#fig-slope-removed) for a different simulated dataset. Use a steeper slope and more noise:
+>
+> ``` numberSource
+> set.seed(99)
+> my_dat <- tibble(
+>   x = seq(1, 10, length.out = 80),
+>   y = 2 + 3.5 * x + rnorm(80, sd = 5)
+> )
+> my_mod <- lm(y ~ x, data = my_dat)
+> ```
+>
+> Plot the raw data with the fitted line (panel A) and then plot the residuals against `x` (panel B). Confirm that the residuals are centred on zero and that no clear slope remains. Discuss with a partner why the residual plot looks the way it does even though the original relationship was strongly positive.
+
+| Context | What is being tested or checked |
+|----|----|
+| *t*-test | whether the relevant raw values within groups, or the paired differences, are well behaved enough for a mean comparison |
+| paired design | whether the within-pair differences are well behaved enough for the paired analysis |
+| correlation | whether the observed association between the two measured variables is compatible with the intended correlation analysis |
+| ANOVA | whether the *residuals* from the fitted ANOVA model are well behaved enough for the ANOVA inference, with grouped plots used as preliminary checks |
+| regression | whether the *residuals* from the fitted model are well behaved enough for the regression inference |
+
+# 4 Main regression assumptions
+
+## 4.1 Linearity
+
+**Linearity** means that the fitted model has captured the mean relationship between the predictor and the response with an appropriate straight-line form. In a simple linear regression, the residuals should not retain a sloped or curved pattern after the line has been fitted.
+
+## 4.2 Constant variance
+
+**Constant variance** means that the spread of the residuals around zero stays broadly similar across the fitted range. If the spread expands or contracts systematically, the variance structure is not being described well by the model.
+
+> **IMPORTANT:**
+>
+> The table below maps assumptions to the plots that check them. Without looking at the rest of the chapter, try to fill in the “Visual cue” column from memory or first principles. Then read on and compare your answers with the table in the next section.
+>
+> | Assumption | What it concerns | Main check | Your predicted visual cue |
+> |----|----|----|----|
+> | Linearity | mean structure | residual vs fitted | ? |
+> | Constant variance | spread | residual vs fitted | ? |
+> | Normality | residual distribution | Q-Q plot | ? |
+>
+> Discuss: which of these three would you check first, and why?
+
+## 4.3 Independence
+
+**Independence** means that one residual does not carry information about another. This requirement comes mainly from the sampling or experimental design. Repeated measures on the same individual, temporal correlation, spatial clustering, and nested sampling can all violate independence.
+
+When dependence is plausible, I do not rely on the usual residual-versus-fitted or Q-Q plots alone. I also inspect residuals in the order in which the data were collected. For time-series or repeated-measures data, that often means plotting residuals against time and looking for runs, cycles, or long stretches of positive or negative residuals. For spatial data, it may mean plotting residuals against location and looking for clusters of similar residuals.
+
+## 4.4 Normality of residuals
+
+**Approximate normality of residuals** means that the residual distribution is reasonably close to a normal distribution. This is most important for standard errors, confidence intervals, and tests in smaller samples. Mean structure, variance structure, and independence usually deserve priority because large departures there often explain what later appears in the residual distribution.
+
+The main checks are thus performed in this order:
+
+| Assumption | What it concerns | Main check | Visual cue |
+|----|----|----|----|
+| Linearity | mean structure $E[Y \mid X]$ | residual-versus-fitted plot | slope or curvature in residuals |
+| Constant variance | spread around the mean structure | residual-versus-fitted plot | funnel shape or changing vertical spread |
+| Normality | distribution of residuals | residual Q-Q plot | systematic bends away from the line |
+| Independence | relationship among residuals across sampling units | design plus residuals versus order, time, or space | runs, cycles, or spatial clusters |
+
+# 5 Diagnostic plots
+
+A **diagnostic plot** is a graph used to check whether the fitted model has left behind problematic structure in the residuals.
+
+> **NOTE:**
+>
+> 1.  Fit the model.
+> 2.  Plot residuals against fitted values to check mean structure and spread.
+> 3.  Plot a residual Q-Q plot to check whether the residual distribution is close enough to normal for the intended inference.
+> 4.  Revisit the sampling or experimental design, and where relevant plot residuals against time, space, or sampling order to check independence.
+> 5.  Revise the model if the diagnostics show leftover structure.
+
+These plots are not decoration. They show where the model is still wrong and suggest what to revise next.
+
+## 5.1 Residual versus fitted plot
+
+The **residual-versus-fitted plot** places fitted values on the x-axis and residuals on the y-axis.
+
+I read this plot by asking two questions. Do the residuals scatter around zero without a systematic pattern? Does their spread stay broadly similar across the fitted range? Random scatter around zero supports the fitted mean structure. Curvature suggests that the straight-line form is missing part of the relationship. A funnel shape suggests changing variance.
+
+## 5.2 Q-Q plot of residuals
+
+The **Q-Q plot of residuals** compares the ordered residuals with the values expected from a normal distribution.
+
+Points that follow the reference line support approximate normality. In practice, the centre of the plot is usually more informative than one slightly wayward tail point. If most points track the line and only the most extreme one or two points drift modestly away, I usually treat that as acceptable, especially in a moderate sample. I become more concerned when many points form a clear S-shape, when both tails peel away strongly from the line, or when one or two extreme residuals dominate the ends of the plot. At that stage, the next step is to inspect the raw data, check for influential observations, and ask whether the response scale or response distribution is appropriate.
+
+The standard base-R diagnostic commands are:
+
+``` numberSource
+plot(model, which = 1)  # residual versus fitted
+plot(model, which = 2)  # Q-Q plot
+```
+
+> **IMPORTANT:**
+>
+> Simulate a dataset that deliberately violates constant variance (heteroscedasticity) and plot the residual-versus-fitted plot to see what that violation looks like:
+>
+> ``` numberSource
+> set.seed(42)
+> n <- 100
+> x <- seq(1, 10, length.out = n)
+> y <- 3 + 1.5 * x + rnorm(n, sd = 0.4 * x)   # SD grows with x
+> het_mod <- lm(y ~ x)
+> ```
+>
+> Describe the shape you see. How does it differ from the ideal plot shown next in [Figure 2](#fig-ideal-resid-fitted)?
+
+## 5.3 Example 1: Idealised Diagnostic Plots
+
+I continue with the same simulated dataset used in [Figure 1](#fig-slope-removed). Here that same fitted model is viewed through the two standard diagnostic plots. In [Figure 2](#fig-ideal-resid-fitted), the residual spread is even and the smooth line stays close to horizontal. In [Figure 3](#fig-ideal-resid-qq), the residuals are also approximately normal.
+
+[![](11-residuals-and-model-based-diagnostics_files/figure-html/fig-ideal-resid-fitted-1.svg)](11-residuals-and-model-based-diagnostics_files/figure-html/fig-ideal-resid-fitted-1.svg "Figure 2: Idealised residual-versus-fitted plot for a well-behaved straight-line model.")
+
+Figure 2: Idealised residual-versus-fitted plot for a well-behaved straight-line model.
+
+[![](11-residuals-and-model-based-diagnostics_files/figure-html/fig-ideal-resid-qq-1.svg)](11-residuals-and-model-based-diagnostics_files/figure-html/fig-ideal-resid-qq-1.svg "Figure 3: Idealised Q-Q plot of residuals for a well-behaved straight-line model.")
+
+Figure 3: Idealised Q-Q plot of residuals for a well-behaved straight-line model.
+
+In [Figure 2](#fig-ideal-resid-fitted), the points form a roughly even cloud around zero. The smooth line stays close to horizontal, so there is no clear leftover mean structure. The vertical spread is also fairly similar across the fitted range, so there is no strong sign of changing variance.
+
+In [Figure 3](#fig-ideal-resid-qq), most points lie close to the reference line. That is the pattern expected when the residuals are close enough to normal for standard linear-model inference.
+
+Together, these plots show what I want to see before I interpret a fitted model. Real data rarely look this tidy, which is why the next example is more revealing.
+
+# 6 Example 2: Worked example with real data
+
+I now return to the penguins data. I fit body mass as a function of flipper length using all penguins together. That is a plausible first attempt because larger penguins usually have longer flippers, but it also ignores the fact that the dataset contains different species.
+
+``` numberSource
+model <- lm(body_mass_g ~ flipper_length_mm, data = penguins_tbl)
+
+penguin_aug <- penguins_tbl |>
+  mutate(
+    .fitted = fitted(model),
+    .resid = residuals(model)
+  )
+
+penguin_aug |>
+  select(species, flipper_length_mm, body_mass_g, .fitted, .resid) |>
+  slice_head(n = 6)
+```
+
+    R> # A tibble: 6 × 5
+    R>   species flipper_length_mm body_mass_g .fitted  .resid
+    R>   <fct>               <int>       <int>   <dbl>   <dbl>
+    R> 1 Adelie                181        3750   3212.  538.  
+    R> 2 Adelie                186        3800   3461.  339.  
+    R> 3 Adelie                195        3250   3908. -658.  
+    R> 4 Adelie                193        3450   3808. -358.  
+    R> 5 Adelie                190        3650   3659.   -9.43
+    R> 6 Adelie                181        3625   3212.  413.
+
+The fitted values are the model’s expected body masses. The residuals show how far the observed body masses depart from those fitted values.
+
+[![](11-residuals-and-model-based-diagnostics_files/figure-html/fig-penguins-resid-fitted-1.svg)](11-residuals-and-model-based-diagnostics_files/figure-html/fig-penguins-resid-fitted-1.svg "Figure 4: Residuals versus fitted values for a pooled penguin body-mass model.")
+
+Figure 4: Residuals versus fitted values for a pooled penguin body-mass model.
+
+Something seems “off” in [Figure 4](#fig-penguins-resid-fitted). The residuals do not form a roughly random cloud around zero. Instead, the smooth line bends from positive residuals at low fitted masses to negative residuals in the middle and back toward positive residuals at the upper end. That is evidence that one straight line is not describing the mean structure adequately.
+
+Here the likely cause is not an exotic response distribution but pooled biological groups. Adelie, Chinstrap, and Gentoo penguins differ in body size, so one line fitted to all species averages over distinct structures. I have ignored the grouping structure. The next step for would therefore be that I revise the model specification, for example by including species as a predictor or by allowing different lines for different species.
+
+> **IMPORTANT:**
+>
+> Plot body mass against flipper length for the penguins dataset and colour the points by species. Use that graph to check whether the residual pattern in [Figure 4](#fig-penguins-resid-fitted) could be explained by pooled group structure rather than by a single curved relationship.
+
+[![](11-residuals-and-model-based-diagnostics_files/figure-html/fig-penguins-resid-qq-1.svg)](11-residuals-and-model-based-diagnostics_files/figure-html/fig-penguins-resid-qq-1.svg "Figure 5: Q-Q plot of residuals for a pooled penguin body-mass model.")
+
+Figure 5: Q-Q plot of residuals for a pooled penguin body-mass model.
+
+> **IMPORTANT:**
+>
+> Refit the penguin model including `species` as an additional predictor and re-examine both diagnostic plots:
+>
+> ``` numberSource
+> model_species <- lm(body_mass_g ~ flipper_length_mm + species,
+>                     data = penguins_tbl)
+>
+> aug_species <- penguins_tbl |>
+>   mutate(.fitted = fitted(model_species),
+>          .resid  = residuals(model_species))
+> ```
+>
+> Does the curved pattern in [Figure 4](#fig-penguins-resid-fitted) disappear once species is included? What does this tell you about the source of the earlier diagnostic problem?
+>
+> In addition to your residual-vs-fitted plot, also produce a Q-Q plot of the residuals for the new model and compare it with [Figure 5](#fig-penguins-resid-qq).
+>
+> Above, I am preempting some later work. See [Chapter 14](../../BCB744/basic_stats/14-multiple-regression-and-model-specification.llms.md) before returing here, if necessary.
+
+In [Figure 5](#fig-penguins-resid-qq), the residuals are close enough to normal that I would not treat distributional shape as the first problem. Approximate normality does not rescue a poor mean model due to ignoring the grouping structure, so my primary warning comes from [Figure 4](#fig-penguins-resid-fitted), not from the Q-Q plot.
+
+# 7 Linking Diagnostics to Decisions
+
+The penguins example shows why diagnostics should lead directly to model revision. The residual-versus-fitted plot does not suggest a small tweak to an otherwise adequate straight line. It suggests that I have fitted the wrong model because I ignored a biologically relevant grouping variable. In that case, the most sensible correction is to change the model specification by including species, by allowing species-specific slopes, or by fitting separate lines.
+
+That same logic extends beyond this example. When residuals show curvature, the fitted mean structure is incomplete. The correction may be to add an omitted predictor, include an interaction, transform a predictor or the response, add a polynomial term, use a smoother, or move to a nonlinear model whose form matches the biology more closely.
+
+When the residual spread changes across the fitted range, the variance structure is being described poorly. Possible corrections include transforming the response, modelling the variance explicitly, using weighted regression, or choosing a model family whose mean-variance relationship is more appropriate for the data.
+
+When the Q-Q plot shows strong tail departures, the next step is usually to inspect the data rather than to panic about normality in the abstract. Extreme residuals may reflect outliers, influential observations, an awkward response scale, or a response distribution that is not well handled by a Gaussian model.
+
+When residuals are dependent, the solution is rarely a cosmetic adjustment to the same model. Dependence points back to the design and often requires a different modelling framework altogether, such as repeated-measures methods, time-series models, spatial models, or mixed models.
+
+A diagnostic plot therefore points to the aspect of the model that needs revision and helps decide what kind of revision is defensible.
+
+> **IMPORTANT:**
+>
+> Work through the four diagnostic scenarios described below. For each one, decide which assumption is most likely violated and what the preferred next step is. Discuss your reasoning with a partner before reading further.
+>
+> | Scenario | What the diagnostic shows | Which assumption? | Next step? |
+> |----|----|----|----|
+> | A | Residuals fan out strongly from left to right in the residual-vs-fitted plot | ? | ? |
+> | B | Q-Q plot shows a pronounced S-bend, with both tails lifting away from the line | ? | ? |
+> | C | Residuals form a clear arc (positive, then negative, then positive) across the fitted range | ? | ? |
+> | D | Residuals plotted against collection order show long runs of positive values followed by long runs of negative values | ? | ? |
+>
+> After completing the table, check your answers against the “Linking Diagnostics to Decisions” section above.
+
+# 8 Connection to Earlier Chapters
+
+This chapter extends the checking habits developed in [Chapter 6](../../BCB744/basic_stats/06-assumptions-and-transformations.llms.md). Grouped comparisons checked variation within groups. Paired analyses checked variation in the within-pair differences. Correlation inspected the observed joint pattern directly. Regression keeps the same questions about structure, spread, and dependence, but it asks them after the model has already been fitted.
+
+# 9 Forward Links
+
+Diagnostics will emerge again in:
+
+- [Chapter 12: Simple Linear Regression](../../BCB744/basic_stats/12-simple-linear-regression.llms.md) fits and interprets the first full regression models.
+- [Chapter 14: Multiple Regression and Model Specification](../../BCB744/basic_stats/14-multiple-regression-and-model-specification.llms.md) applies the same diagnostic ideas when several predictors appear in one model.
+- [Chapter 17: Model Checking and Evaluation](../../BCB744/basic_stats/17-model-checking-and-evaluation.llms.md) develops residual analysis, leverage, influence, and model comparison in more detail.
+- [Chapter 19: Dependence and Mixed Models](../../BCB744/basic_stats/19-dependence-and-mixed-models.llms.md) takes up the cases where independence fails because observations are clustered or repeated.
+
+# 10 Summary
+
+Regression starts from the decomposition
+
+$$\text{response} = \text{systematic component} + \text{error}$$
+
+After fitting the model, I inspect residuals because they estimate the unobserved errors.
+
+Residual-versus-fitted plots check the mean structure and the variance structure. Q-Q plots check whether the residual distribution is close enough to normal for the intended inference. Independence comes mainly from the design and, where relevant, from residual patterns across time, space, or sampling order.
+
+The purpose of these diagnostics is not description for its own sake. They tell me whether the current model is adequate or whether I need to revise it before interpreting coefficients or testing hypotheses.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {11. {Residuals} and Model-Based Diagnostics},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB744/basic_stats/11-residuals-and-model-based-diagnostics.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) 11. Residuals and model-based diagnostics. [https://tangledbank.netlify.app/BCB744/basic_stats/11-residuals-and-model-based-diagnostics.html.](https://tangledbank.netlify.app/BCB744/basic_stats/11-residuals-and-model-based-diagnostics.html)

@@ -1,0 +1,188 @@
+> “*The statistician’s task is not to discover the truth, but to measure uncertainty.*”
+>
+> — Bradley Efron
+
+> “*Somewhere, something incredible is waiting to be known.*”
+>
+> — Carl Sagan
+
+# 1 Workshop recap, assessment alignment, and what comes next
+
+By this point you have seen the same workflow from several angles: importing data, checking what came in, reshaping it when necessary, plotting it, summarising it, and writing the result down in code. The functions changed from chapter to chapter, but the logic did not.
+
+# 2 The one workflow you will use forever
+
+Every analysis you do is a variation of the same loop:
+
+**Import → Inspect → Tidy → Transform → Visualise → Summarise → Communicate → Repeat**
+
+If you remember that sequence, you can usually recover when you meet a new dataset or a new package.
+
+# 3 Debugging is a core skill
+
+Code fails. That is normal. When it does, use the same routine every time:
+
+1.  **Read the last line of the error** (it usually says what failed).
+2.  **Identify the function** that failed (the first line after “Error in …”).
+3.  **Check object class and structure** with [`str()`](https://rdrr.io/r/utils/str.html) or `glimpse()`.
+4.  **Reproduce with a minimal example** (smallest input that still fails).
+
+Common failures to watch for:
+
+- factors vs characters
+- `NA` propagation
+- silent recycling (length mismatch)
+- grouping that persists too long
+
+# 4 Predict before you execute
+
+Before you run a pipeline, ask:
+
+- “How many rows should I have now?”
+- “What changed conceptually?”
+- “What stayed the same?”
+
+That habit separates analysis from button-pushing.
+
+# 5 Object hygiene and naming discipline
+
+Your objects are your short-term memory. Name them as if you expect to reopen the script in a month.
+
+- **Overwrite** when you are confident you no longer need the old version.
+- **Create new objects** when you are exploring or unsure.
+- Use names that scale (avoid `df2`, `final_final`, `test`).
+- Periodically **restart R** and run your script top-to-bottom. If it fails, your workflow is not yet reproducible.
+
+# 6 Reproducibility beyond Quarto
+
+Reproducibility is mostly mundane discipline:
+
+- Scripts must run from a clean session.
+- Relative paths are scientific hygiene.
+- Results without code are not evidence.
+
+If you cannot rerun it later, you do not really have the analysis.
+
+# 7 Light-weight statistical instincts
+
+Even before the formal biostatistics material starts, you should already be watching for:
+
+- **Variability vs central tendency** (do not trust means alone).
+- **Sample size matters** (`n()` is critical to understanding the power of your data).
+- **Plots are models** and offer first insights into your data.
+
+# 8 One narrative question
+
+Across several chapters we kept returning to one biological question:
+
+**How does coastal temperature vary in space, time, and depth?**
+
+Early on, you could only sketch the pattern. By the end, you could ask the same question with grouped summaries, cleaner figures, and better control over the data structure.
+
+# 9 Alignment with assessments
+
+The workshop is aligned with the assessments. You will be expected to do the following without being walked through it line by line:
+
+- **Assessment readiness**
+
+  - Import, inspect, and tidy real datasets
+  - Apply a coherent workflow from raw data to final output
+  - Write readable, reproducible R code using tidyverse principles
+  - Produce publication-quality figures using `ggplot2`
+  - Manipulate data confidently using `dplyr` verbs and pipes
+
+- **What assessors will look for**
+
+  - Logical data workflows (not trial-and-error code)
+  - Clear transformation steps ([`filter()`](https://rdrr.io/r/stats/filter.html), `mutate()`, `summarise()`, `group_by()`)
+  - Appropriate visualisation choices
+  - Evidence that results were *derived*, not manually curated
+  - Liberal application of comments to document your workflow, *i.e.*, code that is understandable by someone else (including your future self)
+
+If you can reproduce the analyses and figures from this workshop *without following along line-by-line*, you are well prepared for the assessments.
+
+# 10 Concept map: how the chapters fit together
+
+Each chapter supplied one part of the same analytical workflow:
+
+1.  **R and RStudio**: where code lives and how to run it.
+2.  **Working with Data and Code**: files, paths, and reproducible habits.
+3.  **R Markdown and Quarto**: putting code and interpretation in one document.
+4.  **Data Classes and Structures**: checking what R thinks your variables are.
+5.  **R Workflows**: organising an analysis so it can be rerun.
+6.  **Graphics with ggplot2**: plotting patterns instead of staring at raw columns.
+7.  **Faceting, colour, and mapping**: refining comparisons and communication.
+8.  **Tidy data and transformation**: getting the data into a form that analysis tools expect.
+9.  **Grouping and summaries**: asking scientific questions at the right unit of analysis.
+
+# 11 What you can do now
+
+You should now be able to:
+
+- Read unfamiliar R code
+- Tidy real-world data
+- Ask questions of data (not just plot it)
+- Learn new packages independently
+
+# 12 Next: biostatistics
+
+The biostatistics block assumes that you can already manage the data-cleaning and plotting side of an analysis.
+
+In this workshop, you focused on:
+
+- *How to prepare data*
+- *How to explore patterns*
+- *How to visualise structure and variation*
+
+In Biostatistics, you will now ask:
+
+- *Are these patterns meaningful?*
+- *How much uncertainty is there?*
+- *What conclusions are supported by the data?*
+
+The transition looks like this:
+
+- **Tidy data** → prerequisite for valid statistics
+- **Grouping and summarising** → foundation of statistical models
+- **Visual exploration** → guides hypothesis formulation
+- **Reproducible workflows** → ensures transparent inference
+
+Statistical tests, models, and confidence intervals only make sense when applied to well-structured, well-understood data. You now have the tools to ensure that this condition is met.
+
+This workshop gave you the mechanics. Biostatistics asks you to defend inferences.
+
+# 13 Final note
+
+You are not expected to memorise every function. You are expected to recognise the workflow, know how to inspect objects, and know how to look things up without flailing.
+
+If someone else can read your script and see what you did, in what order, and why, you are on the right track.
+
+# 14 Session info
+
+``` numberSource
+installed.packages()[names(sessionInfo()$otherPkgs), "Version"]
+```
+
+    R> character(0)
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2021,
+  author = {Smit, A. J.},
+  title = {16. {Synthesis}},
+  date = {2021-01-01},
+  url = {https://tangledbank.netlify.app/BCB744/intro_r/16-recap.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2021) 16. Synthesis. [https://tangledbank.netlify.app/BCB744/intro_r/16-recap.html.](https://tangledbank.netlify.app/BCB744/intro_r/16-recap.html)

@@ -1,0 +1,145 @@
+## 1 Practice task
+
+Work through these exercises after reading the [Mixed Models](../../BCB743/mixed_models.llms.md) chapter, using the **vegan** `pyrifos` dataset (`data(pyrifos)`) — aquatic invertebrate communities from 12 mesocosm ditches sampled repeatedly over 11 weeks following insecticide (chlorpyrifos) dosing. Four exercises are hands-on calculations and two are short conceptual questions. A worked answer is given under each exercise; try it yourself before opening it.
+
+1.  Reconstruct the design factors (`ditch`, `week` and `dose`; see `?pyrifos`) and build a univariate response, for example a summed log-abundance / community-size index (`rowSums(pyrifos)`) or richness (`vegan::specnumber(pyrifos)`). Fit a naive model that ignores ditch (an [`lm()`](https://rdrr.io/r/stats/lm.html), or a [`glm()`](https://rdrr.io/r/stats/glm.html) for a count response, of the response on `dose`), and inspect the residuals for the repeated-measures structure.
+
+> **NOTE:**
+>
+> ``` numberSource
+> library(tidyverse)
+> library(vegan)
+> library(lme4)
+> library(performance)
+>
+> data(pyrifos)
+> # design, from ?pyrifos
+> week  <- gl(11, 12, labels = c(-4, -1, 0.1, 1, 2, 4, 8, 12, 15, 19, 24))
+> dose  <- factor(rep(c(0.1, 0, 0, 0.9, 0, 44, 6, 0.1, 44, 0.9, 0, 6), 11))
+> ditch <- gl(12, 1, length = 132)
+>
+> dat <- tibble(comm_index = rowSums(pyrifos), dose, week, ditch) # pyrifos is ln-transformed abundance
+>
+> naive <- lm(comm_index ~ dose, data = dat)                    # ignores ditch
+> summary(naive)$coefficients
+> ```
+>
+>     R>              Estimate Std. Error   t value     Pr(>|t|)
+>     R> (Intercept) 183.83186   3.841375 47.855739 4.094731e-83
+>     R> dose0.1     -15.47300   6.653457 -2.325558 2.162762e-02
+>     R> dose0.9     -14.84700   6.653457 -2.231471 2.740370e-02
+>     R> dose6       -41.33100   6.653457 -6.211958 6.888807e-09
+>     R> dose44      -63.58705   6.653457 -9.556993 1.232889e-16
+>
+> The 132 rows are 12 ditches each sampled at 11 weeks, so they are **not** independent: the eleven observations from one ditch share its history and unmeasured conditions. The naive `lm` treats all 132 as independent replicates and therefore credits the analysis with far more information than the design delivered. Its residuals, if grouped by ditch, would show clear within-ditch correlation, the diagnostic sign that a single error term is inadequate.
+
+2.  Fit a mixed model with [`lme4::lmer()`](https://rdrr.io/pkg/lme4/man/lmer.html) (or `glmer()` for a count response) that adds `(1 | ditch)` to account for the repeated sampling of each ditch. Compare the fixed-effect estimates and their standard errors with those of the naive model.
+
+> **NOTE:**
+>
+> ``` numberSource
+> mm <- lmer(comm_index ~ dose + (1 | ditch), data = dat)
+>
+> se_naive <- summary(naive)$coefficients[, "Std. Error"]
+> se_mm    <- summary(mm)$coefficients[, "Std. Error"]
+> round(cbind(naive_SE = se_naive, mixed_SE = se_mm), 3)
+> ```
+>
+>     R>             naive_SE mixed_SE
+>     R> (Intercept)    3.841    4.772
+>     R> dose0.1        6.653    8.265
+>     R> dose0.9        6.653    8.265
+>     R> dose6          6.653    8.265
+>     R> dose44         6.653    8.265
+>
+> Adding `(1 | ditch)` gives each ditch its own random intercept, modelling the baseline differences among ditches instead of pretending they do not exist. The fixed-effect *estimates* for dose change only modestly, but their **standard errors increase** (for the first dose level, from **6.653** in the naive model to **8.265** in the mixed model): because dose is applied at the ditch level, the effective sample size for testing it is closer to the 12 ditches than to the 132 rows, and the mixed model recognises that. The naive model’s narrow standard errors were an illusion created by pseudoreplication.
+
+3.  Compute the intraclass correlation (ICC) for ditch with [`performance::icc()`](https://easystats.github.io/performance/reference/icc.html) (or by hand from the variance components). How much of the variation is between ditches?
+
+> **NOTE:**
+>
+> ``` numberSource
+> icc(mm)
+> ```
+>
+>     R> # Intraclass Correlation Coefficient
+>     R> 
+>     R>     Adjusted ICC: 0.051
+>     R>   Unadjusted ICC: 0.028
+>
+> ``` numberSource
+> VarCorr(mm)                                    # the variance components behind the ICC
+> ```
+>
+>     R>  Groups   Name        Std.Dev.
+>     R>  ditch    (Intercept)  5.8255 
+>     R>  Residual             25.0738
+>
+> The ICC is the between-ditch variance divided by the total (between-ditch plus residual within-ditch) variance, so it is the proportion of variation that lives *between* ditches rather than within them. The adjusted ICC here is only **0.05**, modest mainly because the large week-to-week swings in the summed log-abundance index inflate the *within*-ditch variance. Even so the random effect matters: with eleven samples per ditch the design effect is roughly $1 + (n - 1)\times\text{ICC}$, which is why the dose standard error still grew by about a quarter in Exercise 2. The lesson is that a random effect can be necessary for honest inference even when the ICC itself is small, once each cluster is sampled many times.
+
+4.  Add `week` to the model and test whether a `dose`-by-`week` interaction, or a random slope for week within ditch, is supported. Watch for and report any singular fits.
+
+> **NOTE:**
+>
+> ``` numberSource
+> dat$week_num <- as.numeric(as.character(dat$week))         # treat sampling time as continuous
+>
+> m_main <- lmer(comm_index ~ dose + week_num + (1 | ditch), data = dat, REML = FALSE)
+> m_int  <- lmer(comm_index ~ dose * week_num + (1 | ditch), data = dat, REML = FALSE)
+> anova(m_main, m_int)                           # is the dose-by-time interaction supported?
+> ```
+>
+>     R> Data: dat
+>     R> Models:
+>     R> m_main: comm_index ~ dose + week_num + (1 | ditch)
+>     R> m_int: comm_index ~ dose * week_num + (1 | ditch)
+>     R>        npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(>Chisq)
+>     R> m_main    8 1220.1 1243.2 -602.07    1204.1                     
+>     R> m_int    12 1225.2 1259.8 -600.61    1201.2 2.9303  4     0.5696
+>
+> ``` numberSource
+> m_slope <- lmer(comm_index ~ dose + week_num + (1 + week_num | ditch), data = dat)
+> isSingular(m_slope)                            # TRUE = the random-slope structure is unsupported
+> ```
+>
+>     R> [1] TRUE
+>
+> Adding time (`week_num`) lets the community change over the sampling period, and the `dose`-by-time interaction tests whether the treatment effect itself changes through time (the expected pattern: an impact after dosing followed by recovery). The likelihood-ratio test from [`anova()`](https://rdrr.io/r/stats/anova.html) ($p$ = **0.57**) says whether that interaction earns its parameters. The random-slope model `(1 + week_num | ditch)` asks each ditch to have its own time trajectory; with only 12 ditches this is demanding, and here `isSingular()` returns **TRUE**, flagging when the data cannot support it (a variance estimated at zero or a perfect correlation). A singular fit is a signal to simplify the random structure, not to ignore the warning. (Treating time as linear is a simplification; the real impact-and-recovery trajectory is non-linear, which is why the full study used multivariate methods.)
+
+5.  Explain pseudoreplication in this design: why are repeated samples from the same ditch not independent, and what does the random effect fix?
+
+> **NOTE:**
+>
+> **Pseudoreplication** is treating non-independent observations as if they were independent replicates. In `pyrifos`, the treatment (dose) is applied to a whole ditch, and that ditch is then sampled eleven times. The eleven samples share the ditch’s substrate, starting community, micro-climate, and dosing history, so they resemble one another more than they resemble samples from a different ditch: they are repeated measures of the same experimental unit, not independent replicates of the treatment. Analysing them as 132 independent points inflates the apparent sample size, shrinks the standard errors, and produces $p$-values that are far too small. The **random effect** `(1 | ditch)` fixes this by adding a ditch-level error term, so the model separates within-ditch variation from between-ditch variation and tests the ditch-level treatment against the correct, ditch-level variability. The experimental unit, not the sample, becomes the unit of inference.
+
+6.  Explain what the ICC represents, and how adding the random-effect structure changes the standard errors and the inferences you can draw relative to the naive model.
+
+> **NOTE:**
+>
+> The **ICC** (intraclass correlation) is the share of total variance attributable to differences *between* groups, here ditches, and equivalently the expected correlation between two observations drawn from the same ditch. An ICC near zero would mean the grouping barely matters and the naive model would be almost adequate; an ICC well above zero means observations within a ditch are strongly alike, so they carry less independent information than their number suggests. Adding the random effect changes inference in three linked ways: it **partitions** the variance into between- and within-ditch components (which the ICC summarises), it **widens the standard errors** of group-level fixed effects (dose) to reflect the smaller effective sample size, and it therefore yields **more conservative, more defensible tests**. Relative to the naive model it generally makes treatment effects look less certain, but that reduced certainty is the honest one: it matches the number of independent experimental units the design actually provided.
+
+## 2 Assessment criteria
+
+This Task is not formally assessed. It is built around four hands-on analyses (Exercises 1–4) and two short conceptual questions (Exercises 5–6); work through all six and bring your annotated Quarto document to class for discussion.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {20. {Linear} and Generalised Linear Mixed Models},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB743/tasks/Task_N.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) 20. Linear and generalised linear mixed models. [https://tangledbank.netlify.app/BCB743/tasks/Task_N.html.](https://tangledbank.netlify.app/BCB743/tasks/Task_N.html)

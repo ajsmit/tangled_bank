@@ -1,0 +1,152 @@
+In all the ordination techniques I have seen thus far, the primary goal is to represent high-dimensional data in a lower-dimensional space (usually 2D or 3D) while preserving as much of the original structure as possible. Points that are close together in the ordination plot are generally more similar in the original high-dimensional space.
+
+All four methods reduce dimensionality, but they differ in one decisive respect, namely what each one tries to preserve. That difference is what keeps the four methods distinct:
+
+| Method | Input | What it preserves | Diagnostic |
+|:---|:---|:---|:---|
+| PCA | site × variable table | Euclidean structure (variance) | variance explained |
+| CA | site × species counts | $\chi^2$ structure (weighted averaging) | inertia explained |
+| PCoA | any distance matrix | the chosen distances themselves | eigenvalues |
+| nMDS | any distance matrix | the rank order of the distances | stress (lower is better) |
+
+Each row is expanded below, and the [decision tree](#which-method-to-choose) turns the table into a choice.
+
+## 1 Principal component analysis (PCA)
+
+- **Data Type:** Continuous data (e.g., environmental variables)
+- **Interpretation:** PCA identifies axes (principal components) that explain the maximum variation in the data. The axes represent linear combinations of the original variables that explain the most variance. The distance between points reflects their Euclidean dissimilarity. The loading values of variables on the axes indicate their contribution to the variation. Angles between variable arrows in the biplot represent correlations.
+- **In vegan:** `rda()` without constraining variables is used for PCA. Biplots can be created using the [`biplot()`](https://rdrr.io/r/stats/biplot.html) function, showing both sample scores and variable loadings.
+- **Assumption:** PCA assumes linear relationships between variables.
+
+## 2 Correspondence analysis (CA)
+
+- **Data Type:** Count or frequency data (e.g., species abundance; contingency tables)
+- **Interpretation:** CA explores the relationship between rows (e.g., sites) and columns (e.g., species), i.e. the biplot shows the relationships between rows and columns, but pay attention to the scaling. The distances between points approximate their $\chi^2$ distances, which arise from the weighted-averaging of species and sites and not from straight-line (Euclidean) geometry. This is not distance preservation in the PCoA sense. CA places a species near the sites where it is most abundant, so a species point marks the centre of its distribution along the gradient.
+- **In vegan:** The `cca()` function with no constraining variables, called as `cca(spe)` or equivalently `cca(spe ~ 1)`, is used for CA. Similar to PCA, biplots can be created.
+- **Assumption:** Assumes unimodal species responses and weighted averaging.
+
+## 3 Principal coordinate analysis (PCoA)
+
+- **Data Type:** Distance or dissimilarity matrices (any type of distance) in **vegan**’s `vegdist()`
+- **Interpretation:** PCoA aims to represent the distances between objects in a low-dimensional space while preserving the original dissimilarities as much as possible. Interpretation depends on the chosen distance measure.
+- **In vegan:** The `capscale()` function with a distance matrix as input performs PCoA. Biplots are not directly applicable to PCoA but figures can be constructed in layers using `ordiplot()`, etc.
+- **Assumption:** PCoA does not assume linear relationships between variables.
+
+## 4 Non-metric multidimensional scaling (nMDS)
+
+- **Data Type:** Distance or dissimilarity matrices (any type of distance)
+- **Interpretation:** nMDS is an iterative method that tries to arrange objects in low-dimensional space so that the rank order of distances in the ordination matches the rank order of the original dissimilarities. The stress value indicates how well the ordination represents the original distances. Like PCoA, interpretation depends on the chosen distance measure. Because it uses only the rank order of the dissimilarities, nMDS makes fewer assumptions about the structure of the distances than the eigen-methods, though it can be sensitive to outliers and tied ranks. Fewer assumptions is not the same as “better”. Each method is the right choice for the structure it matches.
+- **In *vegan*:** The `metaMDS()` function is used for nMDS. You can use the `envfit()` function to add environmental variables or species scores to the plot, but it is an indirect fitting process.
+- **Assumption:** nMDS does not assume linear relationships between variables.
+
+## 5 Which method to choose?
+
+The choice follows from the data in hand and from what you want the ordination to preserve. The tree turns that into a sequence of questions ([Figure 1](#fig-ordination-choice)).
+
+``` mermaid
+flowchart TD
+  A["What data do you have?"] --> B["Environmental variables"]
+  A --> C["Species composition"]
+  A --> D["Environmental predictors<br/>plus species data"]
+  B --> B1["PCA"]
+  C --> C1{"What should the<br/>ordination preserve?"}
+  C1 -->|"χ² structure,<br/>unimodal responses"| C2["CA"]
+  C1 -->|"a chosen ecological<br/>distance, exactly"| C3["PCoA"]
+  C1 -->|"the rank order<br/>of distances"| C4["nMDS"]
+  D --> D1["Constrained ordination<br/>(next chapter)"]
+```
+
+Figure 1: Choosing an unconstrained ordination from the data in hand. The branch under species composition is the question of what the ordination should preserve.
+
+The same considerations, in words:
+
+- **Data type:** CA suits abundance data with many zeros, while PCA suits continuous environmental variables. PCoA and nMDS take a dissimilarity matrix of any kind (use Gower distances for categorical, ordinal, or binary data).
+- **Distance/dissimilarity:** If a specific dissimilarity is appropriate (e.g., Bray-Curtis), use PCoA or nMDS, since PCA and CA fix their geometry in advance.
+- **Response shape:** PCA assumes linear relationships among variables. CA (and DCA) assume unimodal species responses, namely each species peaks somewhere along a gradient. PCoA and nMDS make no assumption about response shape, because they work from a dissimilarity matrix, and nMDS uses only the rank order of those dissimilarities.
+- **Focus:** To emphasise species composition, CA or nMDS may suit. To emphasise the gradients underlying the variation, PCA or PCoA may be preferred.
+
+DCA does not appear in this framework. It is a corrective variant of CA, kept mainly for historical interpretation and teaching (see the [DCA chapter](../BCB743/DCA.llms.md)). For a new analysis, prefer CA, PCoA, or nMDS.
+
+## 6 Considerations in **Vegan**
+
+- **Standardisation:** Pay attention to data standardisation or transformation before analysis, especially for environmental variables measured in different units. **vegan** provides various options for standardisation; alternatively, use functions in base R. Species data typically do not require transformation, unless some special considerations are needed, for instance when working with overly dominant or rare species.
+- **Ecological Interpretation:** Use **vegan**’s `envfit()` and `ordistep()` to facilitate the interpretation of the relationship between community composition and environmental variables in ordination plots.
+- **Dimensionality:** Typically I visualise the relationships in 2D plots, but higher dimensions may be important. I can use **vegan**’s [`screeplot()`](https://rdrr.io/r/stats/screeplot.html) function to help determine how many influential axes to retain.
+- **Scaling:** The scaling of ordination biplots can affect interpretation. `scaling = 1` emphasises relationships among samples and `scaling = 2` emphasises relationships among variables.
+- **Proportion of Variance Explained:** The *vegan* functions provide information on the proportion of variation explained by the reduced axes for PCA, CA, and PCoA.
+- **Plotting:** The `ordiplot()` function provides a consistent interface for plotting different ordination results. There are also various ways to enhance ordination plots, such as `ordihull()`, `ordiellipse()` for grouping; `envfit()` for fitting environmental variables; `ordisurf()` for response surfaces. You can also access the various components of the ordination results (e.g., scores, loadings) for custom plotting with **ggplot2**, which might be necessary to create more insightful and less cluttered figures for publication.
+
+## 7 Applying ordination techniques to environmental data
+
+Typically, ordinations are applied to species data. Sometimes, however, I may want to apply ordinations to the environmental data itself. This lets the environmental data reveal their own structure, showing patterns that I can then use to inform later analyses. This helps in several ways.
+
+- It can reveal the presence of correlated variables, which can be problematic in later analyses. If two variables are highly correlated, they may both appear to be important in explaining the species data, but only one of them may be driving the patterns. Such correlated variables can be seen on the ordination plots as vectors pointing in the same direction.
+- It can help identify major gradients in the environmental variables, and this can then be related to the species composition. The lengths of the environmental vectors on ordination plots can be used to infer the importance of the variables in structuring the data. Strong gradients can be hypothesised to influence species composition. So, once I have set up hypotheses about the presumed influential environmental gradients, I can explore how these gradients correlate with the species data. Even without directly analysing the species data, I can infer potential influences of environmental factors on species distributions and community composition.
+- Another way to identify influential variables that might not form strong gradients is by plotting the ordination results and identifying clusters of similar environmental conditions. As before, I can use these clusters to hypothesise about potential similarities in community structure in these areas.
+- It allows me to develop a solid understanding of the environmental variation across the landscape and sets a baseline for interpreting any patterns observed in the species data. These ordination results can be plotted on maps for supplementary visualisations of the environmental gradients across the study area.
+- I can use functions like `envfit()` (see below) to fit species data to the environmental ordination space, which helps me understand how well the environmental variables explain the species composition. If the environmental variables explain a large proportion of the variation in the species data, this suggests a strong relationship between the environment and the species composition.
+- An analysis of the environmental data can also lead me to further analyses, such as some of the constrained ordinations or multiple linear regression, which directly relate environmental variables to species data.
+
+## 8 Linking environmental properties to species data
+
+Typically, one is interested in understanding the relationship between species composition and environmental variables. This can be achieved by fitting environmental variables to the ordination space using `envfit()`, `ordisurf()`, `ordiellipse()`, `ordispider()`, and `ordihull()`. The `ordistep()` function can help identify the most important variables.
+
+`envfit()` involves performing an unconstrained ordination on the species data alone and afterwards fitting environmental vectors onto the ordination plot. The environmental vectors are *projected* onto the ordination space, and their direction and length indicate the correlation and strength of each environmental variable with the ordination axes. The `envfit()` function can also be used to test the significance of the environmental variables in structuring the species data. I use `envfit()` to explore species patterns first and then see how these patterns are related to the environment, so my primary interest is in understanding the intrinsic patterns of species composition without initially imposing any constraints from environmental data.
+
+`ordisurf()` and `ordiellipse()` are used to visualise the response of species composition to environmental gradients or factors. `ordisurf()` fits a response surface to the ordination plot, showing how species composition changes along the environmental gradients. `ordiellipse()` draws ellipses around groups of samples, which can be defined by environmental variables or other factors. `ordispider()` and `ordihull()` are used to draw lines or polygons around groups of samples, respectively. These functions show me how gradients vary across the landscape and how species or sites are related to some categorical influential variables.
+
+Constrained ordination (also known as canonical ordination) directly incorporates environmental variables into the ordination process. The ordination axes are linear combinations of environmental variables, meaning that the ordination is directly constrained by the environmental data. To do this, I do a constrained ordination (such as db-RDA or CCA), where the species data are directly related to the environmental variables. This allows me to explicitly model the variation in species data that can be explained by the environmental variables, and it helps me understand the direct influence of environmental factors on species composition. Typically, I would choose constrained ordinations when my primary interest is in understanding how much of the variation in species composition can be explained by environmental variables. It is also useful when I have some hypotheses about the influence of *a priori* selected environmental variables on species distribution and want to test them formally. Lastly, constrained ordination also lets me partition the variance in species data into components explained by different kinds of environmental variables and, in so doing, reveal the residual (unexplained) components. Use the `capscale()` function in **vegan** to perform constrained ordination (see [Distance-Based Redundancy Analysis](../BCB743/constrained_ordination.llms.md)). This allows me to explore how environmental variables structure the data and how they relate to each other.
+
+## 9 Common mistakes and quick diagnostics
+
+A few things regularly go wrong in ordination workflows. When your output looks odd, check these first:
+
+- **Empty rows / all-zero samples:** Many ordination/dissimilarity methods cannot handle rows with all zeros. Check with `rowSums(Y) == 0` and decide whether to remove, merge, or re-encode.
+- **Mismatched rows between species and environment tables:** If you fit environmental variables (e.g., `envfit()`), make sure rows align and have identical ordering. A quick check is `all(rownames(Y) == rownames(env))` (or an explicit join using an ID column).
+- **Inappropriate standardisation:** Environmental variables measured in different units usually need scaling/standardisation; species data often require different transformations (or none). Make the choice explicit.
+- **Over-interpreting axes:** Use eigenvalues/stress/screeplots to justify how many dimensions you interpret. If 2D is a visual convenience, say so.
+- **Distance measure mismatch:** Pick a dissimilarity that matches the data type (e.g., Bray–Curtis for abundance, Jaccard/Sørensen for presence–absence, Gower for mixed types) and state it.
+
+## 10 What to remember
+
+> **NOTE:**
+>
+> 1.  Ordination reduces dimensionality while keeping as much structure as possible.
+> 2.  The method follows from the data type and the dissimilarity that suits it.
+> 3.  PCA is usually for environmental variables; CA for species counts.
+> 4.  PCoA and nMDS take any dissimilarity matrix, so they suit ecological community data and mixed variables.
+> 5.  What each method *preserves* is the distinction that guides interpretation, namely variance (PCA), $\chi^2$ structure (CA), distance (PCoA), or rank order (nMDS).
+> 6.  Justify the number of axes (eigenvalues, scree, or stress) before interpreting them.
+> 7.  These methods are exploratory; constrained ordination is what tests environmental hypotheses.
+
+## 11 Now What?
+
+Every method in this chapter is *unconstrained*, recovering whatever gradients the data contain without letting environmental variables shape the axes. Two branches follow from here.
+
+The next chapter turns to *constrained* ordination ([RDA, CCA, and db-RDA](../BCB743/constrained_ordination.llms.md)), where environmental variables actively determine the ordination axes, so that I can ask how much of the community pattern they explain and test it formally.
+
+A second branch asks a different kind of question. Ordination seeks *gradients*, the continuous axes along which composition turns over, and [cluster analysis](../BCB743/cluster_analysis.llms.md) seeks *groups*, the discrete clusters of similar sites. The two are complementary views of the same dissimilarity matrix, and ecologists often place them side by side.
+
+## 12 References
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {13. {Summary:} Unconstrained Ordinations},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB743/unconstrained-summary.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) 13. Summary: unconstrained ordinations. [https://tangledbank.netlify.app/BCB743/unconstrained-summary.html.](https://tangledbank.netlify.app/BCB743/unconstrained-summary.html)

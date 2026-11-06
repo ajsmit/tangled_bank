@@ -1,0 +1,103 @@
+## 1 Why this bridge matters
+
+The tidyverse is an excellent way to teach the visible workflow of an analysis: import, clean, summarise, plot. But the moment you inspect a model object, read older documentation, or debug a strange error, base R appears.
+
+Tidy workflows run on top of base-R mechanics. If you understand those mechanics, you panic less and you debug faster.
+
+## 2 One dataset, two lenses
+
+The same task can be viewed in two ways:
+
+1.  **Workflow view (Tidyverse):** readable sequence of verbs for data analysis.
+2.  **Mechanics view (base):** what the object actually is, how subsetting works, and what gets returned.
+
+You should be able to move between those views without treating them as rival camps.
+
+## 3 The base core you must know
+
+For independent work, you need practical fluency in:
+
+- `[` for subsetting vectors/data frames
+- `[[` for extracting a single list element
+- `$` for named component extraction
+- logical indexing (e.g., `x[x > 0]`)
+- missing-value handling (`is.na`, `na.rm`)
+- object inspection (`str()`, `class()`, `names()`)
+
+These are the tools behind a large share of everyday debugging.
+
+## 4 Debugging a broken pipeline with base inspection
+
+When a pipeline fails, use this triage pattern:
+
+1.  Inspect the object (`class`, `str`, `names`).
+2.  Check dimensions/length and missingness.
+3.  Extract the problematic component with `[[`/`$` and inspect directly.
+4.  Re-enter the pipeline once structure is understood.
+
+That is faster than rerunning the whole pipeline and hoping.
+
+## 5 Lists and model objects
+
+Many functions return lists, including model fits. Practice the following:
+
+- extracting coefficients and diagnostics from model objects,
+- checking component names before extraction,
+- distinguishing vectors, data frames, and lists in returned objects.
+
+If you can inspect a return object, you are much less dependent on memorised recipes.
+
+## 6 When to stay in tidyverse vs when to drop to base
+
+Stay in Tidyverse for:
+
+- coherent wrangling pipelines,
+- grouped summaries,
+- plotting workflows.
+
+Drop to base when:
+
+- object structure is unclear,
+- output is list-heavy/model-heavy,
+- indexing/debugging is required,
+- package documentation/examples are in base idiom.
+
+## 7 Mini exercises
+
+1.  **NA + indexing repair:** Given a vector with missing values, compute a summary correctly and explain why the first attempt fails.
+
+2.  **Object extraction task:** Fit a simple model, then extract one component using `[[` and compare to `$`.
+
+3.  **Pipeline debug drill:** Start from a failing pipeline, then diagnose with `str()` and `names()` before patching.
+
+## 8 Take-home checklist
+
+By the end of this page, you should be able to:
+
+- explain the difference between `[` and `[[`,
+- inspect unknown objects without panic,
+- resolve at least one pipeline failure via base inspection,
+- extract required values from list/model outputs,
+- justify when they are using tidyverse workflow vs base mechanics.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit,
+  author = {Smit, A. J.},
+  title = {18. {R} Without Training Wheels: A Bridge from Tidyverse to
+    Base {R}},
+  url = {https://tangledbank.netlify.app/BCB744/intro_r/18-base_r.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ 18. R without training wheels: a bridge from tidyverse to base R. [https://tangledbank.netlify.app/BCB744/intro_r/18-base_r.html.](https://tangledbank.netlify.app/BCB744/intro_r/18-base_r.html)

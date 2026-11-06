@@ -1,0 +1,266 @@
+Most of this module teaches methods, namely how to run a PCA, a db-RDA, an nMDS, or a cluster analysis. This chapter teaches something the method chapters cannot, namely how to decide *which* analysis to run and *why*, and how to defend the choice afterwards. It is the conceptual capstone of the course, and it is closer to a way of thinking than to a set of instructions.
+
+Ecological model building is more than a search for the highest $R^2$. A high $R^2$ obtained by placing every available variable into a model is not evidence of understanding, and it is often evidence against it. Defensible model building starts from an ecological question, proposes the processes that might answer it, chooses predictors that can represent those processes, inspects their structure, and only then fits models that can be argued for on both biological and statistical grounds.
+
+The whole chapter follows one workflow ([Figure 1](#fig-workflow)). Every later section is a step in it, and the running example throughout is the South African seaweed $\beta$-diversity analysis used in the [db-RDA](../BCB743/constrained_ordination.llms.md) and [*Seaweeds in Two Oceans*](../BCB743/two_oceans_appendices.llms.md) chapters, so that the ideas attach to a system you already know.
+
+``` mermaid
+flowchart TD
+  Q["1. Ecological question"] --> M["2. Hypotheses & mechanisms"]
+  M --> P["3. Choosing predictors"]
+  P --> E["4. Exploring structure"]
+  E --> B["5. Building candidate models"]
+  B --> S["6. Model selection"]
+  S --> V["7. Validation & prediction"]
+  V --> R["8. Reconciling ecology & statistics"]
+  R -.->|refine| Q
+  R --> A["9. Advanced extensions"]
+```
+
+Figure 1: The workflow for defensible ecological model building. Each step is a section of this chapter. The process is iterative: validation and the reconciliation of ecological with statistical evidence usually send you back to refine the question, the mechanisms, or the predictors.
+
+> **IMPORTANT:**
+>
+> - [Task J 1–6](../BCB743/tasks/Task_J.llms.md)
+
+> **TIP:**
+>
+> **A defensible model emerges when ecological interpretation and statistical evidence point in the same direction.**
+>
+> A model supported by the statistics but not by any plausible mechanism is a coincidence waiting to fail on new data. A model demanded by theory but unsupported by the data is an assumption, not a result. The work of model building is to bring the two into agreement, and to state the cases where they disagree.
+
+## 1 From questions to models
+
+A statistics curriculum often leaves students with a flawed shortcut in mind:
+
+``` numberSource
+Data → Method → Result
+```
+
+Real ecological inference is more considered:
+
+``` numberSource
+Ecological question → Candidate mechanisms → Variables → Model → Inference
+```
+
+The difference is where the thinking happens. In the first version the data lead and the ecologist follows, while in the second the question leads, and the data are interrogated for evidence about specific processes. The first produces results that are hard to interpret and easy to overfit. The second produces models that can be defended, criticised, and improved.
+
+For the seaweed example the question is clear. **At what scales, and through which aspects of the thermal regime, is the turnover of seaweed species along the South African coast structured?** That sentence already constrains the analysis. The response is compositional turnover (a $\beta$-diversity, not an abundance), which points to a dissimilarity-based method. The predictors are aspects of temperature and space, which must be chosen to represent competing mechanisms rather than thrown in together.
+
+### 1.1 About the seaweed data
+
+The predictors come from an extensive daily time series of seawater temperature, summarised into statistics that capture different components of the thermal regime along the coast:
+
+- the annual mean climatology (`annMean`),
+- the climatological means for February (warmest month) and August (coldest month) (`febMean`, `augMean`),
+- the climatological standard deviations for those months (`febSD`, `augSD`),
+- the daily-climatology temperature range for February and August (`febRange`, `augRange`).
+
+For the $\beta$-diversity analysis each variable is included as a Euclidean distance between site pairs, matched against the Sørensen dissimilarity of the species data for the same pairs. Because all of these statistics derive from one temperature series, non-independence among them is not a risk to check for but a certainty to manage. Multicollinearity is guaranteed by construction. The variables still earn their place, because they let me ask whether composition responds mainly to mean temperature, to extremes, or to variability, and which of those aligns with the spatial signal.
+
+The analysis also includes geographic distance between site pairs along the coast, and `bio`, a bioregional classification. These raise a problem that runs through the whole chapter. Distance is not itself a process. It is a stand-in for everything that changes with separation along a coastline, namely dispersal limitation, oceanographic connectivity, and the smooth turnover of unmeasured conditions. A predictor that summarises many processes is useful, but it cannot be interpreted as though it were one of them. The same caution applies to bioregion, which is a classification derived from the very biology I am trying to explain.
+
+## 2 Hypotheses and mechanisms
+
+Before any variable is included in a model, ask how it could plausibly affect seaweed community structure. Temperature is biologically meaningful, but different summaries of temperature imply different mechanisms, and a model that does not distinguish them cannot tell you which mechanism is at work. The annual mean speaks to the position of a site on the warm-to-cold gradient. The monthly extremes speak to physiological limits crossed in the hottest or coldest part of the year. The ranges and standard deviations speak to thermal variability, which may track upwelling intensity or current stability. These are competing hypotheses, and the point of choosing variables carefully is to let the data adjudicate between them. A variable included merely because it was available adds noise and weakens that adjudication.
+
+### 2.1 Mechanistic and statistical models
+
+It helps to be explicit about what kind of model is being built ([Figure 2](#fig-mech-stat)). A **mechanistic** model encodes the process, namely temperature acts on physiology, physiology sets thermal tolerance, and tolerance determines where a species can persist. A **statistical** model encodes only the association, namely temperature covaries with distribution. The db-RDA used for the seaweed data is a statistical model. It does not contain physiology. What makes it defensible is that the *choice* of predictors is mechanistic, namely temperature summaries are included because a documented physiological mechanism connects them to distribution. The statistics test an association the ecology has proposed, rather than discovering an association and inventing an explanation afterwards.
+
+``` mermaid
+flowchart LR
+  subgraph Mechanistic
+    direction LR
+    T1["Temperature"] --> Ph["Physiology<br/>(thermal tolerance)"] --> D1["Distribution"]
+  end
+  subgraph Statistical
+    direction LR
+    T2["Temperature"] --> D2["Distribution"]
+  end
+```
+
+Figure 2: Mechanistic and statistical models of the same relationship. A mechanistic model names the intervening process; a statistical model fits the association directly. The seaweed db-RDA is statistical, but its predictors are chosen on mechanistic grounds, which is what lets the result be interpreted.
+
+### 2.2 Predictors are not necessarily causes
+
+The deepest trap in model building is to interpret a fitted coefficient as a cause. A predictor can be associated with the response because it causes it, because it is caused by something that also causes the response (a **confounder**), or because it is a downstream proxy for the real driver. Causal diagrams make these possibilities explicit and force them into the open ([Figure 3](#fig-dag)).
+
+``` mermaid
+flowchart TD
+  Up["Upwelling"] --> Temp["Temperature regime"]
+  Up --> Nut["Nutrients<br/>(unmeasured)"]
+  Temp --> Turn["Seaweed turnover"]
+  Nut --> Turn
+  Dist["Geographic distance"] -.->|proxy for| Up
+  Dist -.->|proxy for| Disp["Dispersal limitation<br/>(unmeasured)"]
+  Disp --> Turn
+```
+
+Figure 3: A causal sketch for the seaweed system. Upwelling drives both temperature and nutrients, and both affect turnover, so part of temperature’s association with turnover is confounded by nutrients (a path not measured here). Geographic distance is a proxy that substitutes for several unmeasured processes at once. A fitted temperature coefficient mixes the direct effect with these other paths.
+
+For the seaweed data this is not an abstract worry. Upwelling along the west coast lowers temperature and raises nutrients at the same time, so a temperature coefficient absorbs part of an unmeasured nutrient effect. Geographic distance substitutes for dispersal limitation and for oceanographic connectivity together. Drawing the diagram does not remove these problems, but it shows which interpretations are licensed and which are not, and it explains why the variance-partitioning step in the seaweed analysis separates the spatial from the thermal contribution rather than trusting either coefficient alone. The lesson to carry forward is plain. The question of which variables to include is partly a causal one, and the data cannot answer it on their own.
+
+## 3 Choosing predictors
+
+With the mechanisms named, choose predictors that represent them and that vary across the study area enough to be informative. A predictor with no spatial gradient cannot explain spatial turnover. For the seaweed coast the candidates separate on exactly this basis:
+
+1.  **Annual mean temperature (`annMean`)** integrates warm and cold seasons into a single position on the regional gradient. It is a strong candidate, but its near-redundancy with the monthly means must be confronted before use.
+2.  **Mean of the warmest month (`febMean`)** shows a clear gradient from the east coast to Cape Point and is comparatively flat along the west coast.
+3.  **Range of the warmest month (`febRange`)** separates the Benguela from the Agulhas system and varies both east-to-west and north-to-south.
+4.  **Thermal variability** (`augSD`, `febSD`) carries a geographically structured signal that may reflect upwelling intensity or current stability.
+
+Choosing among these is where ecological knowledge does work that no algorithm can. An unconstrained ordination with fitted environmental vectors (`envfit()`) can suggest which predictors align with the dominant compositional axes, but the suggestion is a starting point for reasoning, not a conclusion.
+
+## 4 Exploring structure
+
+Before fitting anything, understand the predictors themselves. This step is short in most workflows and should be longer. Predictors that are strongly correlated cannot be included in a model as though they were independent pieces of evidence, so what most needs to be learned here is how the predictors relate to one another.
+
+The seaweed thermal variables make the point concretely. The correlation matrix below uses the site-level values, the form in which the redundancy is easiest to see, and it propagates directly to the pairwise-distance versions used in the db-RDA.
+
+Code
+
+``` numberSource
+library(ggcorrplot)
+load(here::here("data", "BCB743", "seaweed", "SeaweedEnv.RData"))
+
+thermal <- c(
+  "annMean",
+  "febMean",
+  "augMean",
+  "febSD",
+  "augSD",
+  "febRange",
+  "augRange"
+)
+corr <- round(cor(env[, thermal]), 2)
+
+ggcorrplot(
+  corr,
+  type = "upper",
+  lab = TRUE,
+  outline.col = "white",
+  colors = c("#3B6FB6", "white", "#C0392B")
+) +
+  ggplot2::theme_minimal(base_size = 8)
+```
+
+[![](model_building_files/figure-html/fig-env-corr-1.svg)](model_building_files/figure-html/fig-env-corr-1.svg "Figure 4: Correlation among the seven seaweed thermal predictors at site level. Three blocks stand out: the three means are nearly interchangeable (r = 0.90 to 0.98), and each month’s range and standard deviation are correlated (augSD with augRange at 0.91; febSD with febRange at 0.79). Seven named variables carry roughly three independent dimensions of information.")
+
+Figure 4: Correlation among the seven seaweed thermal predictors at site level. Three blocks stand out: the three means are nearly interchangeable (r = 0.90 to 0.98), and each month’s range and standard deviation are correlated (augSD with augRange at 0.91; febSD with febRange at 0.79). Seven named variables carry roughly three independent dimensions of information.
+
+The figure tells a story the variable names hide. The three means (`annMean`, `febMean`, `augMean`) are almost the same variable measured three ways. Each month’s range and standard deviation form a tight pair. Seven predictors therefore represent about three independent dimensions, namely a mean-temperature axis, a February-variability axis, and an August-variability axis. Including all seven in a model would not add seven pieces of evidence. It would add three pieces of evidence and a great deal of instability, because the model cannot apportion a shared effect between variables that are correlated.
+
+Correlation is only the first diagnostic. A full exploration of structure also includes pair plots to see non-linear relationships and outliers, a PCA to see how many independent gradients the predictors really contain (the [PCA chapter](../BCB743/PCA.llms.md) does exactly this), maps to see the spatial pattern of each variable, and spatial-autocorrelation diagnostics such as Moran’s $I$ or a variogram to see at what scale each variable is organised. Each of these has its own chapter, and the message here is that they belong *before* modelling, not after. A predictor you have not looked at is a predictor you cannot defend.
+
+## 5 Building candidate models
+
+Model building is a sequence of decisions, not a single fit. A workable sequence is the following.
+
+1.  **Start from hypotheses.** Each candidate model should express an ecological idea, e.g. “turnover tracks the mean gradient” against “turnover tracks thermal variability”. A model with no hypothesis behind it should not be in the set.
+2.  **Construct a small set of candidate models.** Translate the hypotheses into formulae. Keep the set small and meaningful rather than exhaustive; a search over all subsets of correlated predictors tests no idea and invites overfitting.
+3.  **Check collinearity.** Use variance inflation factors (VIF) to confirm that the predictors within a model can be separated. The correlation structure above predicts that the three means cannot coexist in one model, and VIF will confirm it.
+4.  **Fit the models.** For the seaweed data this is the db-RDA; for other questions it might be a GLM, a GAM, or a mixed model. The fitting is the least difficult part.
+5.  **Compare support.** Rank the candidate models by an agreed criterion (below) and interpret the ranking as evidence about the hypotheses, not as a hunt for the single highest score.
+
+### 5.1 Overfitting and the bias-variance trade-off
+
+The reason to keep the candidate set small and the predictors few is **overfitting**. A model with many free parameters relative to the number of observations can fit the sample almost perfectly and still predict new data badly, because it has fitted the noise. This is the **bias-variance trade-off**. A model that is too simple is biased and misses real structure, while a model that is too complex has high variance and chases accidents of the particular sample. The seaweed design has many correlated predictors and a limited number of sites, which sits in the danger zone. Forward selection, penalised regression (such as the elastic net), and information criteria all exist to hold complexity down to what the data can actually support. Adding a variable almost always raises $R^2$, which is precisely why $R^2$ cannot be the criterion for whether the variable belongs.
+
+## 6 Model selection
+
+Once a set of candidate models exists, selection is about weighing the evidence for competing hypotheses, not about choosing a single best model. The information-theoretic approach makes this explicit. Each model is treated as a hypothesis, and the Akaike Information Criterion (AIC) ranks them by their support in the data while penalising complexity, so that a more complex model must earn its extra parameters. The differences in AIC between models, and the Akaike weights derived from them, express *how much* better one hypothesis is supported than another, which is far more informative than a single accept-or-reject decision.
+
+When several models have similar support, the defensible conclusion is that the data do not separate those hypotheses, and **model averaging** (Akaike-weighted, or Bayesian) propagates that ambiguity into the predictions rather than hiding it. A variable that appears in all of the well-supported models is better evidence of a real effect than one that appears in only the single top-ranked model. Multi-model inference treats the *set* of good models as the result, which guards against over-interpreting the accidents that distinguish the best model from the second best.
+
+## 7 Validation and prediction
+
+A model that fits the data it was built on has shown almost nothing. The purpose of validation is to estimate how the model behaves on data it has not seen, and this is where the distinction between two goals must be made explicit.
+
+> **TIP:**
+>
+> An **explanatory** model answers “which process structures the community?” and is judged by interpretable, defensible coefficients. A **predictive** model answers “what will the community be at an unsampled site?” and is judged by accuracy on new locations. The same data can serve either goal, but the model that best explains is not always the model that best predicts, and the validation that each requires is different.
+
+For the seaweed analysis the primary goal is explanation, so the validation emphasis falls on whether the thermal effect survives controlling for space (the variance-partitioning step) and whether the coefficients are interpretable. The moment the goal shifts to prediction, namely estimating turnover for a stretch of coast that was never sampled, ordinary validation becomes misleading. **Random** cross-validation leaves out points that are spatially surrounded by their own training data, so the model is rewarded for exploiting spatial autocorrelation rather than for capturing a generalisable relationship. Defensible alternatives respect the spatial structure:
+
+- **Leave-one-site-out** and **spatial-block** cross-validation hold out whole regions, so the model must genuinely extrapolate to new coastline.
+- Reporting performance under spatial blocking, rather than under random folds, gives a realistic estimate of how the model would do where it actually needs to work.
+- **Extrapolation** beyond the sampled range of temperatures should be flagged, because a relationship fitted within one thermal range need not hold beyond it.
+
+Validation is not a final box to tick. It is the test that decides whether the model has learned ecology or has memorised the sample.
+
+## 8 Reconciling ecology and statistics
+
+This is the centre of the chapter, and the step where the thesis is earned. A defensible model emerges when ecological interpretation and statistical evidence point in the same direction. The two lines of evidence are gathered differently, namely one from mechanism and theory, the other from fit and significance, and the analyst’s job is to bring them together explicitly.
+
+**Synthesise** rather than choose. A variable supported by both a mechanism and the statistics is strong evidence, whereas a variable supported by only one is a lead to investigate, not a conclusion. **Test, and stay open to surprise.** A result that contradicts the expected mechanism is not automatically wrong, and it may be the most interesting thing in the analysis, but it raises the burden of explanation rather than lowering it. **Report the disagreements.** Where the ecology and the statistics part company, say so, because that gap is usually where the next question arises. A model that is statistically strong and mechanistically empty, or mechanistically compelling and statistically unsupported, is a model that has not yet finished being built.
+
+## 9 Advanced extensions
+
+The workflow above is enough to build a defensible model with the methods taught in this course. The following are signposts, not lessons. Each names an approach worth knowing exists, and worth reaching for when a particular question demands it. None is needed to complete the seaweed analysis, and the right time to learn one is when the question makes it necessary.
+
+### 9.1 Trait and phylogenetic approaches
+
+Where trait data exist, **functional traits** (thallus morphology, photosynthetic pigments, reproductive strategy) can illuminate the mechanism behind a compositional pattern, because traits, not species identities, are what the environment actually filters. **Phylogenetic** methods add the evolutionary dimension, and can distinguish environmental filtering (related species co-occurring) from competitive exclusion (related species segregating), and can flag niche conservatism in thermal tolerance.
+
+> **TIP:**
+>
+> These two methods link three tables, namely a site-by-species table (**L**), a site-by-environment table (**R**), and a species-by-traits table (**Q**). Fourth-corner analysis tests whether particular trait-environment combinations occur more or less often than chance, using permutation null models that distinguish environmental filtering from trait convergence. RLQ ordination extends the idea into multivariate space through a co-inertia analysis, finding the axes along which traits and environmental conditions covary. Together they answer “which traits respond to which gradients?”, a question the species-level db-RDA cannot reach.
+
+### 9.2 Accounting for space and joint structure
+
+> **TIP:**
+>
+> MEMs decompose spatial pattern into components at many scales, from broad regional trends to fine local structure, and are included in a model as predictors that absorb spatial autocorrelation. The seaweed analysis already uses them (see the [*Seaweeds in Two Oceans* appendix](../BCB743/two_oceans_appendices.llms.md)) to separate broad-scale spatial structure from the thermal signal.
+
+> **TIP:**
+>
+> JSDMs fit many species at once and model the residual correlations among them after environmental effects are removed, which separates environmental filtering from apparent biotic association and borrows strength across species to improve estimates for rare ones. The **Hmsc** package fits hierarchical JSDMs with spatial and temporal structure. Model-based multivariate methods built on GLMs, including the **mvabund** approach, pursue the same goal of putting community-level analysis on an explicit distributional footing.
+
+### 9.3 Dynamic predictors and flexible learners
+
+> **TIP:**
+>
+> Euclidean distance is a crude stand-in for connectivity. Lagrangian models track the actual movement of water, and the variables they yield (transport pathways, residence times, connectivity) can represent dispersal far better than static distance for a coastline shaped by the Benguela and Agulhas currents.
+
+Flexible statistical learners (**random forests**, **boosted regression trees**) capture non-linearities and interactions and rank variable importance without a pre-specified functional form, which suits prediction-focused work. **Hierarchical Bayesian** models handle nested sources of variation (site, region, species, year) while propagating uncertainty through every level, and are the natural home for the multi-scale, multi-source structure of real ecological datasets.
+
+## 10 A workflow for defensible ecological inference
+
+The chapter reduces to a short set of rules. They are not a checklist to pass but a discipline to practise.
+
+1.  **Start from a question, not a dataset.** Name the ecological process you are trying to understand before you open the data.
+2.  **Turn hypotheses into models.** Every candidate model should stand for an idea that could be wrong.
+3.  **Choose predictors for what they mean,** not for being available, and distinguish predictors that are causes from those that are proxies or confounders.
+4.  **Look at the predictors before modelling.** Correlation, ordination, maps, and spatial diagnostics come first. Collinear predictors are not independent evidence.
+5.  **Keep models small.** Guard against overfitting with few parameters, collinearity checks, and complexity penalties. Never let $R^2$ decide.
+6.  **Select among hypotheses, not for a single best model.** Rank models by information criteria, average over near-ties, and trust variables that recur across the well-supported set.
+7.  **Validate against the goal.** Decide whether you are explaining or predicting, and for prediction use spatial cross-validation that forces genuine extrapolation.
+8.  **Reconcile the two kinds of evidence.** Trust most the conclusions where ecology and statistics agree, and report explicitly where they do not.
+9.  **Signal, then reach.** Know that traits, phylogeny, MEMs, JSDMs, Lagrangian variables, and Bayesian hierarchies exist, and adopt one only when the question requires it.
+
+A model built this way will rarely have the highest possible $R^2$. It will be the model you can defend, the one whose every term you can explain, and the one most likely to still be right when someone tries it on new data. That, and not the fit statistic, is the goal of ecological model building.
+
+## 11 References
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {18. {Ecological} Model Building},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB743/model_building.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) 18. Ecological model building. [https://tangledbank.netlify.app/BCB743/model_building.html.](https://tangledbank.netlify.app/BCB743/model_building.html)

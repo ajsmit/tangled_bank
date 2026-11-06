@@ -1,0 +1,549 @@
+> “*There are two types of people in the world: 1) those who extrapolate from incomplete data.*”
+>
+> Anon.
+
+> **IMPORTANT:**
+>
+> - [Task I 1–6](../BCB743/tasks/Task_I.llms.md)
+
+The ordination chapters, from PCA through CA, PCoA, and nMDS to db-RDA, have taught one way of seeing multivariate data, namely as continuous structure. Sites spread along axes, species replace one another gradually, and the question is always *along what gradient* the community is organised. Sometimes a set of discrete groups is the more useful description, and the task becomes partitioning sites into units rather than positioning them on a continuum. Cluster analysis is the set of tools for that.
+
+> **TIP:**
+>
+> Ordination and clustering answer different questions about the same data.
+>
+> - **Ordination** asks how sites and species are arranged along **continuous gradients**, and displays the result as positions in a low-dimensional space.
+> - **Clustering** asks whether sites fall into **discrete groups**, and assigns each site a group label.
+>
+> A clustering algorithm produces groups such that dissimilarities between sites within a group are smaller than dissimilarities between sites in different groups. Whether discrete groups are the right description, or whether the data are really a continuum that clustering has cut into arbitrary pieces, is the central interpretive judgement of the whole exercise.
+
+This distinction is the central idea of the chapter. When the data have real boundaries, clustering identifies them. When the data are a gradient, an ordination is the more appropriate approach, and a clustering of the same data will look weak however the algorithm is set up.
+
+## 1 Why do ecologists cluster?
+
+Cluster analysis appears less often than ordination in the ecological literature, unless you work in conservation or biogeography, and the distinction above explains why. Most community data express gradients, and for a gradient an ordination loses less information than a partition does. Clustering becomes the right tool when the goal is a **classification**, namely a defined set of named units that other people can use.
+
+Clustering suits problems whose output is a set of discrete categories:
+
+- vegetation classification and plant community types,
+- habitat and ecosystem typologies,
+- ecoregion and bioregion delineation,
+- conservation planning and reserve design,
+- species assemblage identification,
+- biogeographic regionalisation.
+
+An ordination is the better tool when the structure is continuous and the goal is to understand response rather than to assign labels:
+
+- community turnover along an environmental gradient,
+- species responses to measured environmental variables,
+- exploratory description of the dominant axes of variation.
+
+A classification is a hypothesis about where the boundaries lie, offered for others to test and use. The methods (hierarchical clustering, partitioning, dendrograms, silhouette widths, validation) all offer ways of proposing, drawing, and checking those boundaries.
+
+## 2 Distance and similarity
+
+Clustering depends on the same foundation as PCoA and nMDS, namely a **dissimilarity matrix**. Every pairwise distance the earlier chapters spent so long on returns here, because a clustering is built entirely from the distances between sites. The choice of dissimilarity is therefore an ecological decision. Euclidean distance suits standardised environmental variables, Bray-Curtis suits abundance data, and Jaccard or Sørensen suit presence-absence data. Whatever measure suited the data in the ordination chapters suits it here too.
+
+``` mermaid
+flowchart LR
+  R["Site × species table"] --> D["Dissimilarity matrix<br/>(site × site)"]
+  D --> O["Ordination<br/>PCoA, nMDS<br/>(continuous positions)"]
+  D --> C["Clustering<br/>hierarchical, PAM<br/>(discrete groups)"]
+```
+
+Figure 1: A dissimilarity matrix is the shared input for ordination and clustering. The same Bray-Curtis or Sørensen matrix that supports a PCoA or nMDS also accommodates a hierarchical clustering; the two methods then describe its structure in different ways, as continuous positions or as discrete groups.
+
+The cluster you obtain depends on the distance you chose. Two analysts who pick different dissimilarities for the same community table will, in general, obtain different clusters, both defensible. This is the same sensitivity the PCoA chapter raised, namely that clustering seldom reveals objective facts about data.
+
+## 3 Set up the analysis environment
+
+``` numberSource
+library(tidyverse)
+library(cluster) # pam(), agnes(), diana(), silhouette()
+library(factoextra) # fviz_* helpers and choose-k tools
+library(vegan) # vegdist(), decostand(), metaMDS()
+library(ggcorrplot)
+library(ggpubr)
+
+# Files will be referenced using here::here() for absolute paths
+```
+
+Clustering algorithms are well represented in R. The main package is, oddly, called **cluster**. It provides `pam()` for Partitioning Around Medoids, `agnes()` for agglomerative hierarchical clustering, `diana()` for divisive hierarchical clustering, and `fanny()` for fuzzy clustering. Base R adds [`hclust()`](https://rdrr.io/r/stats/hclust.html) for hierarchical clustering and [`kmeans()`](https://rdrr.io/r/stats/kmeans.html) for k-means partitioning, both widely used by ecologists. The **factoextra** package wraps these in convenient plotting and model-selection helpers. Older methods persist too, notably [TWINSPAN](https://github.com/jarioksa/twinspan) and its modern relative [IndVal](https://doi.org/10.1016/B978-0-12-384719-5.00430-5) for indicator-species analysis. Every clustering function comes with its own plotting method, and it is worth becoming familiar with them.
+
+## 4 Hierarchical clustering
+
+Hierarchical clustering is the most common clustering approach in ecology, and dendrograms are the figures students will encounter most often, so this chapter treats it as the primary method. It comes in two directions. **Agglomerative** clustering starts with every site in its own cluster and repeatedly merges the closest pair until a single cluster remains. **Divisive** clustering works from the other end, starting with one cluster and splitting it. Agglomerative clustering ([`hclust()`](https://rdrr.io/r/stats/hclust.html), `agnes()`) is far more widely used, and is the version developed here.
+
+``` mermaid
+flowchart TD
+  A["Each site is its own cluster"] --> B["Merge the two closest clusters"]
+  B --> C["Recompute between-cluster<br/>distances (linkage rule)"]
+  C --> E{"One cluster left?"}
+  E -->|no| B
+  E -->|yes| F["Dendrogram"]
+```
+
+Figure 2: Agglomerative hierarchical clustering. Starting from every site as its own cluster, the two closest clusters are merged, the between-cluster distances are recomputed using a linkage rule, and the process repeats until one cluster remains. The full record of merges is the dendrogram.
+
+I use the Doubs River fish data, already familiar from the CA, PCoA, and nMDS chapters. Working on a system you know lets you judge the clustering against an understanding the ordinations have already built, namely that the fish community is organised as a continuous upstream-to-downstream gradient.
+
+``` numberSource
+load(here::here(
+  "data",
+  "BCB743",
+  "NEwR-2ed_code_data",
+  "NEwR2-Data",
+  "Doubs.RData"
+))
+# remove the empty 8th site (it holds no fish, so distances are undefined)
+spe <- dplyr::slice(spe, -8)
+```
+
+Because these are abundance data, I build a Bray-Curtis dissimilarity, as I did before applying `capscale()` in the PCoA chapter or `metaMDS()` in the nMDS chapter. The same matrix now supports [`hclust()`](https://rdrr.io/r/stats/hclust.html).
+
+``` numberSource
+spe_bray <- vegdist(spe, method = "bray")
+spe_hclust <- hclust(spe_bray, method = "average")
+```
+
+The `method = "average"` argument selects a linkage rule, discussed shortly. The result is a record of every merge, displayed as a dendrogram.
+
+## 5 Reading a dendrogram
+
+A dendrogram is a tree. Each site is a leaf, and each internal node is a merge. The height at which two sites (or two groups) join is the dissimilarity at which the algorithm merged them. Leaves that join low down are similar, and groups that join only near the top of the tree are dissimilar. The shape of the tree is the whole result, and interpreting it is a skill worth practising.
+
+To turn a tree into a classification, I **cut** it at a chosen height, which is equivalent to choosing a number of groups. Cutting lower yields many small groups, cutting higher yields a few broad ones. The [`cutree()`](https://rdrr.io/r/stats/cutree.html) function performs the cut, and `fviz_dend()` draws the tree with the cut groups boxed.
+
+``` numberSource
+fviz_dend(
+  spe_hclust,
+  k = 4,
+  cex = 0.8,
+  palette = "jco",
+  rect = TRUE,
+  rect_fill = TRUE,
+  lwd = 0.3,
+  main = "Doubs fish: average-linkage clustering"
+)
+```
+
+[![](cluster_analysis_files/figure-html/fig-doubs-dendrogram-1.svg)](cluster_analysis_files/figure-html/fig-doubs-dendrogram-1.svg "Figure 3: Average-linkage dendrogram of the 29 Doubs River sites, built from a Bray-Curtis dissimilarity on fish abundances and cut into four groups. Leaves are sites; the height at which branches join is the dissimilarity at which they merged. The four boxed groups broadly track the river, from a headwater site through to the lower course, though the tracking is loose.")
+
+Figure 3: Average-linkage dendrogram of the 29 Doubs River sites, built from a Bray-Curtis dissimilarity on fish abundances and cut into four groups. Leaves are sites; the height at which branches join is the dissimilarity at which they merged. The four boxed groups broadly track the river, from a headwater site through to the lower course, though the tracking is loose.
+
+``` numberSource
+doubs_groups <- cutree(spe_hclust, k = 4)
+table(doubs_groups)
+```
+
+    R> doubs_groups
+    R>  1  2  3  4 
+    R>  1 11 14  3
+
+The groups broadly track the river. One headwater site forms a cluster of its own, and the rest fall into a large upstream group, a downstream group, and a small cluster of lower-river sites, following the site order (which runs from the headwaters downstream). The tracking is loose rather than fine-grained. A handful of sites join a group beyond their immediate neighbours, and the group boundaries come from the cut rather than from any sharp ecological break. That looseness is the signature of a clustered **gradient**, a continuum that the algorithm has divided into ordered segments. The segments are real and usable, though partly arbitrary, and the silhouette analysis in the validation section quantifies how arbitrary they are.
+
+## 6 Linkage methods
+
+When two clusters each contain several sites, the distance between the clusters is not uniquely defined, and the **linkage** rule supplies the definition. The four common choices differ in which within-pair distance they treat as the cluster-to-cluster distance:
+
+- **Single linkage** uses the distance between the two *closest* members. It tends to produce straggly, chained clusters.
+- **Complete linkage** uses the distance between the two *farthest* members. It produces compact, roughly equal-sized clusters and is sensitive to outliers.
+- **Average linkage** (UPGMA) uses the mean of all between-cluster member distances. It is a compromise and is widely used in ecology.
+- **Ward’s method** merges the pair that minimises the increase in within-cluster variance. It produces compact, even clusters and is popular when clear groups are needed.
+
+The choice is a matter of judgement, and it changes the tree ([Figure 4](#fig-doubs-linkages)).
+
+Code
+
+``` numberSource
+op <- par(mfrow = c(2, 2), mar = c(2, 3, 2, 1), cex = 0.5)
+for (m in c("single", "complete", "average", "ward.D2")) {
+  plot(
+    hclust(spe_bray, method = m),
+    main = m,
+    xlab = "",
+    sub = "",
+    ylab = "Height"
+  )
+}
+par(op)
+```
+
+[![](cluster_analysis_files/figure-html/fig-doubs-linkages-1.svg)](cluster_analysis_files/figure-html/fig-doubs-linkages-1.svg "Figure 4: The same Doubs Bray-Curtis dissimilarity clustered under four linkage rules. Single linkage chains sites into a straggly tree; complete and Ward linkage impose compact, even groups; average linkage sits between. The dissimilarity matrix is identical in all four panels, so the differences are entirely the linkage rule’s doing.")
+
+Figure 4: The same Doubs Bray-Curtis dissimilarity clustered under four linkage rules. Single linkage chains sites into a straggly tree; complete and Ward linkage impose compact, even groups; average linkage sits between. The dissimilarity matrix is identical in all four panels, so the differences are entirely the linkage rule’s doing.
+
+Because the linkage changes the tree, it helps to have an objective check on which tree stays closest to the original distances. The **cophenetic correlation** is that check. The cophenetic distance between two sites is the height at which they first join in the dendrogram, and the cophenetic correlation is the correlation between those tree-implied distances and the original dissimilarities. A higher value means the dendrogram distorts the data less.
+
+``` numberSource
+cophenetic_cor <- sapply(
+  c("single", "complete", "average", "ward.D2"),
+  function(m) cor(spe_bray, cophenetic(hclust(spe_bray, method = m)))
+)
+round(cophenetic_cor, 3)
+```
+
+    R>   single complete  average  ward.D2 
+    R>    0.541    0.809    0.825    0.741
+
+For the Doubs fish, average linkage preserves the distances best (about 0.83), with complete linkage a little lower, and single and Ward linkage lower still. This is why average linkage was chosen for the dendrogram above. The cophenetic correlation is a faithfulness criterion rather than a goodness criterion. It reports which tree best represents the distances, not whether the data should be clustered at all.
+
+## 7 Choosing the number of clusters
+
+Novice users often expect the algorithm to decide how many clusters to use. It does not, and that expectation must be unlearned. Numerical guidance is available, but it is guidance, not an answer. Three common diagnostics are the **silhouette** width (how well each site fits its own cluster against the next-best one), the **within-cluster sum of squares** or **elbow** (where adding clusters stops paying off), and the **gap statistic** (the observed within-cluster compactness against that expected under no clustering).
+
+To see these diagnostics where the answer is genuinely clear, I leave the Doubs gradient for a moment and use Fisher’s `iris` data, where one of the three species is sharply distinct from the other two. I standardise the four floral measurements first, since they share a scale but differ in spread.
+
+Code
+
+``` numberSource
+iris_std <- scale(iris[, 1:4])
+
+p_sil <- fviz_nbclust(iris_std, cluster::pam, method = "silhouette") +
+  theme_grey()
+p_wss <- fviz_nbclust(iris_std, cluster::pam, method = "wss") +
+  theme_grey()
+set.seed(123)
+p_gap <- fviz_nbclust(iris_std, cluster::pam, method = "gap_stat") +
+  theme_grey()
+
+ggarrange(p_sil, p_wss, p_gap, nrow = 3)
+```
+
+[![](cluster_analysis_files/figure-html/fig-iris-nbclust-1.svg)](cluster_analysis_files/figure-html/fig-iris-nbclust-1.svg "Figure 5: Three diagnostics for the number of clusters in the standardised iris data, using PAM. Silhouette and the gap statistic both point to a small number of clusters; the elbow in the within-cluster sum of squares is around two to three. No single number is forced on us, and the diagnostics need not agree.")
+
+Figure 5: Three diagnostics for the number of clusters in the standardised `iris` data, using PAM. Silhouette and the gap statistic both point to a small number of clusters; the elbow in the within-cluster sum of squares is around two to three. No single number is forced on us, and the diagnostics need not agree.
+
+Even here the three methods need not agree exactly, and that is the point. The diagnostics narrow the range, but the final choice rests on what the groups are *for*. Two clusters split `iris` into “the distinct species” against “the rest”. Three clusters attempt the botanical species. Either is defensible depending on the question. Expert knowledge of the system, and the intended use of the classification, do work that no statistic can.
+
+## 8 Partitioning methods: k-means and PAM
+
+Hierarchical clustering builds a whole tree and lets me cut it afterwards. **Partitioning** methods instead take the number of groups *k* as an input and sort the sites directly into that many clusters, with no tree. k-means and PAM are the common choices.
+
+**k-means** represents each cluster by its **centroid**, the mean of its members, and assigns each site to the nearest centroid, iterating until the assignment settles. It is fast and familiar, but the centroid is an average point that need not correspond to any real site, it assumes roughly spherical clusters in Euclidean space, and it is sensitive to outliers.
+
+**PAM** (Partitioning Around Medoids) represents each cluster by a **medoid**, an actual site chosen to be maximally central. For ecology this has real advantages. Medoids are less sensitive to outliers than centroids; each medoid is a real, namable observation that can serve as the representative of its group; the method works with any dissimilarity matrix rather than Euclidean distance alone; and that last property connects it directly to the Bray-Curtis and Sørensen approach developed in PCoA and nMDS. For these reasons PAM is often the better partitioning choice in ecological work.
+
+On `iris`, PAM with three clusters recovers the botanical structure as far as the data allow.
+
+``` numberSource
+iris_pam <- pam(iris_std, k = 3)
+table(Cluster = iris_pam$clustering, Species = iris$Species)
+```
+
+    R>        Species
+    R> Cluster setosa versicolor virginica
+    R>       1     50          0         0
+    R>       2      0          9        36
+    R>       3      0         41        14
+
+The confusion table shows how cleanly PAM recovers the species. One species (*setosa*) separates cleanly into a cluster of its own, while the other two (*versicolor* and *virginica*) overlap, and a handful of plants are placed with the wrong species. The overlap reflects biology rather than a failure of the method. The boundary between those two species is genuinely blurred in these four measurements. I return to that overlap when validating the clusters.
+
+``` numberSource
+fviz_cluster(
+  iris_pam,
+  geom = "point",
+  ellipse.type = "convex",
+  palette = "jco",
+  ellipse.alpha = 0.05
+) +
+  theme_grey()
+```
+
+[![](cluster_analysis_files/figure-html/fig-iris-pam-cluster-1.svg)](cluster_analysis_files/figure-html/fig-iris-pam-cluster-1.svg "Figure 6: PAM clustering of the standardised iris data with k = 3, shown on the first two principal components. The lower species is cleanly separated; the upper two overlap along their shared boundary, which is where the misassigned plants lie.")
+
+Figure 6: PAM clustering of the standardised `iris` data with k = 3, shown on the first two principal components. The lower species is cleanly separated; the upper two overlap along their shared boundary, which is where the misassigned plants lie.
+
+## 9 Cluster validation
+
+A clustering always returns groups. The validation question is whether those groups mean anything, and the default answer is that **clusters are hypotheses, not facts**. Three checks help decide how much weight a clustering can bear.
+
+**Silhouette width** measures, for each site, how much closer it lies to its own cluster than to the next-nearest cluster. It runs from $-1$ to $+1$. As a rough guide, widths above about 0.5 indicate well-separated clusters, widths around 0.25 to 0.5 indicate weak or partly artificial structure, and widths near zero or negative indicate sites that lie on or across a boundary and could belong to either group. The average width summarises the whole solution, and the per-cluster widths show which groups are solid and which are fragile.
+
+``` numberSource
+fviz_silhouette(iris_pam, palette = "jco", ggtheme = theme_grey())
+```
+
+    R>   cluster size ave.sil.width
+    R> 1       1   50          0.63
+    R> 2       2   45          0.35
+    R> 3       3   55          0.38
+
+[![](cluster_analysis_files/figure-html/fig-iris-silhouette-1.svg)](cluster_analysis_files/figure-html/fig-iris-silhouette-1.svg "Figure 7: Silhouette plot for the PAM clustering of iris (k = 3). The cleanly separated species (the tall block of wide, positive bars) has a high average width; the two overlapping species have lower widths and a few near-zero or negative bars, the plants that sit on the shared boundary.")
+
+Figure 7: Silhouette plot for the PAM clustering of `iris` (k = 3). The cleanly separated species (the tall block of wide, positive bars) has a high average width; the two overlapping species have lower widths and a few near-zero or negative bars, the plants that sit on the shared boundary.
+
+The plot makes the *setosa* cluster’s strength and the *versicolor*-*virginica* overlap visible at a glance, namely one block of wide, clearly positive bars, and two blocks with lower widths and a few bars dipping towards or below zero. The average width near 0.46 is a fair summary of “one clean group and two that blur into each other.”
+
+The same measure puts the promised number on the Doubs clustering. Its four groups return an average silhouette width well below the iris value, the modest result expected when a gradient is forced into discrete groups.
+
+``` numberSource
+mean(silhouette(doubs_groups, spe_bray)[, "sil_width"])
+```
+
+    R> [1] 0.3667132
+
+A width near 0.37 says the groups hold together loosely. The groups still carry meaning, since the river really does change from source to mouth, but the partition is a convenience imposed on a continuum, and the silhouette is clear about it. Compare this with the seaweed example later in the chapter, where genuine biogeographic boundaries return a clustering one can trust far more.
+
+**Cophenetic correlation**, introduced above for choosing a linkage, is also a validation of a hierarchical solution, since a low value warns that the dendrogram is a poor summary of the actual distances, whatever groups one cuts from it.
+
+**Stability** assesses whether the same clusters reappear when the data are perturbed. The usual approach resamples the sites with replacement, re-clusters, and measures how often each original cluster is recovered, e.g. with the Jaccard-based `clusterboot()` function in the **fpc** package. Clusters that tolerate resampling are trustworthy, while clusters that dissolve under it were artefacts of the particular sample.
+
+``` numberSource
+# requires install.packages("fpc")
+library(fpc)
+boot <- clusterboot(
+  spe_bray,
+  B = 100,
+  distances = TRUE,
+  clustermethod = disthclustCBI,
+  method = "average",
+  k = 4,
+  count = FALSE
+)
+boot$bootmean # mean Jaccard recovery per cluster (closer to 1 is more stable)
+```
+
+Report the clusters together with the confidence the validation supports. A clustering presented without a silhouette width or a stability check lets a hypothesis pass for a result.
+
+## 10 Combining ordination and clustering
+
+The two halves of multivariate analysis are most powerful together. A common and informative approach is to cluster a dissimilarity matrix and then **draw the cluster labels onto an ordination of the same matrix**. The ordination shows the continuous arrangement, and the cluster colours show where a classification would place its boundaries. If the clusters form tidy, separated patches in the ordination, the discrete description is well supported. If they form contiguous bands across a gradient, the ordination was the better description and the clustering has cut a continuum.
+
+The Doubs fish data show the second case clearly. I run an nMDS on the same Bray-Curtis matrix and colour the sites by the four hierarchical-clustering groups.
+
+Code
+
+``` numberSource
+set.seed(123)
+spe_nmds <- metaMDS(spe, distance = "bray", trace = 0)
+
+nmds_df <- data.frame(
+  scores(spe_nmds, display = "sites"),
+  cluster = factor(doubs_groups)
+)
+
+ggplot(nmds_df, aes(NMDS1, NMDS2, colour = cluster)) +
+  geom_point(size = 3) +
+  stat_ellipse(type = "norm", linewidth = 0.4) +
+  scale_colour_brewer(palette = "Set1", name = "Cluster") +
+  coord_equal() +
+  labs(title = "Doubs fish: nMDS with cluster overlay") +
+  theme_grey()
+```
+
+[![](cluster_analysis_files/figure-html/fig-doubs-nmds-clusters-1.svg)](cluster_analysis_files/figure-html/fig-doubs-nmds-clusters-1.svg "Figure 8: nMDS of the Doubs fish (Bray-Curtis), with sites coloured by the four hierarchical-clustering groups. The clusters form contiguous bands along the first nMDS axis rather than separated patches, which is the visual signature of a gradient that has been partitioned: the groups are successive reaches of a continuum, not discrete community types.")
+
+Figure 8: nMDS of the Doubs fish (Bray-Curtis), with sites coloured by the four hierarchical-clustering groups. The clusters form contiguous bands along the first nMDS axis rather than separated patches, which is the visual signature of a gradient that has been partitioned: the groups are successive reaches of a continuum, not discrete community types.
+
+The clusters line up along the first axis, the upstream-to-downstream gradient the CA and nMDS chapters identified. Rather than discovering hidden community types, the clustering has chopped a known continuum into ordered segments. The method reflects the gradient structure of the data, which is why ordination is the more common tool for community data. The same overlay on data with real discontinuities looks entirely different, as the seaweed example below shows.
+
+## 11 A worked example: WHO/SDG countries
+
+I now return to the WHO Sustainable Development Goals (SDG) data used in the PCA chapter, which describe each country by a set of health and development indicators. The countries fall loosely into development tiers, which makes a partition into a few clusters reasonable to attempt, and PAM a reasonable choice because its medoids name a representative country for each tier.
+
+``` numberSource
+SDGs <- read_csv(here::here("data", "BCB743", "WHO", "SDG_complete.csv"))
+SDGs[1:5, 1:8]
+```
+
+    R> # A tibble: 5 × 8
+    R>   ParentLocation       Location other_1 other_2 SDG1.a SDG16.1 SDG3.1_1 SDG3.2_1
+    R>   <chr>                <chr>      <dbl>   <dbl>  <dbl>   <dbl>    <dbl>    <dbl>
+    R> 1 Eastern Mediterrane… Afghani…    61.6    15.6   2.14    9.02      673   135.  
+    R> 2 Europe               Albania     77.8    21.1   9.62    3.78       16     7.55
+    R> 3 Africa               Algeria     76.5    21.8  10.7     1.66      113    38.0 
+    R> 4 Africa               Angola      61.7    16.7   5.43    9.82      246   125.  
+    R> 5 Americas             Antigua…    76.1    20.4  11.6     2.42       43     5.94
+
+The indicators are measured on different scales, so I standardise to zero mean and unit variance before computing Euclidean distances inside `pam()`.
+
+``` numberSource
+SDGs_std <- decostand(SDGs[3:ncol(SDGs)], method = "standardize")
+rownames(SDGs_std) <- SDGs$Location
+```
+
+A brief look at the choose-k diagnostics, as before, returns no single answer. Guided by them and by the goal of describing development tiers, I proceed with three clusters, since two are too coarse to separate the intermediate countries from the extremes.
+
+``` numberSource
+SDGs_pam <- pam(SDGs_std, metric = "euclidean", k = 3)
+
+# scale South Africa larger so we can find it on the plot
+SDGs <- SDGs |>
+  mutate(
+    col_vec = ifelse(Location == "South Africa", "black", "grey50"),
+    scale_vec = ifelse(Location == "South Africa", 3.5, 2.5)
+  )
+
+fviz_cluster(
+  SDGs_pam,
+  geom = "point",
+  ellipse.type = "convex",
+  palette = c("#FC4E07", "violetred3", "deepskyblue3"),
+  ellipse.alpha = 0.05,
+  pointsize = 2.0
+) +
+  geom_text(
+    aes(label = SDGs$Location),
+    size = SDGs$scale_vec,
+    col = SDGs$col_vec
+  ) +
+  theme_grey()
+```
+
+[![](cluster_analysis_files/figure-html/code-sdgs-pam-1.svg)](cluster_analysis_files/figure-html/code-sdgs-pam-1.svg)
+
+`pam()` does not draw a dendrogram. Like all partitioning methods it returns only the group labels, and the usual display is a scatter plot resembling an ordination diagram (though it is not one).
+
+### 11.1 Interpreting the clusters
+
+A clustering that is never interpreted leaves the groups abstract. The point of the analysis is to say what the clusters *are*, and PAM makes that easy through its medoids, the representative country of each group.
+
+``` numberSource
+rownames(SDGs_pam$medoids)
+```
+
+    R> [1] "Togo"      "Nicaragua" "Czechia"
+
+The three medoids already tell the story, namely a low-development, an intermediate, and a high-development representative. I can put numbers to them by summarising a few interpretable indicators per cluster, namely life expectancy at birth (`other_1`), the maternal mortality ratio (`SDG3.1_1`, deaths per 100 000 live births), and new HIV infections (`SDG3.3_1`, per 1 000 uninfected people).
+
+``` numberSource
+SDGs |>
+  mutate(cluster = SDGs_pam$clustering) |>
+  group_by(cluster) |>
+  summarise(
+    n = n(),
+    medoid = rownames(SDGs_pam$medoids)[cur_group_id()],
+    life_expectancy = round(median(other_1), 1),
+    maternal_mort = round(median(SDG3.1_1), 0),
+    new_HIV = round(median(SDG3.3_1), 2),
+    .groups = "drop"
+  )
+```
+
+    R> # A tibble: 3 × 6
+    R>   cluster     n medoid    life_expectancy maternal_mort new_HIV
+    R>     <int> <int> <chr>               <dbl>         <dbl>   <dbl>
+    R> 1       1    46 Togo                 62.5           396    0.66
+    R> 2       2    78 Nicaragua            73.2            60    0.14
+    R> 3       3    52 Czechia              80.4             7    0.06
+
+The clusters form a clear development ladder. One cluster (medoid Togo, dominated by African countries) has the lowest median life expectancy, around 62 years, with high maternal mortality. A second cluster (medoid Czechia, dominated by European countries) has the highest life expectancy, around 80 years, and the lowest mortality. The third (medoid Nicaragua) lies between them and draws its members from the Americas, the Eastern Mediterranean, South-East Asia, and the Western Pacific. Stated this way, the clusters stop being abstract point-clouds and become “low, intermediate, and high development.”
+
+The silhouette plot focusses the picture, and shows which group to trust least.
+
+``` numberSource
+fviz_silhouette(
+  SDGs_pam,
+  palette = c("#FC4E07", "violetred3", "deepskyblue3"),
+  ggtheme = theme_grey()
+)
+```
+
+    R>   cluster size ave.sil.width
+    R> 1       1   46          0.27
+    R> 2       2   78          0.09
+    R> 3       3   52          0.27
+
+[![](cluster_analysis_files/figure-html/fig-sdgs-silhouette-1.svg)](cluster_analysis_files/figure-html/fig-sdgs-silhouette-1.svg "Figure 9: Silhouette plot for the PAM clustering of the SDG data (k = 3). The low- and high-development clusters have moderate average widths near 0.27; the intermediate cluster’s width collapses to about 0.09, the expected signature of a transitional group squeezed between two well-defined poles.")
+
+Figure 9: Silhouette plot for the PAM clustering of the SDG data (k = 3). The low- and high-development clusters have moderate average widths near 0.27; the intermediate cluster’s width collapses to about 0.09, the expected signature of a transitional group squeezed between two well-defined poles.
+
+The two end clusters have average silhouette widths near 0.27, modest but real. The intermediate cluster’s width falls to about 0.09. That weakness is informative rather than a defect to be fixed. An intermediate group, defined mostly by *not* being at either extreme, has no cohesive centre, and its members lie close to the boundaries with both neighbours. The overall average width near 0.19 is clear about a dataset whose development tiers shade into one another rather than separating cleanly. These are the kinds of figures that should accompany a clustering, since they show the middle group to be a convenience of the three-way cut rather than a sharply bounded type.
+
+South Africa, highlighted on the plot, illustrates the same point at the level of a single country. It falls in the intermediate cluster on its overall multivariate profile, yet its life expectancy (about 62 years) resembles the low-development cluster, and its new-HIV rate (about 5.9 per 1 000) is an order of magnitude above any cluster median. A country can fall in one group on the average of many indicators while being an outlier on the few most relevant to a specific question. A cluster label is a summary, not the whole truth about a site.
+
+## 12 A conservation example: South African seaweed bioregions
+
+The Doubs gradient showed clustering at its least convincing. The South African seaweed flora shows it at its most useful, and explains why ecologists with a conservation or biogeographic purpose rely on it. The coast has genuine biogeographic boundaries, where one set of species gives way to another, and clustering exists to find such boundaries and turn them into named regions. This is the same dataset analysed in the [*Seaweeds in Two Oceans* appendix](../BCB743/two_oceans_appendices.llms.md), where the bioregions were established from independent evidence.
+
+I load the species-by-section table (58 coastal sections, presence-absence of 847 macroalgal species) and the bioregion assignment from Bolton and Anderson ([2004](#ref-Bolton2004)), then build a Sørensen dissimilarity, the presence-absence measure used throughout the seaweed work. The published source reports 846 species. The teaching file contains 847 species columns because it retains one additional reconciled taxon used in the current data release.
+
+``` numberSource
+seaweed_spp <- read.csv(here::here(
+  "data",
+  "BCB743",
+  "seaweed",
+  "SeaweedSpp.csv"
+))
+seaweed_spp <- dplyr::select(seaweed_spp, -1)
+bioreg <- read.csv(here::here("data", "BCB743", "seaweed", "bioregions.csv"))
+
+# Sorensen dissimilarity is binary Bray-Curtis
+seaweed_sor <- vegdist(seaweed_spp, method = "bray", binary = TRUE)
+```
+
+Unlike the Doubs gradient, these data are genuinely clustered, and two independent checks confirm it. The cophenetic correlation is high (about 0.89 for the Ward tree below, and the same under average linkage), so a dendrogram represents the distances faithfully. The dendrogram cut into four groups then recovers the four published bioregions almost one-to-one.
+
+``` numberSource
+seaweed_hclust <- hclust(seaweed_sor, method = "ward.D2")
+round(cor(seaweed_sor, cophenetic(seaweed_hclust)), 3)
+```
+
+    R> [1] 0.886
+
+``` numberSource
+seaweed_groups <- cutree(seaweed_hclust, k = 4)
+table(Cluster = seaweed_groups, Bioregion = bioreg$bolton)
+```
+
+    R>        Bioregion
+    R> Cluster AMP B-ATZ BMP ECTZ
+    R>       1   0     0  16    0
+    R>       2   1     5   0    0
+    R>       3  19     0   0    2
+    R>       4   0     0   0   15
+
+Each data-driven cluster maps almost perfectly onto one of Bolton’s bioregions, namely the Benguela Marine Province (BMP), the Benguela-Agulhas Transition Zone (B-ATZ), the Agulhas Marine Province (AMP), and the East Coast Transition Zone (ECTZ). A handful of transitional sections cross the boundary between adjacent regions, exactly where ambiguity is expected. The clustering has reconstructed a biogeographic classification from species lists alone.
+
+``` numberSource
+fviz_dend(
+  seaweed_hclust,
+  k = 4,
+  cex = 0.5,
+  palette = "jco",
+  rect = TRUE,
+  rect_fill = TRUE,
+  main = "SA seaweed sections: Sorensen, Ward linkage"
+)
+```
+
+[![](cluster_analysis_files/figure-html/fig-seaweed-dendrogram-1.svg)](cluster_analysis_files/figure-html/fig-seaweed-dendrogram-1.svg "Figure 10: Ward-linkage dendrogram of the 58 South African coastal sections, from a Sørensen dissimilarity on seaweed presence-absence, cut into four groups. The four clusters correspond to the four established seaweed bioregions; the deep, well-separated branches are the signature of genuine biogeographic boundaries, in contrast to the shallow, continuous structure of the Doubs gradient.")
+
+Figure 10: Ward-linkage dendrogram of the 58 South African coastal sections, from a Sørensen dissimilarity on seaweed presence-absence, cut into four groups. The four clusters correspond to the four established seaweed bioregions; the deep, well-separated branches are the signature of genuine biogeographic boundaries, in contrast to the shallow, continuous structure of the Doubs gradient.
+
+This is why clustering has consequences for conservation and biogeography. The bioregions are not just statistical conveniences, but the units in which biodiversity is reported, reserves are planned, and change is monitored. Clustering turns raw species distributions into a classification that managers and policy can act on. Set the seaweed dendrogram beside the Doubs nMDS overlay and the chapter’s central distinction becomes concrete. The same method cuts a gradient into arbitrary segments in one case, and recovers real regions in the other. The data, not the algorithm, decide which.
+
+## 13 Summary
+
+Cluster analysis is the discrete counterpart to the continuous view that ordination provides. Both start from the same dissimilarity matrix, and the choice between them is a choice about how to describe the data, namely as positions along gradients or as membership in groups.
+
+The methods reflect that choice. Hierarchical clustering builds a dendrogram that is cut to a chosen number of groups, with the linkage rule shaping the tree and the cophenetic correlation reporting how faithfully it preserves the distances. Partitioning methods (k-means, and PAM with its representative medoids) sort sites directly into a pre-set number of groups, with PAM’s distance-based, outlier-resistant design suiting ecological data. The number of clusters is an interpretive decision that silhouette, elbow, and gap diagnostics inform but do not settle.
+
+**Clusters are hypotheses, not facts.** They are validated with silhouette widths and stability checks, and reported with that uncertainty visible. **Clustering and ordination belong together**, since overlaying clusters on an ordination of the same data shows at once whether the groups are real patches or arbitrary cuts through a continuum. Most consequential of all, the value of a clustering depends on whether the data have genuine boundaries. The Doubs fish, a continuous river gradient, cluster only weakly, and the ordination is the better description. The South African seaweed flora, organised by genuine biogeographic boundaries, clusters cleanly and yields a classification that conservation can use. Knowing which situation you are in, gradient or classification, is the first and most consequential judgement in any cluster analysis.
+
+## 14 References
+
+Bolton JJ, Anderson RJ (2004) Marine Vegetation. In: Cowling RM, Richardson DM, Pierce SM (eds) Vegetation of southern africa. Cambridge University Press, pp 348–370
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {17. {Cluster} Analysis},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB743/cluster_analysis.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) 17. Cluster analysis. [https://tangledbank.netlify.app/BCB743/cluster_analysis.html.](https://tangledbank.netlify.app/BCB743/cluster_analysis.html)
