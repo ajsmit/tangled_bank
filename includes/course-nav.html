@@ -15,18 +15,28 @@ document.addEventListener("DOMContentLoaded", function () {
   topNav.className = "course-page-nav course-page-nav-top";
   topNav.setAttribute("aria-label", "Course page navigation");
 
-  const navItem = (href, label, kind) => {
+  // Name the destination, taken from Quarto's own page navigation at the foot of the page
+  const pageTitle = sel => {
+    const t = document.querySelector(".page-navigation " + sel + " .nav-page-text");
+    return t ? t.textContent.trim() : "";
+  };
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  const navItem = (href, label, kind, title) => {
     if (!href) {
       return '<span class="course-page-nav-item is-disabled">' + label + "</span>";
     }
-    return '<a class="course-page-nav-item course-page-nav-' + kind + '" href="' + href + '">' + label + "</a>";
+    const text = title ? '<span class="course-page-nav-text">' + esc(title) + "</span>" : label;
+    const arrow = kind === "previous" ? '<span aria-hidden="true">←</span> ' : "";
+    const after = kind === "next" ? ' <span aria-hidden="true">→</span>' : "";
+    return '<a class="course-page-nav-item course-page-nav-' + kind + '" href="' + href + '"' +
+      (title ? ' title="' + label + ": " + esc(title) + '"' : "") + ">" + arrow + text + after + "</a>";
   };
 
   const overviewHref = overviewLink ? overviewLink.getAttribute("href") : null;
   const leftNav =
-    navItem(prevLink ? prevLink.getAttribute("href") : null, "Previous", "previous") +
+    navItem(prevLink ? prevLink.getAttribute("href") : null, "Previous", "previous", pageTitle(".nav-page-previous")) +
     navItem(overviewHref, "Overview", "overview") +
-    navItem(nextLink ? nextLink.getAttribute("href") : null, "Next", "next");
+    navItem(nextLink ? nextLink.getAttribute("href") : null, "Next", "next", pageTitle(".nav-page-next"));
 
   topNav.innerHTML =
     '<div class="course-page-nav-left">' + leftNav + '</div>' +
