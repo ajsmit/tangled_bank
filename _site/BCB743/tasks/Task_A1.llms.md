@@ -1,0 +1,78 @@
+## 1 Assignment: deep ecological data analysis
+
+In this assignment you will:
+
+- work in your fixed group of three and run the assignment as a complete small research project, from ecological question to reproducible analysis to written interpretation
+- select a dataset you find interesting from the [Datasets](../../BCB743/datasets.llms.md) page, preferably one not already used in the module lecture material or tasks; if you use a dataset discussed in class, your project must move well beyond the worked example
+- read the original research paper or supporting publication in which the dataset or analysis was first reported, and treat it as the starting point rather than the finish line
+- develop a new or substantially extended ecological analysis that expands on the original publication by asking sharper questions, testing additional hypotheses, adding modern ecological theory, or using methods not applied in the source paper
+- use the course as your methodological toolbox: you must draw on the “Foundations”, “Core ordination methods”, *and* “Extended methods and applications” chapters, and combine multivariate, graphical, modelling, and exploratory approaches where they help answer your ecological question
+- use the methods imaginatively but defensibly; creative analyses are encouraged, provided that each method is ecologically motivated, statistically appropriate, and interpreted with care
+- produce a written research paper in the style of a scientific journal article, with the following structure:
+  - **Introduction:** build the ecological rationale. Review the relevant theory, identify the knowledge gap or unresolved ecological question, explain how your dataset can address it, and state clear aims, objectives, predictions, or hypotheses.
+  - **Methods:** describe the dataset, preprocessing, transformations, distance measures, ordinations, models, tests, diagnostics, and visualisations. Explain why each method was chosen and how it connects to your ecological question. The analysis must be reproducible.
+  - **Results:** present the evidence in a coherent sequence. Use exploratory summaries, figures, ordinations, tables, model outputs, and diagnostic checks as needed. Write the results in prose; do not leave the reader to interpret raw output alone.
+  - **Discussion and Conclusion:** interpret the results in relation to your introduction, the original publication, and contemporary ecological theory. Make clear what your analysis adds, where it agrees or disagrees with the source paper, what remains uncertain, and what future work would strengthen the inference.
+  - **References:** cite the original data source, the supporting publication, relevant ecological theory, methodological sources, and any software or packages central to the analysis. Every factual, theoretical, methodological, or interpretive claim in the manuscript must be supported by an appropriate citation.
+
+The strongest projects will not simply reproduce the analyses already reported in the supporting papers. Higher marks will go to projects that add ecological insight, test new ideas, combine methods creatively, expose patterns not previously discussed, or show why a result in the original paper should be reinterpreted, refined, or extended.
+
+For referencing and evidence control, each group must keep a local PDF copy of every cited paper. In each PDF, highlight the exact passage, figure, table, or result that supports each claim you draw from that paper into your manuscript. These PDFs do not need to be submitted with the main manuscript unless requested, but they must be available for spot checks. A reference list is not enough: the citation must point to a claim that you have actually checked in the source.
+
+### 1.1 Submission requirements
+
+Submit the main manuscript as a PDF. Format it as closely as possible to a research article in *Ecology*, including the general structure, figure and table presentation, in-text citation style, and reference-list style. The manuscript does not need to be publication-ready in page layout, but it should clearly resemble a scientific paper rather than a practical report.
+
+You must also make the Quarto source file available. The Quarto file must render cleanly and must contain, or clearly point to, all code needed to reproduce the analysis, figures, tables, and reported numerical results. Include any custom helper scripts, data-cleaning steps, or package requirements needed to rerun the work.
+
+All work must be thoroughly proofread before submission. Marks may be lost for problems with language, syntax, grammar, structure, clarity, figure captions, table captions, referencing, or careless formatting. A strong analysis can be weakened substantially by unclear writing, unsupported claims, or a manuscript that has not been edited carefully.
+
+Each submission should include a short author-contribution statement explaining what each member of the group contributed. If you used generative AI tools, also include a brief disclosure stating what they were used for and how the final work was checked by the authors.
+
+### 1.2 Assessment criteria
+
+This assignment will be formally assessed and will contribute between 20% and 40% to your final BCB743 mark, depending on the weighting declaration you submit for the three assessed assignments. The three declared weights for Task A1, Task A2, and Task A3 must add to 100%, and no single task may carry more than 40%. If you do not submit a valid declaration by 17 July, the three tasks will be weighted equally.
+
+Task A1 will be assessed as a research project, not as a collection of disconnected analyses. Your mark will reflect the quality of the ecological argument, the appropriateness and creativity of the analysis, the depth of interpretation, and the clarity of the written paper.
+
+Indicative mark bands:
+
+- **90-100%:** publishable or near-publishable work for this level. The project substantially expands the parent paper’s findings or interpretations and also introduces suitable statistical, multivariate, modelling, simulation, machine-learning, spatial, temporal, network, Bayesian, or other analytical approaches not covered in the course material. The novel methods must be justified, correctly applied, and used to produce ecological insight rather than technical display.
+- **80-89%:** excellent work that significantly expands on the parent paper’s findings or interpretations using the theory and methods covered in BCB743. The project adds clear ecological insight, uses several methods in a coherent way, and shows strong interpretation, but does not substantially move beyond the course’s methodological toolkit.
+- **70-79%:** good to very good work that asks a defensible ecological question and extends the original paper in some meaningful way, but the theoretical framing, analytical integration, originality, or interpretation is less developed than in the higher bands.
+- **60-69%:** competent work that applies relevant course methods correctly and communicates the main results, but mostly follows the logic of the original publication or lecture examples. The extension beyond the parent paper is modest, and the discussion may remain descriptive.
+- **50-59%:** adequate work that shows basic understanding and some correct analysis, but has limited ecological framing, weak integration across methods, incomplete interpretation, or uneven reproducibility.
+- **Below 50%:** work that is incomplete, poorly justified, difficult to reproduce, weakly connected to ecological theory, technically flawed, insufficiently referenced, or largely a reproduction of existing analyses without clear added value.
+
+The assessment will consider:
+
+- **Research framing and theory:** the introduction must show command of the ecological literature, connect the study to modern ecological theory, and lead logically to research questions or hypotheses that can be addressed with the data.
+- **Extension beyond the original publication:** the project must make a clear contribution beyond repeating published analyses. Credit will be given for new questions, additional analyses, alternative interpretations, stronger diagnostics, new visualisations, or synthesis across theories and methods.
+- **Analytical depth and methodological range:** the analysis should use a suitable and ambitious selection of methods from across the module. More methods are not automatically better; the important criterion is whether the methods work together to answer the ecological question.
+- **Technical correctness and reproducibility:** data handling, transformations, distance choices, ordination decisions, model choices, tests, and diagnostics must be correct, transparent, and reproducible from the submitted code and data description.
+- **Ecological interpretation:** results must be interpreted ecologically, not merely described statistically. The discussion should connect patterns to processes, theory, scale, sampling design, uncertainty, and the limitations of the data.
+- **Figures, tables, and reporting:** figures and tables must be clear, necessary, well-captioned, and integrated into the argument. Avoid dumping output; select and explain the evidence that matters.
+- **Writing, structure, and scholarly standard:** the paper must read like a coherent scientific manuscript, with clear sectioning, precise language, appropriate citations, and a complete reference list. All claims must be cited, and the highlighted local PDF library must be sufficiently complete and organised for spot checking.
+- **Collaboration:** all three group members are responsible for the full project. The submitted work should show evidence of shared intellectual ownership rather than three unrelated sections joined at the end.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {Integrative Assignment},
+  date = {2026-06-14},
+  url = {https://tangledbank.netlify.app/BCB743/tasks/Task_A1.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) Integrative assignment. [https://tangledbank.netlify.app/BCB743/tasks/Task_A1.html.](https://tangledbank.netlify.app/BCB743/tasks/Task_A1.html)

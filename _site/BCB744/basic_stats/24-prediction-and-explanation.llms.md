@@ -1,0 +1,185 @@
+> **NOTE:**
+>
+> - How explanatory and predictive models differ
+> - Why modelling purpose should guide model choice
+> - When interpretation matters more than raw predictive accuracy
+> - Why out-of-sample thinking matters for prediction
+> - What this distinction means in practice
+
+> **IMPORTANT:**
+>
+> - None
+
+Not all models are built for the same purpose. Some are built to explain mechanisms, isolate effects, and support biologically interpretable statements. Others are built to predict future outcomes as accurately as possible. These goals overlap, but they are not identical.
+
+That distinction matters because a model that is good for explanation is not always the one that is best for prediction. The trade-off becomes especially important once models become high-dimensional, predictors become strongly overlapping, or out-of-sample performance becomes the main concern.
+
+This distinction has been present in the background of many earlier chapters, even when I did not always name it explicitly. When I insisted on clear biological interpretation in the regression chapters, I was leaning toward explanation. When I introduced cross-validation and model comparison, I was already moving toward prediction. Here I make that contrast explicit so that model quality can be judged against purpose rather than by one generic standard of “best fit.”
+
+# 1 Key concepts
+
+- **Explanation** and **prediction** are related but different modelling goals.
+- **Interpretability** matters most when explanation is the main goal.
+- **Out-of-sample performance** matters most when prediction is the main goal.
+- **Model choice should be justified by purpose**, not only by convention.
+
+# 2 Explanation versus prediction
+
+An explanatory model typically emphasises:
+
+- biologically interpretable coefficients;
+- careful model specification;
+- defensible causal or process-based language;
+- explicit treatment of confounders and assumptions.
+
+A predictive model typically emphasises:
+
+- accurate performance on new data;
+- stability under collinearity or large predictor sets;
+- lower prediction error rather than coefficient-by-coefficient interpretation.
+
+Neither goal is superior in the abstract. The important thing is to know which goal you are pursuing.
+
+# 3 Cross-validation and out-of-sample thinking
+
+If prediction is the main goal, the model should be evaluated primarily on data that were not used to fit it. Cross-validation is one of the main ways to do this.
+
+The basic idea is:
+
+1.  split the data into training and validation parts;
+2.  fit the model on the training data;
+3.  evaluate predictive performance on held-out data;
+4.  repeat this across several splits.
+
+This kind of out-of-sample thinking becomes especially important when models are built for forecasting, classification, or any situation where performance on new data matters more than close interpretation of each coefficient.
+
+# 4 A short paired example
+
+The same dataset can motivate different models depending on the scientific goal. Suppose we measure algal biomass together with temperature, nutrient concentration, wave exposure, and turbidity. If the biological question is whether biomass depends on temperature differently under different nutrient conditions, an explanatory model should keep that interaction central. If the goal is simply to forecast biomass at new sites, we may tolerate a more flexible and less interpretable model if it predicts better.
+
+``` numberSource
+set.seed(42)
+eco_dat <- tibble(
+  temp = runif(180, 8, 24),
+  nutrient = runif(180, 0.5, 4.5),
+  wave = runif(180, 0, 8),
+  turbidity = runif(180, 0, 5)
+) |>
+  mutate(
+    biomass = 6 + 0.8 * temp + 2.1 * nutrient - 0.45 * wave +
+      0.32 * temp * nutrient - 0.05 * temp^2 + 0.35 * turbidity +
+      rnorm(n(), sd = 3.2)
+  )
+
+set.seed(42)
+train_id <- sample(seq_len(nrow(eco_dat)), size = round(0.75 * nrow(eco_dat)))
+train_dat <- eco_dat[train_id, ]
+test_dat <- eco_dat[-train_id, ]
+
+mod_expl <- lm(biomass ~ temp * nutrient + wave, data = train_dat)
+mod_pred <- lm(
+  biomass ~ temp * nutrient + wave + turbidity +
+    I(temp^2) + I(nutrient^2) + temp:wave + nutrient:wave,
+  data = train_dat
+)
+
+rmse <- function(obs, pred) sqrt(mean((obs - pred)^2))
+
+comparison_tbl <- tibble(
+  model_goal = c("Explanation", "Prediction"),
+  model = c(
+    "biomass ~ temp * nutrient + wave",
+    "biomass ~ temp * nutrient + wave + turbidity + I(temp^2) + I(nutrient^2) + temp:wave + nutrient:wave"
+  ),
+  adj_r2_training = c(
+    summary(mod_expl)$adj.r.squared,
+    summary(mod_pred)$adj.r.squared
+  ),
+  rmse_test = c(
+    rmse(test_dat$biomass, predict(mod_expl, newdata = test_dat)),
+    rmse(test_dat$biomass, predict(mod_pred, newdata = test_dat))
+  )
+) |>
+  mutate(across(c(adj_r2_training, rmse_test), \(x) round(x, 3)))
+
+comparison_tbl
+```
+
+    R> # A tibble: 2 × 4
+    R>   model_goal  model                                    adj_r2_training rmse_test
+    R>   <chr>       <chr>                                              <dbl>     <dbl>
+    R> 1 Explanation biomass ~ temp * nutrient + wave                   0.873      3.27
+    R> 2 Prediction  biomass ~ temp * nutrient + wave + turb…           0.876      2.97
+
+The explanatory model is smaller because it stays close to the biological question: does the temperature effect depend on nutrient concentration, after accounting for wave exposure? Its coefficients can be discussed directly. The predictive model is judged differently. It adds curvature and extra interactions because the goal is lower error on new data, not a cleaner causal statement.
+
+The same response variable and the same predictors do not force the same model. The modelling goal determines what counts as a good model.
+
+# 5 What this means in practice
+
+If you are building a model to explain ecological structure or process, you will usually prioritise:
+
+- coefficients that can be interpreted directly;
+- predictors chosen for biological reasons rather than only for predictive convenience;
+- explicit discussion of assumptions, confounding, and design limitations;
+- model statements that remain close to the original scientific question.
+
+If you are building a model to predict accurately, you will usually prioritise:
+
+- out-of-sample predictive performance;
+- stable behaviour when predictors overlap or become numerous;
+- procedures that reduce overfitting;
+- honest evaluation on data not used in fitting.
+
+These priorities often overlap, but they are not identical. A model that is excellent for explanation may be suboptimal for forecasting. A model that predicts well may be harder to interpret mechanistically.
+
+# 6 Practical guidance
+
+If your goal is primarily **explanation**:
+
+- prefer models whose coefficients can be interpreted clearly;
+- keep the biological argument central;
+- avoid adding complexity unless it strengthens the scientific question.
+
+If your goal is primarily **prediction**:
+
+- evaluate models out of sample;
+- accept that some loss of interpretability may be worthwhile;
+- consider methods that shrink coefficients or otherwise stabilise model performance.
+
+# 7 Why this distinction matters for the rest of the course
+
+Once the modelling goal is named clearly, several earlier chapter choices become easier to interpret. Collinearity is especially damaging for explanation because it destabilises biological attribution. Overfitting is especially damaging for prediction because it reduces performance on new data. Diagnostics also change meaning slightly: some are about whether the model is interpretable and defensible, others about whether it generalises honestly.
+
+The distinction is therefore not philosophical decoration. It tells you what kind of error you most want to avoid, what model complexity is acceptable, and which summaries deserve priority when you report the result.
+
+# 8 Summary
+
+- Explanation and prediction are overlapping but distinct modelling goals.
+- Ordinary regression is often strongest for explanation when the model is interpretable and well specified.
+- Cross-validation is central when predictive performance is the goal.
+- The next chapter takes up regularisation directly and shows how ridge, lasso, and elastic net help when prediction and coefficient stability matter most.
+
+In this chapter, I make the modelling goal explicit. In the next chapter, I turn to regularisation, and in the final chapter I close the sequence with reproducible analytical workflow.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {24. {Prediction} and Explanation},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB744/basic_stats/24-prediction-and-explanation.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) 24. Prediction and explanation. [https://tangledbank.netlify.app/BCB744/basic_stats/24-prediction-and-explanation.html.](https://tangledbank.netlify.app/BCB744/basic_stats/24-prediction-and-explanation.html)

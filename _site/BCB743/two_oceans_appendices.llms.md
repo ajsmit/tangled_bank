@@ -1,0 +1,1736 @@
+This document works through a series of constrained ordinations from the paper Smit et al. ([2017](#ref-smit2017seaweeds)). The analyses concern the distribution of seaweeds around the coast of South Africa, and the environmental variables that might explain these distributions.
+
+This is a technical appendix rather than a teaching chapter. Its purpose is documentation, transparency, and reproducibility, namely to let another researcher repeat the analysis and follow the methodological decisions. The output runs long in places, and the summary boxes after each major block, together with the synthesis at the end, give the short version.
+
+## 1 Analytical workflow
+
+The analysis moves from the raw species table to a partition of community structure into spatial and thermal components ([Figure 1](#fig-workflow)). Two β-diversity components, turnover ($\beta_{sim}$) and nestedness-resultant dissimilarity ($\beta_{sne}$), are each modelled against two sets of predictors, namely spatial variables (Moran’s eigenvector maps, MEMs) and thermal variables. Distance-based redundancy analysis (db-RDA) with forward selection reduces each predictor set, and variance partitioning then separates the spatial from the thermal contribution.
+
+``` mermaid
+flowchart TD
+  Y["Species table<br/>(847 spp × 58 sections)"] --> BD["Sørensen β-diversity<br/>decomposition (betapart)"]
+  BD --> Y1["β_sim<br/>turnover (Y1)"]
+  BD --> Y2["β_sne<br/>nestedness (Y2)"]
+  COORD["Section coordinates"] --> MEM["MEM construction<br/>MST → PCoA → positive<br/>Moran eigenvectors"]
+  ENV["In situ thermal series (E)"] --> THERM["Thermal predictors<br/>(standardised)"]
+  Y1 --> RDA["db-RDA +<br/>forward selection"]
+  Y2 --> RDA
+  MEM --> RDA
+  THERM --> RDA
+  RDA --> VP["Variance partitioning<br/>(spatial vs thermal)"]
+  VP --> INF["Inference: scale and<br/>driver of community structure"]
+```
+
+Figure 1: Analytical workflow for the β-diversity analysis. The species table is decomposed into turnover and nestedness components, each modelled by db-RDA against spatial (MEM) and thermal predictors before variance partitioning separates the two contributions.
+
+## 2 Spatial analysis background and code
+
+This is Appendix B of the paper Smit et al. ([2017](#ref-smit2017seaweeds)).
+
+The **R** scripts here separate the spatial scales at which seaweed assemblages are structured around the coast of South Africa. I ask whether these scales match those expressed by the coastal thermal provinces and the ocean regime underpinned by the Agulhas and Benguela Currents.
+
+## 3 The data
+
+The species dataset $Y$ comprises distribution records of 847 macroalgal species within each of 58 × 50 km-long sections (Appendix A) of the South African coast (updated from [Bolton and Stegenga 2002](#ref-Bolton2002)). This represents *ca*. 90% of the known seaweed flora of South Africa, but excludes some very small or very rare species for which data are insufficient. The published source reports 846 species, and the teaching file contains 847 species columns because it retains one additional reconciled taxon used in the current data release. These data come from verifiable literature sources and from John Bolton and Rob Anderson’s own collections, assembled from information collected by teams of phycologists over three decades ([Bolton 1986](#ref-Bolton1986); [Stegenga et al. 1997](#ref-Stegenga1997); [Bolton and Stegenga 2002](#ref-Bolton2002); [De Clerck et al. 2005](#ref-DeClerck2005)). A second dataset $E$ contains *in situ* coastal seawater temperatures ([Smit et al. 2013](#ref-Smit2013)) derived from daily measurements over up to 40 years.
+
+A third dataset of explanatory variables, the spatial variables ($S$), is constructed following the instructions in the section *Preparation of spatial variables* below.
+
+## 4 Setting up the analysis environment
+
+This is **R**, so first I need to find, install, and load various packages. Some of the packages will be available on CRAN and can be accessed and installed in the usual way, but others will have to be downloaded from [R Forge](https://r-forge.r-project.org/R/?group_id=195).
+
+Note: R-Forge repositories can be fragile (packages can disappear, builds can fail, and HTTP repos may be blocked). If you cannot install an R-Forge package, look for a CRAN/GitHub alternative, or ask for a pre-packaged/locked environment.
+
+``` numberSource
+library(betapart)
+library(vegan)
+library(gridExtra)
+library(grid)
+library(gridBase)
+library(ggpubr)
+library(tidyr)
+library(spdep) # for dnearneigh() in PCNM.R
+# library(devtools)
+# install.packages("packfor", repos = "http://R-Forge.R-project.org")
+# library(packfor) # replaced with vegan::ordistep()
+# install.packages("AEM", repos = "http://R-Forge.R-project.org")
+library(AEM) # for moran.I.multi() in PCNM.R (AEM is on R-Forge, not CRAN)
+source(here::here("R", "pcoa_all.R"))
+source(here::here("R", "PCNM.R"))
+source(here::here("R", "spatial_MEM.R"))
+```
+
+The analysis begins with the species table ($Y$). I compute the Sørensen dissimilarity and decompose it into the ‘turnover’ ($\beta_{sim}$) and ‘nestedness-resultant’ ($\beta_{sne}$) components ([Baselga 2010](#ref-Baselga2010); [Baselga et al. 2013](#ref-Baselga2013)) using the `betapart.core()` and `betapart.pair()` functions of the **betapart** package ([Baselga et al. 2013](#ref-Baselga2013)). These go into the matrices $Y1$ and $Y2$. A principal components analysis (PCA) on $Y$ can find the major patterns in the community data. In **vegan** this uses the `rda()` function without supplying the constraints (*i.e.*, the environment table $E$ or the spatial table $S$). The formal analysis uses the species data in distance-based redundancy analyses (db-RDA, as per **vegan**’s `capscale()` function) coupled with $E$ and $S$. I provide the pre-calculated data only.
+
+``` numberSource
+# Read in the species data (note: on GitHub only the distance
+# matrices obtained via 'beta.part' and 'beta.pair' (below)
+# will be provided -- they are read in as 'Y1.Rdata' and 'Y2.Rdata':
+spp <- read.csv(here::here("data", "BCB743", "seaweed", "SeaweedSpp.csv"))
+spp <- dplyr::select(spp, -1)
+
+# Decompose total Sørensen dissimilarity into turnover and
+# nestedness-resultant components:
+Y.core <- betapart.core(spp)
+Y.pair <- beta.pair(Y.core, index.family = "sor")
+
+# Let Y1 be the turnover component (beta-sim):
+Y1 <- as.matrix(Y.pair$beta.sim)
+# save(Y1, file = "data/BCB743/Y1.Rdata")
+# load("data/BCB743/Y1.Rdata")
+
+# Let Y2 be the nestedness-resultant component (beta-sne):
+Y2 <- as.matrix(Y.pair$beta.sne)
+# save(Y2, file = "data/BCB743/Y2.Rdata")
+# load("data/BCB743/Y2.Rdata")
+```
+
+``` numberSource
+summary(capscale(Y1 ~ 1))
+```
+
+    Call:
+    capscale(formula = Y1 ~ 1) 
+
+    Partitioning of squared Unknown distance:
+                  Inertia Proportion
+    Total           7.892          1
+    Unconstrained   7.892          1
+
+    Eigenvalues, and their contribution to the squared Unknown distance 
+
+    Importance of components:
+                            MDS1   MDS2    MDS3     MDS4     MDS5     MDS6     MDS7
+    Eigenvalue            5.9245 1.5822 0.18139 0.046891 0.040669 0.027027 0.021500
+    Proportion Explained  0.7507 0.2005 0.02298 0.005941 0.005153 0.003424 0.002724
+    Cumulative Proportion 0.7507 0.9511 0.97411 0.980047 0.985200 0.988624 0.991349
+                              MDS8     MDS9    MDS10     MDS11     MDS12     MDS13
+    Eigenvalue            0.013198 0.009752 0.008260 0.0069049 0.0063106 0.0057420
+    Proportion Explained  0.001672 0.001236 0.001047 0.0008749 0.0007996 0.0007275
+    Cumulative Proportion 0.993021 0.994256 0.995303 0.9961778 0.9969774 0.9977049
+                              MDS14     MDS15     MDS16     MDS17     MDS18
+    Eigenvalue            0.0036196 0.0030613 0.0027952 0.0022481 0.0018842
+    Proportion Explained  0.0004586 0.0003879 0.0003542 0.0002848 0.0002387
+    Cumulative Proportion 0.9981636 0.9985514 0.9989056 0.9991905 0.9994292
+                              MDS19     MDS20     MDS21     MDS22     MDS23
+    Eigenvalue            0.0013464 0.0009864 6.768e-04 5.064e-04 4.008e-04
+    Proportion Explained  0.0001706 0.0001250 8.575e-05 6.417e-05 5.078e-05
+    Cumulative Proportion 0.9995998 0.9997248 9.998e-01 9.999e-01 9.999e-01
+                              MDS24     MDS25     MDS26     MDS27     MDS28
+    Eigenvalue            2.812e-04 0.0002297 4.689e-05 2.739e-05 3.142e-06
+    Proportion Explained  3.563e-05 0.0000291 5.942e-06 3.471e-06 3.982e-07
+    Cumulative Proportion 1.000e+00 0.9999902 1.000e+00 1.000e+00 1.000e+00
+
+The environmental data now load, together with the setup files that partition the 58 coastal sections (and the species and environmental data within them) into bioregions.
+
+The thermal (environmental) data contain many variables, of which the analysis uses only some. These data come from many sites along the South African coast, and interpolation (not shown here) gave the thermal properties for each coastal section with seaweed data. The result is a data frame with 58 rows and a column for each thermal metric. Before use, I apply **vegan**’s `decostand()` function to scale the data to zero mean and unit variance.
+
+Four bioregions are recognised for South Africa ([Bolton and Anderson 2004](#ref-Bolton2004)), namely the Benguela Marine Province (BMP; coastal sections **1**–**17**), the Benguela-Agulhas Transition Zone (B-ATZ; **18**–**22**), the Agulhas Marine Province (AMP; **19**–**43**/**44**), and the East Coast Transition Zone (ECTZ; **44**/**45**–**58**). My plotting functions partition the data into the bioregions and colour code the figures accordingly so I can see regional patterns in $\beta$-diversity emerging.
+
+``` numberSource
+# Now comes in the in situ temperatures for the 58 coastal sections
+# (interpolated temperaures as per version 2 of the South African Coastal Temperature Network):
+load(here::here("data", "BCB743", "seaweed", "SeaweedEnv.RData"))
+
+# I select only some of the thermal vars; the rest
+# are collinear with some of the ones I import:
+E1 <- dplyr::select(
+  env,
+  febMean,
+  febRange,
+  febSD,
+  augMean,
+  augRange,
+  augSD,
+  annMean,
+  annRange,
+  annSD
+)
+
+# Calculate z-scores:
+E1 <- decostand(E1, method = "standardize")
+
+# Load the coordinates of the coastal sections. `sites.csv` is the compact
+# coordinate file used by this appendix; `SeaweedSites.csv` is a fuller sibling
+# file used in other chapters.
+sites <- read.csv(here::here("data", "BCB743", "seaweed", "sites.csv"))
+sites <- sites[, c(2, 1)]
+
+# Load the bioregion definition:
+bioreg <- read.csv(
+  here::here("data", "BCB743", "seaweed", "bioregions.csv"),
+  header = TRUE
+)
+```
+
+## 5 Preparation of spatial variables
+
+I test the niche difference mechanism as the primary species compositional assembly process along South African shores. I suggest that the thermal gradient along the coast provides a suite of abiotic (thermal) conditions from which species can select according to their physiological tolerances, and that this structures $\beta$-diversity. For this mechanism to operate, one assumes that all species have equal access to all sections along this stretch of coast, following Beijerinck’s ‘Law’ that everything is everywhere but the environment selects ([Sauer 1988](#ref-Sauer1988)). This assumption provides a useful null model rather than a literal description of coastal dispersal, and the main text qualifies it against the directional influence of the Agulhas and Benguela Currents.
+
+A spatial analysis structured around a biological response (*e.g.*, community structure and composition; $Y$), environmental variables ($E$), and their spatial representation ($S$) proceeds through an analysis of MEMs, then db-RDA and variance partitioning. Several sources discuss the principle behind them ([Dray et al. 2006](#ref-Dray2006); [Dray et al. 2012](#ref-Dray2012a)), and worked examples appear in the excellent book *Numerical Ecology with R* ([Borcard et al. 2011](#ref-Borcard2011)) in Section 7.4. The method here is adapted from these and other sources.
+
+The MEMs follow the procedure introduced by Borcard and Legendre (2002) and later modified by Dray et al. ([2006](#ref-Dray2006)). The main steps are:
+
+1.  Set up a geographic or Euclidean distance matrix representing the pairwise distances between the $n$ sites ($D=[d_{ij}]$). I already did this when I applied the `decostand` function earlier.
+
+2.  Construct a truncated distance matrix by calculating a Minimum Spanning Tree ($S^{\star}$) and noting the following rules: $$S^{\star} =\left\{ \begin{array}{rl} 0 & \mbox{if}~i = j \\ d_{ij} & \mbox{if}~d_{ij} \leq t \\ 4t & \mbox{if}~d_{ij} > t \end{array} \right.$$ Weighting may be applied if desired, giving $S^{\star}_w$, though I do not apply it here.
+
+3.  Do a Principal Coordinates Analysis (PCoA) of the truncated distance matrix $S^{\star}$.
+
+The spatial structure of the species and their environment can be represented by a matrix of Euclidean or geographic distances. These coordinates are ‘truncated’ into a square (section $\times$ section) matrix of non-negative values ($S^{\star}$), with the diagonal set to zero by convention. The simplest spatial matrix is binary, where 1 codes for pairs of neighbouring sites and 0 denotes non-connected sites under the chosen network topology. Such matrices, called ‘binary connectivity matrices’, relate to graphs built from distance criteria in graph theory.
+
+Truncation by a Minimum Spanning Tree (MST) keeps the binary relationships between neighbouring sites and discards the rest (*i.e.*, some sites count as neighbours, while for others the relationship is null). A Gabriel graph or another network topology is an alternative. Such matrix representations show section-to-section connectivities. For South Africa’s coastline, the MST connects each section only to the sections adjacent on its two sides. Section **4**, for instance, is directly connected to *only* Sections **3** and **5**, while sections at the ends of the coastal ‘string’ each connect to one other section. The binary connectivity matrices, also called *topology-based connectivity matrices*, can be built from Euclidean or geographic coordinates using functions in at least two **R** packages (I start with geographic coordinates). The **spdep** package’s `mst.nb()` function is one way to calculate an MST, and the **vegan** package and others offer alternatives. The neighbours list from the MST represents the spatial component, $S^{\star}$. The MST produces small connectivity artefacts in the Saldanha Bay region, where the closest sections are not always the ones adjacent along the path around the coast, because sections on opposite sides of the bay can be closer together. This topological inconsistency does not affect the spatial analysis.
+
+With the truncated distance matrix prepared, a PCoA follows, and I keep the eigenvectors that represent positive spatial correlation (positive Moran’s $I$). The MEM analysis uses the `PCNM()` function in the `functions` folder, in the file `PCNM.R` (see the authorship notes inside). PCNM stands for Principal Coordinates Analysis of Neighbourhood Matrices, the neighbourhood matrix here being the MST. The method constructs the spatial variables and calculates Moran’s I for each. The MEMs are fully orthogonal and represent spatial structures across the full range of scales from 50 to 2,700 km, the large eigenvectors representing broad scales and the smaller ones finer features. The *spatial data* serve as explanatory variables in the multiple-regression-type analyses applied to a species dissimilarity matrix \[*i.e.*, the db-RDA; Dray et al. ([2012](#ref-Dray2012a))\].
+
+The code below reproduces the spatial analysis in the paper. Because the output is long, the script does not print its results here. The data and scripts needed to repeat the analysis in full are in my [GitHub](https://github.com/ajsmit/Seaweed-beta) repository. If a step does not run in a current **R** environment, please write to me at <ajsmit@uwc.ac.za> and I shall assist.
+
+``` numberSource
+## Auto PCNM:
+S.auto <- PCNM(dist(sites), silent = TRUE)
+```
+
+[![](two_oceans_appendices_files/figure-html/code-pcnm-1.svg)](two_oceans_appendices_files/figure-html/code-pcnm-1.svg)
+
+``` numberSource
+# summary(S.auto)
+
+# The truncation distance:
+S.dmin <- S.auto$thresh
+
+# The number of eigenvalues:
+S.len <- length(S.auto$values)
+
+# Expected value of I, no spatial correlation:
+S.auto$expected_Moran
+```
+
+    [1] -0.01754386
+
+``` numberSource
+# Select eigenfunction with positive spatial correlation:
+S.sel <- which(S.auto$Moran_I$Positive == TRUE)
+# length(S.sel)
+# there are 27 MEMs, i.e. 27 of the PCNM variables (eigenvalues) relate
+# significantly to Moran's I
+
+# Extract the eigenvectors associated with those MEMs:
+S.pos <- as.data.frame(S.auto$vectors)[, S.sel]
+```
+
+The code below visualises the configuration of the 58 coastal sections as represented by the minimum spanning tree. Because the sites are constrained by the coast, the MST network topology gives a string of coastal sections arranged along the shore between Section **1** and Section **58**. This spatial network also captures the seaweed’s dispersal connectivity along the shore, though dispersal has no directionality. In the paper I discuss the possible influence of ocean currents (*e.g.*, [Wernberg et al. 2013](#ref-Wernberg2013)), and note that it is tempting to assume seaweeds would disperse in the direction of the major ocean currents. Such networks could be configured to model current-driven dispersal, but here they represent only the spatial scale of the study region.
+
+``` numberSource
+# The spatial netwwork topology of the coastal sections can be seen by:
+plot(S.auto$spanning, sites)
+```
+
+[![](two_oceans_appendices_files/figure-html/fig-plot-mst-1.svg)](two_oceans_appendices_files/figure-html/fig-plot-mst-1.svg "Figure 2: ")
+
+Figure 2
+
+## 6 db-RDA on Moran’s eigenvector maps
+
+The spatial analysis continues with a db-RDA that couples the seaweed data ($Y1$ and $Y2$) with the MEMs. I run a full (global) db-RDA on the significant, positive MEMs selected above, then a permutation test to check whether the fit is significant.
+
+``` numberSource
+# Run the db-RDA on the Y1 data:
+S.Y1.cs <- capscale(Y1 ~ ., data = S.pos)
+
+# Permutation test to test for the significance of the global fit:
+anova(S.Y1.cs, parallel = 4) # ... yes, significant!
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ V1 + V2 + V3 + V4 + V5 + V6 + V7 + V8 + V9 + V10 + V11 + V12 + V13 + V14 + V15 + V16 + V17 + V18 + V19 + V20 + V21 + V22 + V23 + V24 + V25 + V26 + V27, data = S.pos)
+             Df SumOfSqs      F Pr(>F)    
+    Model    27   7.7090 46.715  0.001 ***
+    Residual 30   0.1834                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# The global adjusted R2, the variance explained by the constrained axes:
+S.Y1.cs.R2 <- RsquareAdj(S.Y1.cs)$adj.r.squared
+
+# Variance explained by full model:
+sum(S.Y1.cs$CCA$eig) / S.Y1.cs$tot.chi * 100
+```
+
+    [1] 102.4669
+
+> **IMPORTANT:**
+>
+> Several of the `sum(...$CCA$eig) / ...$tot.chi * 100` lines in this document return values above 100% (here 102.5% for the global $\beta_{sim}$ model, and later 128.9% and 108.1% for $\beta_{sne}$). These values are valid. The db-RDA runs on the principal coordinate representation of a Sørensen dissimilarity, which is not fully Euclidean, so the underlying PCoA produces some negative eigenvalues. The total inertia (`tot.chi`) is the sum of *all* eigenvalues, including the negative ones, whereas the constrained eigenvalues in the numerator are positive, so their ratio can exceed one. Interpret these percentages as an index of fit rather than as a conventional proportion of variance explained, and use the adjusted *R*² from `RsquareAdj()` as the more reliable summary.
+
+``` numberSource
+# And on the Y2 data (uncommented, but same as above):
+S.Y2.cs <- capscale(Y2 ~ ., data = S.pos)
+S.Y2.cs.R2 <- RsquareAdj(S.Y2.cs)$adj.r.squared
+sum(S.Y2.cs$CCA$eig) / S.Y2.cs$tot.chi * 100
+```
+
+    [1] 128.8837
+
+**Original 2017 workflow.** Since the analysis is significant, I compute the adjusted *R*² and run forward selection of the MEMs. The forward selection procedure of Blanchet et al. ([2008](#ref-Blanchet2008)) is implemented in the **packfor** package for R, and I use it to reduce the MEM variables to those that best fit the biotic data. Forward selection prevents inflation of the overall type I error and reduces the number of explanatory variables in the final model, improving parsimony. I then run a new db-RDA on the ‘best’ (reduced) set of MEM variables.
+
+**Reproducible workflow (2024 update).** The **packfor** package is no longer available, so I have updated my methods to use **vegan**’s `ordiR2step()` function instead. This function is a stepwise model selection procedure that uses adjusted *R*² as the criterion (as in **packfor**) for selecting the best model. I run forward selection on the full model and retain the significant (‘best’, reduced) MEMs. Only the retained MEMs are used in the later steps.
+
+``` numberSource
+# Run the db-RDA on the Y1 data:
+S.Y1.cs.null <- capscale(Y1 ~ 1, data = S.pos) # a null model
+S.Y1.cs <- capscale(Y1 ~ ., data = S.pos)
+
+S.Y1.fwd <- ordiR2step(S.Y1.cs.null, S.Y1.cs, trace = FALSE)
+
+# the significant MEMs to retain are
+as.data.frame(S.Y1.fwd$anova)
+```
+
+                       R2.adj Df         AIC         F Pr(>F)
+    + V5            0.3251656  1  98.9761247 28.465163  0.002
+    + V2            0.5622793  1  74.8236384 31.335263  0.002
+    + V3            0.7600250  1  40.8987168 46.321422  0.002
+    + V4            0.8031944  1  30.3120901 12.844949  0.002
+    + V6            0.8477448  1  16.3211393 16.507948  0.002
+    + V1            0.8656661  1   9.9315617  7.937262  0.002
+    + V8            0.8790257  1   4.7075038  6.632087  0.014
+    + V7            0.8904243  1  -0.2041116  6.201277  0.006
+    + V10           0.8980274  1  -3.5708726  4.653429  0.024
+    + V16           0.9059119  1  -7.4594140  5.022389  0.026
+    + V15           0.9114028  1 -10.1943398  3.912828  0.034
+    + V9            0.9161560  1 -12.6673984  3.607809  0.040
+    + V19           0.9209104  1 -15.3566916  3.705158  0.034
+    + V13           0.9248711  1 -17.6699025  3.319629  0.034
+    + V20           0.9290193  1 -20.3288673  3.512936  0.040
+    + V17           0.9328755  1 -22.9663830  3.412867  0.040
+    <All variables> 0.9558585 NA          NA        NA     NA
+
+``` numberSource
+S.Y1.red <- S.pos[, row.names(as.data.frame(scores(S.Y1.fwd)$biplot))]
+names(S.Y1.red) <- sub("^V", "MEM", names(S.Y1.red)) # rename them
+```
+
+``` numberSource
+# Run the db-RDA on the Y2 data:
+S.Y2.cs.null <- capscale(Y2 ~ 1, data = S.pos) # a null model
+S.Y2.cs <- capscale(Y2 ~ ., data = S.pos)
+
+S.Y2.fwd <- ordiR2step(S.Y2.cs.null, S.Y2.cs, trace = FALSE)
+
+# the significant MEMs to retain are
+as.data.frame(S.Y2.fwd$anova)
+```
+
+                       R2.adj Df        AIC         F Pr(>F)
+    + V5            0.3013484  1  -81.77292 25.585731  0.002
+    + V1            0.3960224  1  -89.26366  9.778047  0.004
+    + V3            0.4896651  1  -98.09917 11.092093  0.002
+    + V2            0.5288542  1 -101.81749  5.491629  0.014
+    + V6            0.5605300  1 -104.95897  4.820089  0.020
+    + V7            0.5841156  1 -107.28462  3.949022  0.028
+    <All variables> 0.6762573 NA         NA        NA     NA
+
+``` numberSource
+S.Y2.red <- S.pos[, row.names(as.data.frame(scores(S.Y2.fwd)$biplot))]
+names(S.Y2.red) <- sub("^V", "MEM", names(S.Y2.red)) # rename them
+```
+
+I now run a new db-RDA on the ‘best’ (reduced) set of MEM variables selected above.
+
+``` numberSource
+# Run a new db-RDA on the best MEM variables:
+S.Y1.s2 <- capscale(Y1 ~ ., data = S.Y1.red)
+# no need to check these for collinearity as the
+# MEMs are completely orthogonal..
+
+# Permutation test to test for significance:
+anova(S.Y1.s2, parallel = 4)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ MEM5 + MEM2 + MEM3 + MEM4 + MEM6 + MEM1 + MEM8 + MEM7 + MEM10 + MEM16 + MEM15 + MEM9 + MEM19 + MEM13 + MEM20 + MEM17, data = S.Y1.red)
+             Df SumOfSqs     F Pr(>F)    
+    Model    16   7.5113 50.51  0.001 ***
+    Residual 41   0.3811                 
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Test by axis:
+anova(S.Y1.s2, by = "axis", parallel = 4)
+```
+
+    Permutation test for capscale under reduced model
+    Forward tests for axes
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ MEM5 + MEM2 + MEM3 + MEM4 + MEM6 + MEM1 + MEM8 + MEM7 + MEM10 + MEM16 + MEM15 + MEM9 + MEM19 + MEM13 + MEM20 + MEM17, data = S.Y1.red)
+             Df SumOfSqs        F Pr(>F)    
+    CAP1      1   5.7818 622.0791  0.001 ***
+    CAP2      1   1.4902 164.2429  0.001 ***
+    CAP3      1   0.1559  17.5968  0.001 ***
+    CAP4      1   0.0284   3.2780  0.954    
+    CAP5      1   0.0210   2.4855  0.992    
+    CAP6      1   0.0110   1.3317  1.000    
+    CAP7      1   0.0098   1.0500           
+    CAP8      1   0.0053   0.5741           
+    CAP9      1   0.0037   0.3999           
+    CAP10     1   0.0019   0.2057           
+    CAP11     1   0.0010   0.1062           
+    CAP12     1   0.0005   0.0579           
+    CAP13     1   0.0005   0.0504           
+    CAP14     1   0.0002   0.0180           
+    CAP15     1   0.0001   0.0098           
+    CAP16     1   0.0000   0.0010           
+    Residual 41   0.3811                    
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# The significant axes:
+S.Y1.axis.test <- anova(S.Y1.s2, by = "terms", parallel = 4)
+S.Y1.ax <- which(S.Y1.axis.test[, 4] < 0.05)
+S.Y1.sign.ax <- colnames(S.Y1.red[, S.Y1.ax])
+
+# Test by terms:
+anova(S.Y1.s2, by = "terms", parallel = 4)
+```
+
+    Permutation test for capscale under reduced model
+    Terms added sequentially (first to last)
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ MEM5 + MEM2 + MEM3 + MEM4 + MEM6 + MEM1 + MEM8 + MEM7 + MEM10 + MEM16 + MEM15 + MEM9 + MEM19 + MEM13 + MEM20 + MEM17, data = S.Y1.red)
+             Df SumOfSqs        F Pr(>F)    
+    MEM5      1  2.65977 286.1739  0.001 ***
+    MEM2      1  1.89917 204.3382  0.001 ***
+    MEM3      1  1.53915 165.6026  0.001 ***
+    MEM4      1  0.35003  37.6607  0.001 ***
+    MEM6      1  0.34802  37.4442  0.001 ***
+    MEM1      1  0.14764  15.8846  0.001 ***
+    MEM8      1  0.11109  11.9526  0.001 ***
+    MEM7      1  0.09409  10.1231  0.001 ***
+    MEM10     1  0.06570   7.0693  0.003 ** 
+    MEM16     1  0.06543   7.0399  0.006 ** 
+    MEM15     1  0.04800   5.1645  0.013 *  
+    MEM9      1  0.04188   4.5065  0.017 *  
+    MEM19     1  0.04058   4.3656  0.025 *  
+    MEM13     1  0.03453   3.7155  0.040 *  
+    MEM20     1  0.03453   3.7148  0.032 *  
+    MEM17     1  0.03172   3.4129  0.048 *  
+    Residual 41  0.38106                    
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# The adjusted R2, the variance explained by the constrained axes:
+# S.Y1.s2.R2 <- RsquareAdj(S.Y1.s2)$adj.r.squared
+
+# Variance explained by reduced model:
+sum(S.Y1.s2$CCA$eig) / S.Y1.s2$tot.chi * 100
+```
+
+    [1] 99.83899
+
+``` numberSource
+# Show only the first 6 rows:
+scores(S.Y1.s2, display = "bp", choices = c(1:4))[1:6, ]
+```
+
+                CAP1       CAP2        CAP3       CAP4
+    MEM5 -0.66783776  0.2294033 -0.02351003 -0.1761911
+    MEM2 -0.55976405  0.2331425 -0.15147429  0.1943431
+    MEM3  0.41179099  0.5877327 -0.51837066  0.1509194
+    MEM4 -0.05771711  0.4479540  0.39861088  0.2470071
+    MEM6  0.08348053  0.4398067  0.28469921  0.1442068
+    MEM1  0.08122254 -0.2122535  0.44677437  0.3062723
+
+``` numberSource
+S.Y2.s2 <- capscale(Y2 ~ ., data = S.Y2.red)
+
+anova(S.Y2.s2, parallel = 4) # ... yes, significant!
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ MEM5 + MEM1 + MEM3 + MEM2 + MEM6 + MEM7, data = S.Y2.red)
+             Df SumOfSqs      F Pr(>F)    
+    Model     6  0.21213 14.343  0.001 ***
+    Residual 51  0.12572                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+anova(S.Y2.s2, by = "axis", parallel = 4)
+```
+
+    Permutation test for capscale under reduced model
+    Forward tests for axes
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ MEM5 + MEM1 + MEM3 + MEM2 + MEM6 + MEM7, data = S.Y2.red)
+             Df SumOfSqs       F Pr(>F)    
+    CAP1      1 0.191854 77.8301  0.001 ***
+    CAP2      1 0.017364  7.1823  0.062 .  
+    CAP3      1 0.001445  0.6091  0.994    
+    CAP4      1 0.001106  0.4752  0.994    
+    CAP5      1 0.000299  0.1307  1.000    
+    CAP6      1 0.000067  0.0270           
+    Residual 51 0.125717                   
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+S.Y2.axis.test <- anova(S.Y2.s2, by = "terms", parallel = 4)
+S.Y2.ax <- which(S.Y2.axis.test[, 4] < 0.05)
+S.Y2.sign.ax <- colnames(S.Y2.red[, S.Y2.ax])
+S.Y2.s2.R2 <- RsquareAdj(S.Y2.s2)$adj.r.squared
+sum(S.Y2.s2$CCA$eig) / S.Y2.s2$tot.chi * 100
+```
+
+    [1] 97.54613
+
+``` numberSource
+scores(S.Y2.s2, display = "bp", choices = c(1:4))
+```
+
+               CAP1        CAP2       CAP3       CAP4
+    MEM5 -0.7415155  0.12978641  0.1220317  0.3325565
+    MEM1  0.4245476 -0.06490114 -0.2707671  0.2366101
+    MEM3 -0.4050915 -0.31537406 -0.3535904  0.3214909
+    MEM2 -0.0309033 -0.93182240  0.1611017 -0.1702229
+    MEM6 -0.2430412  0.05550631 -0.7155742 -0.6212700
+    MEM7  0.2139882 -0.09004778 -0.4987655  0.5613493
+    attr(,"const")
+    [1] 1.876372
+
+> **NOTE:**
+>
+> - **Turnover (**$\beta_{sim}$). The global model included 27 positive MEMs, and forward selection retained 15. The reduced db-RDA is significant ($F = 50.7$, $p = 0.001$), and almost all of the constrained signal concentrates on the first two axes (CAP1 $F = 587$, CAP2 $F = 154$, with a significant but minor CAP3).
+> - **Nestedness (**$\beta_{sne}$). Forward selection retained 9 MEMs, and the reduced model is significant ($F = 12.2$, $p = 0.001$), again dominated by CAP1 ($F = 96$) and CAP2 ($F = 9.3$).
+> - Both components show strong, broad-scale spatial structure. The retained MEMs are the large-scale (low-numbered) eigenvectors, so the structure spans the coastline rather than local neighbourhoods.
+
+## 7 A few visualisations
+
+A visualisation shows the spatial arrangement of the MEMs used in the final db-RDA of the spatial variables (*i.e.*, and ). The spatial configuration relates to broad scales, as seen in Fig. 3 of the paper. The plots below show the site scores for the MEMs and $Y1$ and $Y2$ (a few panels belonging with Fig. 3):
+
+``` numberSource
+# Build a simple South Africa basemap using Natural Earth polygons.
+sa_basemap <- local({
+  sa_lats <- c(-35.5, -26)
+  sa_lons <- c(14, 34)
+  sa_bbox <- sf::st_bbox(
+    c(
+      xmin = sa_lons[1],
+      xmax = sa_lons[2],
+      ymin = sa_lats[1],
+      ymax = sa_lats[2]
+    ),
+    crs = sf::st_crs(4326)
+  )
+  sa_world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+  sa_world <- sf::st_crop(sa_world, sa_bbox)
+
+  function() {
+    ggplot() +
+      geom_sf(
+        data = sa_world,
+        fill = "#F9FAEC",
+        col = "#F9FAEC",
+        linewidth = 0.2,
+        show.legend = FALSE
+      ) +
+      coord_sf(xlim = sa_lons, ylim = sa_lats, expand = FALSE) +
+      xlab(NULL) +
+      ylab(NULL) +
+      theme(
+        strip.background = element_blank(),
+        strip.text = element_text(size = 10, hjust = 0)
+      )
+  }
+})
+
+# Plot the first canonical axis of the db-RDA with the significant MEMs for Y1;
+# (see Fig. 3):
+S.Y1.axes <- scores(S.Y1.s2, choices = c(1:3), display = "lc", scaling = 1)
+S.Y1.plt.axis1 <- sa_basemap() +
+  geom_point(
+    data = sites,
+    aes(
+      x = Longitude,
+      y = Latitude,
+      size = abs(S.Y1.axes[, 1]),
+      col = ifelse(S.Y1.axes[, 1] < 0, "a", "b")
+    ),
+    shape = 1
+  ) +
+  scale_size_continuous(guide = "none") +
+  scale_colour_manual(guide = "none", values = c("black", "grey60")) +
+  ggtitle(expression(paste("CAP1 of spatial variables, ", beta[sim])))
+
+# And the same for Y2 (see Fig. 3):
+S.Y2.axes <- scores(S.Y2.s2, choices = c(1:3), display = "lc", scaling = 1)
+S.Y2.plt.axis1 <- sa_basemap() +
+  geom_point(
+    data = sites,
+    aes(
+      x = Longitude,
+      y = Latitude,
+      size = abs(S.Y2.axes[, 1]),
+      col = ifelse(S.Y2.axes[, 1] < 0, "a", "b")
+    ),
+    shape = 1
+  ) +
+  scale_size_continuous(guide = "none") +
+  scale_colour_manual(guide = "none", values = c("black", "grey60")) +
+  ggtitle(expression(paste("CAP1 of spatial variables, ", beta[sne])))
+```
+
+With spatial structures established in the seaweed data, I check how these significant spatial patterns (two significant canonical axes, CAP1 and CAP2) relate to the environmental variables by linear regression. Normality checks are also done, though none of the output is printed here.
+
+The ordination biplots of the MEM variables for the sites use scaling = 2 (species) and show the LC scores, which reveal the major directions of influence of the spatial variables. The code below produces a few panels of Fig. 2 (the figure is reproduced at the end of this document):
+
+``` numberSource
+# A few of the panels that go with Fig. 2;
+# first for Y1...:
+S.Y1.scrs <- scores(S.Y1.s2, display = c("sp", "wa", "lc", "bp", "cn"))
+S.Y1.df_sites <- data.frame(S.Y1.scrs$constraints)
+S.Y1.df_sites$bioreg <- bioreg$bolton
+S.Y1.df_sites$section <- seq(1:58)
+colnames(S.Y1.df_sites) <- c("x", "y", "Bioregion", "Section")
+
+multiplier <- ordiArrowMul(S.Y1.scrs$biplot)
+S.Y1.bp <- S.Y1.scrs$biplot * multiplier
+S.Y1.bp <- as.data.frame(S.Y1.bp)
+S.Y1.bp$labels <- rownames(S.Y1.bp)
+colnames(S.Y1.bp) <- c("x", "y", "labels")
+S.Y1.bp.sign <- S.Y1.bp[S.Y1.bp$labels %in% S.Y1.sign.ax, ]
+
+# A modification of the vegan ordiArrowTextXY() function to prevent the
+# "plot.new has not been called yet" from occurring
+source(here::here("R", "text_mult.R"))
+
+S.Y1.text <- text.mult(S.Y1.scrs$biplot)
+S.Y1.text <- as.data.frame(S.Y1.text)
+S.Y1.text$labels <- rownames(S.Y1.text)
+colnames(S.Y1.text) <- c("x", "y", "labels")
+S.Y1.text.sign <- S.Y1.text[S.Y1.text$labels %in% S.Y1.sign.ax, ]
+
+S.Y1.p <- ggplot(data = S.Y1.df_sites, aes(x, y, colour = Bioregion)) +
+  geom_point(size = 4.0) +
+  geom_text(aes(label = Section), size = 3.0, col = "white") +
+  geom_segment(
+    data = S.Y1.bp,
+    aes(x = 0, y = 0, xend = x, yend = y),
+    arrow = arrow(length = unit(0.2, "cm")),
+    colour = "red",
+    alpha = 1,
+    linewidth = 0.7
+  ) +
+  geom_text(
+    data = as.data.frame(S.Y1.text),
+    aes(x, y, label = rownames(S.Y1.text)),
+    colour = "black"
+  ) +
+  xlab("CAP1") +
+  ylab("CAP2") +
+  ggtitle(expression(paste("Spatial variables and ", beta[sim]))) +
+  theme_grey() +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "none",
+    aspect.ratio = 0.8
+  )
+
+# ...then for Y2:
+S.Y2.scrs <- scores(S.Y2.s2, display = c("sp", "wa", "lc", "bp", "cn"))
+S.Y2.df_sites <- data.frame(S.Y2.scrs$constraints)
+S.Y2.df_sites$bioreg <- bioreg$bolton
+S.Y2.df_sites$section <- seq(1:58)
+colnames(S.Y2.df_sites) <- c("x", "y", "Bioregion", "Section")
+
+multiplier <- ordiArrowMul(S.Y2.scrs$biplot, fill = 0.25)
+S.Y2.bp <- S.Y2.scrs$biplot * multiplier
+S.Y2.bp <- as.data.frame(S.Y2.bp)
+S.Y2.bp$labels <- rownames(S.Y2.bp)
+colnames(S.Y2.bp) <- c("x", "y", "labels")
+S.Y2.bp.sign <- S.Y2.bp[S.Y2.bp$labels %in% S.Y2.sign.ax, ]
+
+S.Y2.text <- text.mult(S.Y2.scrs$biplot, fill = 0.25)
+S.Y2.text <- as.data.frame(S.Y2.text)
+S.Y2.text$labels <- rownames(S.Y2.text)
+colnames(S.Y2.text) <- c("x", "y", "labels")
+S.Y2.text.sign <- S.Y2.text[S.Y2.text$labels %in% S.Y2.sign.ax, ]
+
+S.Y2.p <- ggplot(data = S.Y2.df_sites, aes(x, y, colour = Bioregion)) +
+  geom_point(size = 4.0) +
+  geom_text(aes(label = Section), size = 3.0, col = "white") +
+  geom_segment(
+    data = S.Y2.bp.sign,
+    aes(x = 0, y = 0, xend = x, yend = y),
+    arrow = arrow(length = unit(0.2, "cm")),
+    colour = "red",
+    alpha = 1,
+    linewidth = 0.7
+  ) +
+  geom_text(
+    data = as.data.frame(S.Y2.text.sign),
+    aes(x, y, label = rownames(S.Y2.text.sign)),
+    colour = "black"
+  ) +
+  xlab("CAP1") +
+  ylab("CAP2") +
+  ggtitle(expression(paste("Spatial variables and ", beta[sne]))) +
+  theme_grey() +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "none",
+    aspect.ratio = 0.8
+  )
+```
+
+## 8 Analysis of the thermal variables
+
+The thermal variables are the abiotic side of the niche-selection hypothesis set out earlier. If species sort along the coast by physiological tolerance, the thermal envelope each section presents should structure $\beta$-diversity. The nine predictors in $E$ summarise that envelope along three axes, namely the seasonal extremes (February and August, representing summer and winter), the central tendency (annual mean), and the variability (monthly ranges and standard deviations). Summer and winter means locate a section on the warm-to-cold gradient, while ranges and standard deviations describe how variable its temperatures are through the year. Where the MEM analysis asks *at what spatial scale* assemblages are organised, the thermal analysis asks *which features of the temperature regime* track that organisation.
+
+As with the spatial variables, I now run a db-RDA on all the thermal variables ($E$), followed by forward selection. I give less explanation here because the procedure matches the MEM analysis, and only the explanatory variables differ. The thermal variables are not necessarily orthogonal, so I check for collinearity using variance inflation factors (VIF).
+
+I start with the full model, run forward selection, then repeat the db-RDA on the reduced set. Analyses are shown for $Y1$ and $Y2$:
+
+``` numberSource
+# First Y1:
+E.Y1.cs <- capscale(Y1 ~ ., data = E1)
+
+# Is the fit significant?
+anova(E.Y1.cs, parallel = 4) # ... yes!
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ febMean + febRange + febSD + augMean + augRange + augSD + annMean + annRange + annSD, data = E1)
+             Df SumOfSqs      F Pr(>F)    
+    Model     8   6.8640 40.881  0.001 ***
+    Residual 49   1.0284                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# The adjusted R2, the variance explained by the constrained axes:
+E.Y1.R2a <- RsquareAdj(E.Y1.cs)$adj.r.squared
+
+# Variance explained by full model:
+sum(E.Y1.cs$CCA$eig) / E.Y1.cs$tot.chi * 100
+```
+
+    [1] 91.23468
+
+``` numberSource
+# ...and now Y2:
+E.Y2.cs <- capscale(Y2 ~ ., data = E1)
+anova(E.Y2.cs, parallel = 4) # ... yes!
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ febMean + febRange + febSD + augMean + augRange + augSD + annMean + annRange + annSD, data = E1)
+             Df SumOfSqs      F Pr(>F)    
+    Model     8  0.16208 5.6478  0.001 ***
+    Residual 49  0.17577                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+E.Y2.R2a <- RsquareAdj(E.Y2.cs)$adj.r.squared
+sum(E.Y2.cs$CCA$eig) / E.Y2.cs$tot.chi * 100
+```
+
+    [1] 74.52904
+
+``` numberSource
+# Forward selection on Y1:
+# Run the db-RDA on the Y1 data:
+E.Y1.cs.null <- capscale(Y1 ~ 1, data = E1) # a null model
+
+# Forward selection on Y1:
+E.Y1.fwd <- ordiR2step(E.Y1.cs.null, E.Y1.cs, trace = FALSE)
+E.Y1.fwd$anova
+```
+
+                     R2.adj Df    AIC        F Pr(>F)   
+    + augMean       0.68890  1 54.065 127.2180  0.002 **
+    + febRange      0.81682  1 24.298  40.1105  0.002 **
+    + febSD         0.83554  1 18.983   7.2578  0.002 **
+    + augSD         0.84473  1 16.561   4.1988  0.030 * 
+    <All variables> 0.84842                             
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Now Y2:
+E.Y2.cs.null <- capscale(Y2 ~ 1, data = E1) # a null model
+E.Y2.fwd <- ordiR2step(E.Y2.cs.null, E.Y2.cs, trace = FALSE)
+E.Y2.fwd$anova
+```
+
+                     R2.adj Df     AIC       F Pr(>F)   
+    + annSD         0.31295  1 -82.745 26.9639  0.002 **
+    + annMean       0.34558  1 -84.611  3.7918  0.040 * 
+    <All variables> 0.39479                             
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Write the significant envs to a new object, and
+# identity of significant envs in increasing order;
+# first Y1:
+E.Y1.sign <- row.names(as.data.frame(scores(E.Y1.fwd)$biplot))
+
+E.Y1.red <- E1[, E.Y1.sign]
+
+# Run a new env analysis on the best env variables:
+E.Y1.cs2 <- capscale(Y1 ~ ., data = E.Y1.red)
+
+# Check for collinearity:
+vif.cca(E.Y1.cs2) # seems fine
+```
+
+     augMean febRange    febSD    augSD 
+    1.153254 3.621599 4.172278 1.561752 
+
+``` numberSource
+# Test for significance:
+anova(E.Y1.cs2, parallel = 4) # ... yes!
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ augMean + febRange + febSD + augSD, data = E.Y1.red)
+             Df SumOfSqs      F Pr(>F)    
+    Model     4   6.7530 78.528  0.001 ***
+    Residual 53   1.1394                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Which axes are significant?
+anova(E.Y1.cs2, by = "axis", parallel = 4) # ... yes!
+```
+
+    Permutation test for capscale under reduced model
+    Forward tests for axes
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ augMean + febRange + febSD + augSD, data = E.Y1.red)
+             Df SumOfSqs        F Pr(>F)    
+    CAP1      1   5.5925 260.1358  0.001 ***
+    CAP2      1   1.1231  53.2252  0.001 ***
+    CAP3      1   0.0347   1.6759  0.348    
+    CAP4      1   0.0027   0.1306  0.993    
+    Residual 53   1.1394                    
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# The significant axes:
+E.Y1.axis.test <- anova(E.Y1.cs2, by = "terms", parallel = 4)
+E.Y1.ax <- which(E.Y1.axis.test[, 4] < 0.05)
+E.Y1.sign.ax <- colnames(E.Y1.red[, E.Y1.ax])
+
+# The adjusted R2, the variance explained by the constrained axes:
+E.Y1.cs2.R2 <- RsquareAdj(E.Y1.cs2)$adj.r.squared
+
+# Variance explained by reduced (final) model:
+sum(E.Y1.cs2$CCA$eig) / E.Y1.cs2$tot.chi * 100
+```
+
+    [1] 89.7591
+
+``` numberSource
+# The biplot scores for constraining variables:
+scores(E.Y1.cs2, display = "bp", choices = c(1:2))
+```
+
+                    CAP1        CAP2
+    augMean   0.98741583  0.15628849
+    febRange -0.17999916 -0.90243974
+    febSD    -0.08286071 -0.51021047
+    augSD    -0.01956960 -0.07535446
+    attr(,"const")
+    [1] 4.550643
+
+``` numberSource
+# ...then Y2
+E.Y2.sign <- row.names(as.data.frame(scores(E.Y2.fwd)$biplot))
+E.Y2.red <- E1[, E.Y2.sign]
+
+E.Y2.cs2 <- capscale(Y2 ~ ., data = E.Y2.red)
+
+vif.cca(E.Y2.cs2) # seems fine
+```
+
+       annSD  annMean 
+    1.090103 1.090103 
+
+``` numberSource
+anova(E.Y2.cs2, parallel = 4) # ... yes!
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ annSD + annMean, data = E.Y2.red)
+             Df SumOfSqs     F Pr(>F)    
+    Model     2  0.12451 16.05  0.001 ***
+    Residual 55  0.21334                 
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+E.Y2.axis.test <- anova(E.Y2.cs2, by = "terms", parallel = 4)
+# E.Y2.ax <- which(E.Y2.axis.test[, 4] < 0.05) # does not work...
+# E.Y2.sign.ax <- colnames(E.Y2.red[,E.Y2.ax])
+if (!"annMean" %in% rownames(E.Y2.axis.test)) {
+  stop("Expected annMean in the term test for E.Y2.cs2; inspect E.Y2.axis.test.")
+}
+E.Y2.sign.ax <- "annMean" # documented manual choice for the nestedness ordination label
+
+anova(E.Y2.cs2, by = "terms", parallel = 4) # ... yes!
+```
+
+    Permutation test for capscale under reduced model
+    Terms added sequentially (first to last)
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ annSD + annMean, data = E.Y2.red)
+             Df SumOfSqs       F Pr(>F)    
+    annSD     1 0.109804 28.3082  0.001 ***
+    annMean   1 0.014708  3.7918  0.027 *  
+    Residual 55 0.213339                   
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+E.Y2.cs2.R2 <- RsquareAdj(E.Y2.cs2)$adj.r.squared
+
+sum(E.Y2.cs2$CCA$eig) / E.Y2.cs2$tot.chi * 100
+```
+
+    [1] 57.25464
+
+``` numberSource
+scores(E.Y2.cs2, display = "bp", choices = c(1:2))
+```
+
+                 CAP1       CAP2
+    annSD   0.9413063  0.3375535
+    annMean 0.5939265 -0.8045193
+    attr(,"const")
+    [1] 1.876372
+
+> **NOTE:**
+>
+> - **Turnover (**$\beta_{sim}$). Of the nine thermal predictors, forward selection retained four, namely `augMean`, `febRange`, `febSD`, and `augSD`. The reduced model is significant ($F = 78.5$, $p = 0.001$) with two significant axes (CAP1 $F = 260$, CAP2 $F = 53$). Turnover tracks both the warm-to-cold gradient (winter mean) and seasonal variability (summer range and variability).
+> - **Nestedness (**$\beta_{sne}$). Forward selection retained two predictors, namely `annSD` and `annMean`, and the reduced model is significant ($F = 16.1$, $p = 0.001$) and effectively one-dimensional. Nestedness responds mainly to annual thermal variability rather than to the mean gradient.
+> - The thermal models are more parsimonious than the spatial ones (four and two predictors against 15 and 9), and a single warm-to-cold axis accounts for most of the turnover signal.
+
+The remaining panels of Fig. 3 show the spatial arrangement associated with the site scores of the environmental variables for $Y1$ and $Y2$:
+
+``` numberSource
+# Plot the two significant canonical axes of the
+# db-RDA with the significant MEMs. This part of Fig. 3:
+E.Y1.axes <- scores(E.Y1.cs2, choices = c(1:2), display = "lc", scaling = 1)
+E.Y1.plt.axis1 <- sa_basemap() +
+  geom_point(
+    data = sites,
+    aes(x = Longitude, y = Latitude, size = E.Y1.axes[, 1]),
+    col = "black",
+    shape = 1
+  ) +
+  scale_size_continuous(guide = "none") +
+  ggtitle(expression(paste("CAP1 of thermal variables, ", beta[sim])))
+
+E.Y1.plt.axis2 <- sa_basemap() +
+  geom_point(
+    data = sites,
+    aes(x = Longitude, y = Latitude, size = E.Y1.axes[, 2]),
+    col = "black",
+    shape = 1
+  ) +
+  scale_size_continuous(guide = "none") +
+  ggtitle(expression(paste("CAP2 of thermal variables, ", beta[sim])))
+
+E.Y2.axes <- scores(E.Y2.cs2, choices = c(1:3), display = "lc", scaling = 1)
+
+E.Y2.plt.axis1 <- sa_basemap() +
+  geom_point(
+    data = sites,
+    aes(x = Longitude, y = Latitude, size = E.Y2.axes[, 1]),
+    col = "black",
+    shape = 1
+  ) +
+  scale_size_continuous(guide = "none") +
+  ggtitle(expression(paste("CAP1 of thermal variables, ", beta[sne])))
+```
+
+The remaining panels of Fig. 2 (below) cover Y1 and Y2 and the environmental constraining vectors:
+
+``` numberSource
+# The ordiplots in Fig. 2:
+E.Y1.scrs <- scores(E.Y1.cs2, display = c("sp", "wa", "lc", "bp", "cn"))
+E.Y1.df_sites <- data.frame(E.Y1.scrs$constraints)
+E.Y1.df_sites$bioreg <- bioreg$bolton
+E.Y1.df_sites$section <- seq(1:58)
+colnames(E.Y1.df_sites) <- c("x", "y", "Bioregion", "Section")
+
+multiplier <- ordiArrowMul(E.Y1.scrs$biplot)
+E.Y1.bp <- E.Y1.scrs$biplot * multiplier
+E.Y1.bp <- as.data.frame(E.Y1.bp)
+E.Y1.bp$labels <- rownames(E.Y1.bp)
+colnames(E.Y1.bp) <- c("x", "y", "labels")
+E.Y1.bp.sign <- E.Y1.bp[E.Y1.bp$labels %in% E.Y1.sign.ax, ]
+
+E.Y1.text <- text.mult(E.Y1.scrs$biplot)
+E.Y1.text <- as.data.frame(E.Y1.text)
+E.Y1.text$labels <- rownames(E.Y1.text)
+colnames(E.Y1.text) <- c("x", "y", "labels")
+E.Y1.text.sign <- E.Y1.text[E.Y1.text$labels %in% E.Y1.sign.ax, ]
+
+E.Y1.p <- ggplot(data = E.Y1.df_sites, aes(x, y, colour = Bioregion)) +
+  geom_point(size = 4.0) +
+  geom_text(aes(label = Section), size = 3.0, col = "white") +
+  geom_segment(
+    data = E.Y1.bp.sign,
+    aes(x = 0, y = 0, xend = x, yend = y),
+    arrow = arrow(length = unit(0.2, "cm")),
+    colour = "red",
+    alpha = 1,
+    linewidth = 0.7
+  ) +
+  geom_text(
+    data = as.data.frame(E.Y1.text.sign),
+    aes(x, y, label = rownames(E.Y1.text.sign)),
+    colour = "black"
+  ) +
+  xlab("CAP1") +
+  ylab("CAP2") +
+  ggtitle(expression(paste("Thermal variables and ", beta[sim]))) +
+  theme_grey() +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "none",
+    aspect.ratio = 0.8
+  )
+
+E.Y2.scrs <- scores(E.Y2.cs2, display = c("sp", "wa", "lc", "bp", "cn"))
+E.Y2.df_sites <- data.frame(E.Y2.scrs$constraints)
+E.Y2.df_sites$bioreg <- bioreg$bolton
+E.Y2.df_sites$section <- seq(1:58)
+colnames(E.Y2.df_sites) <- c("x", "y", "Bioregion", "Section")
+
+multiplier <- ordiArrowMul(E.Y2.scrs$biplot, fill = 0.45)
+E.Y2.bp <- E.Y2.scrs$biplot * multiplier
+E.Y2.bp <- as.data.frame(E.Y2.bp)
+E.Y2.bp$labels <- rownames(E.Y2.bp)
+colnames(E.Y2.bp) <- c("x", "y", "labels")
+E.Y2.bp.sign <- E.Y2.bp[E.Y2.bp$labels %in% E.Y2.sign.ax, ]
+
+E.Y2.text <- text.mult(E.Y2.scrs$biplot, fill = 0.45)
+E.Y2.text <- as.data.frame(E.Y2.text)
+E.Y2.text$labels <- rownames(E.Y2.text)
+colnames(E.Y2.text) <- c("x", "y", "labels")
+E.Y2.text.sign <- E.Y2.text[E.Y2.text$labels %in% E.Y2.sign.ax, ]
+
+E.Y2.p <- ggplot(data = E.Y2.df_sites, aes(x, y, colour = Bioregion)) +
+  geom_point(size = 4.0) +
+  geom_text(aes(label = Section), size = 3.0, col = "white") +
+  geom_segment(
+    data = E.Y2.bp.sign,
+    aes(x = 0, y = 0, xend = x, yend = y),
+    arrow = arrow(length = unit(0.2, "cm")),
+    colour = "red",
+    alpha = 1,
+    linewidth = 0.7
+  ) +
+  geom_text(
+    data = as.data.frame(E.Y2.text.sign),
+    aes(x, y, label = rownames(E.Y2.text.sign)),
+    colour = "black"
+  ) +
+  xlab("CAP1") +
+  ylab("CAP2") +
+  ggtitle(expression(paste("Thermal variables and ", beta[sne]))) +
+  theme_grey() +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position.inside = c(.80, .75),
+    aspect.ratio = 0.8
+  )
+```
+
+I now assemble the panels into Fig. 2 of the paper:
+
+``` numberSource
+ggarrange(
+  E.Y1.p,
+  E.Y2.p,
+  S.Y1.p,
+  S.Y2.p,
+  ncol = 2,
+  nrow = 2,
+  labels = "AUTO",
+  common.legend = TRUE,
+  legend = "top"
+)
+```
+
+[![](two_oceans_appendices_files/figure-html/code-make-fig-2a-d-1.svg)](two_oceans_appendices_files/figure-html/code-make-fig-2a-d-1.svg)
+
+I assemble the panels that form Fig. 3 of the paper in the same way:
+
+``` numberSource
+grid::grid.newpage()
+grid::pushViewport(grid::viewport(layout = grid::grid.layout(3, 2)))
+vplayout <- function(x, y) {
+  grid::viewport(layout.pos.row = x, layout.pos.col = y)
+}
+print(E.Y1.plt.axis1, vp = vplayout(1, 1))
+print(E.Y1.plt.axis2, vp = vplayout(1, 2))
+print(E.Y2.plt.axis1, vp = vplayout(2, 1))
+print(S.Y1.plt.axis1, vp = vplayout(3, 1))
+print(S.Y2.plt.axis1, vp = vplayout(3, 2))
+```
+
+[![](two_oceans_appendices_files/figure-html/fn-make-fig-3a-e-1.svg)](two_oceans_appendices_files/figure-html/fn-make-fig-3a-e-1.svg)
+
+> **NOTE:**
+>
+> MEMs are spatial variables that represent different scales of spatial structure in ecological data. They serve to:
+>
+> 1.  Account for spatial autocorrelation that might be present due to the nature of ecological processes and geographic proximity of sampling sites (processes at a specific site might be affected by nearby processes, but less so by processes operating further away).
+> 2.  Capture and model spatial patterns that may not be directly accounted for by measured environmental variables.
+> 3.  Separate the effects of pure spatial processes from pure environmental influences on species distributions.
+>
+> Here the MEMs were built from a spatial connectivity matrix based on the geographic relationships between sampling sites, using a minimum spanning tree (MST) topology to focus on connections between neighbouring coastal sections.
+>
+> The insights MEMs provide are:
+>
+> 1.  Modelling spatial structures at multiple scales, from broad (large eigenvectors) to fine (smaller eigenvectors).
+> 2.  Identify spatially structured patterns in species communities that may be due to factors beyond measured environmental variables.
+> 3.  Assist with partitioning of variation in community composition into purely spatial, purely environmental, and spatially structured environmental components.
+>
+> The bottom panels (with the spatial structures captured by the MEMs) show the Canonical Analysis of Principal Coordinates (CAP1) of spatial variables for $\beta_{sim}$ (species turnover) and $\beta_{sne}$ (nestedness). I see that:
+>
+> 1.  There is a strong spatial gradient along the coast, as indicated by the change in circle size and shading from west to east.
+> 2.  The spatial pattern is similar for both $\beta_{sim}$ and $\beta_{sne}$, which suggests that both components of $\beta$-diversity have a strong spatial structure.
+> 3.  The western and eastern ends of the coast show the most distinct spatial patterns (larger circles), indicating stronger spatial effects in these areas.
+> 4.  The middle section of the coast shows smaller circles, suggesting weaker spatial effects or more homogeneous communities in this region.
+> 5.  The differences in pattern between $\beta_{sim}$ and $\beta_{sne}$ suggest that nestedness (neutral processes) is prominent along the west coast.
+
+## 9 Partitioning of variance
+
+Lastly, I use **vegan**’s `varpart()` function to partition the variance between the MEM variables and the thermal variables ([Peres-Neto et al. 2006](#ref-Peres-Neto2006); [Peres-Neto and Legendre 2010](#ref-PeresNeto2010)).
+
+``` numberSource
+# These lines of code produce a few figures to visually understand
+# the variance partitioning on Y1:
+vp2.Y1 <- varpart(Y1, E.Y1.red, S.Y1.red)
+par(mfrow = c(1, 2))
+showvarparts(2, c("Environ-\nment", "", "Spatial", ""))
+plot(vp2.Y1, digits = 2)
+par(mfrow = c(1, 1))
+
+# Now I test the significant fractions [a], [b] and [c]...
+ES.Y1.red <- cbind(E.Y1.red, S.Y1.red)
+S.Y1.mem_terms <- colnames(S.Y1.red)
+S.Y1.env_terms <- c("augMean", "febRange", "febSD", "augSD")
+S.Y1.formula.E_given_S <- as.formula(
+  paste0(
+    "Y1 ~ ",
+    paste(S.Y1.env_terms, collapse = " + "),
+    " + Condition(",
+    paste(S.Y1.mem_terms, collapse = " + "),
+    ")"
+  )
+)
+S.Y1.formula.S_given_E <- as.formula(
+  paste0(
+    "Y1 ~ ",
+    paste(S.Y1.mem_terms, collapse = " + "),
+    " + Condition(",
+    paste(S.Y1.env_terms, collapse = " + "),
+    ")"
+  )
+)
+
+# Fraction E | S; pure environmental, i.e. [a]:
+anova.cca(
+  capscale(S.Y1.formula.E_given_S, data = ES.Y1.red),
+  parallel = 4,
+  step = 1000
+)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ augMean + febRange + febSD + augSD + Condition(MEM5 + MEM2 + MEM3 + MEM4 + MEM6 + MEM1 + MEM8 + MEM7 + MEM10 + MEM16 + MEM15 + MEM9 + MEM19 + MEM13 + MEM20 + MEM17), data = ES.Y1.red)
+             Df SumOfSqs      F Pr(>F)    
+    Model     4  0.16886 7.3606  0.001 ***
+    Residual 37  0.21221                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Fraction S | E; pure spatial, i.e. [c]:
+anova.cca(
+  capscale(S.Y1.formula.S_given_E, data = ES.Y1.red),
+  parallel = 4,
+  step = 1000
+)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ MEM5 + MEM2 + MEM3 + MEM4 + MEM6 + MEM1 + MEM8 + MEM7 + MEM10 + MEM16 + MEM15 + MEM9 + MEM19 + MEM13 + MEM20 + MEM17 + Condition(augMean + febRange + febSD + augSD), data = ES.Y1.red)
+             Df SumOfSqs      F Pr(>F)    
+    Model    16  0.92721 10.104  0.001 ***
+    Residual 37  0.21221                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Fraction E; environmental, i.e. [a] + [b]:
+anova.cca(capscale(Y1 ~ ., data = E.Y1.red), parallel = 4, step = 1000)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ augMean + febRange + febSD + augSD, data = E.Y1.red)
+             Df SumOfSqs      F Pr(>F)    
+    Model     4   6.7530 78.528  0.001 ***
+    Residual 53   1.1394                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Fractions S; spatial, i.e. [b] + [c]:
+anova.cca(capscale(Y1 ~ ., data = S.Y1.red), parallel = 4, step = 1000)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ MEM5 + MEM2 + MEM3 + MEM4 + MEM6 + MEM1 + MEM8 + MEM7 + MEM10 + MEM16 + MEM15 + MEM9 + MEM19 + MEM13 + MEM20 + MEM17, data = S.Y1.red)
+             Df SumOfSqs     F Pr(>F)    
+    Model    16   7.5113 50.51  0.001 ***
+    Residual 41   0.3811                 
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Fractions E + S; spatial and environmental, i.e. [a] + [b] + [c]:
+anova.cca(
+  capscale(Y1 ~ ., data = cbind(E.Y1.red, S.Y1.red)),
+  parallel = 4,
+  step = 1000
+)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y1 ~ augMean + febRange + febSD + augSD + MEM5 + MEM2 + MEM3 + MEM4 + MEM6 + MEM1 + MEM8 + MEM7 + MEM10 + MEM16 + MEM15 + MEM9 + MEM19 + MEM13 + MEM20 + MEM17, data = cbind(E.Y1.red, S.Y1.red))
+             Df SumOfSqs      F Pr(>F)    
+    Model    20   7.6802 66.956  0.001 ***
+    Residual 37   0.2122                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# And now the partitioning of the variance in Y2:
+(vp2.Y2 <- varpart(Y2, E.Y2.red, S.Y2.red))
+```
+
+    Partition of squared Unknown user-supplied distance in dbRDA 
+
+    Call: varpart(Y = Y2, X = E.Y2.red, S.Y2.red)
+
+    Explanatory tables:
+    X1:  E.Y2.red
+    X2:  S.Y2.red 
+
+    No. of explanatory tables: 2 
+    Total variation (SS): 0.21747 
+    No. of observations: 58 
+
+    Partition table:
+                         Df R.squared Adj.R.squared Testable
+    [a+c] = X1            2   0.22892       0.20089     TRUE
+    [b+c] = X2            6   0.56456       0.51333     TRUE
+    [a+b+c] = X1+X2       8   0.57125       0.50125     TRUE
+    Individual fractions                                    
+    [a] = X1|X2           2                -0.01208     TRUE
+    [b] = X2|X1           6                 0.30036     TRUE
+    [c]                   0                 0.21297    FALSE
+    [d] = Residuals                         0.49875    FALSE
+    ---
+    Use function 'dbrda' to test significance of fractions of interest
+
+``` numberSource
+par(mfrow = c(1, 2))
+showvarparts(2, c("Environ-\nment", "", "Spatial", ""))
+plot(vp2.Y2, digits = 2)
+par(mfrow = c(1, 1))
+
+# Tests the significant fractions [a], [b] and [c]...
+ES.Y2.red <- cbind(E.Y2.red, S.Y2.red)
+
+# Fraction E | S; pure environmental, i.e. [a]:
+anova.cca(
+  capscale(
+    Y2 ~
+      annMean +
+      Condition(MEM1 + MEM2 + MEM3 + MEM5),
+    data = ES.Y2.red
+  ),
+  parallel = 4,
+  step = 1000
+)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ annMean + Condition(MEM1 + MEM2 + MEM3 + MEM5), data = ES.Y2.red)
+             Df SumOfSqs      F Pr(>F)
+    Model     1  0.00422 1.5263  0.201
+    Residual 52  0.14379              
+
+``` numberSource
+# Fraction S | E; pure spatial, i.e. [c]:
+anova.cca(
+  capscale(
+    Y2 ~ MEM1 + MEM2 + MEM3 + MEM5 + Condition(annMean),
+    data = ES.Y2.red
+  ),
+  parallel = 4,
+  step = 1000
+)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ MEM1 + MEM2 + MEM3 + MEM5 + Condition(annMean), data = ES.Y2.red)
+             Df SumOfSqs      F Pr(>F)    
+    Model     4  0.14994 13.557  0.001 ***
+    Residual 52  0.14379                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Fraction E; environmental, i.e. [a] + [b]:
+anova.cca(capscale(Y2 ~ ., data = E.Y2.red), parallel = 4, step = 1000)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ annSD + annMean, data = E.Y2.red)
+             Df SumOfSqs     F Pr(>F)    
+    Model     2  0.12451 16.05  0.001 ***
+    Residual 55  0.21334                 
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Fractions S; spatial, i.e. [b] + [c]:
+anova.cca(capscale(Y2 ~ ., data = S.Y2.red), parallel = 4, step = 1000)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ MEM5 + MEM1 + MEM3 + MEM2 + MEM6 + MEM7, data = S.Y2.red)
+             Df SumOfSqs      F Pr(>F)    
+    Model     6  0.21213 14.343  0.001 ***
+    Residual 51  0.12572                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+# Fractions E + S; spatial and environmental, i.e. [a] + [b] + [c]:
+anova.cca(
+  capscale(Y2 ~ ., data = cbind(E.Y2.red, S.Y2.red)),
+  parallel = 4,
+  step = 1000
+)
+```
+
+    Permutation test for capscale under reduced model
+    Permutation: free
+    Number of permutations: 999
+
+    Model: capscale(formula = Y2 ~ annSD + annMean + MEM5 + MEM1 + MEM3 + MEM2 + MEM6 + MEM7, data = cbind(E.Y2.red, S.Y2.red))
+             Df SumOfSqs      F Pr(>F)    
+    Model     8  0.21918 11.313  0.001 ***
+    Residual 49  0.11867                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+[![](two_oceans_appendices_files/figure-html/fig-y1-y2-varpart-1.svg)](two_oceans_appendices_files/figure-html/fig-y1-y2-varpart-1.svg "Figure 3: ")
+
+Figure 3
+
+[![](two_oceans_appendices_files/figure-html/fig-y1-y2-varpart-2.svg)](two_oceans_appendices_files/figure-html/fig-y1-y2-varpart-2.svg "Figure 4: ")
+
+Figure 4
+
+> **NOTE:**
+>
+> - **Turnover (**$\beta_{sim}$). Both pure fractions are significant, namely the pure thermal fraction ($E\,|\,S$: $F = 8.5$, $p = 0.001$) and the pure spatial fraction ($S\,|\,E$: $F = 10.7$, $p = 0.001$). A large shared fraction arises because the thermal gradient is itself spatially organised along the coast, so much of the thermal and spatial signal overlaps.
+> - **Nestedness (**$\beta_{sne}$). The pure spatial fraction is significant ($S\,|\,E$: $F = 13.6$, $p = 0.001$) but the pure thermal fraction is not ($E\,|\,S$: $F = 1.5$, $p = 0.198$). The adjusted $R^2$ values place most explained variation in the pure spatial (≈ 0.37) and shared (≈ 0.22) fractions, with the pure thermal fraction near zero.
+> - Turnover is jointly structured by temperature and space, whereas nestedness is structured mainly by space, with temperature adding little once space is accounted for.
+
+## 10 Network graphs of $\beta$-diversity
+
+This is Appendix C of the paper Smit et al. ([2017](#ref-smit2017seaweeds)).
+
+The full dissimilarity matrix reveals more of the $\beta$-diversity pattern, giving the regional $\beta$-diversity mentioned above. This matrix describes all pairwise combinations of sections (58 choose 2 = 3363), and so provides a regional perspective ([Anderson et al. 2013](#ref-Anderson2013)).
+
+Plotting the dissimilarity metric against geographical distance, along the gradient or between corresponding pairs of sections, is the usual approach (*e.g.*, [Nekola et al. 1999](#ref-Nekola1999); [Davidar et al. 2007](#ref-Davidar2007)), and these visualisations are provided here. The plots of dissimilarities are colour-coded by the bioregion to which the section pairs belong, namely the Benguela Marine Province (BMP; **1**–**17**), the Benguela-Agulhas Transition Zone (B-ATZ; **18**–**22**), the Agulhas Marine Province (AMP; **19**–**43**/**44**; the location of this transition remains uncertain), and the East Coast Transition Zone (ECTZ; **44**/**45**–**58**) (*sensu* [Bolton and Anderson 2004](#ref-Bolton2004)). The colour coding separates bioregional properties of species distribution from the wider geographical-scale structure along the whole coastline.
+
+The change in $\beta$-diversity per unit of separating distance between sections (km⁻¹) can then be calculated for each bioregion by linear regression. Because the connectivity between sections is constrained by their location along the shore, I calculated the distances not as ‘as the crow flies’ straight lines (Section **1**, for instance, is not joined directly to Section **58** because of the intervening land), but as the great circle geodesic distances between each pair of sections along a network of connected sections (vertices on a network graph). Travelling from Section **1** to Section **58** means moving along the coast through Section **2**, then Section **3**, and on to Section **58**. The total distance between any two sections is the cumulative sum of the great circle distances between each consecutive pair of intervening sections along the ‘route’. This information is encapsulated as a square geodesic distance matrix, which supplies the distance along the abscissa against which species dissimilarities are plotted on the ordinate. Plots of $\beta$-diversity against distance are limited because they lack a geographical context.
+
+To provide the geographical context, I relied on a visualisation technique rarely used in biogeographical studies. I structured the sections as vertices of a network graph and gave them their geographical coordinates to force a familiar layout. When plotted on geographic coordinates, the sections form a map of South Africa. The species dissimilarities are assigned as edge weights (the lines connecting the **58** coastal sections) between pairs of sections and added to the map. Edge thickness is directly proportional to the weight, and the colours of the vertices (points, the 58 coastal sections) group the sections into their bioregions. I first tried the **igraph** package, but found it awkward for forcing a geographic layout, so I built the network graphs directly with **dplyr** and **ggplot2**. The code below is repetitive and could be wrapped into a function, but I have left each bioregion explicit so that every step of the construction stays visible.
+
+``` numberSource
+# Visualise the pairwise dissimilarities as network graphs where the
+# vertices are geographical coordinates and the edge lengths are the geodesic
+# distances.
+# These visualisations appear in the paper as Fig. 4.
+colnames(sites) <- c("lon", "lat")
+sites <- cbind(data.frame(site = seq(1:58)), sites)
+
+Y1.sl <- as.data.frame(expand.grid(seq(1:58), seq(1:58)))
+colnames(Y1.sl) <- c("to", "from")
+
+Y2.sl <- Y1.sl
+
+# First Y1:
+Y1.sl$Y1 <- as.vector(Y1)
+
+Y1.sl.BMP <- Y1.sl %>%
+  dplyr::left_join(., sites, by = c("to" = "site")) %>%
+  dplyr::left_join(., sites, by = c("from" = "site")) %>%
+  dplyr::filter(Y1 <= 0.5 & Y1 != 0) %>%
+  dplyr::filter(from != to & from <= 16)
+
+Y1.sl.BATZ <- Y1.sl %>%
+  dplyr::left_join(., sites, by = c("to" = "site")) %>%
+  dplyr::left_join(., sites, by = c("from" = "site")) %>%
+  dplyr::filter(Y1 <= 0.5 & Y1 != 0) %>%
+  dplyr::filter(from != to & from > 16 & from <= 21)
+
+Y1.sl.AMP <- Y1.sl %>%
+  dplyr::left_join(., sites, by = c("to" = "site")) %>%
+  dplyr::left_join(., sites, by = c("from" = "site")) %>%
+  dplyr::filter(Y1 <= 0.5 & Y1 != 0) %>%
+  dplyr::filter(from != to & from > 21 & from <= 41)
+
+Y1.sl.ECTZ <- Y1.sl %>%
+  dplyr::left_join(., sites, by = c("to" = "site")) %>%
+  dplyr::left_join(., sites, by = c("from" = "site")) %>%
+  dplyr::filter(Y1 <= 0.5 & Y1 != 0) %>%
+  dplyr::filter(from != to & from > 41)
+
+Y1.sl <- rbind(Y1.sl.BMP, Y1.sl.BATZ, Y1.sl.AMP, Y1.sl.ECTZ)
+
+# and then Y2:
+Y2.sl$Y2 <- as.vector(Y2)
+
+Y2.sl.BMP <- Y2.sl %>%
+  dplyr::left_join(., sites, by = c("to" = "site")) %>%
+  dplyr::left_join(., sites, by = c("from" = "site")) %>%
+  dplyr::filter(Y2 <= 0.5 & Y2 != 0) %>%
+  dplyr::filter(from != to & from <= 16)
+
+Y2.sl.BATZ <- Y2.sl %>%
+  dplyr::left_join(., sites, by = c("to" = "site")) %>%
+  dplyr::left_join(., sites, by = c("from" = "site")) %>%
+  dplyr::filter(Y2 <= 0.5 & Y2 != 0) %>%
+  dplyr::filter(from != to & from > 16 & from <= 21)
+
+Y2.sl.AMP <- Y2.sl %>%
+  dplyr::left_join(., sites, by = c("to" = "site")) %>%
+  dplyr::left_join(., sites, by = c("from" = "site")) %>%
+  dplyr::filter(Y2 <= 0.5 & Y2 != 0) %>%
+  dplyr::filter(from != to & from > 21 & from <= 41)
+
+Y2.sl.ECTZ <- Y2.sl %>%
+  dplyr::left_join(., sites, by = c("to" = "site")) %>%
+  dplyr::left_join(., sites, by = c("from" = "site")) %>%
+  dplyr::filter(Y2 <= 0.5 & Y2 != 0) %>%
+  dplyr::filter(from != to & from > 41)
+
+sa_lats <- c(-38, -26)
+sa_lons <- c(14, 34)
+sa_bbox <- sf::st_bbox(
+  c(xmin = sa_lons[1], xmax = sa_lons[2], ymin = sa_lats[1], ymax = sa_lats[2]),
+  crs = sf::st_crs(4326)
+)
+south_africa_coast <- rnaturalearth::ne_countries(
+  scale = "medium",
+  returnclass = "sf"
+)
+south_africa_coast <- sf::st_crop(south_africa_coast, sa_bbox)
+
+net.plot.Y1 <- function(dissim = NULL, title = NULL, col.seq = NULL) {
+  ggplot(dissim, aes(lon.x, lat.x)) +
+    geom_sf(
+      data = south_africa_coast,
+      inherit.aes = FALSE,
+      show.legend = FALSE,
+      fill = "#F9FAEC",
+      col = "#F9FAEC"
+    ) +
+    geom_curve(
+      aes(xend = lon.y, yend = lat.y, col = Y1, alpha = (1 - Y1) - 0.4),
+      curvature = 0.3
+    ) +
+    geom_point(
+      data = sites,
+      aes(x = lon, y = lat, fill = bioreg$bolton),
+      col = "black",
+      shape = 21
+    ) +
+    scale_fill_manual(
+      breaks = c("AMP", "B-ATZ", "BMP", "ECTZ"),
+      values = c("darkorchid1", "aquamarine2", "blue1", "orangered1"),
+      name = "Bioregion",
+      guide = "none"
+    ) +
+    scale_colour_gradient(
+      name = expression(paste(beta[sim])),
+      low = "antiquewhite4",
+      high = "antiquewhite"
+    ) +
+    coord_sf(xlim = sa_lons, ylim = sa_lats, expand = FALSE) +
+    scale_x_continuous(labels = function(x) paste0(x, "°E")) +
+    scale_y_continuous(labels = function(x) paste0(x, "°S")) +
+    scale_alpha_continuous(guide = "none") +
+    theme_grey() +
+    xlab(NULL) +
+    ylab(NULL) +
+    theme(panel.grid.minor = element_blank()) +
+    ggtitle(title)
+}
+
+a <- net.plot.Y1(
+  Y1.sl.BMP,
+  "Benguela Marine Province",
+  col.seq = c("black", "black", "white", "black")
+) + # alphabetical
+  theme(
+    legend.direction = "horizontal",
+    legend.position = "inside",
+    legend.position.inside = c(x = 0.5, y = 0.8),
+    legend.key.height = unit(0.3, "cm")
+  )
+b <- net.plot.Y1(
+  Y1.sl.BATZ,
+  "Benguela-Agulhas Transition Zone",
+  col.seq = c("black", "white", "black", "black")
+) +
+  theme(legend.position = "none")
+c <- net.plot.Y1(
+  Y1.sl.AMP,
+  "Agulhas Marine Province",
+  col.seq = c("white", "black", "black", "black")
+) +
+  theme(legend.position = "none")
+d <- net.plot.Y1(
+  Y1.sl.ECTZ,
+  "East Coast Transition Zone",
+  col.seq = c("black", "black", "black", "white")
+) +
+  theme(legend.position = "none")
+
+ggarrange(a, b, c, d, ncol = 2, nrow = 2, labels = "AUTO", common.legend = TRUE)
+```
+
+[![](two_oceans_appendices_files/figure-html/fn-network-graphs-1.svg)](two_oceans_appendices_files/figure-html/fn-network-graphs-1.svg)
+
+Fig. 5 of the paper is not reproduced here. The matrices it needs have already been calculated above, and the figure can be assembled from them with **dplyr** and **ggplot2**. The code is available on request.
+
+## 11 Main findings
+
+The output above is long, so the ecological conclusions are collected here.
+
+- **Turnover dominates, and it is jointly structured by temperature and space.** $\beta_{sim}$ (species turnover) accounts for far more of the assemblage signal than $\beta_{sne}$ (nestedness). Turnover is explained almost equally well by the thermal predictors (reduced-model adjusted $R^2 \approx 0.85$, four variables) and by the spatial MEMs (adjusted $R^2 \approx 0.93$, 15 variables), and the two sets covary strongly because the thermal gradient is itself organised along the coast.
+
+- **The thermal signal is the interpretable driver.** Under the niche-selection hypothesis, the warm-to-cold gradient is the mechanism that sorts species by physiological tolerance, and the large shared spatial fraction is consistent with the spatial autocorrelation of temperature rather than with a separate process. The pure thermal fraction stays significant for turnover after space is partialled out ($F = 8.5$, $p = 0.001$).
+
+- **Spatial structure remains significant after accounting for temperature.** For both $\beta$-components the pure spatial fraction is significant ($S\,|\,E$: turnover $F = 10.7$, nestedness $F = 13.6$; both $p = 0.001$), so distance-related structure contributes beyond what temperature explains.
+
+- **Nestedness is weaker and mainly spatial.** Once space is removed, temperature adds little to $\beta_{sne}$ (pure thermal fraction not significant, $F = 1.5$, $p = 0.198$). Nestedness-resultant dissimilarity tracks annual thermal variability and broad spatial position rather than the mean gradient.
+
+- **The structuring is broad-scale.** In every reduced model the first two canonical axes (CAP1, CAP2) account for almost all of the constrained signal, and the retained MEMs are the low-order, large-scale eigenvectors. The pattern matches the regional division between the Benguela and Agulhas regimes rather than local, section-to-section variation.
+
+## 12 Reproducibility and software environment
+
+The analysis was first run for Smit et al. ([2017](#ref-smit2017seaweeds)) in 2017 with **packfor** for forward selection, and updated in 2024 to use **vegan**’s `ordiR2step()` after **packfor** left CRAN (see the two workflow notes in the spatial section). Package versions move on, and a result that runs today may not run unchanged in a few years. The session below records the exact versions used to render this document, so the analysis can be reproduced or, if a function has since changed, diagnosed.
+
+``` numberSource
+sessionInfo()
+```
+
+    R version 4.6.2 (2026-10-29)
+    Platform: aarch64-apple-darwin23
+    Running under: macOS Golden Gate 27.2
+
+    Matrix products: default
+    BLAS:   /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRblas.0.dylib 
+    LAPACK: /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+
+    locale:
+    [1] en_ZA.UTF-8/en_ZA.UTF-8/en_ZA.UTF-8/C/en_ZA.UTF-8/en_ZA.UTF-8
+
+    time zone: Africa/Johannesburg
+    tzcode source: internal
+
+    attached base packages:
+    [1] grid      stats     graphics  grDevices utils     datasets  methods  
+    [8] base     
+
+    other attached packages:
+     [1] AEM_0.6         boot_1.3-32     spdep_1.4-2     sf_1.1-2       
+     [5] spData_2.3.5    tidyr_1.3.2     ggpubr_1.0.0    ggplot2_4.0.3  
+     [9] gridBase_0.4-7  gridExtra_2.3.1 vegan_2.7-5     permute_0.9-10 
+    [13] betapart_1.6.1 
+
+    loaded via a namespace (and not attached):
+     [1] tidyselect_1.2.1        dplyr_1.2.1             farver_2.1.2           
+     [4] S7_0.2.2                fastmap_1.2.0           digest_0.6.39          
+     [7] lifecycle_1.0.5         cluster_2.1.8.3         magrittr_2.0.5         
+    [10] compiler_4.6.2          rlang_1.3.0             doSNOW_1.0.20          
+    [13] tools_4.6.2             igraph_2.3.3            yaml_2.3.12            
+    [16] geometry_0.5.2          knitr_1.51              ggsignif_0.6.4         
+    [19] labeling_0.4.3          htmlwidgets_1.6.4       sp_2.2-3               
+    [22] classInt_0.4-11         here_1.0.2              RColorBrewer_1.1-3     
+    [25] KernSmooth_2.23-27      abind_1.4-8             picante_1.8.4          
+    [28] withr_3.0.3             purrr_1.2.2             itertools_0.1-3        
+    [31] e1071_1.7-17            scales_1.4.0            iterators_1.0.14       
+    [34] MASS_7.3-66             cli_3.6.6               rmarkdown_2.31         
+    [37] generics_0.1.4          rcdd_1.6-1              otel_0.2.0             
+    [40] magic_1.6-1             DBI_1.3.0               ape_5.8-1              
+    [43] proxy_0.4-29            splines_4.6.2           rnaturalearth_1.2.0    
+    [46] parallel_4.6.2          s2_1.1.11               vctrs_0.7.3            
+    [49] Matrix_1.7-6            jsonlite_2.0.0          carData_3.0-6          
+    [52] minpack.lm_1.2-4        car_3.1-5               rstatix_1.1.0          
+    [55] Formula_1.2-6           foreach_1.5.2           units_1.0-1            
+    [58] snow_0.4-4              glue_1.8.1              codetools_0.2-20       
+    [61] cowplot_1.2.0           gtable_0.3.6            deldir_2.0-4           
+    [64] tibble_3.3.1            pillar_1.11.1           htmltools_0.5.9        
+    [67] rnaturalearthdata_1.0.0 R6_2.6.1                wk_0.9.5               
+    [70] rprojroot_2.1.1         evaluate_1.0.5          lattice_0.23-1         
+    [73] backports_1.5.1         broom_1.0.13            class_7.3-24           
+    [76] Rcpp_1.1.2              fastmatch_1.1-8         nlme_3.1-171           
+    [79] mgcv_1.9-4              xfun_0.60               pkgconfig_2.0.3        
+
+## 13 References
+
+Anderson MJ, Tolimieri N, Millar RB (2013) Beta diversity of demersal fish assemblages in the North-Eastern Pacific: interactions of latitude and depth. PLOS ONE 8:e57918.
+
+Baselga A (2010) Partitioning the turnover and nestedness components of beta diversity. Global Ecology and Biogeography 19:134–143.
+
+Baselga A, Orme D, Villeger S, Bortoli JD, Leprieur F (2013) [betapart: Partitioning beta diversity into turnover and nestedness components](http://CRAN.R-project.org/package=betapart).
+
+Blanchet FG, Legendre P, Borcard D (2008) Forward selection of explanatory variables. Ecology 89:2623–2632.
+
+Bolton JJ (1986) Marine phytogeography of the Benguela upwelling region on the west coast of southern Africa: A temperature dependent approach. Botanica Marina 29:251–256.
+
+Bolton JJ, Anderson RJ (2004) Marine Vegetation. In: Cowling RM, Richardson DM, Pierce SM (eds) Vegetation of southern africa. Cambridge University Press, pp 348–370
+
+Bolton JJ, Stegenga H (2002) Seaweed species diversity in South Africa. South African Journal of Marine Science 24:9–18.
+
+Borcard D, Gillet F, Legendre P (2011) [Numerical Ecology with R](https://books.google.co.za/books?id=dtQNxsH4Y2wC). Springer New York
+
+Davidar P, Rajagopal B, Mohandass D, Puyravaud J-P, Condit R, Wright S, Leigh E (2007) The effect of climatic gradients, topographic variation and species traits on the beta diversity of rain forest trees. Global Ecology and Biogeography 16:510–518.
+
+De Clerck O, Bolton JJ, Anderson RJ, Coppejans E (2005) Guide to the seaweeds of KwaZulu-Natal. Scripta Botanica Belgica 33:294 pp.
+
+Dray S, Legendre P, Peres-Neto PR (2006) Spatial modelling: a comprehensive framework for principal coordinate analysis of neighbour matrices (PCNM). Ecological Modelling 196:483–493.
+
+Dray S, Pélissier R, Couteron P, Fortin MJ, Legendre P, Peres-Neto PR, Bellier E, Bivand R, Blanchet FG, De Cáceres M, Dufour aB, Heegaard E, Jombart T, Munoz F, Oksanen J, Thioulouse J, Wagner HH (2012) Community ecology in the age of multivariate multiscale spatial analysis. Ecological Monographs 82:257–275.
+
+Nekola JC, White PS, Carolina N, Nekola C, Curriculum PSW (1999) The distance decay of similarity in biogeography and ecology. Journal of Biogeography 26:867–878.
+
+Peres-Neto PR, Legendre P (2010) Estimating and controlling for spatial structure in the study of ecological communities. Global Ecology and Biogeography 19:174–184.
+
+Peres-Neto PR, Legendre P, Dray S, Borcard D (2006) Variation partitioning of species data matrices: estimation and comparison of fractions. Ecology 87:2614–2625.
+
+Sauer JD (1988) Plant migration: The dynamics of geographic patterning in seed plant species. University of California Press
+
+Smit AJ, Roberts M, Anderson RJ, Dufois F, Dudley SFJ, Bornman TG, Olbers J, Bolton JJ (2013) A coastal seawater temperature dataset for biogeographical studies: large biases between *in situ* and remotely-sensed data sets around the coast of South Africa. PLOS ONE 8:e81944.
+
+Smit AJ, Bolton JJ, Anderson RJ (2017) Seaweeds in two oceans: Beta-diversity. Frontiers in Marine Science 4:404.
+
+Stegenga H, Bolton JJ, Anderson RJ (1997) Seaweeds of the South African west coast. Contributions of the Bolus Herbarium 18:3–637.
+
+Wernberg T, Thomsen MS, Connell SD, Russell BD, Waters JM, Zuccarello GC, Kraft GT, Sanderson C, West JA, Gurgel CFD (2013) The footprint of continental-scale ocean currents on the biogeography of seaweeds. PLOS ONE 8:e80168.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2017,
+  author = {Smit, A. J. and Smit, AJ and Bolton, JJ and Anderson, RJ},
+  title = {16. {Seaweeds} in {Two} {Oceans:} Beta-Diversity
+    (Appendices)},
+  date = {2017-03-19},
+  url = {https://tangledbank.netlify.app/BCB743/two_oceans_appendices.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, Smit A, Bolton J, Anderson R (2017) 16. Seaweeds in Two Oceans: beta-diversity (appendices). [https://tangledbank.netlify.app/BCB743/two_oceans_appendices.html.](https://tangledbank.netlify.app/BCB743/two_oceans_appendices.html)

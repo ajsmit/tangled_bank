@@ -1,0 +1,1095 @@
+> **NOTE:**
+>
+> - One-sample *t*-tests
+> - Two-sample *t*-tests
+> - Paired *t*-tests
+> - Directional tests
+> - Rank-based alternatives within the *t*-test family
+
+> **IMPORTANT:**
+>
+> - Self-Assessment Task 7-1 **(/15)**
+> - Self-Assessment Task 7-2 **(/10)**
+> - [Self-Assessment instructions and full task overview](../../BCB744/tasks/BCB744_Biostats_Self-Assessment.llms.md)
+
+*t*-tests compare means. The correct *t*-test is determined by the structure of the data:
+
+- one sample and no grouping variable;
+- two independent groups defined by a categorical variable with two levels;
+- paired observations from the same sampling units.
+
+The statistical question is always something like, is the estimated mean, or the estimated mean difference, large enough relative to sampling variation to justify rejecting the null hypothesis? In practice, the main quantity of interest is the estimated effect itself, together with its confidence interval. The *p*-value supports that interpretation and should not replace it.
+
+Below, I follow the same order throughout: identify the sampling or experimental design, inspect the data, check the assumptions, run the test, and interpret the effect size, uncertainty, and *p*-value together. With only two groups, the two-sample *t*-test is the two-group special case of one-way ANOVA. In [Chapter 8](../../BCB744/basic_stats/08-anova.llms.md), I extend the same idea to more than two groups and explain why repeated *t*-tests inflate Type I error.
+
+# 1 Design determines the test
+
+Consideration of the design comes first:
+
+- **One-sample design:** one continuous variable, no grouping factor, and a biologically meaningful reference value $\mu_0$.
+- **Two-sample design:** one continuous response and one categorical grouping variable with exactly two independent levels.
+- **Paired design:** two measurements linked within the same sampling unit, so the analysis is done on the within-pair differences.
+
+Checking the assumptions follows:
+
+- The response should be continuous.
+- Observations should be independent in the way implied by the sampling or experimental design.
+- The relevant distribution should be reasonably well behaved.
+- In the two-sample case, the spread in the two groups should be assessed before deciding whether Student’s or Welch’s formulation is appropriate.
+
+Approximate normality depends on what is being analysed. In a one-sample test, it concerns the sample values. In a two-sample test, it concerns the distribution within each group. In a paired test, it concerns the paired differences. [Chapter 6](../../BCB744/basic_stats/06-assumptions-and-transformations.llms.md) developed those checks directly on raw data.
+
+Large samples make *t*-tests fairly robust to mild non-normality, especially when no single value dominates the result and the group spreads are not extreme. Independence is different. A large sample does not repair pseudoreplication, repeated use of the same individuals, or a poorly designed sampling scheme.
+
+# 2 R functions
+
+The main function in this chapter is [`t.test()`](https://rdrr.io/r/stats/t.test.html). It handles:
+
+- one-sample tests with `mu = ...`;
+- two independent groups using either `x, y` or a formula such as `response ~ group`;
+- paired tests with `paired = TRUE`.
+
+The most useful arguments are:
+
+- `mu` for the one-sample reference mean;
+- `alternative` for `"two.sided"`, `"less"`, or `"greater"`;
+- `paired` for matched observations;
+- `var.equal` to force Student’s two-sample *t*-test instead of Welch’s default.
+
+When assumptions fail badly, [`wilcox.test()`](https://rdrr.io/r/stats/wilcox.test.html) provides rank-based alternatives for one-sample, two-sample, and paired designs. The design still determines the correct procedure.
+
+> **NOTE:**
+>
+> For a one-sample *t*-test, the test statistic is:
+>
+> $$t = \frac{\bar{x} - \mu_0}{s / \sqrt{n}} \tag{1}$$
+>
+> In [Equation 1](#eq-onesample), $\bar{x}$ is the sample mean, $\mu_0$ is the hypothesised mean under the null hypothesis, $s$ is the sample standard deviation, and $n$ is the sample size.
+>
+> For Student’s two-sample *t*-test, where a common variance is assumed:
+>
+> $$t = \frac{\bar{A} - \bar{B}}{s_p\sqrt{\frac{1}{n_A} + \frac{1}{n_B}}} \tag{2}$$
+>
+> with pooled variance
+>
+> $$s_p^2 = \frac{(n_A - 1)s_A^2 + (n_B - 1)s_B^2}{n_A + n_B - 2} \tag{3}$$
+>
+> For Welch’s two-sample *t*-test, which does not assume equal variances:
+>
+> $$t = \frac{\bar{A} - \bar{B}}{\sqrt{\frac{s_A^2}{n_A} + \frac{s_B^2}{n_B}}} \tag{4}$$
+>
+> with Welch-Satterthwaite degrees of freedom
+>
+> $$\text{d.f.} = \frac{\left(\frac{s_A^2}{n_A} + \frac{s_B^2}{n_B}\right)^2}{\frac{(s_A^2 / n_A)^2}{n_A - 1} + \frac{(s_B^2 / n_B)^2}{n_B - 1}} \tag{5}$$
+>
+> For a paired *t*-test, the data are reduced to the within-pair differences and the test becomes:
+>
+> $$t = \frac{\bar{d}}{s_d/\sqrt{n}} \tag{6}$$
+>
+> The formulas explain how the statistic is constructed. In practice, R does the arithmetic and we focus on whether the design, assumptions, and interpretation are appropriate.
+
+# 3 A simple experiment
+
+> **IMPORTANT:**
+>
+> Work with two friends and devise a real experiment, or a designed sampling exercise, in which you demonstrate the following two principles:
+>
+> 1.  the effect of sample size on the estimate of the mean and variance (use SD),
+> 2.  the effect of repeated sampling on the value of the mean and variance.
+>
+> In both cases, apply the correct *t*-test from this chapter to test whether sample size and repeat sampling have a statistically significant effect. Report back comprehensively with Task F.
+
+Many biological questions reduce to a mean comparison. A treatment is compared with a control, a measured trait is compared with a reference value, or the same individuals are measured before and after an intervention. The sampling or experimental design may be determined by scientific question, but the inference always concerns comparison of means or mean differences.
+
+# 4 One-sample *t*-tests
+
+In a one-sample design there is no grouping variable. We have one continuous sample and a reference value, $\mu_0$, that comes from a threshold, a historical mean, a theoretical expectation, or some other biologically meaningful reference level.
+
+## 4.1 When to use a one-sample *t*-test
+
+Use a one-sample *t*-test when:
+
+- you have one sample of observations;
+- the response variable is continuous;
+- the observations are independent;
+- you want to compare the population mean with a known or hypothesised value, $\mu_0$;
+- the sample is reasonably well behaved, or the sample size is large enough that the test is robust to small departures from normality.
+
+For the standard two-sided form, the hypotheses are:
+
+$$H_{0}: \mu = \mu_{0}$$ $$H_{a}: \mu \ne \mu_{0}$$
+
+The one-sample *t*-test then asks whether the observed sample mean is far enough from $\mu_0$, relative to sampling variation, to justify rejecting $H_0$.
+
+# 5 Example 1: Tree height against two reference means
+
+The built-in `trees` dataset records black cherry trees, with height given in feet. Here I convert height to metres and evaluate two rounded reference means, 23.0 m and 24.5 m. The example shows how the same sample can lead to different inferences depending on the reference value being tested.
+
+``` numberSource
+tree_one <- as_tibble(trees) |>
+  transmute(height_m = Height * 0.3048, sample = "Black cherry")
+```
+
+## 5.1 Do an exploratory data analysis (EDA)
+
+This is a one-sample problem, so there is no grouping variable. I inspect the sample itself.
+
+``` numberSource
+summary(tree_one$height_m)
+```
+
+       Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      19.20   21.95   23.16   23.16   24.38   26.52 
+
+``` numberSource
+sd(tree_one$height_m)
+```
+
+    [1] 1.942129
+
+``` numberSource
+shapiro.test(tree_one$height_m)
+```
+
+        Shapiro-Wilk normality test
+
+    data:  tree_one$height_m
+    W = 0.96545, p-value = 0.4034
+
+I apply the assumption check to the sample values themselves because this is a one-sample design. The Shapiro-Wilk test shows no strong evidence against normality for tree height, and the summary statistics do not suggest any extreme outlier dominating the sample. That visual comparison is shown in [Figure 1](#fig-tree-one). That visual comparison is shown in [Figure 1](#fig-tree-one).
+
+Code
+
+``` numberSource
+ggplot(tree_one, aes(x = sample, y = height_m)) +
+  geom_boxplot(fill = "indianred", alpha = 0.3, colour = "black") +
+  geom_hline(yintercept = 23.0, colour = "dodgerblue2", linewidth = 0.9) +
+  geom_hline(yintercept = 24.5, colour = "indianred2", linewidth = 0.9) +
+  labs(x = NULL, y = "Height (m)") +
+  coord_flip()
+```
+
+[![](07-t_tests_files/figure-html/fig-tree-one-1.svg)](07-t_tests_files/figure-html/fig-tree-one-1.svg "Figure 1: One-sample tree-height data in metres. The blue line marks a reference mean of 23.0 m and the red line marks 24.5 m.")
+
+Figure 1: One-sample tree-height data in metres. The blue line marks a reference mean of 23.0 m and the red line marks 24.5 m.
+
+The sample is centred close to 23.16 m. Visually, 23.0 m looks plausible and 24.5 m looks rather high. The assumption check supports proceeding with a one-sample *t*-test because the sample is reasonably well behaved and the sample size is moderate.
+
+## 5.2 State the hypotheses
+
+For the reference value of 23.0 m:
+
+$$H_{0}: \mu = 23.0$$ $$H_{a}: \mu \ne 23.0$$
+
+For the reference value of 24.5 m:
+
+$$H_{0}: \mu = 24.5$$ $$H_{a}: \mu \ne 24.5$$
+
+## 5.3 Apply the test
+
+``` numberSource
+t_tree_75 <- t.test(tree_one$height_m, mu = 23.0)
+t_tree_80 <- t.test(tree_one$height_m, mu = 24.5)
+
+t_tree_75
+```
+
+        One Sample t-test
+
+    data:  tree_one$height_m
+    t = 0.47245, df = 30, p-value = 0.64
+    alternative hypothesis: true mean is not equal to 23
+    95 percent confidence interval:
+     22.45242 23.87718
+    sample estimates:
+    mean of x 
+      23.1648 
+
+``` numberSource
+t_tree_80
+```
+
+        One Sample t-test
+
+    data:  tree_one$height_m
+    t = -3.8278, df = 30, p-value = 0.0006115
+    alternative hypothesis: true mean is not equal to 24.5
+    95 percent confidence interval:
+     22.45242 23.87718
+    sample estimates:
+    mean of x 
+      23.1648 
+
+> **NOTE:**
+>
+> R’s [`t.test()`](https://rdrr.io/r/stats/t.test.html) output has a fixed layout. Here is what each line records, using the second test (against $\mu_0 = 24.5$ m) as a worked example.
+>
+> **Header line** names the variant being applied; here a one-sample *t*-test.
+>
+> **`t`** is the test statistic. For a one-sample test it is:
+>
+> $$t = \frac{\bar{x} - \mu_0}{s / \sqrt{n}}$$
+>
+> It measures how many standard errors the sample mean sits from the null value. A large $|t|$ means the sample mean is far from $\mu_0$ relative to the precision of the estimate.
+>
+> **`df`** (degrees of freedom) $= n - 1$. For these 31 trees, $df = 30$. The *t*-distribution used to compute the *p*-value has this shape; heavier tails at low $df$ account for the extra uncertainty from estimating the standard deviation.
+>
+> **`p-value`** is the probability of obtaining a $|t|$ at least as large as the one observed, under $H_0$. It is not the probability that $H_0$ is true. A small *p*-value means the data would be unusual if the true mean were $\mu_0$.
+>
+> **`alternative hypothesis`** states the $H_a$ that was tested. The default is two-sided (`true mean is not equal to`); one-sided variants print `greater than` or `less than`.
+>
+> **`95 percent confidence interval`** is the interval $({\bar{x} - t^* \cdot SE},\; \bar{x} + t^* \cdot SE)$, where $t^*$ is the critical value for the chosen confidence level. If this interval excludes $\mu_0$, the two-sided test rejects $H_0$ at $\alpha = 0.05$; these two pieces of information are always consistent.
+>
+> **`mean of x`** is the sample mean $\bar{x}$, the point estimate of the population mean.
+>
+> For a **two-sample *t*-test**, the output looks the same except that (i) $df$ is no longer a whole number if Welch’s correction is applied, (ii) `mean of x` becomes `mean in group A` and `mean in group B`, and (iii) the confidence interval is for the *difference* between the two group means rather than for a single mean.
+
+## 5.4 Interpret the results
+
+The mean tree height is 23.16 m. Relative to 23.0 m, that difference is small and the confidence interval includes the reference value. Relative to 24.5 m, the difference is larger and the confidence interval excludes the reference value. I therefore fail to reject $H_0$ when $\mu_0 = 23.0$, but reject $H_0$ when $\mu_0 = 24.5$.
+
+This example shows why the null value must have biological meaning. The data have remained constant, but the inferential conclusion changes because the reference value has shifted.
+
+## 5.5 Reporting
+
+> **NOTE:**
+>
+> **Methods**
+>
+> A one-sample *t*-test was used to compare the mean height of black cherry trees with two possible reference means, 23.0 m and 24.5 m. The original data were recorded in feet and converted to metres before analysis. The distribution of tree heights was inspected before the test was applied.
+>
+> **Results**
+>
+> The sample mean tree height was 23.16 m (SD = 1.94, $n = 31$). When tested against a reference mean of 23.0 m, the one-sample *t*-test provided no strong evidence for a difference ($t_{30} = 0.47$, $p > 0.05$), and the 95% confidence interval for the mean (22.45 to 23.88 m) included 23.0 m. When tested against 24.5 m, the same sample differed from the reference mean ($t_{30} = -3.83$, $p < 0.001$), and the same confidence interval excluded 24.5 m.
+>
+> **Discussion**
+>
+> The inference depends on the biological relevance of the reference value. These data are compatible with a mean tree height near 23.0 m and they reject a mean as high as 24.5 m.
+
+> **IMPORTANT:**
+>
+> The built-in `sleep` dataset (type [`?sleep`](https://rdrr.io/r/datasets/sleep.html)) contains extra hours of sleep gained by patients under two drug treatments. Treat it as a one-sample test: for Drug 1, test whether the mean extra sleep is different from 0 (*i.e.*, whether the drug has any effect on sleep duration).
+>
+> 1.  Run the EDA: make a histogram and note whether the distribution looks roughly normal.
+> 2.  State $H_0$ and $H_a$.
+> 3.  Apply [`t.test()`](https://rdrr.io/r/stats/t.test.html) with `mu = 0`.
+> 4.  Report the result in one sentence following the format from the Write-Up example above.
+
+# 6 Two-sample *t*-tests
+
+In a two-sample design, the grouping variable has two levels and the observations in one group are independent of those in the other. Now I ask if the two population means are equal.
+
+## 6.1 When to use a two-sample *t*-test
+
+Use a two-sample *t*-test when:
+
+- the response variable is continuous;
+- the grouping variable has exactly two independent levels;
+- the observations in one group are independent of those in the other;
+- the within-group distributions are reasonably well behaved, or the sample sizes are large enough for mild departures from normality to be unimportant;
+- the biological question concerns the mean difference between the two groups.
+
+For the standard two-sided form, the hypotheses are:
+
+$$H_{0}: \mu_{A} = \mu_{B}$$ $$H_{a}: \mu_{A} \ne \mu_{B}$$
+
+or, equivalently,
+
+$$H_{0}: \mu_{A} - \mu_{B} = 0$$ $$H_{a}: \mu_{A} - \mu_{B} \ne 0$$
+
+## 6.2 Choosing between student and Welch
+
+Welch’s two-sample *t*-test should be the default. Use Student’s *t*-test only when the group spreads are similar and the sample sizes are also similar enough that the pooled-variance assumption is defensible.
+
+Use this rule:
+
+1.  start with plots and grouped summaries;
+2.  if the spreads are clearly different, use Welch;
+3.  if the spreads are similar, Welch is still acceptable and often simplest;
+4.  use Student only when you want the pooled-variance form for a clear reason.
+
+Welch’s test is robust, widely used, and already the default in [`t.test()`](https://rdrr.io/r/stats/t.test.html). In most routine analyses there is no penalty for choosing it.
+
+## 6.3 Other tests for homogeneity
+
+Formal tests such as Levene’s test or Bartlett’s test provide supporting evidence about group spread. They should not become the main decision step. Visual comparison of spread comes first, and Welch remains the safer choice when the spreads differ.
+
+If the apparent variance difference is tied to strong skewness or a long upper tail, a transformation may be preferable to a raw-scale *t*-test. In [Chapter 6](../../BCB744/basic_stats/06-assumptions-and-transformations.llms.md) I developed those diagnostic decisions, and the ozone example below demonstrates this in practice in the final test.
+
+# 7 Example 2: Penguin flipper length in two species
+
+The `penguins` dataset provides a realistic two-group comparison. Here I compare flipper length between Adelie and Chinstrap penguins. The grouping variable is `species`, and it has two independent levels in this subset.
+
+``` numberSource
+peng_two <- penguins |>
+  select(species, flipper_length_mm) |>
+  drop_na() |>
+  filter(species %in% c("Adelie", "Chinstrap")) |>
+  mutate(species = factor(species, levels = c("Adelie", "Chinstrap")))
+```
+
+## 7.1 Do an exploratory data analysis (EDA)
+
+I first inspect the grouped summaries, the within-group normality checks, and the spread across groups.
+
+``` numberSource
+peng_two |>
+  group_by(species) |>
+  summarise(
+    n = n(),
+    mean = mean(flipper_length_mm),
+    sd = sd(flipper_length_mm),
+    shapiro_p = shapiro.test(flipper_length_mm)$p.value,
+    .groups = "drop"
+  )
+```
+
+    # A tibble: 2 × 5
+      species       n  mean    sd shapiro_p
+      <fct>     <int> <dbl> <dbl>     <dbl>
+    1 Adelie      151  190.  6.54     0.720
+    2 Chinstrap    68  196.  7.13     0.811
+
+``` numberSource
+car::leveneTest(flipper_length_mm ~ species, data = peng_two)
+```
+
+    Levene's Test for Homogeneity of Variance (center = median)
+           Df F value Pr(>F)
+    group   1  0.6238 0.4305
+          217               
+
+I apply the assumption checks within each species because the two-sample design compares group means. The Shapiro-Wilk tests show no strong evidence against normality within either species, and Levene’s test provides no strong evidence that the group spreads differ. Together with the boxplots in [Figure 2](#fig-peng-two), these checks support a standard two-group mean comparison.
+
+Code
+
+``` numberSource
+ggplot(peng_two, aes(x = species, y = flipper_length_mm, fill = species)) +
+  geom_boxplot(alpha = 0.35, colour = "black", outlier.shape = NA) +
+  geom_jitter(width = 0.08, alpha = 0.6, size = 1.5) +
+  labs(x = "Species", y = "Flipper length (mm)") +
+  theme(legend.position = "none")
+```
+
+[![](07-t_tests_files/figure-html/fig-peng-two-1.svg)](07-t_tests_files/figure-html/fig-peng-two-1.svg "Figure 2: Flipper length in Adelie and Chinstrap penguins. The group centres differ, while the group spreads are similar.")
+
+Figure 2: Flipper length in Adelie and Chinstrap penguins. The group centres differ, while the group spreads are similar.
+
+The boxplots show a clear shift in centre, with Chinstrap penguins tending to have longer flippers. The spreads are similar. The implication is that the assumptions do not force a change of method here, so a Welch two-sample *t*-test is a defensible default.
+
+## 7.2 State the hypotheses
+
+$$H_{0}: \mu_{\text{Adelie}} = \mu_{\text{Chinstrap}}$$ $$H_{a}: \mu_{\text{Adelie}} \ne \mu_{\text{Chinstrap}}$$
+
+## 7.3 Apply the test
+
+``` numberSource
+peng_welch <- t.test(flipper_length_mm ~ species, data = peng_two)
+peng_welch
+```
+
+        Welch Two Sample t-test
+
+    data:  flipper_length_mm by species
+    t = -5.7804, df = 119.68, p-value = 6.049e-08
+    alternative hypothesis: true difference in means between group Adelie and group Chinstrap is not equal to 0
+    95 percent confidence interval:
+     -7.880530 -3.859244
+    sample estimates:
+       mean in group Adelie mean in group Chinstrap 
+                   189.9536                195.8235 
+
+The formula `flipper_length_mm ~ species` tells R to compare the flipper lengths across the levels of the grouping variable `species`. This same formula notation appears again in ANOVA and regression chapters.
+
+## 7.4 Interpret the results
+
+The estimated difference in mean flipper length is about 5.9 mm, with Chinstrap penguins having the larger mean. The 95% confidence interval excludes zero, and the *p*-value is very small. We therefore reject $H_0$ and conclude that the two species differ in mean flipper length.
+
+The confidence interval shows the plausible range for the size of the difference, which is the biologically useful part of the result.
+
+## 7.5 Reporting
+
+> **NOTE:**
+>
+> **Methods**
+>
+> Mean flipper length was compared between Adelie and Chinstrap penguins using a two-sample Welch *t*-test. Species was treated as a two-level grouping factor, and flipper length was the continuous response variable. Grouped summaries and graphical checks were used to inspect the data before the test was applied.
+>
+> **Results**
+>
+> Adelie penguins had a mean flipper length of 190.0 mm (SD = 6.54, $n = 151$), whereas Chinstrap penguins had a mean flipper length of 195.8 mm (SD = 7.13, $n = 68$). A two-sample Welch *t*-test indicated that mean flipper length differed between species ($t_{119.68} = -5.78$, $p < 0.001$). The estimated mean difference was 5.87 mm, and the 95% confidence interval ranged from 3.86 to 7.88 mm, with Chinstrap penguins having the larger mean.
+>
+> **Discussion**
+>
+> The estimated difference is several millimetres and the confidence interval remains well away from zero, so the species difference is biologically substantial as well. This is the two-group case that Chapter 8 generalises to more than two groups.
+
+> **IMPORTANT:**
+>
+> Create a visualisation that makes the mean difference and the spread difference in this penguin example easy to compare at a glance.
+
+> **IMPORTANT:**
+>
+> Please refer to this two-sided two-sample *t*-test:
+>
+> ``` numberSource
+> # random normal data
+> set.seed(666)
+> r_two <- data.frame(dat = c(rnorm(n = 20, mean = 4, sd = 1),
+>                             rnorm(n = 20, mean = 5, sd = 1)),
+>                     sample = c(rep("A", 20), rep("B", 20)))
+>
+> # perform t-test
+> # note how we set the `var.equal` argument to TRUE because we know 
+> # our data has the same SD (they are simulated as such!)
+> t.test(dat ~ sample, data = r_two, var.equal = TRUE)
+> ```
+>
+>         Two Sample t-test
+>
+>     data:  dat by sample
+>     t = -1.9544, df = 38, p-value = 0.05805
+>     alternative hypothesis: true difference in means between group A and group B is not equal to 0
+>     95 percent confidence interval:
+>      -1.51699175  0.02670136
+>     sample estimates:
+>     mean in group A mean in group B 
+>            4.001438        4.746584 
+>
+> 1.  Repeat this analyses using the Welch’s [`t.test()`](https://rdrr.io/r/stats/t.test.html). **(/5)**
+> 2.  Repeat your analysis, above, using the even more old-fashioned Equation 4 in the lecture. Show the code, talk us through the step you followed to read the *p*-values off the table of *t*-statistics. **(/10)**
+
+# 8 Example 3: A two-sample comparison after log transformation
+
+The ozone example from [Chapter 6](../../BCB744/basic_stats/06-assumptions-and-transformations.llms.md) can now be carried through to a *t*-test for inference. I compare ozone concentrations in **May-June** with those in **August-September**. In the `airquality` dataset, ozone is recorded in parts per billion (`ppb`). On the raw scale, the data are strongly right-skewed and the group variances differ. I apply a log transformation, which improves both features. So the two-sample comparison is done on the log scale and then back-transformed for reporting.
+
+``` numberSource
+aq <- na.omit(airquality[, c("Ozone", "Month")]) |>
+  as_tibble() |>
+  filter(Month %in% c(5, 6, 8, 9)) |>
+  mutate(
+    season = factor(
+      if_else(Month %in% c(5, 6), "May-June", "August-September")
+    ),
+    log_ozone = log(Ozone)
+  )
+```
+
+## 8.1 Do an exploratory data analysis (EDA)
+
+First, I inspect the grouped distributions on the raw and transformed scales in [Figure 3](#fig-ozone-transform-ttest).
+
+Code
+
+``` numberSource
+plt_raw <- ggplot(aq, aes(season, Ozone, fill = season)) +
+  geom_boxplot(alpha = 0.35, colour = "black", outlier.shape = NA) +
+  geom_jitter(width = 0.08, alpha = 0.6, size = 1.5) +
+  labs(x = NULL, y = "Ozone (ppb)") +
+  theme(legend.position = "none")
+
+plt_log <- ggplot(aq, aes(season, log_ozone, fill = season)) +
+  geom_boxplot(alpha = 0.35, colour = "black", outlier.shape = NA) +
+  geom_jitter(width = 0.08, alpha = 0.6, size = 1.5) +
+  labs(x = NULL, y = "log(Ozone)") +
+  theme(legend.position = "none")
+
+ggarrange(plt_raw, plt_log, ncol = 2)
+```
+
+[![](07-t_tests_files/figure-html/fig-ozone-transform-ttest-1.svg)](07-t_tests_files/figure-html/fig-ozone-transform-ttest-1.svg "Figure 3: Ozone concentrations before and after log transformation. A) Raw ozone values (ppb) by season. B) Log-transformed ozone values by season.")
+
+Figure 3: Ozone concentrations before and after log transformation. A) Raw ozone values (ppb) by season. B) Log-transformed ozone values by season.
+
+My formal checks support the same conclusion:
+
+``` numberSource
+aq |>
+  group_by(season) |>
+  summarise(
+    raw_w = unname(shapiro.test(Ozone)$statistic),
+    raw_p = shapiro.test(Ozone)$p.value,
+    log_w = unname(shapiro.test(log_ozone)$statistic),
+    log_p = shapiro.test(log_ozone)$p.value,
+    raw_mean = mean(Ozone),
+    geo_mean = exp(mean(log_ozone)),
+    .groups = "drop"
+  )
+```
+
+    # A tibble: 2 × 7
+      season           raw_w      raw_p log_w  log_p raw_mean geo_mean
+      <fct>            <dbl>      <dbl> <dbl>  <dbl>    <dbl>    <dbl>
+    1 August-September 0.858 0.0000112  0.973 0.260      44.9     33.6
+    2 May-June         0.765 0.00000448 0.939 0.0537     25.1     18.6
+
+``` numberSource
+car::leveneTest(Ozone ~ season, data = aq)
+```
+
+    Levene's Test for Homogeneity of Variance (center = median)
+          Df F value  Pr(>F)  
+    group  1  6.3393 0.01362 *
+          88                  
+    ---
+    Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` numberSource
+car::leveneTest(log_ozone ~ season, data = aq)
+```
+
+    Levene's Test for Homogeneity of Variance (center = median)
+          Df F value Pr(>F)
+    group  1  0.0964 0.7569
+          88               
+
+I apply the assumption checks within season on both the raw and transformed scales because this is still a two-group comparison. On the raw scale, both groups show strong evidence against normality and the variances differ. On the log scale, the group distributions are much closer to normal and the variance difference largely disappears. The implication is that the raw-scale comparison is a poor choice, while the transformed comparison is defensible.
+
+## 8.2 State the hypotheses
+
+Because the analysis is now on the log scale, the hypotheses concern the mean log ozone concentration:
+
+$$H_{0}: \mu_{\log,\text{May-June}} = \mu_{\log,\text{August-September}}$$ $$H_{a}: \mu_{\log,\text{May-June}} \ne \mu_{\log,\text{August-September}}$$
+
+Back-transformation changes the way the result is expressed. Equality on the log scale corresponds to a ratio of 1 on the original scale, so the null hypothesis becomes:
+
+$$H_{0}: \frac{\text{geometric mean ozone in August-September}}{\text{geometric mean ozone in May-June}} = 1$$
+
+The alternative hypothesis is that this ratio is not 1. A ratio of 1 means that the two periods have the same geometric mean ozone concentration in `ppb`. A ratio greater than 1 means that ozone is higher in August-September. A ratio less than 1 means that ozone is lower in August-September.
+
+## 8.3 Apply the test
+
+Welch’s two-sample *t*-test remains the default choice in R and is appropriate here.
+
+``` numberSource
+ozone_t <- t.test(log_ozone ~ season, data = aq)
+ozone_t
+```
+
+        Welch Two Sample t-test
+
+    data:  log_ozone by season
+    t = 3.3038, df = 67.271, p-value = 0.001531
+    alternative hypothesis: true difference in means between group August-September and group May-June is not equal to 0
+    95 percent confidence interval:
+     0.2350506 0.9523976
+    sample estimates:
+    mean in group August-September         mean in group May-June 
+                          3.514982                       2.921258 
+
+``` numberSource
+aq |>
+  group_by(season) |>
+  summarise(
+    geometric_mean = exp(mean(log_ozone)),
+    .groups = "drop"
+  )
+```
+
+    # A tibble: 2 × 2
+      season           geometric_mean
+      <fct>                     <dbl>
+    1 August-September           33.6
+    2 May-June                   18.6
+
+``` numberSource
+ratio_est <- exp(ozone_t$estimate[[1]] - ozone_t$estimate[[2]])
+ratio_ci <- exp(ozone_t$conf.int)
+
+tibble(
+  comparison = "August-September / May-June",
+  ratio = ratio_est,
+  lower = ratio_ci[1],
+  upper = ratio_ci[2]
+)
+```
+
+    # A tibble: 1 × 4
+      comparison                  ratio lower upper
+      <chr>                       <dbl> <dbl> <dbl>
+    1 August-September / May-June  1.81  1.26  2.59
+
+## 8.4 Interpret the results
+
+The test on the log scale compares mean log ozone concentrations between the two periods. After back-transformation, the result is easier to interpret as a ratio. August-September ozone concentrations are estimated to be about 1.81 times those in May-June, with a 95% confidence interval from 1.26 to 2.59.
+
+The geometric mean is the back-transformed mean from the log scale. It differs from the arithmetic mean in that it summarises multiplicative variation rather than additive variation. The arithmetic mean is the ordinary average obtained by adding values and dividing by the sample size. The geometric mean is obtained by averaging the logged values and then back-transforming. For right-skewed data, it is often less influenced by the upper tail than the arithmetic mean.
+
+In this example, I show the complete sequence of decision steps. I start with diagnosing the assumption violation on the raw scale, then I transform the data for a clear reason, I re-assess the assumptions, apply the test, and then I return the result to the original scale for reporting.
+
+## 8.5 Reporting
+
+> **NOTE:**
+>
+> **Methods**
+>
+> Ozone concentrations (`ppb`) were compared between May-June and August-September using a two-sample *t*-test. Exploratory plots and assumption checks showed strong right-skew and unequal variances on the raw scale, so ozone was log-transformed before analysis. A Welch two-sample *t*-test was then applied to log-transformed ozone concentrations. Results were back-transformed and reported as geometric means and their ratio.
+>
+> **Results**
+>
+> On the transformed scale, ozone concentrations differed between the two periods (Welch two-sample *t*-test: $t_{67.27} = 3.30$, $p < 0.01$). The geometric mean ozone concentration was 18.6 ppb in May-June and 33.6 ppb in August-September. After back-transformation, August-September ozone concentrations were estimated to be 1.81 times those in May-June (95% CI 1.26 to 2.59).
+>
+> **Discussion**
+>
+> The transformed analysis supports higher ozone concentrations in August-September than in May-June. Because the model was fitted on the log scale, the clearest interpretation is multiplicative: the later period has ozone concentrations about 1.8 times higher.
+
+# 9 Paired *t*-tests
+
+In a paired design, the observations are linked. The pairing may come from repeated measurements on the same individuals, left-right comparisons on the same organism, or deliberately matched experimental units. The analysis is done on the within-pair differences.
+
+## 9.1 When to use a paired *t*-test
+
+Use a paired *t*-test when:
+
+- the response variable is continuous;
+- the two measurements are meaningfully paired within the same sampling unit;
+- the pairs are independent of one another;
+- the paired differences are reasonably well behaved.
+
+For the standard two-sided form, the hypotheses are:
+
+$$H_{0}: \mu_{d} = 0$$ $$H_{a}: \mu_{d} \ne 0$$
+
+where $\mu_d$ is the population mean of the paired differences.
+
+# 10 Example 4: Before-and-after measurements on piglets
+
+I will use a small example in which piglets are weighed before and after a three-week feeding period. The inferential question is whether body mass increases over time within the same individuals.
+
+``` numberSource
+set.seed(666)
+piglets <- data.frame(
+  id = 1:12,
+  before = round(rnorm(12, mean = 8.2, sd = 0.7), 2),
+  after = round(rnorm(12, mean = 9.0, sd = 0.7), 2)
+)
+
+piglets$diff <- piglets$after - piglets$before
+piglets
+```
+
+       id before after  diff
+    1   1   8.73  9.61  0.88
+    2   2   9.61  7.80 -1.81
+    3   3   7.95  9.09  1.14
+    4   4   9.62  8.95 -0.67
+    5   5   6.65  9.60  2.95
+    6   6   8.73  9.24  0.51
+    7   7   7.29  8.59  1.30
+    8   8   7.64  9.55  1.91
+    9   9   6.95  8.52  1.57
+    10 10   8.17  8.17  0.00
+    11 11   9.71  9.89  0.18
+    12 12   6.96  8.78  1.82
+
+## 10.1 Do an exploratory data analysis (EDA)
+
+Before running the paired *t*-test, I inspect the paired differences because these are the values used directly by the test.
+
+``` numberSource
+summary(piglets$diff)
+```
+
+       Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+     -1.810   0.135   1.010   0.815   1.633   2.950 
+
+``` numberSource
+sd(piglets$diff)
+```
+
+    [1] 1.277024
+
+``` numberSource
+shapiro.test(piglets$diff)
+```
+
+        Shapiro-Wilk normality test
+
+    data:  piglets$diff
+    W = 0.9798, p-value = 0.9828
+
+I apply the assumption check to the paired differences not to the raw before and after measurements. The Shapiro-Wilk test shows no strong evidence against normality in those differences, so I can use the paired *t*-test without changing method. The distribution of differences is shown in [Figure 4](#fig-paired-differences). The distribution of differences is shown in [Figure 4](#fig-paired-differences).
+
+Code
+
+``` numberSource
+ggplot(data = piglets, aes(x = diff)) +
+  geom_histogram(binwidth = 0.5, fill = "indianred", colour = "black", alpha = 0.5) +
+  geom_vline(xintercept = 0, colour = "dodgerblue2", linewidth = 0.9) +
+  labs(x = "Paired difference in mass (after - before)", y = "Frequency")
+```
+
+[![](07-t_tests_files/figure-html/fig-paired-differences-1.svg)](07-t_tests_files/figure-html/fig-paired-differences-1.svg "Figure 4: Distribution of paired differences in piglet body mass after minus before the feeding period.")
+
+Figure 4: Distribution of paired differences in piglet body mass after minus before the feeding period.
+
+The paired differences are centred above zero, which already suggests that the piglets tended to gain mass over the feeding period. The distribution is well behaved enough for a paired *t*-test, so the next step is to test whether the mean difference is different from zero.
+
+## 10.2 State the hypotheses
+
+$$H_{0}: \mu_{d} = 0$$ $$H_{a}: \mu_{d} \ne 0$$
+
+If the biological question had specified direction in advance, such as whether mass increased after feeding, the same paired design could be analysed with a one-sided alternative.
+
+## 10.3 Apply the test
+
+``` numberSource
+t.test(piglets$after, piglets$before, paired = TRUE)
+```
+
+        Paired t-test
+
+    data:  piglets$after and piglets$before
+    t = 2.2108, df = 11, p-value = 0.04915
+    alternative hypothesis: true mean difference is not equal to 0
+    95 percent confidence interval:
+     0.003617508 1.626382492
+    sample estimates:
+    mean difference 
+              0.815 
+
+The paired *t*-test is a one-sample test applied to the set of paired differences. That is why the raw before and after values are not analysed as though they were independent groups.
+
+## 10.4 Interpret the results
+
+The mean paired difference is positive, so the piglets tended to be heavier after the feeding period. The confidence interval for the mean difference lies just above zero and the *p*-value is slightly below 0.05. We therefore reject $H_0$ and conclude that body mass increased over the feeding period in this example.
+
+## 10.5 Reporting
+
+> **NOTE:**
+>
+> **Methods**
+>
+> Piglet body mass was measured before and after a three-week feeding period, and the resulting paired observations were analysed with a paired *t*-test. The analysis was based on the within-individual differences in mass.
+>
+> **Results**
+>
+> Piglet body mass increased over the three-week feeding period. A paired *t*-test showed that the mean within-individual change in body mass differed from zero ($t_{11} = 2.21$, $p < 0.05$). The mean paired difference was 0.815 kg, with a 95% confidence interval from 0.004 to 1.626 kg.
+>
+> **Discussion**
+>
+> The paired design strengthens the inference because each piglet acts as its own control. The biological conclusion therefore concerns change within individuals rather than a difference between independent groups.
+
+# 11 When assumptions are difficult
+
+The response to assumption problems depends on the sampling and experimental design and on the source of the problem.
+
+| Situation | Typical response |
+|:---|:---|
+| One sample, small $n$, strong skew or extreme outliers | Consider transformation or a one-sample Wilcoxon procedure |
+| Two groups, similar shape but different spreads | Use Welch’s *t*-test |
+| Two groups, skewness linked to spread | Transform, re-check, then analyse if the new scale is defensible |
+| Two groups, strong outliers or badly distorted shapes | Consider a Wilcoxon rank-sum procedure |
+| Paired data, non-normal paired differences | Consider a paired Wilcoxon signed-rank procedure |
+
+Use Welch when the main problem is unequal spread. Use a transformation when the problem is scale, such as a long right tail that also drives a variance difference. Use a rank-based alternative when the mean-based comparison itself is no longer a good description of the biological question.
+
+Keep the following rules in mind:
+
+- do not switch to Student’s *t*-test merely because Levene’s test is non-significant;
+- do not treat a formal normality test as the only decision criterion;
+- do not transform data automatically; transform for a stated reason and then re-check;
+- do not forget that a large sample helps with mild non-normality but does not fix non-independence.
+
+# 12 Optional: one-sided *t*-tests
+
+One-sided tests should be used only when the direction of the effect is specified before the data are analysed. If the real question is whether two means differ, use the standard two-sided form.
+
+## 12.1 One-sided one-sample *t*-test
+
+Suppose the forestry question is directional: are the sampled trees shorter than 24.5 m on average?
+
+The hypotheses are:
+
+$$H_{0}: \mu \ge 24.5$$ $$H_{a}: \mu < 24.5$$
+
+``` numberSource
+t.test(tree_one$height_m, mu = 24.5, alternative = "less")
+```
+
+        One Sample t-test
+
+    data:  tree_one$height_m
+    t = -3.8278, df = 30, p-value = 0.0003058
+    alternative hypothesis: true mean is less than 24.5
+    95 percent confidence interval:
+         -Inf 23.75683
+    sample estimates:
+    mean of x 
+      23.1648 
+
+``` numberSource
+t.test(tree_one$height_m, mu = 24.5, alternative = "greater")
+```
+
+        One Sample t-test
+
+    data:  tree_one$height_m
+    t = -3.8278, df = 30, p-value = 0.9997
+    alternative hypothesis: true mean is greater than 24.5
+    95 percent confidence interval:
+     22.57277      Inf
+    sample estimates:
+    mean of x 
+      23.1648 
+
+The first test matches the direction implied by the data and the question, but the second does not. Direction changes the hypothesis, the tail area, and the interpretation.
+
+## 12.2 One-sided two-sample *t*-test
+
+Suppose the biological question is directional: are Adelie penguin flippers shorter than Chinstrap penguin flippers?
+
+The hypotheses are:
+
+$$H_{0}: \mu_{\text{Adelie}} \ge \mu_{\text{Chinstrap}}$$ $$H_{a}: \mu_{\text{Adelie}} < \mu_{\text{Chinstrap}}$$
+
+``` numberSource
+t.test(flipper_length_mm ~ species, data = peng_two, alternative = "less")
+```
+
+        Welch Two Sample t-test
+
+    data:  flipper_length_mm by species
+    t = -5.7804, df = 119.68, p-value = 3.025e-08
+    alternative hypothesis: true difference in means between group Adelie and group Chinstrap is less than 0
+    95 percent confidence interval:
+          -Inf -4.186534
+    sample estimates:
+       mean in group Adelie mean in group Chinstrap 
+                   189.9536                195.8235 
+
+``` numberSource
+t.test(flipper_length_mm ~ species, data = peng_two, alternative = "greater")
+```
+
+        Welch Two Sample t-test
+
+    data:  flipper_length_mm by species
+    t = -5.7804, df = 119.68, p-value = 1
+    alternative hypothesis: true difference in means between group Adelie and group Chinstrap is greater than 0
+    95 percent confidence interval:
+     -7.55324      Inf
+    sample estimates:
+       mean in group Adelie mean in group Chinstrap 
+                   189.9536                195.8235 
+
+Again, the test only makes sense when the direction was specified before the analysis. One-sided tests are not a rescue strategy for a non-significant two-sided result.
+
+# 13 Rank-based alternatives within the *t*-test family
+
+The parametric *t*-tests in this chapter are mean-based procedures. When the response is badly non-normal in a small sample, strongly skewed, or dominated by influential outliers, a rank-based alternative may be more defensible. These methods belong to the same inferential family as the *t*-tests because they serve the same one-sample, two-sample, or paired designs.
+
+The three main rank-based counterparts are:
+
+- **one-sample Wilcoxon signed-rank test** for a single sample compared with a reference value;
+- **Wilcoxon rank-sum test** for two independent groups;
+- **paired Wilcoxon signed-rank test** for matched or before-after observations.
+
+All three are handled by [`wilcox.test()`](https://rdrr.io/r/stats/wilcox.test.html) in R:
+
+- `wilcox.test(x, mu = ...)` for a one-sample problem;
+- `wilcox.test(x, y)` or `wilcox.test(response ~ group, data = ...)` for two independent groups;
+- `wilcox.test(x, y, paired = TRUE)` for paired data.
+
+These procedures are often introduced as alternatives when the mean is a poor summary of the data. They should not be described as direct tests of medians in every case. Their interpretation depends on the design and on the structure of the distributions being compared.
+
+> **NOTE:**
+>
+> The one-sample and paired Wilcoxon procedures are often confused because they use the same function. The distinction is exactly the same as for *t*-tests:
+>
+> - one sample against a reference value → one-sample signed-rank test;
+> - two related measurements on the same units → paired signed-rank test;
+> - two independent groups → rank-sum test.
+
+# 14 Decision steps for any *t*-test
+
+For most problems in this chapter, the workflow is:
+
+1.  identify the design: one sample, two independent groups, or paired data;
+2.  visualise the data;
+3.  check the relevant assumptions for shape, spread, and independence;
+4.  choose the test, with Welch as the default for two groups;
+5.  run the test;
+6.  interpret the estimated effect, its confidence interval, and the *p*-value together.
+
+If you follow these steps you’ll prevent a large number of common mistakes.
+
+> **IMPORTANT:**
+>
+> Work through the six decision steps above using the built-in `mtcars` dataset. Compare fuel economy (`mpg`) between cars with automatic (`am = 0`) and manual (`am = 1`) transmissions.
+>
+> Step 1: What is the design?\
+> Step 2: Make a grouped box plot of `mpg ~ factor(am)`.\
+> Step 3: Apply Shapiro-Wilk within each group and Levene’s test across groups.\
+> Step 4: Choose Welch’s or Student’s *t*-test based on step 3.\
+> Step 5: Run `t.test(mpg ~ factor(am), data = mtcars, var.equal = ...)`.\
+> Step 6: Write a one-sentence results statement with the test statistic, df, p-value, and 95% CI.
+
+# 15 A *t*-test workflow
+
+Now that the individual cases are in place, I can walk through a complete analysis in R. For this example we use the `ecklonia` data from [Intro R Workshop: Data Manipulation, Analysis, Graphing](https://robwschlegel.github.io/Intro_R_Workshop/).
+
+## 15.1 Loading data
+
+Before I analyse anything, I need to load the data and reshape them into long format.
+
+``` numberSource
+ecklonia <- read_csv(here::here("data", "BCB744", "ecklonia.csv")) |>
+  gather(key = "variable", value = "value", -species, -site, -ID)
+```
+
+## 15.2 Visualising data
+
+I visualise the data first in [Figure 5](#fig-ecklonia1).
+
+Code
+
+``` numberSource
+ggplot(data = ecklonia, aes(x = variable, y = value, fill = site)) +
+  geom_boxplot(colour = "black", fill = "dodgerblue4", alpha = 0.4) +
+  coord_flip()
+```
+
+[![](07-t_tests_files/figure-html/fig-ecklonia1-1.svg)](07-t_tests_files/figure-html/fig-ecklonia1-1.svg "Figure 5: Boxplots showing differences in morphometric properties of the kelp Ecklonia maxima at two sites in False Bay.")
+
+Figure 5: Boxplots showing differences in morphometric properties of the kelp *Ecklonia maxima* at two sites in False Bay.
+
+The measurements occupy very different scales, which makes the full figure difficult to compare directly between sites. But, nevertheless, the figure’s value is orientating me to the variables in the dataset and showing me that a more focused comparison is needed before I can state a hypothesis clearly.
+
+## 15.3 Formulating a hypothesis
+
+Let me narrow the question to stipe mass and focus only on two sites, Batsata Rock and Boulders Beach, as shown in [Figure 6](#fig-ecklonia2).
+
+Code
+
+``` numberSource
+ecklonia_sub <- ecklonia |>
+  filter(variable == "stipe_mass")
+
+ggplot(data = ecklonia_sub, aes(x = variable, y = value, fill = site)) +
+  geom_boxplot(colour = "black", alpha = 0.4) +
+  coord_flip() +
+  labs(y = "Stipe mass (kg)", x = "") +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+```
+
+[![](07-t_tests_files/figure-html/fig-ecklonia2-1.svg)](07-t_tests_files/figure-html/fig-ecklonia2-1.svg "Figure 6: Boxplots showing the difference in stipe mass (kg) of the kelp Ecklonia maxima at two sites in False Bay.")
+
+Figure 6: Boxplots showing the difference in stipe mass (kg) of the kelp *Ecklonia maxima* at two sites in False Bay.
+
+I can state the directional question as: are kelp stipes heavier at Batsata Rock than at Boulders Beach?
+
+The corresponding hypotheses are:
+
+$$H_{0}: \mu_{\text{Batsata}} \le \mu_{\text{Boulders}}$$ $$H_{a}: \mu_{\text{Batsata}} > \mu_{\text{Boulders}}$$
+
+## 15.4 Choosing a test
+
+There are two independent groups, one continuous response, and a directional hypothesis specified in advance. That combination points to a one-sided two-sample *t*-test. Because the group spreads appear similar, Student’s formulation is acceptable here, although Welch would also be defensible.
+
+## 15.5 Checking assumptions
+
+The response is continuous and the sites define the two independent groups. I still need to inspect spread and approximate normality within groups.
+
+``` numberSource
+ecklonia_sub |>
+  group_by(site) |>
+  summarise(
+    stipe_mass_var = var(value),
+    stipe_mass_norm = shapiro.test(value)$p.value,
+    .groups = "drop"
+  )
+```
+
+    # A tibble: 2 × 3
+      site           stipe_mass_var stipe_mass_norm
+      <chr>                   <dbl>           <dbl>
+    1 Batsata Rock             2.00           0.813
+    2 Boulders Beach           2.64           0.527
+
+The grouped summaries suggest similar spread and no obvious normality problem. If these checks had failed badly, [Chapter 6](../../BCB744/basic_stats/06-assumptions-and-transformations.llms.md) provides the next steps.
+
+## 15.6 Running an analysis
+
+``` numberSource
+t.test(value ~ site, data = ecklonia_sub,
+       var.equal = TRUE, alternative = "greater")
+```
+
+        Two Sample t-test
+
+    data:  value by site
+    t = 1.8741, df = 24, p-value = 0.03657
+    alternative hypothesis: true difference in means between group Batsata Rock and group Boulders Beach is greater than 0
+    95 percent confidence interval:
+     0.09752735        Inf
+    sample estimates:
+      mean in group Batsata Rock mean in group Boulders Beach 
+                        6.116154                     4.996154 
+
+## 15.7 Interpreting the results
+
+The output gives the test statistic, degrees of freedom, *p*-value, and confidence interval for the mean difference. If the one-sided *p*-value is small enough, I reject $H_0$ and conclude that mean stipe mass is greater at Batsata Rock. The confidence interval gives the plausible size of that difference.
+
+## 15.8 Drawing conclusions
+
+The scientific conclusion should consider what local ecological or hydrodynamic conditions could account for the difference in stipe mass between the two sites.
+
+## 15.9 Reporting
+
+> **NOTE:**
+>
+> **Methods**
+>
+> Stipe mass of *Ecklonia maxima* was compared between Batsata Rock and Boulders Beach using a one-sided two-sample Student’s *t*-test. The analysis treated site as the grouping factor and stipe mass as the continuous response variable, after checking that the group spreads were similar and that the data were approximately normal within each site.
+>
+> **Results**
+>
+> Mean stipe mass of *Ecklonia maxima* was higher at Batsata Rock ($6.12 \pm 1.41$ kg SD, $n = 13$) than at Boulders Beach ($5.00 \pm 1.63$ kg SD, $n = 13$). A one-sided two-sample Student’s *t*-test indicated that stipe mass at Batsata Rock was greater than at Boulders Beach ($t_{24} = 1.87$, $p < 0.05$). The one-sided 95% confidence interval for the mean difference ranged from 0.10 kg to $\infty$.
+>
+> **Discussion**
+>
+> The biological conclusion is that kelp at Batsata Rock had heavier stipes than kelp at Boulders Beach in this comparison. The next step would be to explain why that difference exists.
+
+## 15.10 Going further
+
+In this example, I isolated two sites so that the comparison could fit a two-sample *t*-test. The full dataset contains more than two sites, however, and that changes the analysis. Once the question becomes whether mean stipe mass differs across several (*i.e.*, \> 2) sites, the correct next step is ANOVA rather than a bunch of pairwise *t*-tests. In [Chapter 8](../../BCB744/basic_stats/08-anova.llms.md), I develop that extension and explain why repeated two-group testing inflates Type I error.
+
+The biological questions also inflates at that point. If stipe mass differs among several sites, what combination of exposure, nutrient regime, competition, or age structure produced that pattern?
+
+> **IMPORTANT:**
+>
+> For each scenario below, identify the correct *t*-test design (one-sample, two-sample, or paired) and state which assumption needs to be checked, and where:
+>
+> 1.  You measure the resting heart rates of 25 athletes and compare them with the published population mean of 72 bpm. **(/2)**
+> 2.  You compare the nitrogen content of leaves from trees in two adjacent forest types (20 trees per forest). **(/2)**
+> 3.  You weigh 15 juvenile tortoises in March and again in October and ask whether they gained mass. **(/2)**
+> 4.  You measure the length of left and right tibiae from 18 rabbits. **(/2)**
+>
+> Discuss with a partner whether (b) and (d) are structurally similar or different. What changes between them? **(/2)**
+
+# 16 Conclusion
+
+*t*-tests are among the first inferential tools used in biostatistics because they connect directly to common biological questions. The main decision is design: one sample, two independent groups, or paired observations. From there, the workflow simply requires that you inspect the data, check the assumptions, choose the appropriate test, and interpret the estimated effect with its uncertainty.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {7. \emph{T}-Tests},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB744/basic_stats/07-t_tests.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) 7. *t*-tests. [https://tangledbank.netlify.app/BCB744/basic_stats/07-t_tests.html.](https://tangledbank.netlify.app/BCB744/basic_stats/07-t_tests.html)

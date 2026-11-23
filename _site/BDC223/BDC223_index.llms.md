@@ -1,0 +1,186 @@
+> “*My practice as a scientist is atheistic. That is to say, when I set up an experiment I assume that no god, angel or devil is going to interfere with its module; and this assumption has been justified by such success as I have achieved in my professional career. I should therefore be intellectually dishonest if I were not also atheistic in the affairs of the world.*”
+>
+> — J.B.S. Haldane, Faith And Fact
+
+Welcome to Term 4 of BDC223 (Plant Ecophysiology). This page provides the syllabus and teaching policies for the module, and it serves as a starting point for the theory, instruction, and access to the data you will use in the module’s Labs.
+
+> **TIP:**
+>
+> Please refer to the [Faculty AI Policy](../docs/Combined%20Faculty%20AI%20Policy%2015082025.pdf).
+
+## 1 Timetable
+
+My part of the BDC223 module runs in the 4th term, from 5 October to 13 November 2026.
+
+| Day      | Periods                  | Location | Notes   |
+|----------|--------------------------|----------|---------|
+| Monday   | 5th period (11:15–12:00) | SC8      | Lecture |
+| Monday   | 13:30–17:10              | TBA      | Lab     |
+| Tuesday  | 1st period (08:30–9:15)  | SC9      | Lecture |
+| Thursday | 1st period (08:30–9:15)  | SC9      | Lecture |
+
+[Below](#sec-syllabus) and to the left in the menu, you are provided with links to all your teaching materials. The weekly face-to-face lectures are essential for discussing the work and they give you an opportunity to ask me any questions you may have.
+
+The four Labs take place on Mondays, 12, 19 and 26 October and 2 November 2026, from 13:30 to 17:10. Labs are compulsory, and failing to attend will result in a penalty of 20% taken from your mark for the week.
+
+Please ensure that you read through each Lab (accessible in the sidebar) before the Labs start. Upload your assignment to iKamva by 08:00 on the following Monday. This applies to both pre-assessed and self-assessed Labs. If a Lab is self-assessed, you must also upload the completed self-assessment by 23:59 on the same day. See the [Lab submission and self-assessment policy](#sec-lab-self-assessment).
+
+## 2 Instructor and lab assistant
+
+Term 4 of BDC223 is taught by me, Professor AJ Smit. You may find me in Office 4.103 in the BCB Department (4th floor). You will receive an introductory email from me, and you are welcome to contact me at that email address with questions or concerns. Please also use the WhatsApp group set up for this module to ask questions and share information.
+
+The Lab Assistant for Term 4 is Ms Ameera Wayley. She will be available in the Lab during the Lab periods to assist you with any questions you may have.
+
+## 3 Syllabus, overview, and expectations
+
+Plants and other photo-oxygenic organisms carry much of the biological work of the planet. They fix carbon, release oxygen, move water, support food webs, and shape habitats. In this module we study how that productivity depends on light, nutrients, water, temperature, and the changing Earth system.
+
+| Wk | Type | Topic | Class/Lab | Exercise Due |
+|----|----|----|----|----|
+| W1 | L | **[Introduction](../BDC223/L00-introduction.llms.md)** | 5 Oct |  |
+|  | L | **[Lecture 1: Planetary Boundaries](../BDC223/L01-worldmapper.llms.md)** | 5/6 Oct |  |
+|  | L | **[Lecture 1: Planetary Boundaries](../BDC223/L01-worldmapper.llms.md)** | 8 Oct |  |
+| W2 | L | **[Lecture 2. SA:V](../BDC223/L02-SA_V.llms.md)** | 12 Oct |  |
+|  | P1 | **[Lab 1: SA:V](../BDC223/Lab1_SA_V.llms.md)** | 12 Oct | 19 Oct, 08:00 |
+|  | L | **[Lecture 3: Photosynthetic Evolution](../BDC223/L03-photosynthetic-evolution.llms.md)** | 13 Oct |  |
+|  | Self | **[Lecture 4: Earth’s Climate](../BDC223/L04-climate.llms.md)** | 13 Oct |  |
+|  | L | **[Lecture 5: Climate Change (Carbon Cycle)](../BDC223/L05-carbon_cycle.llms.md)** | 15 Oct |  |
+| W3 | L | **[Lecture 6: Light](../BDC223/L06-light.llms.md)** | 19 Oct |  |
+|  | P2 | **[Lab 2: Miscellaneous Calculations](../BDC223/Lab2_misc_calcs.llms.md)** | 19 Oct | 26 Oct, 08:00 |
+|  | L | **[Lecture 7a: Pigments & Photosynthesis](../BDC223/L07a-pigments_photosynthesis.llms.md)** | 20 Oct |  |
+|  | L | **[Lecture 7a: Pigments & Photosynthesis](../BDC223/L07a-pigments_photosynthesis.llms.md)** | 22 Oct |  |
+|  | Self | **[Lecture 7b: Measuring Photosynthesis](../BDC223/L07b-measuring_photosynthesis.llms.md)** | 22 Oct |  |
+|  | E | **Essay due** |  | 23 Oct, 23:59 |
+| W4 | L | **[Lecture 8: Chromatic Adaptation](../BDC223/L08-chromatic_adaptation.llms.md)** | 26 Oct |  |
+|  | P3 | **[Lab 3: PI Curves (Jassby and Platt)](../BDC223/Lab3_PI_curves.llms.md)** | 26 Oct | 2 Nov, 08:00 |
+|  | L | **[Lecture 8: Chromatic Adaptation](../BDC223/L08-chromatic_adaptation.llms.md)** | 27 Oct |  |
+|  | T | **Class Test** | 29 Oct |  |
+| W5 | L | **[Lecture 9: Nutrients](../BDC223/L09a-nutrient_uptake.llms.md)** | 2 Nov |  |
+|  | P4 | **[Lab 4: Nutrient Uptake](../BDC223/Lab4_nitrogen_uptake.llms.md)** | 2 Nov | 9 Nov, 08:00 |
+|  | L | **[Lecture 9a: Nutrients — Theory](../BDC223/L09a-nutrient_uptake.llms.md)** | 3 Nov |  |
+|  | Self | **[Lecture 9b: Nutrients — Michaelis–Menten](../BDC223/L09b-nutrients_michaelis_menten.llms.md)** | 5 Nov |  |
+|  | Self | **[Lecture 9c: Nutrients — Visualisation](../BDC223/L09c-nutrients_visualised.llms.md)** | 5 Nov |  |
+| W6 | L | **[Lecture 9: Nutrients — Theory](../BDC223/L09a-nutrient_uptake.llms.md)** | 9 Nov |  |
+|  | L | **[Lecture 10: Plant Stress](../BDC223/L10-plant_stress.llms.md)** | 10 Nov |  |
+|  | L | **Revision** | 12 Nov |  |
+
+All dates in this timetable are in 2026. The Lab deadlines shown are for the assignment upload. For self-assessed Labs, the completed self-assessment is due at 23:59 on the same date.
+
+## 4 Class Test
+
+There will be one class test:
+
+- Thursday, 29 October 2026, first period (08:30–09:15), SC9
+
+## 5 Essay
+
+Write a two-thirds to one-page essay on:
+
+- “*Your* relationship with nature.”
+
+The due date is:
+
+- Friday, 23 October 2026, 23:59
+
+Formatting instructions for the essay are as follows:
+
+- Maximum one page (no references!) — everything on page two will be excluded from assessment.
+- 10 pt font, Times New Roman.
+- Single line spacing.
+- Left justified only — no full justification. **Ever**.
+- A single blank line between paragraphs.
+- 2.54 cm margins all round.
+- No visual embellishments… stay professional.
+- No internal section headings, but ensure the title and your name appear in bold.
+
+## 6 Graduate attributes
+
+The [**graduate attributes**](../pages/graduate_attributes.llms.md) resulting from completion of this module align with the expectations of workplaces across diverse organisations and institutions where graduates typically find employment.
+
+## 7 Module resources
+
+All the lecture material for this module is on iKamva. You will find there the following under Module Resources:
+
+- **PDF_Reading** — Additional reading material is provided, and you are expected to read it. The module is designed on the assumption that learning does not happen only in lectures. You need to work through the papers yourself.
+- **Slides** — The slides I present in my lectures are available for download from iKamva.
+- **Videos** — These are the actual videos of me talking. I might record more as we work through the module.
+
+Additionally, the **Lecture Transcripts** may be found on The Tangled Bank (menu on the left). of course, you also have my presence during the **Lectures**.
+
+## 8 Attendance
+
+### 8.1 Lectures
+
+Lecture attendance will be encouraged through the administration of random quizzes. If you miss any, penalties will be applied to your CAM.
+
+### 8.2 Labs
+
+These Labs are hands-on. They can only deliver acceptable outcomes if you attend all Lab sessions. Sometimes an occasional absence cannot be avoided. Still, you need to provide evidence (affidavit, doctor’s note, or death certificate) for why you did not attend to avoid a non-attendance penalty. Please be courteous and notify the tutor or me before any absence. If you work with a partner in class, inform them too. Keep up with the reading assignments while you are away, and we will all work with you to get you back up to speed on what you miss. If you do miss a class, however, the assignments must still be submitted on time (also see [Late submissions](#late-submissions)).
+
+Since you may be required to work in collaboration with a peer on tasks and assignments, please keep this person informed at all times in case some emergency makes you unavailable for some time. Someone might depend on your input and contributions — do not leave someone in the lurch so that they cannot complete a task in your absence.
+
+### 8.3 General considerations
+
+The schedule is set and will not be changed. Sometimes an occasional absence cannot be avoided. Please be courteous and notify the tutor or me before any absence. If you work with a partner in class, inform them too. Keep up with the reading assignments while you are away, and we will all work with you to get you back up to speed on what you miss. However, if you miss a class, the assignments must still be submitted on time (also see "Late submissions" below).
+
+## 9 Assessment
+
+The syllabus for Term 4 comprises the following mark-carrying components for Continuous Assessment (CA):
+
+- **Labs and Essay** — \[60%\] (0.8 + 0.2, respectively)
+- **Class Test and Quizzes** — \[40%\] (0.9 + 0.1, respectively)
+
+The CA and an exam will provide a final mark for the module. The weighting of the CA and the exam is 0.6 and 0.4, respectively.
+
+### 9.1 Lab submission and self-assessment policy
+
+All Lab assignments must be uploaded to iKamva by the stated deadline. This requirement applies to both pre-assessed and self-assessed submissions.
+
+On the day a self-assessed Lab is due, students must first upload the Lab assignment to iKamva by the stated deadline. A model answer or rubric will then be provided. Students must compare their submission with the model answer or rubric, assign themselves a mark, and upload the completed self-assessment to iKamva by 23:59 on the same day.
+
+Each week, the Lab assistant will randomly select a different cohort comprising 20% of the class. The Lab assistant will independently mark the selected submissions and check whether each student’s self-assigned mark is within 10% of the actual mark. If a self-assigned mark deviates from the actual mark by more than 10%, the student will receive 0% for that Lab assignment.
+
+## 10 Late submissions
+
+Late assignments will be penalised 10% per day late. They will not be accepted more than 48 hours late unless evidence such as a doctor’s note, a death certificate, or another documented emergency can be provided. If you know a submission will be late, please discuss this and seek prior approval. Class time is allocated to work on assignments, and students are expected to continue working on the projects outside class. Successfully completing (and passing) this module requires that you finish tasks based on what we have covered in the module by the following class period. Work diligently from the outset so that even if something unexpected happens at the last minute, you should already be close to completion. This approach also allows us to provide rapid feedback to you, which can only be accomplished by returning assignments quickly and punctually.
+
+## 11 Support
+
+It is expected that some tricky aspects of the module will take time to master, and the best way to master problematic material is to practice, practice some more, and then ask questions. Trying for 10 minutes and then giving up is not good enough. I will be more sympathetic to your cause if you can demonstrate having tried for a full day before giving up and asking me. When you ask questions about some challenges, this is the way to do it — explain to me your numerous attempts to solve the problem and how these various attempts have failed. I will not help you if you have not tried to help yourself first (maybe with advice from friends). There will be a time in class to do this, typically before we embark on a new topic.
+
+Should you require more time with me, find out when I am ‘free’ and schedule an appointment by sending me a calendar invitation. I am happy to have a personal meeting with you via Zoom, but I prefer face-to-face in my office.
+
+## 12 Communication
+
+You must join the [BDC223 Term 4 WhatsApp group](https://chat.whatsapp.com/D2H5eLQbMxXI4qseDY0wh7?mode=gi_t). Use it to ask questions and discuss module content with me and your classmates.
+
+## 13 Advice for success
+
+Your success on this module depends very much on you and the effort you put into it. The module has been organised so that the pleasure of learning is on you, mainly by reading scientific publications on the week’s lecture topics. Your TAs and I will help you by providing materials, answering questions, and setting a pace, but for this to work you must do the following:
+
+- Complete all the preparation work before class. This includes reading and working through the lecture slides.
+- Ask questions. Engage with your peers and me. In class or away from it. Use the WhatsApp group set up for this module and the comments section on the website. Surround yourself with people who are brighter than you, and make your conversations about ideas, not people and things. If you get a question wrong on an assessment, ask why. If you are not sure about the Lab assignments, ask. If you hear something on the news that sounds related to what we discussed, raise it as a topic for discussion in class. If the reading is confusing, ask.
+- Do all assignments and Labs, attend all sessions, and do not be late. The earlier you start, the better. You should ask yourself how these exercises relate to earlier material and imagine how they might be changed (to make questions for an exam, for example). It is not enough to just mechanically plough through the exercises.
+- Do not procrastinate. If something is confusing to you in Week 2, Week 3 will become more confusing, Week 4 even worse, and eventually, you will not know where to begin asking questions. Do not end a week with unanswered questions. But if you fall behind and do not know where to start asking, come to my office, and let me help you identify a good (re)starting point.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J. and J. Smit, A.},
+  title = {BDC223: {Plant} {Ecophysiology}},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BDC223/BDC223_index.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, J. Smit A (2026) BDC223: Plant Ecophysiology. [https://tangledbank.netlify.app/BDC223/BDC223_index.html.](https://tangledbank.netlify.app/BDC223/BDC223_index.html)

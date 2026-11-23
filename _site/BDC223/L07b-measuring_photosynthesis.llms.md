@@ -1,0 +1,567 @@
+> **IMPORTANT:**
+>
+> Work through this lecture on your own after [Lecture 7a: Pigments & Photosynthesis](../BDC223/L07a-pigments_photosynthesis.llms.md). It prepares you for [Lab 3: PI Curves (Jassby and Platt)](../BDC223/Lab3_PI_curves.llms.md), in which you calculate photosynthetic rates from oxygen data and fit a P–I curve. Each section opens with a summary slide; the text below the slide explains it. Three short animations show the main procedures. The self-test questions at the end have expandable answers.
+
+> **TIP:**
+>
+> - What we can measure when we measure photosynthesis: CO₂ uptake, O₂ release, carbon fixation and electron transport.
+> - Gross photosynthesis, net photosynthesis and respiration; the photosynthetic quotient; how rates are normalised.
+> - The design of a photosynthesis–irradiance (P–I) experiment.
+> - Oxygen methods: light and dark bottles, oxygen electrodes and optodes.
+> - CO₂ methods: infrared gas analysis of leaves.
+> - Tracer methods: ¹⁴C, ¹³C and ¹⁸O.
+> - Chlorophyll fluorescence: PAM fluorometry, quantum yields, electron transport rates and rapid light curves.
+> - Processing raw data into rates, P–I curves and their parameters.
+> - Choosing a method for terrestrial plants, seaweeds and microalgae.
+
+> **TIP:**
+>
+> This self-study lecture explains how photosynthesis is measured. It builds on the P–I curve and pigment theory of [Lecture 7a](../BDC223/L07a-pigments_photosynthesis.llms.md) and prepares you to calculate rates and fit P–I curves in [Lab 3](../BDC223/Lab3_PI_curves.llms.md). Each method follows a different part of the process, so the lecture shows what each one measures, how raw data become rates, and how to choose a method for a given organism and question.
+
+> **TIP:**
+>
+> By the end of this lecture, you will be able to:
+>
+> 1.  Distinguish gross photosynthesis, net photosynthesis and respiration, and explain which of these each method measures.
+> 2.  Describe the experimental set-up and design of the main methods used to measure photosynthesis in terrestrial plants, seaweeds and microalgae.
+> 3.  Convert raw measurements (oxygen slopes, CO₂ differences, radioactivity counts and fluorescence yields) into photosynthetic rates with correct units.
+> 4.  Construct a P–I curve from these rates and estimate α, P_(max), R, I_(k) and I_(c).
+> 5.  Evaluate the strengths and limitations of each method, and choose an appropriate method for a given organism and question.
+
+> **NOTE:**
+>
+> - [Maxwell, K., & Johnson, G. N. (2000). Chlorophyll fluorescence: a practical guide. Journal of Experimental Botany, 51(345), 659–668.](https://doi.org/10.1093/jexbot/51.345.659)
+> - [Long, S. P., & Bernacchi, C. J. (2003). Gas exchange measurements, what can they tell us about the underlying limitations to photosynthesis? Procedures and sources of error. Journal of Experimental Botany, 54(392), 2393–2401.](https://doi.org/10.1093/jxb/erg262)
+
+All numerical examples in this lecture are **illustrative data**, simulated from stated models so that you can follow every calculation. They are not measurements of a particular species. The scripts that generate them, the slides and the animations are linked at the end.
+
+## 1 What can we measure?
+
+[![](images/L07b/L07b-slide-01.png)](images/L07b/L07b-slide-01.png)
+
+Photosynthesis can be summarised as
+
+$$6\,\text{CO}_2 + 6\,\text{H}_2\text{O} \xrightarrow{\text{light}} \text{C}_6\text{H}_{12}\text{O}_6 + 6\,\text{O}_2$$
+
+The equation hides many steps, but it shows the four kinds of change we can follow. CO₂ is taken up, O₂ is released, carbon is built into organic matter, and, before any of this, light energy drives electrons through photosystem II (PSII). Every method in this lecture measures one of these. Gas-exchange systems measure the CO₂ taken up by a leaf. Oxygen electrodes, optodes and the Winkler titration measure O₂ released into water. Radioactive (¹⁴C) or stable (¹³C) carbon tracers measure the carbon fixed into organic matter, and ¹⁸O-labelled water measures the total O₂ produced. Chlorophyll fluorescence measures the efficiency of electron transport through PSII.
+
+Because the methods follow different parts of the process, they do not always give the same answer, even for the same sample. Knowing which part each method sees is the key to interpreting the results ([Hunt 2003](#ref-hunt2003measurements)).
+
+## 2 Gross, net and respiration
+
+[![](images/L07b/L07b-slide-02.png)](images/L07b/L07b-slide-02.png)
+
+A plant respires all the time, in the light and in the dark. What we measure in the light is therefore **net photosynthesis** (NP): the O₂ produced by photosynthesis minus the O₂ used in respiration (or, for CO₂, the uptake by photosynthesis minus the release by respiration). In darkness photosynthesis stops, and we measure **respiration** (R) alone. **Gross photosynthesis** (GP) is the total:
+
+$$GP = NP + R$$
+
+This simple addition assumes that respiration in the light is the same as in the dark. That is not strictly true: respiration and photorespiration can be higher in the light. We return to this when discussing the ¹⁸O method.
+
+Oxygen and carbon rates can be converted into each other using the **photosynthetic quotient**, PQ = moles of O₂ released per mole of CO₂ fixed. If all fixed carbon became carbohydrate, PQ would be exactly 1. Because some electrons are used for other products (for example, to reduce nitrate), PQ is usually somewhat above 1; values of about 1.0–1.4 are typical.
+
+A rate is only meaningful once it is **normalised**: expressed per unit of the material doing the photosynthesis. Leaves are usually expressed per square metre of leaf area, seaweeds and seagrasses per gram of fresh or dry mass (or per unit area of thallus), microalgae per unit of chlorophyll *a* or per cell, and natural phytoplankton per cubic metre of water. Always state the basis, because a rate per gram of fresh mass cannot be compared directly with one per gram of dry mass.
+
+## 3 Designing a P–I experiment
+
+[![](images/L07b/L07b-slide-03.png)](images/L07b/L07b-slide-03.png)
+
+The most common photosynthesis experiment measures the rate at a series of irradiances to build the photosynthesis–irradiance (P–I) curve introduced in [Lecture 7a](../BDC223/L07a-pigments_photosynthesis.llms.md). Whatever the method, a good P–I experiment has the same features.
+
+- **A range of irradiances**, from darkness through the light-limited part of the curve to light saturation, with several points at low light where the curve is steep.
+- **Acclimation at each step.** After the light changes, photosynthesis takes some time to settle at its new rate (seconds for fluorescence, a minute or more for oxygen and CO₂). Data from this period are discarded.
+- **Constant conditions**, apart from light. Temperature, CO₂ (or dissolved inorganic carbon, DIC, in water), O₂ concentration and water movement all affect the rate, so they must be controlled and recorded.
+- **Controls**: a dark measurement for respiration and, for aquatic incubations, a chamber or bottle without the organism to check for drift or for activity of bacteria in the water.
+- **Replication** with independent samples (different plants or thalli, not repeated readings on one sample), and a record of the mass, area or chlorophyll used for normalisation.
+
+## 4 Oxygen methods
+
+### 4.1 Light and dark bottles (Winkler titration)
+
+[![](images/L07b/L07b-slide-04.png)](images/L07b/L07b-slide-04.png)
+
+The oldest method for aquatic photosynthesis, still used for plankton, compares bottles of the same water. One bottle is “fixed” with chemicals at the start to record the initial O₂ concentration. A clear bottle and a dark bottle are incubated, either at the depth the water came from or in an incubator, for several hours. At the end, dissolved O₂ is measured by the Winkler titration, a chemical method in which the O₂ in the sample is converted into an equivalent amount of iodine that is then titrated.
+
+**Worked example.** After 6 h, the initial bottle holds 7.80 mg O₂ L⁻¹, the light bottle 8.45 mg O₂ L⁻¹ and the dark bottle 7.55 mg O₂ L⁻¹.
+
+- NP = (8.45 − 7.80) / 6 = 0.108 mg O₂ L⁻¹ h⁻¹
+- R = (7.80 − 7.55) / 6 = 0.042 mg O₂ L⁻¹ h⁻¹
+- GP = 0.108 + 0.042 = 0.150 mg O₂ L⁻¹ h⁻¹
+
+To express GP as carbon, convert mass of O₂ to mass of C (× 12/32) and divide by the PQ: with PQ = 1.2, GP = 0.150 × 12/32 / 1.2 = 0.047 mg C L⁻¹ h⁻¹, or 47 mg C m⁻³ h⁻¹.
+
+The method is simple and cheap, but the change in O₂ in unproductive water is small compared with the precision of the titration. Long incubations are then needed, and the water in a closed bottle gradually becomes less like the natural water.
+
+### 4.2 Oxygen electrodes and optodes
+
+[![](images/L07b/L07b-slide-05.png)](images/L07b/L07b-slide-05.png)
+
+For seaweeds, seagrasses, aquatic plants, leaf discs and algal cultures, O₂ is usually measured continuously in a sealed chamber. Two kinds of sensor are used. A **Clark-type electrode** measures the current produced when O₂ is reduced at a cathode behind a gas-permeable membrane. An **optode** contains a dye whose fluorescence is quenched by O₂; it consumes no O₂ and does not need stirring to read correctly, so optodes have largely replaced electrodes in many laboratories. Small optode spots can be read in the wells of a microplate, which allows many small samples, such as the early life stages of seaweeds, to be measured at once ([Veenhof et al. 2024](#ref-veenhof2024novel)).
+
+The chamber has a water jacket connected to a water bath to hold the temperature constant, and a magnetic stirrer. Stirring matters for aquatic organisms. A layer of almost still water, the diffusive boundary layer, surrounds every submerged surface, and CO₂ and bicarbonate must diffuse through it. Without stirring this layer thickens, and the measured rate may reflect the supply of carbon through the boundary layer rather than the capacity of photosynthesis. A lamp with adjustable output provides the light, and PAR is measured at the position of the sample with a quantum sensor ([Lecture 6](../BDC223/L06-light.llms.md)).
+
+Incubations should be short. As O₂ accumulates and DIC is used up, the conditions in the chamber drift away from those at the start, and very high O₂ can increase photorespiration and form bubbles.
+
+### 4.3 From an oxygen trace to a rate
+
+[![](images/L07b/L07b-slide-06.png)](images/L07b/L07b-slide-06.png)
+
+The animation below shows a complete oxygen P–I experiment, from the raw trace to the fitted curve.
+
+Your browser cannot play this video. [Download the animation](animations/measuring_photosynthesis/oxygen_to_PI.mp4).
+
+In this illustrative experiment, 2.0 g fresh mass (FM) of seaweed sits in 0.20 L of seawater, and the irradiance is raised in eight 5-min steps from 0 to 800 µmol photons m⁻² s⁻¹. The O₂ trace consists of straight segments. Each slope (µmol O₂ L⁻¹ min⁻¹, i.e. µM min⁻¹) is fitted to minutes 1–5 of its step, discarding the first minute as acclimation. The slope becomes a rate per gram per hour:
+
+$$P = \text{slope}\,(\mu\text{M min}^{-1}) \times 60\ (\text{min h}^{-1}) \times \frac{V\,(\text{L})}{m\,(\text{g})}$$
+
+The units work out as µmol O₂ L⁻¹ min⁻¹ × min h⁻¹ × L g⁻¹ = µmol O₂ g⁻¹ h⁻¹. At 200 µmol photons m⁻² s⁻¹ the slope is 3.796 µM min⁻¹, so P = 3.796 × 60 × 0.20 / 2.0 = 22.8 µmol O₂ g⁻¹ FM h⁻¹.
+
+| PAR (µmol photons m⁻² s⁻¹) | Slope (µM min⁻¹) | Net rate (µmol O₂ g⁻¹ FM h⁻¹) |
+|---------------------------:|-----------------:|------------------------------:|
+|                          0 |           −0.838 |                         −5.03 |
+|                         25 |            0.236 |                          1.42 |
+|                         50 |            1.193 |                          7.16 |
+|                        100 |            2.579 |                         15.48 |
+|                        200 |            3.796 |                         22.78 |
+|                        400 |            4.206 |                         25.24 |
+|                        600 |            4.220 |                         25.32 |
+|                        800 |            4.186 |                         25.12 |
+
+Table 1: Slopes and rates for the illustrative oxygen experiment.
+
+## 5 From rates to a P–I curve
+
+[![](images/L07b/L07b-slide-07.png)](images/L07b/L07b-slide-07.png)
+
+Plotting the rates in [Table 1](#tbl-o2-rates) against irradiance gives the P–I curve. We fit the modified Jassby and Platt model ([Jassby and Platt 1976](#ref-jassby1976mathematical)), the same model you use in Lab 3:
+
+$$P = P_{max} \tanh\!\left(\frac{\alpha I}{P_{max}}\right) - R$$
+
+Fitting means finding the values of P_(max), α and R that make the curve pass as close as possible to the points (non-linear least squares; spreadsheet Solver, R and Python can all do this). For the data above, P_(max) = 30.0 µmol O₂ g⁻¹ FM h⁻¹, α = 0.249 µmol O₂ g⁻¹ FM h⁻¹ (µmol photons m⁻² s⁻¹)⁻¹ and R = 4.8 µmol O₂ g⁻¹ FM h⁻¹. Two further parameters follow from these:
+
+- the **saturation irradiance**, I_(k) = P_(max) / α = 121 µmol photons m⁻² s⁻¹, where the initial slope meets the level of P_(max);
+- the **compensation irradiance**, I_(c), where net photosynthesis is zero: I_(c) = (P_(max) / α) × artanh(R / P_(max)) = 20 µmol photons m⁻² s⁻¹.
+
+Note that P_(max) in this model is the maximum *gross* rate. The highest *net* rate, at which the curve levels off on the graph, is P_(max) − R = 25.2 µmol O₂ g⁻¹ FM h⁻¹. Where the data show a decline at high irradiance (photoinhibition), a model with a photoinhibition term, such as that of Platt et al. ([1980](#ref-platt1980photoinhibition)), is used instead.
+
+## 6 Gas exchange in terrestrial leaves
+
+### 6.1 The open system
+
+[![](images/L07b/L07b-slide-08.png)](images/L07b/L07b-slide-08.png)
+
+For leaves in air, photosynthesis is measured as CO₂ uptake with infrared gas analysers (IRGAs). CO₂ absorbs infrared radiation at characteristic wavelengths, so the amount of infrared absorbed by a gas sample gives its CO₂ concentration. Most modern instruments are **open (flow-through) systems** ([Long and Bernacchi 2003](#ref-long2003gas); [Busch et al. 2024](#ref-busch2024guide)). Air with a controlled CO₂ concentration flows at a known rate through a small chamber clamped onto an attached leaf. One analyser measures the air before it enters the chamber (the reference), and another measures it as it leaves (the sample). Because the leaf takes up CO₂, the sample air contains less CO₂ than the reference. The chamber also controls light, leaf temperature and humidity, and water vapour is measured as well, so the same measurement gives transpiration and stomatal conductance.
+
+The short animation shows what happens inside the chamber. The CO₂ parcels removed by the leaf are exaggerated about threefold so that the uptake is visible.
+
+Your browser cannot play this video. [Download the animation](animations/measuring_photosynthesis/leaf_chamber.mp4).
+
+### 6.2 From CO₂ differences to a light response curve
+
+[![](images/L07b/L07b-slide-09.png)](images/L07b/L07b-slide-09.png)
+
+The net CO₂ assimilation rate, A, is the flow of air multiplied by the drop in CO₂ concentration, per unit leaf area:
+
+$$A = \frac{u\,(C_r - C_s)}{s}$$
+
+where u is the molar flow rate of air (mol s⁻¹), C_(r) and C_(s) are the CO₂ mole fractions of the reference and sample air (µmol CO₂ mol⁻¹ air), and s is the leaf area in the chamber (m²). The full equation used by commercial instruments also corrects for the water vapour that the leaf adds to the air, which dilutes the CO₂ slightly; we ignore that correction here.
+
+**Worked example.** With u = 500 µmol s⁻¹ = 5.00 × 10⁻⁴ mol s⁻¹, s = 6 cm² = 6.0 × 10⁻⁴ m², C_(r) = 420 and C_(s) = 394.75 µmol mol⁻¹ (a difference of 25.25), A = 5.00 × 10⁻⁴ × 25.25 / 6.0 × 10⁻⁴ = 21.0 µmol CO₂ m⁻² s⁻¹.
+
+A **light response curve** repeats this at several irradiances. Instruments usually step the light from high to low, because leaves adjust to decreasing light faster than to increasing light, and they wait at each step until the CO₂ difference is stable. The illustrative leaf in the slide gives A_(max) = 22.1 µmol CO₂ m⁻² s⁻¹, α = 0.060 mol CO₂ mol⁻¹ photons, R_(d) = 1.27 µmol CO₂ m⁻² s⁻¹, I_(k) = 367 and I_(c) = 21 µmol photons m⁻² s⁻¹. The same instruments also measure the response of A to the CO₂ concentration inside the leaf (A/C_(i) curves), which separates the limitation of photosynthesis by Rubisco from that by electron transport ([Long and Bernacchi 2003](#ref-long2003gas)); that analysis is beyond this module.
+
+Gas exchange works in air. For submerged plants and algae, the equivalent carbon measurements use changes in DIC, pH or alkalinity of the water, or the tracer methods below.
+
+## 7 Isotopic and radioactive methods
+
+### 7.1 The ¹⁴C method
+
+[![](images/L07b/L07b-slide-10.png)](images/L07b/L07b-slide-10.png)
+
+Steemann Nielsen ([1952](#ref-steemannnielsen1952use)) introduced radioactive carbon (¹⁴C) to measure the production of marine phytoplankton, and it remains the standard method for low-productivity waters because it is very sensitive ([Peterson 1980](#ref-peterson1980aquatic)). A known amount of ¹⁴C-labelled bicarbonate is added to light and dark bottles of sample water. Because the algae cannot distinguish ¹⁴C from ordinary carbon (apart from a small isotope effect), they fix the label in the same proportion as the total DIC. After incubation (from 2 h for P–I curves to 24 h for daily production), the cells are filtered, unfixed ¹⁴C is removed by acidifying the filter, and the radioactivity fixed into organic matter is counted in a liquid scintillation counter as disintegrations per minute (DPM).
+
+$$P = \frac{DPM_{light} - DPM_{dark}}{DPM_{added}} \times \text{DIC} \times 1.05 \,\big/\, t$$
+
+The fraction of the added label that was fixed equals the fraction of the DIC that was fixed. The factor 1.05 corrects for the slightly slower uptake of ¹⁴C than ¹²C, and the dark bottle corrects for non-photosynthetic uptake and adsorption of label.
+
+**Worked example.** 5 µCi of ¹⁴C (1 µCi = 2.22 × 10⁶ DPM, so 1.11 × 10⁷ DPM) is added to a bottle. DIC is 2.0 mmol L⁻¹, i.e. 24 mg C L⁻¹ or 24,000 mg C m⁻³. After 2 h, the filtered cells give 3,350 DPM (light) and 150 DPM (dark). Fraction fixed = (3,350 − 150) / 1.11 × 10⁷ = 2.88 × 10⁻⁴, so P = 2.88 × 10⁻⁴ × 24,000 × 1.05 / 2 = 3.6 mg C m⁻³ h⁻¹.
+
+For P–I curves, many small vials of the same sample are incubated together at different irradiances in a “photosynthetron”, a block lit from below with filters that give a range of light levels (slide 18).
+
+### 7.2 Stable isotopes: ¹³C and ¹⁸O
+
+[![](images/L07b/L07b-slide-11.png)](images/L07b/L07b-slide-11.png)
+
+The stable isotope ¹³C can replace ¹⁴C. It is measured with a mass spectrometer rather than a scintillation counter, so no radioactive material is needed. The principle and the calculation are the same.
+
+The ¹⁸O method measures **gross** oxygen production directly. The O₂ released in photosynthesis comes from water, not from CO₂. If water labelled with ¹⁸O is added to a sample, the O₂ produced by photosynthesis carries the label, and its accumulation is measured by mass spectrometry. Respiration removes O₂ from the dissolved pool, but in a short incubation it removes very little of the newly labelled O₂, so the labelled O₂ that accumulates measures gross O₂ production, including O₂ that respiration in the light would otherwise have hidden.
+
+### 7.3 Which rate does each method measure?
+
+[![](images/L07b/L07b-slide-12.png)](images/L07b/L07b-slide-12.png)
+
+Comparing methods on the same water samples shows how their results relate. In the oligotrophic North Pacific, ¹⁴C production was about 60–100% of the gross O₂ production measured with ¹⁸O, while O₂ light and dark bottles incubated in situ gave rates similar to ¹⁸O ([Grande et al. 1989](#ref-grande1989primary)). In estuaries, ¹⁴C and O₂ bottle rates did not differ significantly, but ¹⁸O gave lower rates, possibly because labelled oxygen was recycled inside the cells; the authors advise caution when using ¹⁸O in nutrient-rich, low-oxygen water ([Gazeau et al. 2007](#ref-gazeau2007planktonic)). In lakes, comparisons with continuous oxygen sensors in the open water support the view that ¹⁴C measures a rate somewhere between gross and net production ([Lottig et al. 2021](#ref-lottig2021estimating)).
+
+The general pattern is that ¹⁸O approximates gross O₂ production, and ¹⁴C lies between gross and net carbon fixation. Short ¹⁴C incubations are closer to gross, because little of the newly fixed ¹⁴C has yet been respired; long incubations are closer to net. Fluorescence (next section) measures electron transport, which sets an upper limit to gross photosynthesis. When you read a published rate, check which method was used and what it measures before comparing it with another study.
+
+## 8 Chlorophyll fluorescence
+
+### 8.1 Three fates of absorbed light
+
+[![](images/L07b/L07b-slide-13.png)](images/L07b/L07b-slide-13.png)
+
+Light energy absorbed by the chlorophyll of PSII has three possible fates. It can drive photochemistry (electron transport), it can be dissipated as heat, or it can be re-emitted as red fluorescence. The three compete for the same energy, so a change in one changes the others. When PSII reaction centres are able to accept energy, most of it goes to photochemistry and fluorescence is low. When the reaction centres are closed (busy, or blocked), more energy goes to fluorescence and heat. Measuring fluorescence under the right conditions therefore tells us how efficiently PSII is using light ([Maxwell and Johnson 2000](#ref-maxwell2000chlorophyll); [Murchie and Lawson 2013](#ref-murchie2013chlorophyll)).
+
+Fluorescence from a leaf is very weak compared with the reflected light in sunshine. A pulse-amplitude modulated (PAM) fluorometer solves this by using a weak, rapidly pulsed **measuring light** and recording only the fluorescence that pulses at the same frequency. This allows fluorescence to be measured in full sunlight, in the field and under water.
+
+### 8.2 The saturating pulse
+
+[![](images/L07b/L07b-slide-14.png)](images/L07b/L07b-slide-14.png)
+
+The key technique is the **saturating pulse**: a very bright flash, lasting less than a second, that briefly closes all PSII reaction centres. The animation shows the sequence.
+
+Your browser cannot play this video. [Download the animation](animations/measuring_photosynthesis/saturating_pulse.mp4).
+
+1.  After a period in darkness (typically 15–30 min), all reaction centres are open. The measuring light gives the minimum fluorescence, F₀.
+2.  A saturating pulse closes all centres and gives the maximum fluorescence, F_(m). The difference, F_(v) = F_(m) − F₀, is the variable fluorescence. The **maximum quantum yield of PSII** is F_(v)/F_(m) = (F_(m) − F₀)/F_(m). In the example, (1,500 − 300) / 1,500 = 0.80. Healthy, unstressed leaves of most species give values close to 0.8; lower values indicate stress or photoinhibition.
+3.  In actinic light (light that drives photosynthesis), fluorescence settles at a steady level, F. A saturating pulse now gives F_(m)′, which is lower than F_(m) because some energy is being dissipated as heat. The **effective quantum yield of PSII** is Φ_(PSII) = (F_(m)′ − F)/F_(m)′ ([Genty et al. 1989](#ref-genty1989relationship)). In the example, (950 − 600) / 950 = 0.37: 37% of the light absorbed by PSII is used in photochemistry at this irradiance.
+
+### 8.3 Electron transport rate and rapid light curves
+
+[![](images/L07b/L07b-slide-15.png)](images/L07b/L07b-slide-15.png)
+
+Multiplying the quantum yield by the rate at which PSII absorbs photons gives the **electron transport rate**:
+
+$$\text{ETR} = \Phi_{PSII} \times \text{PAR} \times 0.5 \times a$$
+
+The factor 0.5 assumes that absorbed light is shared equally between PSII and photosystem I, and *a* is the absorptance of the leaf, the fraction of incident PAR it absorbs (often taken as 0.84 for green leaves). At 400 µmol photons m⁻² s⁻¹: ETR = 0.37 × 400 × 0.5 × 0.84 = 62 µmol electrons m⁻² s⁻¹.
+
+A **rapid light curve** (RLC) exposes the sample to a series of increasing irradiances, each lasting only about 10 s, with a saturating pulse at the end of each step ([Ralph and Gademann 2005](#ref-ralph2005rapid)). A complete curve takes a minute or two. ETR plotted against PAR has the same shape as a P–I curve and is fitted with the same model (without a respiration term, because fluorescence does not measure respiration). The illustrative curve in the slide gives ETR_(max) = 111 µmol e⁻ m⁻² s⁻¹, α = 0.33 electrons per incident photon and E_(k) = ETR_(max)/α = 334 µmol photons m⁻² s⁻¹.
+
+Because each step is so short, an RLC does not show the steady-state response of the plant. It describes the current state of the photosynthetic apparatus, which depends on the light the sample received in the minutes to hours beforehand.
+
+### 8.4 Strengths and cautions
+
+[![](images/L07b/L07b-slide-16.png)](images/L07b/L07b-slide-16.png)
+
+Fluorescence is fast, non-invasive and needs no enclosure, so it is ideal for field work and for comparing many samples. Submersible instruments such as the Diving-PAM measure seagrasses and seaweeds in situ ([Ralph et al. 1998](#ref-ralph1998situ)). Its results need careful interpretation, however.
+
+- **Electrons are not carbon.** In theory four electrons are transported for each O₂ released. In seagrasses, O₂ evolution and ETR were linearly related over a range of irradiances, with a molar ratio of about 0.3 O₂ per electron for *Cymodocea nodosa*, close to the theoretical 0.25; in other species O₂ evolution fell behind ETR at high irradiance, probably because of photorespiration ([Beer et al. 1998](#ref-beer1998measuring)).
+- **Absorptance is often assumed.** If *a* is not measured, ETR is a *relative* ETR (rETR), useful for comparisons within a study but not as an absolute rate. Comparing α between seasons or sites can be misleading when absorptance differs, and plotting ETR against absorbed rather than incident light avoids this problem ([Saroussi et al. 2006](#ref-saroussi2006alpha)).
+- **Light history matters.** RLC parameters change during the day and with the recent light environment of the sample.
+
+When absolute rates of carbon fixation or oxygen production are needed, fluorescence should be calibrated against O₂ or ¹⁴C measurements on the same material.
+
+## 9 Applying the methods to different organisms
+
+### 9.1 Seaweeds and seagrasses
+
+[![](images/L07b/L07b-slide-17.png)](images/L07b/L07b-slide-17.png)
+
+Seaweeds and seagrasses are usually measured by O₂ evolution in stirred, temperature-controlled chambers in the laboratory, with pieces of thallus or leaf normalised to fresh or dry mass, area or chlorophyll. Large seaweeds such as kelps are difficult to measure in the laboratory without cutting them. In situ systems enclose an entire kelp in a bag or chamber fitted with an O₂ logger. For the kelp *Ecklonia radiata*, the maximum rates of P–I curves measured in the laboratory were 42–55% lower than those measured in situ, which suggests that laboratory measurements underestimate kelp forest productivity ([Rodgers et al. 2015](#ref-rodgers2015novel)). Larger benthic chambers enclose whole patches of reef, and PAM fluorometry adds rapid in situ measurements. For *E. radiata*, chamber O₂ fluxes and fluorescence ETR were well correlated, but ETR may overestimate O₂ production, so the two methods need to be calibrated against each other ([Randall et al. 2019](#ref-randall2019situ)).
+
+### 9.2 Microalgae and phytoplankton
+
+[![](images/L07b/L07b-slide-18.png)](images/L07b/L07b-slide-18.png)
+
+Phytoplankton occur as dilute suspensions, so the change in O₂ or carbon in a bottle is small, and sensitive methods are needed. ¹⁴C incubations in a photosynthetron give P–I curves from many light levels at once. For natural phytoplankton, rates are often normalised to chlorophyll *a*, and the parameters are then written with a superscript B (for biomass): P^(B)_(max) in mg C (mg Chl *a*)⁻¹ h⁻¹ and α^(B). Light and dark O₂ bottles and the ¹⁸O method give gross and net rates. Active fluorescence instruments (PAM, and fast repetition rate fluorometers, FRRF) measure continuously from ships and moorings, but, as for macrophytes, converting electron transport into carbon fixation requires calibration.
+
+### 9.3 Terrestrial plants: from leaf to canopy
+
+[![](images/L07b/L07b-slide-19.png)](images/L07b/L07b-slide-19.png)
+
+For terrestrial plants, portable gas-exchange systems are the standard tool: they measure light and CO₂ response curves on attached leaves in the field ([Long and Bernacchi 2003](#ref-long2003gas)). Leaf-disc O₂ electrodes measure the light-saturated capacity of leaf pieces at high CO₂. Fluorescence (often F_(v)/F_(m)) is widely used for rapid screening of stress and photoinhibition ([Murchie and Lawson 2013](#ref-murchie2013chlorophyll)). Whole plants can be enclosed in larger chambers. For whole canopies, towers above the vegetation measure the CO₂ exchange of the entire ecosystem from rapid fluctuations of wind speed and CO₂ concentration (eddy covariance). Remember that each scale has its own value: the rate of a sunlit leaf at the top of the canopy is not the rate of the canopy.
+
+## 10 Choosing a method
+
+[![](images/L07b/L07b-slide-20.png)](images/L07b/L07b-slide-20.png)
+
+No method is best for every purpose. The choice depends on the organism (in air or in water, large or microscopic, at high or low biomass), the scale (a leaf, a thallus, a bottle of water or an ecosystem), the rate you need (gross, net, carbon or electrons) and practical matters such as cost, radioactivity licensing and whether the work must be done in the field. Many studies combine methods: for example, PAM fluorometry for many quick measurements, calibrated against O₂ evolution on a subset of samples. A guide such as Hunt ([2003](#ref-hunt2003measurements)) is a useful overview of the options and their limitations.
+
+## 11 Summary
+
+[![](images/L07b/L07b-slide-21.png)](images/L07b/L07b-slide-21.png)
+
+- Photosynthesis can be followed as CO₂ uptake, O₂ release, carbon fixed into organic matter, or electron transport through PSII, and each method measures a different one of these.
+- Measurements in the light give net photosynthesis; respiration is measured in darkness, and gross photosynthesis is their sum if respiration is the same in light and dark.
+- Oxygen electrodes and optodes are the main tools for seaweeds and aquatic plants; open gas-exchange systems with infrared gas analysers are the main tools for leaves.
+- ¹⁴C measures a rate between gross and net production and is the most sensitive method for phytoplankton; ¹⁸O measures gross O₂ production.
+- PAM fluorometry measures the efficiency of PSII quickly and non-destructively, and electron transport rates estimate, but do not equal, carbon fixation.
+- Rates must be expressed per unit time and per unit biomass, area or chlorophyll, and a P–I curve fitted to them gives α, P_(max), R, I_(k) and I_(c).
+
+## 12 Self-test questions
+
+> **NOTE:**
+>
+> R = 0.60 × 60 × 0.25 / 1.5 = 6.0 µmol O₂ g⁻¹ FM h⁻¹. NP = 3.00 × 60 × 0.25 / 1.5 = 30.0 µmol O₂ g⁻¹ FM h⁻¹. GP = NP + R = 36.0 µmol O₂ g⁻¹ FM h⁻¹ (assuming respiration in the light equals respiration in the dark).
+
+> **NOTE:**
+>
+> A = 6.0 × 10⁻⁴ mol s⁻¹ × 20 µmol mol⁻¹ / 6.0 × 10⁻⁴ m² = 20 µmol CO₂ m⁻² s⁻¹ (ignoring the water-vapour correction).
+
+> **NOTE:**
+>
+> F_(v)/F_(m) = (1,000 − 250) / 1,000 = 0.75. Φ_(PSII) = (700 − 500) / 700 = 0.29. ETR = 0.29 × 600 × 0.5 × 0.84 = 72 µmol e⁻ m⁻² s⁻¹.
+
+> **NOTE:**
+>
+> Over 24 h, part of the ¹⁴C fixed early in the incubation is respired again (by the algae and by organisms that consume their products) and some is released as dissolved organic carbon that does not stay on the filter. Long incubations therefore approach net production, whereas short incubations are closer to gross production.
+
+> **NOTE:**
+>
+> In situ O₂ incubation chambers give absolute rates of whole thalli under natural light and water movement, and PAM fluorometry (rapid light curves with a Diving-PAM) allows many quick measurements at both depths. Using both lets you calibrate ETR against O₂ evolution. Laboratory incubations of excised pieces are simpler, but rates measured in the laboratory may not represent those in the field.
+
+> **NOTE:**
+>
+> A diffusive boundary layer of almost still water surrounds submerged surfaces. Without stirring it becomes thicker, and the supply of CO₂ and bicarbonate (and the removal of O₂) by diffusion through it can limit the measured rate, so the experiment measures the transport through the boundary layer rather than the capacity of photosynthesis.
+
+## 13 Sources of the figures and animations
+
+The slides were made with LaTeX (Beamer and TikZ); the illustrative datasets, fits and worked examples come from `slides/L07b-measuring-photosynthesis/models.py`. The oxygen and fluorescence animations were made with Manim (`animations/measuring_photosynthesis/films.py`), and the leaf-chamber animation with Blender (`animations/measuring_photosynthesis/blender_leaf_chamber.py`).
+
+## 14 Multiple-choice questions
+
+Click an option to check your answer. A green tick marks the correct option, and its explanation then appears below the options.
+
+**1.** Which pairing of method and the rate it mainly measures is most correct?
+
+- ¹⁸O-labelled water: net O₂ production; ¹⁴C: gross carbon fixation in any length of incubation.
+- ¹⁸O-labelled water: electron transport; ¹⁴C: gross O₂ production by the algae in the bottle.
+- ¹⁸O-labelled water: respiration alone; ¹⁴C: net carbon fixation in any length of incubation.
+- ¹⁸O-labelled water: gross O₂ production; ¹⁴C: a rate between gross and net carbon fixation.
+
+The O₂ released in photosynthesis comes from water, so ¹⁸O-labelled O₂ measures gross O₂ production. ¹⁴C lies between gross and net, closer to gross in short incubations and closer to net in long ones.
+
+**2.** An optode, unlike a Clark-type electrode, consumes no O₂ and reads correctly without stirring. Why must a seaweed chamber fitted with an optode still be stirred?
+
+- The optode dye is quenched by O₂ only when the water moves past it, so it reads as zero in still water.
+- The seaweed releases bubbles in still water, which the optode records as a fall in O₂ concentration.
+- The seaweed is surrounded by a boundary layer, through which carbon supply can limit the measured rate.
+- The stirrer heats the water to the set temperature, so the water jacket can then be switched off safely.
+
+The reason for stirring is biological, not instrumental. Without stirring the diffusive boundary layer thickens, and the rate may then reflect CO₂ and bicarbonate supply through that layer rather than photosynthetic capacity.
+
+**3.** How does a PAM fluorometer measure chlorophyll fluorescence in full sunlight?
+
+- It uses a shade cloth to block sunlight and records the fluorescence produced by the remaining light.
+- It uses a strong, continuous measuring light and records all the red light that leaves the leaf surface.
+- It uses a weak, rapidly pulsed measuring light and records only fluorescence pulsing at that frequency.
+- It uses a weak, continuous measuring light and subtracts the reflected sunlight measured at night.
+
+Fluorescence is weak compared with reflected sunlight. Modulating the measuring light and detecting only the signal at the same frequency separates the fluorescence it excites from the background.
+
+**4.** Why is Fm′ (in actinic light) lower than Fm (after dark adaptation) in the same healthy leaf?
+
+- In the light, chlorophyll is broken down within seconds, so less pigment is present to fluoresce.
+- In the light, part of the absorbed energy is dissipated as heat, so less is re-emitted as fluorescence.
+- In the light, all PSII reaction centres stay open during the pulse, so none of them is able to fluoresce.
+- In the light, the measuring light is switched off, so only the saturating pulse excites the leaf.
+
+Photochemistry, heat and fluorescence compete for the same absorbed energy. In actinic light more energy is dissipated as heat, so the maximum fluorescence reached during a saturating pulse is lower.
+
+**5.** A study reports ETR without measuring the absorptance of the samples, using an assumed value. Which statement is most correct?
+
+- It is a relative ETR, useful within the study but risky for comparing α between sites or seasons.
+- It is an absolute ETR, because the factor 0.5 already corrects for any differences in absorptance.
+- It is a relative ETR, but it can be converted into carbon fixation by multiplying by four electrons.
+- It is an absolute ETR, because absorptance is the same for all leaves and thalli in a single study.
+
+Without measured absorptance the ETR is relative (rETR). If absorptance differs between samples, α can appear to differ even when the use of absorbed light does not; plotting against absorbed light avoids this.
+
+**6.** Which statement about normalising photosynthetic rates is most correct?
+
+- A rate per gram fresh mass equals the rate per gram dry mass, because the tissue is the same seaweed.
+- A rate per gram fresh mass cannot be compared directly with one per gram dry mass of the same seaweed.
+- A rate per unit chlorophyll a is written with the superscript B, and is used mainly for terrestrial leaves.
+- A rate per cubic metre of water is used for leaves, because their gas exchange happens in a volume of air.
+
+Fresh mass includes water, so the same O₂ production gives a lower rate per gram fresh mass than per gram dry mass. The superscript B denotes chlorophyll-normalised rates, used mainly for phytoplankton.
+
+**7.** Gross photosynthesis is commonly calculated as GP = NP + R, with R measured in darkness. Which statement is least wrong?
+
+- It assumes photorespiration equals dark respiration, which is true for most terrestrial leaves.
+- It assumes respiration in the light is zero, which is true because light inhibits respiration.
+- It assumes respiration in the light equals that in the dark, which is not strictly true.
+- It assumes respiration stops in the light, so dark R must be added back to the light rate.
+
+The addition assumes equal respiration in light and dark. Respiration and photorespiration can be higher in the light, so GP calculated this way may underestimate true gross production.
+
+**8.** A researcher measures P–I curves for the kelp *Ecklonia radiata* in two ways. Excised blade pieces are incubated in a stirred laboratory chamber, and whole kelps are enclosed in bags with O₂ loggers on the reef. Temperature is similar in both. The maximum rates from the laboratory are about half of those measured in situ. The researcher wants to estimate kelp forest productivity. Which interpretation is best supported?
+
+- Laboratory pieces underestimate the rates of whole kelps in the field; this shows that in situ chambers inflate rates and should be corrected downwards.
+- Laboratory pieces underestimate the rates of whole kelps in the field; scaling laboratory rates up to the forest would therefore underestimate its productivity.
+- Laboratory pieces overestimate the rates of whole kelps in the field; scaling laboratory rates up to the whole forest would therefore overestimate its productivity.
+- Laboratory pieces measure the same rates as whole kelps in the field; the difference therefore reflects only random error and can be safely ignored.
+
+The lecture cites laboratory maximum rates 42 to 55% lower than in situ rates for *E. radiata*, which suggests that laboratory measurements underestimate kelp forest productivity.
+
+**9.** O₂ evolution by an *Ulva* disc is measured at a saturating irradiance and constant temperature at four stirring speeds. The rate rises from 12 to 19 to 23 µmol O₂ g⁻¹ h⁻¹ over the first three speeds and stays at 23 at the fourth. A chamber with seawater but no alga shows no change in O₂ at any speed. The optode reads correctly without stirring. Which interpretation is best supported?
+
+- At low speeds bacteria in the water consumed the O₂ produced by the alga; P–I curves should therefore be measured at the fourth speed or above.
+- At low speeds the optode under-read the true O₂ concentration; P–I curves should therefore be measured at the fourth speed or above.
+- At low speeds carbon supply through the boundary layer limited the rate; P–I curves should therefore be measured at the lowest speed used.
+- At low speeds carbon supply through the boundary layer limited the rate; P–I curves should therefore be measured at the fourth speed or above.
+
+The blank shows no bacterial or drift effect, and the optode does not depend on stirring, so the rise with stirring reflects thinning of the diffusive boundary layer. Once the rate plateaus, transport no longer limits it and the chamber measures photosynthetic capacity.
+
+**10.** Water from an oligotrophic site is divided into replicate bottles and incubated in situ for 12 h. Production is measured with ¹⁸O-labelled water, with light and dark O₂ bottles, and with ¹⁴C. The ¹⁸O method and the O₂ bottles give similar rates. The ¹⁴C rate, converted to O₂ units with a photosynthetic quotient, is about 70% of the ¹⁸O rate. All bottles were handled identically. Which interpretation is best supported?
+
+- ¹⁴C measures gross carbon fixation directly; the lower value therefore shows that the ¹⁸O and O₂ bottle methods both overestimate production in these waters.
+- ¹⁴C measures a rate between gross and net production; the lower value therefore shows that the photosynthetic quotient must have been close to zero.
+- ¹⁴C measures a rate between gross and net production; the lower value therefore reflects what each method measures rather than an error in the ¹⁴C method.
+- ¹⁴C measures respiration in the dark bottle alone; the lower value therefore reflects the loss of carbon during the night rather than during daylight.
+
+This pattern matches comparisons in the oligotrophic North Pacific, where ¹⁴C gave about 60 to 100% of ¹⁸O gross production. Part of the newly fixed carbon is respired or lost before filtration, so ¹⁴C lies between gross and net.
+
+**11.** A seagrass is measured at increasing irradiance by PAM fluorometry and, on the same leaves, by O₂ evolution. At low irradiance, O₂ evolution and ETR are linearly related at about 0.26 O₂ per electron. Above about 600 µmol photons m⁻² s⁻¹, ETR keeps rising while O₂ evolution levels off. Absorptance was measured. Which interpretation is best supported?
+
+- At low light the ratio is close to the theoretical 0.25; at high light electrons pass to other sinks, such as photorespiration, so ETR overestimates O₂ production.
+- At low light the ratio is far from the theoretical 0.25; at high light electrons pass to other sinks, such as photorespiration, so ETR overestimates O₂ production.
+- At low light the ratio is close to the theoretical 0.25; at high light the O₂ sensor saturates, so O₂ evolution underestimates the true production of oxygen there.
+- At low light the ratio is close to the theoretical 0.25; at high light electrons pass to other sinks, such as photorespiration, so ETR underestimates O₂ production.
+
+Four electrons per O₂ gives 0.25 O₂ per electron, so 0.26 agrees with theory. Where ETR continues to rise but O₂ does not, some electrons are used for processes other than O₂ evolution, as reported for seagrasses. Fluorescence then needs calibration against O₂.
+
+**12.** Rapid light curves are measured on the same seagrass shoots at 07:00 and again at 13:00 on a clear day. Each step lasts 10 s. ETRmax is 40% higher at 13:00. Temperature in the water changes by less than 1 °C, and the shoots are not moved between measurements. A student concludes that the shoots have acclimatised to high light by building more photosynthetic machinery. Which assessment is most correct?
+
+- The curves describe the steady-state response of the plant, set by long-term growth; the difference therefore demonstrates real acclimatisation of the shoots.
+- The curves describe the current state of the apparatus, set by recent light history; the difference therefore need not reflect acclimatisation of the shoots.
+- The curves describe the current state of the apparatus, set by recent light history; the difference therefore demonstrates a heritable change in the shoots.
+- The curves describe the steady-state response of the plant, set by long-term growth; the difference therefore reflects error in the temperature control.
+
+Each RLC step is too short to reach steady state, so RLC parameters reflect the light received in the preceding minutes to hours and change during the day. A within-day change does not by itself show acclimatisation.
+
+**13.** A survey compares the leaves of a shrub at a heat-stressed site and a cool control site. At the control site leaves are dark-adapted for 20 min before a saturating pulse, giving 0.81. At the stressed site, for lack of time, leaves are measured directly in sunlight, giving 0.55. The student reports that Fv/Fm is lower at the stressed site. Which assessment is most correct?
+
+- The stressed-site value is a maximum yield measured in light; it is therefore valid as Fv/Fm, and the comparison shows clear photoinhibition.
+- The stressed-site value is an effective yield measured in light; it is therefore valid as Fv/Fm, and the comparison shows clear photoinhibition.
+- The stressed-site value is a maximum yield measured in light; it is therefore not Fv/Fm, and the comparison shows that ETR is also lower there.
+- The stressed-site value is an effective yield measured in light; it is therefore not Fv/Fm, and the comparison cannot establish photoinhibition.
+
+Fv/Fm requires dark adaptation so that all reaction centres are open. A pulse in sunlight gives (Fm′ − F)/Fm′, the effective yield, which is lower than Fv/Fm even in healthy leaves. The two sites were therefore not measured in the same way.
+
+**14.** A 2.4 g FM seaweed sits in a 0.30 L chamber. In darkness O₂ falls at 0.40 µM min⁻¹; at 250 µmol photons m⁻² s⁻¹ it rises at 2.20 µM min⁻¹. Assuming respiration is the same in light and dark, what is gross photosynthesis at this irradiance?
+
+- 19.5 µmol O₂ g⁻¹ FM h⁻¹
+- 0.33 µmol O₂ g⁻¹ FM h⁻¹
+- 13.5 µmol O₂ g⁻¹ FM h⁻¹
+- 65.0 µmol O₂ g⁻¹ FM h⁻¹
+
+R = 0.40 × 60 × 0.30/2.4 = 3.0 and NP = 2.20 × 60 × 0.30/2.4 = 16.5, so GP = 16.5 + 3.0 = 19.5 µmol O₂ g⁻¹ FM h⁻¹. Subtracting R gives 13.5; omitting × 60 gives 0.33; omitting the volume gives 65.0.
+
+**15.** In an open gas-exchange system, air flows at u = 700 µmol s⁻¹ over 6 cm² of leaf. The reference air contains 415 and the sample air 403 µmol CO₂ mol⁻¹. Ignoring the water-vapour correction, what is the net assimilation rate A?
+
+- 14.0 µmol CO₂ m⁻² s⁻¹
+- 0.14 µmol CO₂ m⁻² s⁻¹
+- 1,400 µmol CO₂ m⁻² s⁻¹
+- 484 µmol CO₂ m⁻² s⁻¹
+
+A = u(Cr − Cs)/s = 7.0 × 10⁻⁴ mol s⁻¹ × 12 µmol mol⁻¹ / 6.0 × 10⁻⁴ m² = 14.0 µmol CO₂ m⁻² s⁻¹. 0.14 and 1,400 come from converting cm² to m² wrongly (10⁻² or 10⁻⁶); 484 uses Cr instead of the difference.
+
+**16.** In a 4 h light and dark bottle experiment, the initial bottle holds 8.20, the light bottle 8.92 and the dark bottle 7.96 mg O₂ L⁻¹. What is gross photosynthesis?
+
+- 0.12 mg O₂ L⁻¹ h⁻¹
+- 0.24 mg O₂ L⁻¹ h⁻¹
+- 0.96 mg O₂ L⁻¹ h⁻¹
+- 0.18 mg O₂ L⁻¹ h⁻¹
+
+NP = (8.92 − 8.20)/4 = 0.18 and R = (8.20 − 7.96)/4 = 0.06, so GP = 0.24 mg O₂ L⁻¹ h⁻¹ (equivalently (light − dark)/t). 0.12 subtracts R; 0.18 is NP; 0.96 omits the division by time.
+
+**17.** Gross O₂ production in a bottle is 0.32 mg O₂ L⁻¹ h⁻¹ and the photosynthetic quotient is 1.25. Using 12 g C per 32 g O₂, what is gross production in carbon units?
+
+- 96 mg C m⁻³ h⁻¹
+- 150 mg C m⁻³ h⁻¹
+- 683 mg C m⁻³ h⁻¹
+- 120 mg C m⁻³ h⁻¹
+
+0.32 × 12/32 / 1.25 = 0.096 mg C L⁻¹ h⁻¹ = 96 mg C m⁻³ h⁻¹. Multiplying by the PQ gives 150; inverting the mass ratio gives 683; ignoring the PQ gives 120.
+
+**18.** 10 µCi of ¹⁴C (1 µCi = 2.22 × 10⁶ DPM) is added to a bottle with DIC = 25,200 mg C m⁻³. After 4 h the light filter gives 6,200 DPM and the dark filter 650 DPM. With the isotope factor 1.05, what is primary production?
+
+- 16.5 mg C m⁻³ h⁻¹
+- 6.62 mg C m⁻³ h⁻¹
+- 1.85 mg C m⁻³ h⁻¹
+- 1.65 mg C m⁻³ h⁻¹
+
+Added = 2.22 × 10⁷ DPM. Fraction fixed = (6,200 − 650)/2.22 × 10⁷ = 2.50 × 10⁻⁴. P = 2.50 × 10⁻⁴ × 25,200 × 1.05/4 = 1.65 mg C m⁻³ h⁻¹. 6.62 omits the division by time; 16.5 uses 1 µCi instead of 10; 1.85 ignores the dark bottle.
+
+**19.** A leaf in actinic light of 500 µmol photons m⁻² s⁻¹ gives F = 520 and Fm′ = 880. Its absorptance is 0.84. What is the electron transport rate?
+
+- 124 µmol e⁻ m⁻² s⁻¹
+- 102 µmol e⁻ m⁻² s⁻¹
+- 172 µmol e⁻ m⁻² s⁻¹
+- 86 µmol e⁻ m⁻² s⁻¹
+
+ΦPSII = (880 − 520)/880 = 0.409. ETR = 0.409 × 500 × 0.5 × 0.84 = 86. Omitting the 0.5 gives 172; omitting absorptance gives 102; using F/Fm′ (0.591) instead of ΦPSII gives 124.
+
+**20.** An O₂ P–I curve fitted with P = Pmax tanh(αI/Pmax) − R gives Pmax = 40 µmol O₂ g⁻¹ h⁻¹, α = 0.32 µmol O₂ g⁻¹ h⁻¹ (µmol photons m⁻² s⁻¹)⁻¹ and R = 6 µmol O₂ g⁻¹ h⁻¹. Which pair of derived values is correct?
+
+- Ik = 125 µmol photons m⁻² s⁻¹; highest net rate 40 µmol O₂ g⁻¹ h⁻¹
+- Ik = 12.8 µmol photons m⁻² s⁻¹; highest net rate 46 µmol O₂ g⁻¹ h⁻¹
+- Ik = 125 µmol photons m⁻² s⁻¹; highest net rate 34 µmol O₂ g⁻¹ h⁻¹
+- Ik = 106 µmol photons m⁻² s⁻¹; highest net rate 34 µmol O₂ g⁻¹ h⁻¹
+
+Ik = Pmax/α = 40/0.32 = 125. Pmax in this model is the maximum gross rate, so the curve levels off at Pmax − R = 34. 106 wrongly uses (Pmax − R)/α; 12.8 multiplies Pmax by α; 46 adds R.
+
+## 15 References
+
+Beer S, others (1998) Measuring photosynthetic rates in seagrasses by pulse amplitude modulated (PAM) fluorometry.
+
+Busch FA, others (2024) A guide to photosynthetic gas exchange measurements: Fundamental principles, best practice and potential pitfalls.
+
+Gazeau F, others (2007) Planktonic primary production in estuaries: Comparison of 14C, O2 and 18O methods.
+
+Genty B, Briantais J-M, Baker NR (1989) The relationship between the quantum yield of photosynthetic electron transport and quenching of chlorophyll fluorescence. Biochimica et Biophysica Acta 990:87–92.
+
+Grande KD, others (1989) Primary production in the North Pacific gyre: A comparison of rates determined by the 14C, O2 concentration and 18O methods.
+
+Hunt S (2003) Measurements of photosynthesis and respiration in plants.
+
+Jassby AD, Platt T (1976) Mathematical formulation of the relationship between photosynthesis and light for phytoplankton. Limnology and Oceanography 21:540–547.
+
+Long SP, Bernacchi CJ (2003) Gas exchange measurements, what can they tell us about the underlying limitations to photosynthesis? Procedures and sources of error. Journal of Experimental Botany 54:2393–2401.
+
+Lottig NR, others (2021) Estimating pelagic primary production in lakes: Comparison of 14C incubation and free-water O2 approaches.
+
+Maxwell K, Johnson GN (2000) Chlorophyll fluorescence—a practical guide. Journal of Experimental Botany 51:659–668.
+
+Murchie EH, Lawson T (2013) Chlorophyll fluorescence analysis: A guide to good practice and understanding some new applications.
+
+Peterson BJ (1980) Aquatic primary productivity and the 14C-CO2 method: A history of the productivity problem.
+
+Platt T, Gallegos CL, Harrison WG (1980) Photoinhibition of photosynthesis in natural assemblages of marine phytoplankton. Journal of Marine Research 38:687–701.
+
+Ralph PJ, others (1998) In situ seagrass photosynthesis measured using a submersible, pulse-amplitude modulated fluorometer.
+
+Ralph PJ, Gademann R (2005) Rapid light curves: A powerful tool to assess photosynthetic activity. Aquatic Botany 82:222–237.
+
+Randall J, others (2019) An in situ study of production from diel oxygen modelling, oxygen exchange, and electron transport rate in the kelp *ecklonia radiata*.
+
+Rodgers KL, others (2015) A novel system for measuring in situ rates of photosynthesis and respiration of kelp.
+
+Saroussi S, others (2006) Alpha and quantum yield of aquatic plants derived from PAM fluorometry: Uses and misuses.
+
+Steemann Nielsen E (1952) The use of radio-active carbon (C14) for measuring organic production in the sea. Journal du Conseil International pour l’Exploration de la Mer 18:117–140.
+
+Veenhof RJ, others (2024) Novel high-throughput oxygen saturation measurements for quantifying the physiological performance of macroalgal early life stages.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J. and J. Smit, A.},
+  title = {Lecture 7b: {Measuring} Photosynthesis},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BDC223/L07b-measuring_photosynthesis.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, J. Smit A (2026) Lecture 7b: Measuring photosynthesis. [https://tangledbank.netlify.app/BDC223/L07b-measuring_photosynthesis.html.](https://tangledbank.netlify.app/BDC223/L07b-measuring_photosynthesis.html)

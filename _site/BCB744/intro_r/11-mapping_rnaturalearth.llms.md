@@ -1,0 +1,326 @@
+[![A reminder that names and classifications matter.](../../images/thesaurus.jpg)](../../images/thesaurus.jpg "A reminder that names and classifications matter.")
+
+A reminder that names and classifications matter.
+
+> “*In the beginning there was nothing, which exploded.*”
+>
+> — Terry Pratchett
+
+> “*Biology is the study of complicated things that have the appearance of having been designed with a purpose.*”
+>
+> — Richard Dawkins
+
+# 1 Orientation: what you are here to learn
+
+Up to now, your maps have likely been *drawn* rather than *reasoned about*. This chapter shifts you from decorative mapping to spatial reasoning with data structures that carry geometry, scale, and assumptions. The goal is to make them more defensible.
+
+## 1.1 Learning goals
+
+By the end of this chapter you should be able to:
+
+1.  Explain what an `sf` object is (features, attributes, geometry column, CRS).
+2.  Subset and transform spatial features without losing geometry.
+3.  Produce layered maps in base R and **ggplot2** with explicit spatial choices.
+
+## 1.2 Workflow overview
+
+When you are working independently, aim for this repeatable sequence:
+
+1.  Load data and inspect the geometry and CRS.
+2.  Subset features (rows) and attributes (columns) intentionally.
+3.  Crop or transform geometry only when you mean to.
+4.  Plot in base R or **ggplot2**, then refine.
+
+## 1.3 Web resources for spatial work in R
+
+These are reference texts, not required reading. Use them as technical back-up when you get stuck or want to go deeper.
+
+> **NOTE:**
+>
+> | Author | Title |
+> |:---|:---|
+> | **Spatial R** |  |
+> | Edzer Pebesma | [Simple Features for R](https://r-spatial.github.io/sf/index.html) |
+> | Edzer Pebesma, Roger Bivand | [Spatial Data Science with applications in R](https://r-spatial.org/book/) |
+> | Robin Lovelace et al. | [Geocomputation with R](https://geocompr.robinlovelace.net/index.html) |
+> | Manuel Gimond | [Intro to GIS and Spatial Analysis](https://mgimond.github.io/Spatial/index.html) |
+> | Wasser et al. | [Introduction to Geospatial Raster and Vector Data with R](https://datacarpentry.org/r-raster-vector-geospatial/) |
+> | Taro Mieno | [R as GIS for Economists](https://tmieno2.github.io/R-as-GIS-for-Economists/) |
+
+## 1.4 What to aspire to
+
+Please see the snooty maps at [Making Static Maps in R](https://bedeffinianrowedavies.com/intermediatertutorials/makingmaps). The skills you acquire in this module should eventually allow you to do similar maps.
+
+# 2 The **sf** package
+
+At this point you need data structures that carry geometry and behave sensibly under spatial operations. The [**sf**](https://r-spatial.github.io/sf/) package provides exactly that, and it has become the *de facto* tool for many mapping applications, replacing older packages such as **sp**. It provides classes for storing and manipulating simple feature geometries and functions for working with spatial data. *Simple features* refer to a standardised way of encoding vector data — points, lines, and polygons — used widely in GIS.
+
+The **sf** package was created to provide a fast and efficient way to work with vector data in R. It integrates with other **tidyverse** packages, such as **dplyr** and **ggplot2**, allowing for seamless processing and visualisation of spatial data. The package provides a variety of functions for data import, transformation, manipulation, and analysis, making it a valuable tool for working with spatial data in R.
+
+In addition to its core functionality, the **sf** package also provides a set of methods for converting between different data representations, such as data frames, matrices, and lists, making it a versatile tool for working with spatial data in a variety of formats.
+
+While **sf** works with vector data, raster data require the well-known but older [**raster**](https://rspatial.org/raster/pkg/index.html) package, or its modern replacements [**terra**](https://rspatial.org/pkg/index.html), [**stars**](https://r-spatial.github.io/stars/). I will not work with raster data in this chapter.
+
+# 3 Maps with **rnaturalearth**
+
+[Natural Earth](https://www.naturalearthdata.com/) is a public domain map dataset that provides high-quality, general-purpose base maps for the world at various scales. It is an ideal stepping stone when `map_data()` and hand-drawn polygons become too crude or too brittle for serious work. It was designed to be a visually pleasing alternative to other public domain datasets, and its creators aim to provide the data in a form that is useful for a wide range of applications, to make it easy to use and integrate with other data.
+
+The dataset includes a variety of geographic features, including coastlines, rivers, lakes, and political boundaries, as well as cultural features like cities, roads, and railways. The data are available in several formats, including vector and raster, and they can be used with a variety of software, including GIS and mapping applications. Within R we can access these map layers using the [**rnaturalearth**](https://cran.r-project.org/web/packages/rnaturalearth/vignettes/rnaturalearth.html) package.
+
+One of the key benefits of Natural Earth is its public domain status, which means that anyone can use, distribute the data without restrictions or licensing fees. This makes it an ideal choice for individuals who need high-quality base maps for their projects but may not have the resources or expertise to create them from scratch. I am not convinced that students actually read this. The first person to send me a WhatsApp mentioning the phrase “Know your maps” will get a Lindt chocolate.
+
+In addition to its public domain status, Natural Earth is regularly updated with new data to ensure that the maps remain accurate and up to date. This makes it a valuable resource for anyone who needs reliable geographic data.
+
+# 4 Install packages and set things up
+
+``` numberSource
+# install.packages("rnaturalearth", "rnaturalearthdata", "sf")
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# for the buffer to work as I expect, switch off
+# the functions for spherical geometry:
+sf_use_s2(FALSE)
+```
+
+> **WARNING:**
+>
+> The `s2` engine treats the Earth as a sphere. Some operations — notably buffering — behave differently under spherical versus planar assumptions. Turning `s2` off can be useful for small regional maps, but it does **not** make distances in degrees suddenly meaningful. If you need accurate distances, use a projected CRS and keep `s2` on.
+
+## 4.1 Define a working extent
+
+First, I define the extent of the map region:
+
+``` numberSource
+# the full map extent:
+xmin <- 12; ymin <- -36.5; xmax <- 40.5; ymax <- -10
+xlim <- c(xmin, xmax); ylim <- c(ymin, ymax)
+
+# make a bounding box for cropping:
+bbox <- st_bbox(c(xmin = xmin, ymin = ymin,
+  xmax = xmax, ymax = ymax))
+
+# might be useful for zooming into a smaller region (False Bay and 
+# the Cape Peninsula):
+xlim_zoom <- c(17.8, 19); ylim_zoom <- c(-34.5, -33.2)
+```
+
+Choosing bounds is a cartographic decision. If you clip too tightly you can hide relevant context; if you clip too loosely you dilute the focus of the map. Cropping can also cut features that cross the boundary (and cuase complications, which are very difficult to rectify), so use it deliberately.
+
+# 5 Create and inspect an `sf` object
+
+Before we draw anything, we will load a spatial object, then *inspect* it. This is the point where your thinking should shift from “plots” to “features with geometry”.
+
+## 5.1 Load features from Natural Earth
+
+``` numberSource
+# load the countries:
+safrica_countries <- ne_countries(returnclass = 'sf',
+  continent = "Africa",
+  country = c("South Africa", "Mozambique",
+    "Namibia", "Zimbabwe", "Botswana",
+    "Lesotho", "Eswatini"),
+  scale = "large")
+```
+
+The object now contains *features* (rows) with *attributes* (columns) plus a geometry column that stores the spatial shapes. That geometry persists unless you explicitly alter it.
+
+## 5.2 Inspect the geometry and CRS
+
+Pause here and check what makes this different from a normal tibble.
+
+``` numberSource
+class(safrica_countries)
+```
+
+    R> [1] "sf"         "data.frame"
+
+``` numberSource
+# safrica_countries
+```
+
+> **NOTE:**
+>
+> `sf` indicates that the object is of class *simple features*. In **sf** language, what would be called columns (variables) in normal **tidyverse** speak becomes known as *attributes* — these are the properties of the map *features*. The geometry column stores the shapes; the CRS stores the spatial reference system.
+
+``` numberSource
+# Run this on your PC... the output is too voluminous for here
+glimpse(safrica_countries)
+st_crs(safrica_countries)
+unique(st_geometry_type(safrica_countries))
+```
+
+The CRS tells you how the coordinates should be interpreted. You do not need to manipulate CRS yet, but you do need to be aware that distance and area calculations depend on it.
+
+As you can see, it is a `data.frame` and `tbl` (tibble), amongst other classes, and so you can apply many of the **tidyverse** functions to it, including `select()`, [`filter()`](https://rdrr.io/r/stats/filter.html), `summarise()` and so on. These verbs act on *attributes* unless you explicitly change geometry with **sf** functions.
+
+## 5.3 Plot quickly in base R
+
+Let us plot the entire `safrica_countries` object to see all the attributes of all of the features. This kind of figure is called a choropleth map:
+
+``` numberSource
+plot(safrica_countries)
+```
+
+[![](11-mapping_rnaturalearth_files/figure-html/fig-plot-safrica-countries-1.svg)](11-mapping_rnaturalearth_files/figure-html/fig-plot-safrica-countries-1.svg "Figure 1: Southern Africa countries shown as a base R choropleth.")
+
+Figure 1: Southern Africa countries shown as a base R choropleth.
+
+> **TIP:**
+>
+> Use `select()` to choose *attributes* (columns). Use [`filter()`](https://rdrr.io/r/stats/filter.html) to choose *features* (rows). Neither operation recalculates geometry; the shapes persist unless you explicitly transform them.
+
+You probably do not want to plot all of them. Let us select one:
+
+``` numberSource
+plot(safrica_countries["sovereignt"])
+```
+
+[![](11-mapping_rnaturalearth_files/figure-html/fig-plot-safrica-countries-sovereignt-1.svg)](11-mapping_rnaturalearth_files/figure-html/fig-plot-safrica-countries-sovereignt-1.svg "Figure 2: Southern Africa countries shaded by sovereignty.")
+
+Figure 2: Southern Africa countries shaded by sovereignty.
+
+You might achieve the same in a more familiar way:
+
+``` numberSource
+safrica_countries |> 
+  select(sovereignt) |> 
+  plot()
+```
+
+[![](11-mapping_rnaturalearth_files/figure-html/fig-safrica-countries-1.svg)](11-mapping_rnaturalearth_files/figure-html/fig-safrica-countries-1.svg "Figure 3: Southern Africa countries shaded by sovereignty (select).")
+
+Figure 3: Southern Africa countries shaded by sovereignty (select).
+
+Or you may want to plot the estimate of the population size, which is contained in the attribute `pop_est`:
+
+``` numberSource
+safrica_countries |> 
+  select(pop_est) |> 
+  plot()
+```
+
+[![](11-mapping_rnaturalearth_files/figure-html/fig-safrica-countries-2-1.svg)](11-mapping_rnaturalearth_files/figure-html/fig-safrica-countries-2-1.svg "Figure 4: Southern Africa countries shaded by population estimate.")
+
+Figure 4: Southern Africa countries shaded by population estimate.
+
+The names of the countries are in the rows of the `safrica_countries` object, and so they become accessible with [`filter()`](https://rdrr.io/r/stats/filter.html). Let us only plot some attribute for South Africa:
+
+``` numberSource
+safrica_countries |> 
+  dplyr::filter(sovereignt == "South Africa") |> 
+  select(sovereignt) |> 
+  plot()
+```
+
+[![](11-mapping_rnaturalearth_files/figure-html/fig-safrica-countries-3-1.svg)](11-mapping_rnaturalearth_files/figure-html/fig-safrica-countries-3-1.svg "Figure 5: South Africa feature only (sovereignty filtered).")
+
+Figure 5: South Africa feature only (sovereignty filtered).
+
+## 5.4 Dissolve and crop features (geometry changes)
+
+The following sequence is dense, so here is the logic before the code:
+
+1.  `group_by(continent)` groups features so that later operations can dissolve borders.
+2.  `summarise()` collapses grouped features into a single geometry per group.
+3.  `st_crop(bbox)` clips the geometry to your bounding box. This can *cut* features at the boundary.
+4.  `st_combine()` merges the pieces into a single multipart feature.
+
+Cropping is a geometric operation, but sometimes it may be used as a visual zoom. Features that fall partly inside the box will be clipped.
+
+You can continue to add additional operations to create a new map:
+
+``` numberSource
+safrica_countries_new <- safrica_countries |> 
+  group_by(continent) |> 
+  summarise() |> 
+  st_crop(bbox) |>
+  st_combine()
+
+plot(safrica_countries_new)
+```
+
+[![](11-mapping_rnaturalearth_files/figure-html/fig-safrica-countries-new-safrica-countries-1.svg)](11-mapping_rnaturalearth_files/figure-html/fig-safrica-countries-new-safrica-countries-1.svg "Figure 6: Dissolved and cropped Southern Africa geometry.")
+
+Figure 6: Dissolved and cropped Southern Africa geometry.
+
+So far you have relied on the base R plot function made for simple features. You can also plot the map in **ggplot2** using `ggplot()`, which treats geometry as data rather than annotation. Here, `geom_sf()` draws the features and `coord_sf()` manages the spatial coordinates and aspect ratio. This is why `coord_sf()` is preferred to `coord_cartesian()` for maps.
+
+``` numberSource
+ggplot() +
+  geom_sf(data = safrica_countries,
+    colour = "indianred", fill = "beige") +
+  coord_sf(xlim = xlim,
+           ylim = ylim)
+```
+
+[![](11-mapping_rnaturalearth_files/figure-html/fig-ggplot-1.svg)](11-mapping_rnaturalearth_files/figure-html/fig-ggplot-1.svg "Figure 7: Southern Africa map drawn with ggplot2 and geom_sf.")
+
+Figure 7: Southern Africa map drawn with ggplot2 and geom_sf.
+
+## 5.5 Buffering and geometry assumptions
+
+Now you can layer another feature. This is also where geometry assumptions matter: buffering in degrees is only a rough approximation for local maps.
+
+``` numberSource
+buffer <- safrica_countries_new %>%
+  st_buffer(0.4)
+
+ggplot() +
+  geom_sf(data = buffer, fill = "lightblue", col = "transparent") +
+  geom_sf(data = safrica_countries, colour = "indianred", fill = "beige") +
+  theme_minimal()
+```
+
+[![](11-mapping_rnaturalearth_files/figure-html/fig-buffer-safrica-countries-new-1.svg)](11-mapping_rnaturalearth_files/figure-html/fig-buffer-safrica-countries-new-1.svg "Figure 8: Buffered Southern Africa geometry overlaid on the original map.")
+
+Figure 8: Buffered Southern Africa geometry overlaid on the original map.
+
+> **WARNING:**
+>
+> If a buffer value “looks right” in degrees, that is an accident of scale. For accurate distances, project your data first and buffer in metres.
+
+# 6 A reusable workflow
+
+When you start from scratch, use this quick recipe:
+
+1.  Load spatial data and check `st_crs()` and geometry types.
+2.  Filter features (rows) and select attributes (columns) deliberately.
+3.  Crop or transform geometry only when you intend to change shape.
+4.  Plot with [`plot()`](https://rdrr.io/r/graphics/plot.default.html) or **ggplot2**; add layers and styling last.
+
+> **CAUTION:**
+>
+> - Buffering or measuring in degrees instead of projected units.
+> - Cropping after styling, which hides clipped features or labels.
+> - Assuming `select()` or `summarise()` recalculates geometry.
+> - Using `coord_cartesian()` for maps and silently distorting aspect ratio.
+> - Treating Natural Earth borders as definitive boundaries when precision matters.
+
+# 7 Example
+
+Here are examples that use the built-in [Fiji earthquake data](../../BCB744/intro_r/12-mapping_quakes.llms.md) or the [Kaggle earthquake data](../../pages/kaggle_earthquakes.llms.md).
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2021,
+  author = {Smit, A. J.},
+  title = {11. {Mapping} with {Natural} {Earth}},
+  date = {2021-01-01},
+  url = {https://tangledbank.netlify.app/BCB744/intro_r/11-mapping_rnaturalearth.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2021) 11. Mapping with Natural Earth. [https://tangledbank.netlify.app/BCB744/intro_r/11-mapping_rnaturalearth.html.](https://tangledbank.netlify.app/BCB744/intro_r/11-mapping_rnaturalearth.html)

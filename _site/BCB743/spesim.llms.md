@@ -1,0 +1,151 @@
+|  |  |  |
+|:---|:---|:---|
+| **Package** | `spesim`, Spatial Sampling Simulation for Heterogeneous Ecological Communities |  |
+| **Author** | AJ Smit |  |
+| **Source** | [ github.com/ajsmit/spesim](https://github.com/ajsmit/spesim) |  |
+| **Documentation** | [ajsmit.github.io/spesim](https://ajsmit.github.io/spesim/) |  |
+| **Install** | `remotes::install_github("ajsmit/spesim")` |  |
+
+> **NOTE:**
+>
+> The code on this page is illustrative and is not run when the site is built, because **spesim** is installed from GitHub rather than CRAN. Copy the snippets into your own session after installing the package.
+
+## 1 What **spesim** is
+
+**spesim** simulates ecological communities in space and then samples them. You set the number of species, their relative abundances, the position of individuals in a landscape, the species responses to environmental gradients, and the quadrat design used to sample them. The package then returns the kinds of objects used in community ecology, namely a site-by-species abundance matrix, a table of per-quadrat environmental conditions, and a set of maps and diagnostic plots.
+
+In field studies the generating process is hidden. You measure a community, fit an ordination or a model, and infer the gradients or processes that may have produced the pattern. A simulator reverses that relationship. Because you set the gradient, the species optima, the degree of clustering, and the sampling design, you can ask a question that observational data rarely answer directly, namely *did the method recover the structure I imposed?*
+
+For BCB743, the package has three main uses, in this order of emphasis, namely **teaching**, **methods testing**, and **exploratory research**.
+
+## 2 Why a simulator belongs in BCB743
+
+BCB743 is mainly concerned with inference from community data, including correlation and association, distance and dissimilarity, ordination, clustering, and regression-type models. Each method builds on assumptions about how the data were generated, and each can give the wrong answer when those assumptions fail. For example, the horseshoe in principal component analysis (PCA), the arch in correspondence analysis (CA), the gradient-length rule used to choose between linear and unimodal ordination, and the effect of joint absences on Euclidean distances are examples. They show how a method behaves when it encounters a particular ecological structure ([Whittaker 1967](#ref-Whittaker1967); [Legendre and Legendre 2012](#ref-legendre2012numerical)).
+
+**spesim** lets you specify that structure yourself. Set a single long environmental gradient with unimodal species responses, sample it, and run PCA. The horseshoe is then produced from data whose generating conditions you specified. Shorten the gradient and the curve weakens. Lengthen it and the arch becomes more pronounced. So, the method’s behaviour becomes easier to interpret because the generating process is known.
+
+The same approach also supports the practical question that the [Integrative Assignment](../BCB743/tasks/Task_A1.llms.md) and later research projects often raise, namely *which sampling design, and how much sampling effort, is enough?* By placing quadrats at random, along transects, on a systematic grid, or by Voronoi tessellation over the same simulated community, you can compare what each design recovers before committing time and money to a field season.
+
+## 3 How it works
+
+A single high-level function, `spesim_run()`, runs the full workflow, and lower-level functions are available when you want to assemble the pieces yourself. A run goes through five stages.
+
+1.  A **domain** defines the landscape as an `sf` polygon, either the built-in synthetic shape or a real coastline or river network.
+2.  **Environmental gradients** define gridded synthetic fields, by default temperature, elevation, and rainfall, each normalised to the interval $[0, 1]$ and reported back in familiar units.
+3.  A **community of individuals** is placed as points with species labels. Their relative abundances are drawn from a species-abundance distribution (SAD) of your choosing, and their positions reflect both their response to the gradients and any spatial structure you impose.
+4.  A **sampling design** places quadrats by one of several schemes.
+5.  The **derived data** are returned, including the site-by-species matrix, the per-quadrat environment, and diagnostic summaries.
+
+Three of the configurable layers are directly linked to the BCB743 material.
+
+The **species-abundance distribution** controls how common species are relative to one another. **spesim** offers Fisher’s log-series, the default, together with geometric, broken-stick, Zipf, Zipf-Mandelbrot, lognormal, and Poisson-mixture options. It also includes a neutral-theory zero-sum multinomial (ZSM) sampler. These distributions are central to rank-abundance curves and comparisons of evenness, dominance, commonness, and rarity ([Fisher et al. 1943](#ref-fisher1943relation); [Preston 1948](#ref-preston1948commonness); [Whittaker 1972](#ref-Whittaker1972); [Hubbell 2011](#ref-hubbell2011unified)).
+
+**Environmental filtering** assigns each species an *optimum*, namely the position on a gradient where performance is highest, and a *tolerance*, namely the breadth of its response. In **spesim** this is implemented as a Gaussian response on the normalised gradient. This is the unimodal species-response model behind CA and the gradient-length reasoning of detrended correspondence analysis (DCA). Here you can set the response directly and then test whether the ordination recovers it.
+
+**Spatial structure** is added through standard point-process options, including complete spatial randomness as a baseline, clustering through a Thomas process, and inhibition or repulsion through Strauss and Geyer processes. Optional directed neighbour effects allow one species to suppress or facilitate another within a fixed interaction radius. These settings generate spatial autocorrelation and biotic interaction as deliberate, interpretable signals.
+
+## 4 Relevance to BCB743
+
+In the table below, each **spesim** capability is paired with the part of the module where it is most useful. The pairing is deliberate because the package was written alongside this material and includes vignettes that reproduce two major BCB743 datasets, namely the Doubs river network and the South African seaweed coastline.
+
+| **spesim** capability | Where it helps in BCB743 |
+|:---|:---|
+| Rank–abundance / SAD models (log-series, lognormal, geometric, broken-stick, ZSM) | [Review: biodiversity concepts](../BCB743/review.llms.md); rank–abundance and evenness |
+| Known environmental gradient + Gaussian species responses | [7 Intro to ordination](../BCB743/ordination.llms.md); [9a CA](../BCB743/CA.llms.md); [9b DCA](../BCB743/DCA.llms.md), test gradient recovery and the gradient-length rule |
+| Long vs short gradients (horseshoe / arch on demand) | [8a PCA](../BCB743/PCA.llms.md); [9a CA](../BCB743/CA.llms.md), produce and interpret the horseshoe and arch from a known generating process |
+| Distance–decay of community similarity | [6 Distance & dissimilarity metrics](../BCB743/dis-metrics.llms.md); [16 Deep dive into gradients](../BCB743/deep_dive.llms.md) |
+| β-diversity partitioning over a controlled gradient | [13a db-RDA](../BCB743/constrained_ordination.llms.md); [13a revised: β-diversity partition](../BCB743/constrained_ordination_v2.llms.md) |
+| Constrained ordination on simulated data (db-RDA vignette) | [13a db-RDA](../BCB743/constrained_ordination.llms.md), test whether constraints recover the imposed filtering |
+| Clustering vs continuous gradients | [14 Cluster analysis](../BCB743/cluster_analysis.llms.md), test when clustering imposes groups on a continuous gradient |
+| Point processes, spatial autocorrelation, neighbour effects | [16 Deep dive into gradients](../BCB743/deep_dive.llms.md); spatial-structure diagnostics |
+| Species–area and rarefaction curves | [Review: quantifying biodiversity](../BCB743/review.llms.md); sampling-effort reasoning |
+| Quadrat schemes (random, systematic, tiled, transect, Voronoi) | [Integrative Assignment](../BCB743/tasks/Task_A1.llms.md), sampling-design choice and effort |
+| Real-world constrained landscapes (Doubs network, seaweed coastline) | [13b Seaweeds example](../BCB743/two_oceans_appendices.llms.md); the [Datasets](../BCB743/datasets.llms.md) the module already uses |
+
+The recurring theme across these rows is validation against a known generating process. When you run PCA, CA, principal coordinates analysis (PCoA), or non-metric multidimensional scaling (nMDS) on a **spesim** community, you can compare the ordination with the gradient you specified. When you run a db-RDA, you can check whether the constrained axes recover the filtering you imposed. When you cluster a community that varies continuously, you can see how readily a clustering algorithm imposes discrete groups on a smooth gradient. This habit, testing a method on data whose structure you control before trusting it on data whose structure is hidden, is one of the most useful practices in the module.
+
+## 5 What **spesim** is not
+
+The software has limitations, and I should be clear about what it does not attempt. **spesim** is a **single-time-point synthetic generator**, not a mechanistic ecosystem model. It does not simulate demography, temporal dynamics, succession, observation error, or detectability, and it does not infer point-process parameters by likelihood. The neutral and hybrid model options include an individual recruitment step with a dispersal kernel, which brings them closer to process-based models, but they still generate plausible snapshots rather than calibrated dynamic simulations. Treat the output as a controlled teaching and testing instrument, namely a community whose generating process you specified, not as a prediction for a particular real system.
+
+## 6 Getting started
+
+Install from GitHub, then run a minimal in-memory simulation that writes nothing to disk:
+
+``` numberSource
+# install.packages("remotes")
+remotes::install_github("ajsmit/spesim")
+
+library(spesim)
+
+# Load a complete example configuration, then adjust a few fields
+P <- load_config(system.file(
+  "examples/spesim_init_basic.txt",
+  package = "spesim"
+))
+P$N_SPECIES <- 10
+P$N_INDIVIDUALS <- 2000
+P$SAMPLING_SCHEME <- "random"
+P$N_QUADRATS <- 20
+
+# Run the full workflow; keep it in memory for a quick look
+res <- spesim_run(P, write_outputs = FALSE, seed = P$SEED)
+
+# A publication-ready map of domain, individuals, and quadrats
+plot_spatial_sampling(res$domain, res$species_dist, res$quadrats, res$P)
+
+# The objects you would normally analyse
+str(res$abund_matrix) # site x species abundance matrix
+head(res$site_coords) # quadrat centroids
+head(res$env_gradients) # gridded environmental fields
+```
+
+For larger or reproducible setups, declare the settings in an init file and point `spesim_run()` at it. The file records all parameters in one place. The package can also write the abundance matrix, environment table, maps, an advanced diagnostic panel, namely rank-abundance, occupancy-abundance, species-area, distance-decay, and rarefaction summaries, and a plain-language report of what each run did.
+
+## 7 Further reading
+
+The package includes an extensive set of vignettes. Those most useful for BCB743 are:
+
+- [What is spesim? What is it not?](https://ajsmit.github.io/spesim/articles/spesim-model-card.html), start here to set expectations.
+- [Start here](https://ajsmit.github.io/spesim/articles/spesim-start-here.html) and the [basic → advanced workflow](https://ajsmit.github.io/spesim/articles/spesim-workflow.html).
+- [Simulating environmental gradients](https://ajsmit.github.io/spesim/articles/spesim-env-gradients.html).
+- [Quadrat placement schemes](https://ajsmit.github.io/spesim/articles/spesim-quadrat-placement.html).
+- [Point processes: options and intuition](https://ajsmit.github.io/spesim/articles/spesim-point-processes.html).
+- [Constrained ordination (db-RDA) on simulated data](https://ajsmit.github.io/spesim/articles/spesim-ordination-dbrda.html).
+- [Real-world constrained landscapes: Doubs and seaweed](https://ajsmit.github.io/spesim/articles/spesim-real-world-landscapes.html).
+
+## 8 References
+
+Fisher RA, Corbet AS, Williams CB (1943) The relation between the number of species and the number of individuals in a random sample of an animal population. The Journal of Animal Ecology 42–58.
+
+Hubbell SP (2011) The unified neutral theory of biodiversity and biogeography (MPB-32). Princeton University Press
+
+Legendre P, Legendre L (2012) Numerical ecology. Elsevier
+
+Preston FW (1948) The commonness, and rarity, of species. Ecology 29:254–283.
+
+Whittaker RH (1967) Gradient analysis of vegetation. Biological Reviews 42:207–264.
+
+Whittaker RH (1972) Evolution and measurement of species diversity. Taxon 213–251.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {Spesim},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB743/spesim.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) spesim. [https://tangledbank.netlify.app/BCB743/spesim.html.](https://tangledbank.netlify.app/BCB743/spesim.html)

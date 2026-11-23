@@ -1,0 +1,147 @@
+> **NOTE:**
+>
+> - **Lab Date:** Monday, 19 October 2026, 13:30–17:10
+> - **Assignment Due:** Monday, 26 October 2026, 08:00 on iKamva
+> - **Self-assessment Due (if applicable):** Monday, 26 October 2026, 23:59 on iKamva
+
+## 1 Background
+
+Complete this Lab individually. The dates above follow the [module timetable](../BDC223/BDC223_index.llms.md#sec-syllabus).
+
+### 1.1 Pre-lab
+
+Read this lab and contextualise within the pertinent material in your text.
+
+### 1.2 Post-lab
+
+Put your answers to Questions 1–9, including your calculations, tables and figures, in an electronic document. Upload your completed assignment to iKamva by **08:00 on Monday, 26 October 2026**. This requirement applies to both pre-assessed and self-assessed submissions.
+
+If this Lab is self-assessed, use the model answer or rubric provided after the assignment deadline to mark your submitted work. Upload the completed self-assessment to iKamva by **23:59 on the same day**. See the [Lab submission and self-assessment policy](../BDC223/BDC223_index.llms.md#sec-lab-self-assessment) for the checking and penalty rules.
+
+## 2 Questions
+
+### 2.1 Question 1: Dilutions (10 marks)
+
+A 1.5% (mass:volume) carrageenan gel consists of 0.75g of carrageenan dissolved in 50 ml of 1% KCl. You accidentally added 0.87g to the 50 ml.
+
+1.  What percentage gel have you inadvertently prepared?
+2.  How much additional water must be added to the 50 ml to achieve the desired 1.5% gel?
+3.  Carrageenan is a polysaccharide. Identify its biological origin: which photoautotrophs synthesise it?
+4.  Explain its ecological role in those organisms.
+5.  Describe how humans exploit carrageenan’s properties in food or industry.
+
+### 2.2 Question 2: Quantum light measurements (4 marks)
+
+monochromatic blue light source (420 nm) provides a photon flux density of 120 μmol photons.m⁻².s⁻¹.
+
+How many photons will fall on an area of 25 cm² over a 2-hour period?
+
+*(Be sure to convert the area into square metres, and assume flux density remains constant.)*
+
+### 2.3 Question 3: Plant growth rates (9 marks)
+
+For each scenario below:
+
+- Identify the biological process the measurements represent;
+- Write down a suitable equation for calculating the process;
+- Calculate the rate;
+- State the resulting units.
+
+| Scenario i (4 marks)               | Scenario ii (5 marks)              |
+|------------------------------------|------------------------------------|
+| \- Day 1: Plant biomass of 99 g    | \- Time, 0 minutes: 7.95 mg/L O₂   |
+| \- Day 100: Plant biomass of 149 g | \- Time, 20 minutes: 11.39 mg/L O₂ |
+|                                    | \- Algal biomass: 2.3 g fresh mass |
+
+*(In Scenario ii, calculate the oxygen production rate per gram of algal fresh mass.)*
+
+### 2.4 Question 4: Light attenuation (15 marks)
+
+You are a marine scientist assessing light penetration in the water column off Richards Bay, KZN. Measurements are taken in 5 m increments down to 50 m. Two stations are sampled:
+
+- 1 km from shore (incident radiation at surface, 8:00: 1,213 μmol photons.m⁻².s⁻¹)
+- 20 km from shore (incident radiation at surface, 9:35: 2,166 μmol photons.m⁻².s⁻¹)
+
+Unfortunately, your submersible light meter was left in the lab; only surface values are available.
+
+1.  Using the Beer–Lambert law $I_z = I_0 e^{-kz}$, construct vertical light intensity curves for each site (surface to 50 m). State any assumptions made about the attenuation coefficient $k$.
+2.  Justify why these theoretical curves are a reasonable approximation of reality.
+3.  Identify physical and methodological factors that would cause deviation from the actual in situ profiles.
+
+### 2.5 Question 5: Photosynthetic rate calculation (10 marks)
+
+A leaf in full sunlight absorbs 10 mol of photons per square meter per second (mol m⁻² s⁻¹). Its quantum yield is 0.05 mol of CO₂ fixed per mol of photons absorbed.
+
+Calculate the photosynthetic rate (in μmol CO₂ m⁻² s⁻¹) of the leaf under these conditions.
+
+### 2.6 Question 6: Relative growth rate (RGR) (5 marks)
+
+The biomass of a plant at time t₀ is 50 g. After 10 days (time t₁), the biomass is 80 g.
+
+Calculate the relative growth rate (RGR) in g g⁻¹ day⁻¹ using the equation:
+
+$$RGR = \frac{ \ln (W_1) - \ln (W_0)}{ t_1 - t_0 }$$
+
+Where:
+
+- $(W_1$) is the biomass at time $(t_1$)
+- $(W_0$) is the biomass at time $(t_0$)
+
+Explain why logarithmic growth is used instead of simple arithmetic increase.
+
+### 2.7 Question 7: respiration rate and plant carbon balance (5 marks)
+
+A plant in darkness consumes 5 mg CO₂ per hour for respiration. During the day, its photosynthetic rate is 15 mg CO₂ per hour. Assume 12 hours light and 12 hours dark.
+
+Calculate the net carbon balance of the plant over a 24-hour period. Is it positive or negative?
+
+*(Clarify whether the rates refer to whole-plant values or per unit biomass in your calculation.)*
+
+### 2.8 Question 8: additive light intensity at different depths in water (10 marks)
+
+In an aquatic experiment, photon flux density at 2 m depth arises from multiple sources:
+
+- Direct sunlight = 400 μmol photons m⁻² s⁻¹
+- Diffuse underwater reflections = 120 μmol photons m⁻² s⁻¹
+- Scattered light from particles = 50 μmol photons m⁻² s⁻¹
+
+1.  Calculate the total photon flux density at a depth of 2 meters.
+2.  If a plant requires ≥500 μmol photons m⁻² s⁻¹ for photosynthesis, is the requirement met?
+3.  Briefly discuss how turbidity or scattering would affect these additive contributions in natural waters.
+
+### 2.9 Question 9: spectrally resolved attenuation and the euphotic boundary (12 marks)
+
+At noon the surface PAR is $I_0 = 1{,}800\ \mu\text{mol photons m}^{-2}\text{s}^{-1}$. Treat the incident spectrum as two quasi-monochromatic bands:
+
+- “Blue–green” centred at $490\ \text{nm}$, comprising 45% of $I_0$, with diffuse attenuation $k_{BG} = 0.040\ \text{m}^{-1}$.
+- “Red–yellow” centred at $620\ \text{nm}$, comprising 55% of $I_0$, with diffuse attenuation $k_{RY} = 0.25\ \text{m}^{-1}$.
+
+Assume independent exponential loss with depth and no internal sources.
+
+1.  Write an explicit expression for total PAR at depth $z$ as the sum of the two bands, $I(z)=I_{BG}(z)+I_{RY}(z)$. State the units at each step.
+2.  Compute the 1% light level $z_{1\%}$ defined by $I(z_{1\%})=0.01\,I_0$. Because the sum of two exponentials lacks a closed-form inverse, determine $z_{1\%}$ to the nearest metre by a transparent numerical bracketing (show at least three evaluated depths and your final interpolation).
+3.  At $z=30\ \text{m}$ and $z=60\ \text{m}$, calculate the fractional contribution of the blue–green band to total PAR, i.e., $f_{BG}(z)=I_{BG}(z)/I(z)$. Interpret the change in $f_{BG}$ with depth in one or two sentences.
+
+*(Note. Answers that hide the unit conversions or skip the bracketing will be penalised.)*
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J. and J. Smit, A.},
+  title = {Lab 2: {Miscellaneous} Calculations},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BDC223/Lab2_misc_calcs.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, J. Smit A (2026) Lab 2: Miscellaneous calculations. [https://tangledbank.netlify.app/BDC223/Lab2_misc_calcs.html.](https://tangledbank.netlify.app/BDC223/Lab2_misc_calcs.html)

@@ -1,0 +1,261 @@
+# [Assessment sheet](BCB744_Task_C_Surname.xlsx)
+
+# 9. Mapping with style
+
+## Question 1
+
+[![](BCB744_Task_C_files/figure-html/fig-library-scales-1.svg)](BCB744_Task_C_files/figure-html/fig-library-scales-1.svg "Figure 1: Styled Southern Africa map with annotations and scale.")
+
+Figure 1: Styled Southern Africa map with annotations and scale.
+
+Aesthetically improve the map you created in this lecture (above example) and add a title and subtitle. Also adjust it to show appropriately labelled axes. **(/15)**
+
+**Answer**
+
+``` numberSource
+# Load libraries
+library(tidyverse) # ✓
+library(scales) # ✓
+library(ggspatial) # replace this with ggspatial ✓
+library(grid)
+
+# Load Africa map
+load(here::here("data", "BCB744", "africa_map.RData")) # ✓
+
+my_map <- ggplot() +
+  borders(size = 0.2, fill = "cornsilk", colour = "black") +
+  coord_equal(xlim = c(12, 37), ylim = c(-38, -22.1), expand = 0) +
+  annotate(
+    "text",
+    label = "Atlantic\nOcean",
+    x = 15.1,
+    y = -32.0,
+    size = 5.0,
+    angle = 30,
+    colour = "navy"
+  ) +
+  annotate(
+    "text",
+    label = "Indian\nOcean",
+    x = 33.2,
+    y = -34.2,
+    size = 5.0,
+    angle = 330,
+    colour = "red4"
+  ) +
+  # ≈ Scale bar originally spanning x ≈ 15–26 near the bottom:
+  # width_hint ≈ (26-15) / (37-12) = 11/25 = 0.44
+  annotation_scale(
+    location = "bl",
+    width_hint = 0.44,
+    height = unit(0.3, "cm"),
+    text_cex = 1.0, # ≈ st.size = 4
+    pad_x = unit(2.0, "cm"), # horizontal offset from left edge
+    pad_y = unit(0.5, "cm"), # vertical offset from bottom edge
+    bar_cols = c("black", "white"),
+    line_width = 0.2
+  ) +
+  # ≈ North arrow originally around x ≈ 12.5–15.5, y ≈ -37 to -35 (bottom-left):
+  annotation_north_arrow(
+    location = "bl",
+    which_north = "true",
+    pad_x = unit(0.5, "cm"),
+    pad_y = unit(1.2, "cm"),
+    style = north_arrow_fancy_orienteering
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Southern Africa",
+    subtitle = "An interesting subtitle",
+    x = "Lon (°E)",
+    y = "Lat (°S)"
+  )
+
+my_map
+```
+
+[![](BCB744_Task_C_files/figure-html/fig-library-tidyverse-1.svg)](BCB744_Task_C_files/figure-html/fig-library-tidyverse-1.svg "Figure 2: Styled Southern Africa map with title, subtitle, and labelled axes.")
+
+Figure 2: Styled Southern Africa map with title, subtitle, and labelled axes.
+
+## Question 2
+
+Add a the capital city/town of each province to the map using `geom_point()` and ensure the place name is correctly associated with its point. **(/5)**
+
+**Answer**
+
+``` numberSource
+# Load the data
+caps <- read.csv(here::here("data", "BCB744", "south_africa_capitals.csv")) # ✓
+
+my_map +
+  geom_point(
+    data = caps,
+    aes(x = Longitude, y = Latitude),
+    size = 2,
+    colour = "red"
+  ) + # ✓
+  geom_text(
+    data = caps,
+    aes(x = Longitude, y = Latitude, label = City), # ✓
+    nudge_x = 1,
+    nudge_y = 0.5,
+    size = 2.4
+  )
+```
+
+[![](BCB744_Task_C_files/figure-html/code-caps-read-csv-here-1.svg)](BCB744_Task_C_files/figure-html/code-caps-read-csv-here-1.svg)
+
+## Question 3
+
+Using the built-in `ToothGrowth` dataset, run a PCA on the **numeric variables only** after scaling. What do the first two PCs represent? **(/2)**
+
+**Answer**
+
+- [x] With only `len` and `dose` as numeric variables, `PC1` captures their shared increase (a general size/dose gradient), while `PC2` captures the contrast between them (deviation from the shared trend). `supp` is categorical and is excluded from the PCA input.
+
+Note: The positioning of the city names is not optimal, but I will not apply penalties to that.
+
+Note: Use ChatGPT to generate the CSV file with city names and coordinates. This prompt worked for me:
+
+> Please create a CSV file with three columns: column 1 has the name of each of South Africa’s provincial capital cities; column 2 has its longitude; column 3 has the latitude. Coordinates in WGS84, please.
+
+# 10. Mapping with Natural Earth and the **Sf** Package
+
+[![](BCB744_Task_C_files/figure-html/fig-buffer-safrica-countries-new-1.svg)](BCB744_Task_C_files/figure-html/fig-buffer-safrica-countries-new-1.svg "Figure 3: Buffered Southern Africa geometry overlaid on the original map.")
+
+Figure 3: Buffered Southern Africa geometry overlaid on the original map.
+
+Questions 4–7 refer to the map above.
+
+## Question 4
+
+Why does the map region extend so far south of the southern tip of Africa when we requested only the countries South Africa, Mozambique, Namibia, Zimbabwe, Botswana, Lesotho, and Eswatini? **(/1)**
+
+**Answer**
+
+- [x] The map extends so far south because included in the map domain for which we downloaded the data is Prince Edward Island, a territory of South Africa located in the Southern Ocean.
+
+## Question 5
+
+How do we fix this to plot a more sensible map of the region? **(/1)**
+
+**Answer**
+
+- [x] To exclude this island, we need to crop the map to the region of interest.
+
+## Question 6
+
+What does `st_buffer(0.4)` do? **(/1)**
+
+**Answer**
+
+- [x] The `st_buffer(0.4)` function creates a buffer around the countries in the map. The buffer is 0.4 units wide.
+
+## Question 7
+
+With the map that we created in the lecture with Natural Earth and **sf** (*i.e.*, you can start with the script in the lecture), zoom into False Bay, the Cape Peninsula. Add the location of the Cape Town city centre to the map using`geom_point()`. Ensure the point is correctly associated with the city name. Ensure the map is correctly labelled and has a title, and is as close to publication quality as you can make it. Pay close attention to the axes (breaks, limits) and the map extent. Some marks are allocated to a pleasing and sensible aesthetic appearance. **(/20)**
+
+**Answer**
+
+``` numberSource
+# Load the packages
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# for the buffer to work as I expect, switch off
+# the functions for spherical geometry:
+sf_use_s2(FALSE)
+
+# the full map extent:
+xmin <- 12
+ymin <- -36.5
+xmax <- 40.5
+ymax <- -10 # ✓
+xlim <- c(xmin, xmax)
+ylim <- c(ymin, ymax)
+
+# make a bounding box for cropping:
+bbox <- st_bbox(c(
+  xmin = xmin,
+  ymin = ymin, # ✓
+  xmax = xmax,
+  ymax = ymax
+))
+
+
+# load the countries:
+safrica_countries <- ne_countries(
+  returnclass = 'sf', # ✓
+  continent = "Africa",
+  country = c(
+    "South Africa",
+    "Mozambique",
+    "Namibia",
+    "Zimbabwe",
+    "Botswana",
+    "Lesotho",
+    "Eswatini"
+  ),
+  scale = "large"
+)
+
+safrica_countries_new <- safrica_countries |> # ✓
+  group_by(continent) |>
+  summarise() |>
+  st_crop(bbox) |>
+  st_combine()
+
+# For zooming into a smaller region (False Bay and
+# the Cape Peninsula):
+xlim_zoom <- c(17.8, 19)
+ylim_zoom <- c(-34.5, -33.2) # ✓
+
+# Cape Town lon and lat
+ctown <- c(18.4241, -33.9249) # ✓
+
+ggplot() +
+  geom_sf(data = safrica_countries, colour = "indianred", fill = "beige") + # ✓
+  geom_point(aes(x = ctown[1], y = ctown[2]), size = 3, colour = "blue") + # ✓
+  geom_text(
+    aes(x = ctown[1], y = ctown[2], label = "Cape Town"), # ✓
+    nudge_x = 0.1,
+    nudge_y = 0.08,
+    size = 3
+  ) +
+  coord_sf(xlim = xlim_zoom, ylim = ylim_zoom, expand = 0) + # ✓
+  labs(
+    title = "Cape Town", # ✓
+    x = "Lon (°E)",
+    y = "Lat (°S)"
+  ) +
+  scale_x_continuous(breaks = c(18, 19)) + # ✓
+  scale_y_continuous(breaks = c(-34.2, -33.4)) # ✓
+```
+
+[![](BCB744_Task_C_files/figure-html/fig-library-tidyverse-2-1.svg)](BCB744_Task_C_files/figure-html/fig-library-tidyverse-2-1.svg "Figure 4: False Bay map with Cape Town city centre marked.")
+
+Figure 4: False Bay map with Cape Town city centre marked.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit,
+  author = {Smit, A. J.},
+  title = {BCB744 {Task} {C}},
+  url = {https://tangledbank.netlify.app/BCB744/tasks/BCB744_Task_C.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ BCB744 Task C. [https://tangledbank.netlify.app/BCB744/tasks/BCB744_Task_C.html.](https://tangledbank.netlify.app/BCB744/tasks/BCB744_Task_C.html)

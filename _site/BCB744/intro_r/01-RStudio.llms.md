@@ -1,0 +1,341 @@
+[![PhD Comics on coding and data work.](../../images/PhD_comics4.JPG)](../../images/PhD_comics4.JPG "PhD Comics on coding and data work.")
+
+PhD Comics on coding and data work.
+
+> “*Strange events permit themselves the luxury of occurring.*”
+>
+> — Charlie Chan
+
+> “*Without data you are just another person with an opinion.*”
+>
+> — W. Edwards Deming
+
+In this Lecture we will cover:
+
+- an introduction to R programming language and software;
+- an understanding the basic structure of an R script;
+- the installation of R and RStudio;
+- an overview of the RStudio interface;
+- the basic operations in R (*e.g.* arithmetic, variables, data types, etc.);
+- an introduction to the R Console and R script editor.
+
+# 1 R and RStudio
+
+**R is a programming language and software environment for statistical computing and graphics**. It provides a wide variety of statistical (linear and non-linear modelling, classical statistical tests, time-series analysis, classification, clustering, multivariate analyses, neural networks, and so forth), graphical techniques and is highly extensible.
+
+**RStudio is an integrated development environment (IDE)** for R. It provides a graphical user interface (GUI) for working with R, making it easier to use for those who are less familiar with command-line interfaces. Some of the features provided by RStudio include:
+
+- a code editor with syntax highlighting and code completion;
+- a console for running R code;
+- a graphical interface for managing packages and libraries;
+- an integrated tools for plotting and visualisation;
+- support for version control with Git and SVN.
+
+R is the core software for statistical computing, like a car’s engine, while RStudio provides a more user-friendly interface for working with R, like the car’s body, the seats, steering wheel, and other bells, whistles.
+
+Since 2025, I have preferred using [Posit’s Positron IDE](https://positron.posit.co/) for all my R needs. Posit promotes Positron as “The Data Science IDE”. You are welcome to use it too. I will not be explaining and teaching Positron in this workshop, so, if you do use it (and nerds will *want* to), please go ahead. It is more complex and advanced than RStudio, but you can accomplish the same tasks after a bit of a learning curve. For those of you wanting to make coding a more central part of their career, try and use it in stead of RStudio from now on.
+
+# 2 Installing R and RStudio
+
+R and RStudio are separate programs and need to be installed individually. Follow the instructions on the [Posit website](https://posit.co/download/rstudio-desktop/).
+
+# 3 Setting up the workspace
+
+## 3.1 General settings
+
+Before we start using RStudio (which is a code editor and environment that runs R) let us first set it up properly. Find the ‘Tools’ (‘Preferences’) menu item, navigate to ‘Global Options’ (‘Code Editing’), select the tick boxes as shown in the figure below.
+
+[![RStudio preferences](../../images/RStudio_general_settings.png)](../../images/RStudio_general_settings.png "RStudio preferences")
+
+RStudio preferences
+
+## 3.2 Customising appearance
+
+RStudio is highly customisable. Under the **Appearance** tab under ‘Tools’/‘Global Options’ you can see all of the different themes that come with RStudio. We recommend choosing a theme with a black background (*e.g.*, Chaos) as this will be easier on your eyes and your computer. It is also good to choose a theme with a sufficient amount of contrast between the different colours used to denote different types of objects/values in your code.
+
+[![Appearance settings](../../images/RStudio_appearance.png)](../../images/RStudio_appearance.png "Appearance settings")
+
+Appearance settings
+
+## 3.3 Configuring panes
+
+You cannot rearrange panes (see below) in RStudio by dragging them, but you can alter their position via the **Pane Layout** tab in the ‘Tools’/‘Global Options’ (‘RStudio’/‘Preferences’ — for Mac). You may arrange the panes as you would prefer; however, we recommend that during the duration of this workshop you leave them in the default layout.
+
+[![Rearranging the panes](../../images/RStudio_panes.png)](../../images/RStudio_panes.png "Rearranging the panes")
+
+Rearranging the panes
+
+# 4 The R project
+
+A very nifty way of managing your workflow in RStudio is through the built-in functionality of the R project. We do not need to install any packages or change any settings to use these. Creating a new project is a very simple task, as well. This will prevent a lot of issues by ensuring we are doing things by the same standard. Better yet, an R project integrates seamlessly into version control software (*e.g.*, GitHub), allows for instant world class collaboration on any research project. To initialise the ‘Intro_R_Workshop’ project on your machine please find where you saved`Intro_R_Workshop.Rproj` file in your file system (*i.e.* using Windows Explorer) and double click on it. We will cover the concepts and benefits of an R project more as we move through the module.
+
+1.  In the RStudio menu, find ‘File’, then ‘New Project’.
+2.  Select ‘New Directory’ and then ‘New Project’.
+3.  Name the project ‘Intro_R_Workshop’ and save it in a location of your choice (make sure you understand your computer’s file system and where you are saving files).
+4.  Click ‘Create Project’.
+5.  Copy the data archive [`BCB744.zip`](https://drive.google.com/drive/folders/1h77GFshqdzb80AkaNVlRR_NMg5Ar4dmQ?usp=sharing) to the project directory and unzip it there.
+6.  Rename the unzipped folder to `data`.
+
+Your RStudio should now look like this:
+
+[![RStudio project](../../images/RStudio_project.png)](../../images/RStudio_project.png "RStudio project")
+
+RStudio project
+
+Note the key points:
+
+- ❶ The project name is displayed in the top right corner of the RStudio window.
+- ❷ The name of the project workspace file is displayed in the **Files** pane.
+- ❸ The name of the data folder is displayed in the **Files** pane.
+- ❹ The project name is displayed in the title bar of the RStudio window (corresponding to the physical location on your computer).
+
+More detailed information about R Projects are available the [R Workflows](../../BCB744/intro_r/05-workflow.llms.md#sec-rprojects) and [Working with Data and Code](../../BCB744/intro_r/02-working-with-data.llms.md#rstudio-projects) chapter.
+
+# 5 Installing packages
+
+The most common functions used in R are contained within the **base** package; this makes R useful ‘out of the box.’ However, there is extensive additional functionality that is being expanded all the time through the use of packages. Packages are simply collections of code called functions that automate complex mathematical, statistical tasks. One of the most useful features of R is that users are continuously developing new packages and making them available for free. You can find a comprehensive list of available packages on the [CRAN website](https://cran.r-project.org/web/packages/). There are currently (`2026-11-04`) `many` packages available for R!
+
+If the thought of searching for and finding R packages is daunting, a good place to start is the [R Task Views](http://cran.r-project.org/web/views/) page. This page curates collections of packages for general tasks you might encounter, such as Experimental Design, Meta-Analysis, or Multivariate Analysis. Go, have a look for yourself and you might be surprised to find a good explanation of what you need.
+
+Let us install our first package. After clicking ‘Tools’/‘Install Packages’, type in the package name **tidyverse** in the ‘Packages’ text box (note that it is case sensitive), select the ‘Install’ button. The **Console** will run the code needed to install the package and then provide some commentary on the installation of the package and any of its dependencies (*i.e.*, other R packages needed to run the required package).
+
+The installation process makes sure that the functions within the packages contained within the **tidyverse** are now available on your computer, but to avoid potential conflicts in the names of functions, it will not load these automatically. To make R ‘know’ about these functions in a particular session, you need either to load the package via ticking the checkbox for that package in the **Packages** tab, or execute:
+
+``` numberSource
+library(tidyverse)
+```
+
+To prepare ourselves for the week ahead, let us also install the following packages. Here I demonstrate the command line approach to achieve the same thing that can be done via the menu:
+
+``` numberSource
+install.packages(rmarkdown)
+install.packages(tidyverse)
+install.packages(bindrcpp)
+install.packages(ggpubr)
+install.packages(magrittr)
+install.packages(boot)
+install.packages(scales)
+install.packages(maps)
+install.packages(ggmap)
+install.packages(lubridate)
+```
+
+Since we will develop the habit of doing all of our analyses from R scripts, it is best practice to simply list all of the libraries to be loaded right at the start of your script. Comments may be used to remind your future-self (to quote Hadley Wickham) what those packages are for.
+
+> **NOTE:**
+>
+> RStudio will often show you the code it runs (e.g., when you install packages via the menus). It is fine to copy the **[`library(...)`](https://rdrr.io/r/base/library.html)** calls into your scripts, but **do not** put `install.packages(...)` inside analysis scripts: installing is something you do once per machine, whereas scripts should be runnable without side effects.
+>
+> If you need to give installation instructions, keep them in a dedicated “setup” section (or a separate document) and make it explicit that it is run only once.
+
+# 6 The panes of RStudio
+
+RStudio has four main panes, each occupying a quadrant of your screen: **Source Editor**, **Console**, **Workspace Browser** (and **History**), and **Plots** (and **Files**, **Packages**, **Help**). These can also be adjusted under the ‘Preferences’ menu. Note that there might be subtle differences between RStudio installations on different operating systems. We will discuss each of the panes in turn.
+
+## 6.1 Source editor
+
+Generally we will want to write programs longer than a few lines. The **Source Editor** can help you open, edit, execute these programs. Let us open a simple program:
+
+1.  Use Windows Explorer (Finder on Mac) and navigate to the file `BONUS/the_new_age.R`.
+
+2.  Now make RStudio the default application to open `.R` files (right click on the file Name and set RStudio to open it as the default if it is not already)
+
+3.  Now double click on the file — this will open it in RStudio in the **Source Editor** in the top left pane.
+
+Note `.R` files are simply standard text files and can be created in any text editor and saved with a `.R` (or `.r`) extension, but the Source editor in RStudio has the advantage of providing syntax highlighting, code completion, and smart indentation. You can see the different colours for numbers, there is also highlighting to help you count brackets (click your cursor next to a bracket and push the right arrow and you will see its partner bracket highlighted). We can execute R code directly from the Source Editor. Try the following (on Macs replace **Ctrl** with **Cmd**):
+
+- Execute a single line (Run icon or **Ctrl+Enter**). Note that the cursor can be anywhere on the line and one does not need to highlight anything — do this for the code on line 2
+- Execute multiple lines (Highlight lines with the cursor, then Run icon, **Ctrl+Enter**) — do this for line 3 to 6
+- Execute the whole script (Source icon or **Ctrl+Shift+Enter**)
+
+Now, try changing the *x* and/or *y* axis labels on line 18, re-run the script.
+
+Now let us save the program in the **Source Editor** by clicking on the file symbol (note that the file symbol is greyed out when the file has not been changed since it was last saved).
+
+At this point, it might be worth thinking a bit about what the program is doing. R requires one to think about what you are doing, not simply clicking buttons like in some other software systems which shall remain nameless for now. Scripts execute sequentially from top to bottom. Try, work out what each line of the program is doing and discuss it with your neighbour. Note and if you get stuck, try using R’s help system; accessing the help system is especially easy within RStudio — see if you can figure out how to use that too.
+
+> **NOTE:**
+>
+> The hash (`#`) tells R not to run any of the text on that line to the right of the symbol. This is the standard way of commenting R code; it is VERY good practice to comment in detail so that you can understand later what you have done.
+
+## 6.2 Console
+
+This is where you can type code that executes immediately. This is also known as the command line. Throughout the notes, we will represent code for you to execute in R as a different font.
+
+> **NOTE:**
+>
+> Although it may appear that one could copy code from this PDF into the **Console**, you really should not. The first reason is that you might unwittingly copy invisible PDF formatting codes into R, which will make your script fail. But more importantly, typing code into the **Console** yourself gives you the practice you need, and allows you to make (and correct) your errors. This is an invaluable way of learning, taking shortcuts now will only hurt you in the long run.
+
+Entering code in the command line is intuitive and easy. For example, we can use R as a calculator by typing into the Console (and pressing **Enter** after each line). Note that the output for every line of calculation (*e.g.* `6 * 3`) is indicated by `R>`, as we see here:
+
+``` numberSource
+6 * 3
+```
+
+    [1] 18
+
+``` numberSource
+5 + 4
+```
+
+    [1] 9
+
+``` numberSource
+2^3
+```
+
+    [1] 8
+
+Note that spaces are optional around simple calculations, but I encourage their use to adhere to the R style guidelines.
+
+We can also use the assignment operator `<-` to assign any calculation to a variable so we can access it later (the `=` sign would work, too, but it is bad practice to use it; we will talk about this as we go):
+
+``` numberSource
+a <- 2
+b <- 7
+a + b
+```
+
+    [1] 9
+
+To type the assignment operator (`<-`) push the following two keys together: **alt -**. There are many keyboard shortcuts in R and we will introduce them as we go along.
+
+Spaces are also optional around assignment operators. It is good practice to use single spaces in your R scripts, and the **alt -** shortcut will do this for you automagically. Spaces are not only there to make the code more readable to the human eye, but also to the machine. Try this:
+
+``` numberSource
+d <- 2
+d < -2
+```
+
+Note that the first line of code assigns `d` a value of `2`, whereas the second statement asks R whether this variable has a value less than 2. When asked, it responds with FALSE. If we had not used spaces, how would R have known what we meant?
+
+Another important question here is, is R case sensitive? Is `A` the same as `a`? Figure out a way to check for yourself.
+
+We can create a vector in R by using the combine [`c()`](https://rdrr.io/r/base/c.html) function:
+
+``` numberSource
+apples <- c(5.3, 3.8, 4.5)
+```
+
+A vector is a one-dimensional array (*i.e.*, a list of numbers), and this is the simplest form of data used in R (you can think of a single value in R as just a very short vector). We will talk about more complex (and therefore more powerful) types of data structures as we go along.
+
+If you want to display the value of apples type:
+
+``` numberSource
+apples
+```
+
+    [1] 5.3 3.8 4.5
+
+Finally, there are default functions in R for nearly all basic statistical analyses, including [`mean()`](https://rdrr.io/r/base/mean.html) and [`sd()`](https://rdrr.io/r/stats/sd.html) (standard deviation):
+
+``` numberSource
+mean(apples)
+```
+
+    [1] 4.533333
+
+``` numberSource
+sd(apples)
+```
+
+    [1] 0.7505553
+
+> **NOTE:**
+>
+> It is best not to use `c` as the name of a value or array. Why? What other words might not be good to use?
+
+Or try this:
+
+``` numberSource
+round(sd(apples), 2)
+```
+
+    [1] 0.75
+
+RStudio supports the automatic completion of code using the **Tab** key. For example, type the three letters `app` and then the **Tab** key. What happens?
+
+The code completion feature also provides brief inline help for functions whenever possible. For example, type [`mean()`](https://rdrr.io/r/base/mean.html) and press the **Tab** key.
+
+The RStudio **Console** automagically maintains a ‘history’ so that you can retrieve previous commands, a bit like your Internet browser, Google (*see the code in: BONUS/mapping_yourself.Rmd*). On a blank line in the **Console** or press the up arrow, and see what happens.
+
+If you wish to review a list of your recent commands and then select a command from this list you can use **Ctrl+Up** to review the list (**Cmd+Up** on the Mac). If you prefer a ‘bird’s eye’ overview of the R command history, you may also use the RStudio History pane (see below).
+
+The **Console** title bar has a few useful features:
+
+1.  It displays the current R working directory (more on this later)
+
+2.  It provides the ability to interrupt R during a long computation (a stop sign will appear whilst code is running)
+
+3.  It allows you to minimise and maximise the **Console** in relation to the **Source pane** using the buttons at the top-right or by double-clicking the title bar)
+
+## 6.3 Environment and history panes
+
+The **Environment** pane is very useful as it shows you what objects (*i.e.*, dataframes, arrays, values, functions) you have in your environment (workspace). You can see the values for objects with a single value and for those that are longer R will tell you their class. When you have data in your environment that have two dimensions (rows and columns) you may click on them and they will appear in the **Source Editor** pane like a spreadsheet.
+
+You can then go back to your program in the **Source Editor** by clicking its tab or closing the tab for the object you opened. Also in the **Environment** is the History tab, where you can see all of the code executed for the session. If you double-click a line, highlight a block of lines and then double-click those or you can send it to the **Console** (*i.e.*, run them).
+
+Typing the following into the **Console** will list everything you have loaded into the Environment:
+
+``` numberSource
+ls()
+```
+
+    [1] "a"          "apples"     "b"          "pkgs_count" "pkgs_lst"  
+    [6] "url"       
+
+What do we have loaded into our environment? Did all of these objects come from one script, or more than one? How can we tell where an object was generated?
+
+## 6.4 Files, plots, packages, help, and viewer panes
+
+The last pane has a number of different tabs. The **Files** tab has a navigable file manager, just like the file system on your operating system. The **Plot** tab is where graphics you create will appear. The **Packages** tab shows you the packages that are installed, those that can be installed (more on this just now). The **Help** tab allows you to search the R documentation for help and is where the help appears when you ask for it from the **Console**.
+
+Methods of getting help from the **Console** include:
+
+``` numberSource
+?mean
+```
+
+…or:
+
+``` numberSource
+help(mean)
+```
+
+We will go into this in more detail in the next session.
+
+To reproduce Figure [Figure 1](#fig-ggplot2) in the **Plot** tab, simply copy, paste the following code into the **Console**:
+
+``` numberSource
+library(tidyverse)
+x <- seq(0, 2, by = 0.01)
+y <- 2 * sin(2 * pi * (x - 1 / 4))
+ggplot() +
+  geom_point(aes(x = x, y = y), shape = 21, col = "salmon", fill = "white")
+```
+
+[![](01-RStudio_files/figure-html/fig-ggplot2-1.png)](01-RStudio_files/figure-html/fig-ggplot2-1.png "Figure 1: Example plot assembled with ggplot2.")
+
+Figure 1: Example plot assembled with ggplot2.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2021,
+  author = {Smit, A. J.},
+  title = {1. {R} and {RStudio}},
+  date = {2021-01-01},
+  url = {https://tangledbank.netlify.app/BCB744/intro_r/01-RStudio.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2021) 1. R and RStudio. [https://tangledbank.netlify.app/BCB744/intro_r/01-RStudio.html.](https://tangledbank.netlify.app/BCB744/intro_r/01-RStudio.html)

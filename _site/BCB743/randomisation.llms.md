@@ -1,0 +1,60 @@
+Randomising the order of observations is effectively a permutation of the data.frame’s (row) index vector. Because R stores a data.frame as a list of equal-length vectors, shuffling the rows amounts to reordering each vector simultaneously according to a single, randomly drawn permutation.
+
+## 1 Base-R
+
+``` numberSource
+set.seed(42) # <1>
+df_perm <- df[sample(nrow(df)), ] # <2>
+row.names(df_perm) <- NULL # <3>
+```
+
+1.  Fix the RNG for reproducibility when needed
+2.  `sample()` without the `replace` argument returns a permutation
+3.  (Optional) drop the original row indices
+
+`sample(nrow(df))` results in a vector `1:n` rearranged into a fresh random order, so subsetting the data.frame with that vector coerces every column to follow suit. The row names stay attached unless one removes them.
+
+## 2 Tidyverse
+
+``` numberSource
+library(dplyr)
+
+df_perm <- df %>%
+  slice_sample(n = nrow(.))
+
+# or, predating slice_sample():
+df_perm <- df %>%
+  sample_frac(1)
+```
+
+`slice_sample()` accepts an optional `weight_by` argument, permitting unequal permutation weights should the null hypothesis require them. By contrast, `sample_frac(1)` asks to “take a 100 % sample”, and, being fraction-based, it sidesteps the need to compute `nrow(df)`.
+
+## 3 Statistical context
+
+Within permutation-based inference, randomising rows removes any systematic linkage between predictor and response variables but it conserves the empirical marginal distributions. Recomputing a test statistic over many such reshufflings results in distributions that approximate the data’s sampling distribution under the null hypothesis of no association. One call to `sample()` is enough to create one permutation. Placing that call inside `replicate()` or `purrr::map(1:n, ~ ...)` supplies the Monte-Carlo ensemble (`purrr::rerun()` was deprecated in purrr 1.0.0).
+
+Randomisation of rows presupposes exchangeability. If one’s data carry temporal, spatial, or hierarchical strata, a naïve global shuffle may void the null model’s statistical validity. In such cases one would confine `sample()` to blocks delineated by the relevant grouping variable, e.g. via `dplyr::group_modify(~ .x[sample(nrow(.x)), ])`, and so restrict permutations to contextually relevant partitions.
+
+## 4 References
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {Randomisation of Rows in a Data Frame},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB743/randomisation.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) Randomisation of rows in a data frame. [https://tangledbank.netlify.app/BCB743/randomisation.html.](https://tangledbank.netlify.app/BCB743/randomisation.html)

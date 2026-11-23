@@ -1,0 +1,204 @@
+> **TIP:**
+>
+> - **Slides:** Pigments and Photosynthesis (on iKamva under Module Resources)
+> - **Reading:** [Lecture 7a: Pigments & Photosynthesis](../BDC223/L07a-pigments_photosynthesis.llms.md)
+> - **Self-study:** [Lecture 7b: Measuring Photosynthesis](../BDC223/L07b-measuring_photosynthesis.llms.md)
+
+> **NOTE:**
+>
+> - **Lab Date:** Monday, 26 October 2026, 13:30–17:10
+> - **Assignment Due:** Monday, 2 November 2026, 08:00 on iKamva
+> - **Self-assessment Due (if applicable):** Monday, 2 November 2026, 23:59 on iKamva
+
+Complete this Lab individually. The dates above follow the [module timetable](../BDC223/BDC223_index.llms.md#sec-syllabus).
+
+## 1 Experimental procedure: photosynthesis-irradiance (P-I) curve
+
+In this experiment, you will measure the photosynthetic response of *Elodea* sp. plants at varying light intensities. You will quantify the amount of oxygen produced at each photon flux density and use these data to calculate the photosynthetic rate and create a Photosynthesis-Irradiance (P-I) curve. By plotting the P-I curve, you will visually estimate the maximum photosynthetic rate ($P_{\text{max}}$), the initial slope of the curve ($\alpha$), the light compensation point (LCP), and the respiration rate ($R$) based on the modified Jassby and Platt model.
+
+### 1.1 Materials
+
+- *Elodea* sp. plants (approximately 4.5 g per replicate)
+- Aquatic medium for submerging plants
+- Light source with adjustable intensities (0 to 550 μmol photons·m⁻²·s⁻¹)
+- Oxygen probe or dissolved oxygen meter
+- Incubation chamber (to control environmental conditions)
+- Timer
+- Data recording sheet
+
+### 1.2 Experimental procedure
+
+1.  **Set up the experiment**:
+    - Place the plant material (*Elodea* sp., weighed to between 4.42 and 4.69 g) in an aquatic medium within a closed incubation chamber.
+    - Ensure that the oxygen probe is calibrated and submerged properly to continuously measure the oxygen concentration.
+    - Adjust the light source to create different light intensity levels, starting from 0 μmol photons·m⁻²·s⁻¹ (dark conditions) and increasing incrementally up to around 550 μmol photons·m⁻²·s⁻¹.
+2.  **Measure oxygen evolution**:
+    - For each light intensity, incubate the plants for approximately 600 seconds (10 minutes). Record the exact incubation time, as small variations in time may occur due to experimental conditions.
+    - Measure the total amount of oxygen produced (or consumed) during each incubation period. Oxygen production indicates net photosynthesis, while oxygen consumption in dark conditions reflects respiration.
+    - Repeat the measurements for five different replicates of plant mass to account for variability and obtain a robust data set.
+3.  **Record light intensities**:
+    - For each replicate, ensure that you document the light intensity (μmol photons·m⁻²·s⁻¹) for each corresponding oxygen measurement. The intensity should vary from 0 μmol photons·m⁻²·s⁻¹ to about 550 μmol photons·m⁻²·s⁻¹ in a regular stepwise fashion, allowing you to cover a broad range of photosynthetically active radiation.
+
+### 1.3 Calculating the photosynthetic rate
+
+To calculate the photosynthetic rate for each light intensity, follow these steps:
+
+1.  **Determine the total oxygen evolved**: Using the data recorded during the experiment, identify the total amount of oxygen evolved or consumed (in mg O₂) for each light intensity and for each replicate.
+
+2.  **Calculate the time in hours**: Convert the incubation time (in seconds) to hours. Use the formula: $$\text{Time (h)} = \frac{\text{Time (s)}}{3600}$$
+
+3.  **Determine the oxygen production rate per plant mass**: Calculate the oxygen production rate per gram of plant material per hour, using the formula: $$P(I) = \frac{\text{Total O}_2 \text{ evolved (mg)}}{\text{Time (h)} \times \text{Plant mass (g)}}$$ This will give you the net photosynthetic rate $P(I)$ at each light intensity $I$, expressed in mg O₂ produced per gram per hour.
+
+### 1.4 Plotting the P-I curve
+
+1.  **Create a plot**:
+    - On graph paper or using plotting software, plot the net photosynthetic rate $P(I)$ (mg O₂·g⁻¹·h⁻¹) on the y-axis against the light intensity $I$ (μmol photons·m⁻²·s⁻¹) on the x-axis.
+2.  **Draw the fitted line**:
+    - Using a smooth curve, fit the data points to represent the trend of photosynthesis at increasing light levels. The curve will initially show a steep increase as light intensity rises (due to light-limited photosynthesis), followed by a gradual plateau as the rate of photosynthesis approaches the maximum capacity of the plant ($P_{\text{max}}$).
+3.  **Identify the key parameters**:
+    - From the curve, estimate:
+      - $P_{\text{max}}$: The maximum photosynthetic rate, where the curve flattens.
+      - $\alpha$: The initial slope of the curve, representing the efficiency of photosynthesis at low light levels.
+      - **Light compensation point**: The point where the curve crosses the x-axis, indicating the light intensity at which net photosynthesis is zero.
+      - **Respiration rate (**$R$): The rate of oxygen consumption in the absence of light (when $I = 0$).
+
+### 1.5 Estimating the jassby and platt model parameters
+
+The modified Jassby and Platt model is used to describe the relationship between light intensity and photosynthetic rate. The model equation is:
+
+$$P(I) = P_{\text{max}} \times \tanh\left(\frac{\alpha I}{P_{\text{max}}}\right) - R$$
+
+- $P_{\text{max}}$ is the maximum rate of photosynthesis.
+- $\alpha$ is the initial slope of the P-I curve, representing the photosynthetic efficiency at low light levels.
+- $R$ is the dark respiration rate, calculated from the negative O₂ evolution in the absence of light.
+
+Fit this equation to your data and estimate $P_{\text{max}}$, $\alpha$, and $R$. The light compensation point can also be derived from the model, as it is the light intensity where the net photosynthesis rate equals zero.
+
+This experiment has already been done for you and the data are provided below for your analysis.
+
+## 2 PI data
+
+Below are the data tables for each replicate. Each table includes:
+
+- **Light Intensity (I)**: in μmol photons·m⁻²·s⁻¹
+- **Incubation Time (T)**: in seconds
+- **Total O₂ Evolved**: in mg O₂ per incubation period
+
+### 2.1 [Replicate 1](../data/BDC223/BDC223_Lab3_PI_Curves_rep1.csv) (plant mass: 4.50 g)
+
+| Light Intensity (μmol·m⁻²·s⁻¹) | Incubation Time (s) | Total O₂ Evolved (mg) |
+|--------------------------------|---------------------|-----------------------|
+| 0                              | 605                 | -1.495                |
+| 50                             | 595                 | 0.335                 |
+| 100                            | 610                 | 2.089                 |
+| 150                            | 600                 | 3.567                 |
+| 200                            | 590                 | 4.800                 |
+| 250                            | 615                 | 5.941                 |
+| 300                            | 605                 | 6.590                 |
+| 400                            | 600                 | 7.489                 |
+| 500                            | 610                 | 8.078                 |
+| 550                            | 605                 | 8.130                 |
+
+### 2.2 [Replicate 2](../data/BDC223/BDC223_Lab3_PI_Curves_rep2.csv) (plant mass: 4.42 g)
+
+| Light Intensity (μmol·m⁻²·s⁻¹) | Incubation Time (s) | Total O₂ Evolved (mg) |
+|--------------------------------|---------------------|-----------------------|
+| 0                              | 590                 | -1.483                |
+| 50                             | 600                 | 0.321                 |
+| 100                            | 610                 | 2.044                 |
+| 150                            | 595                 | 3.523                 |
+| 200                            | 605                 | 4.741                 |
+| 250                            | 600                 | 5.896                 |
+| 300                            | 610                 | 6.504                 |
+| 400                            | 595                 | 7.378                 |
+| 500                            | 605                 | 7.967                 |
+| 550                            | 600                 | 8.025                 |
+
+### 2.3 [Replicate 3](../data/BDC223/BDC223_Lab3_PI_Curves_rep3.csv) (plant mass: 4.61 g)
+
+| Light Intensity (μmol·m⁻²·s⁻¹) | Incubation Time (s) | Total O₂ Evolved (mg) |
+|--------------------------------|---------------------|-----------------------|
+| 0                              | 610                 | -1.558                |
+| 50                             | 600                 | 0.350                 |
+| 100                            | 590                 | 2.128                 |
+| 150                            | 605                 | 3.609                 |
+| 200                            | 600                 | 4.836                 |
+| 250                            | 610                 | 5.998                 |
+| 300                            | 595                 | 6.635                 |
+| 400                            | 605                 | 7.542                 |
+| 500                            | 600                 | 8.142                 |
+| 550                            | 590                 | 8.185                 |
+
+### 2.4 [Replicate 4](../data/BDC223/BDC223_Lab3_PI_Curves_rep4.csv) (plant mass: 4.43 g)
+
+| Light Intensity (μmol·m⁻²·s⁻¹) | Incubation Time (s) | Total O₂ Evolved (mg) |
+|--------------------------------|---------------------|-----------------------|
+| 0                              | 600                 | -1.501                |
+| 50                             | 610                 | 0.327                 |
+| 100                            | 595                 | 2.065                 |
+| 150                            | 605                 | 3.545                 |
+| 200                            | 600                 | 4.765                 |
+| 250                            | 590                 | 5.905                 |
+| 300                            | 615                 | 6.543                 |
+| 400                            | 605                 | 7.454                 |
+| 500                            | 600                 | 8.046                 |
+| 550                            | 610                 | 8.098                 |
+
+### 2.5 [Replicate 5](../data/BDC223/BDC223_Lab3_PI_Curves_rep5.csv) (plant mass: 4.69 g)
+
+| Light Intensity (μmol·m⁻²·s⁻¹) | Incubation Time (s) | Total O₂ Evolved (mg) |
+|--------------------------------|---------------------|-----------------------|
+| 0                              | 595                 | -1.575                |
+| 50                             | 605                 | 0.361                 |
+| 100                            | 600                 | 2.152                 |
+| 150                            | 590                 | 3.637                 |
+| 200                            | 610                 | 4.870                 |
+| 250                            | 600                 | 6.025                 |
+| 300                            | 590                 | 6.675                 |
+| 400                            | 615                 | 7.596                 |
+| 500                            | 605                 | 8.189                 |
+| 550                            | 600                 | 8.240                 |
+
+### 2.6 Notes:
+
+- **Negative Values**: Negative total O₂ evolved indicates net respiration (O₂ consumption) at low light intensities.
+- **Variability**: Incubation times and O₂ measurements include random variability to simulate real experimental conditions.
+- **Data Usage**: You can calculate the photosynthetic rate $P(I)$ using: $$P(I) = \frac{\text{Total O}_2 \text{ evolved}}{\left(\frac{T}{3600}\right) \times \text{Plant Mass}}$$
+  - This will yield $P(I)$ in mg O₂·g⁻¹·h⁻¹.
+
+## 3 For submission
+
+- Calculate the photosynthetic rate $P(I)$ for each replicate.
+- Calculate the mean and standard deviation of $P(I)$ at each light intensity.
+- Provide the following answers:
+  - Exhibit 1: Plot the mean $P(I)$ values with error bars (±1 SD) as a function of light intensity.
+  - Exhibit 2: Fit the data to the model to estimate all the parameters of the modified Jassby and Platt model (including the saturating irradiance, $I_{\text{k}}$). You can ‘fit’ the model by hand or, for bonus marks, use a curve-fitting tool in a spreadsheet or programming language. Neatly present these data as a table.
+  - Exhibit 3: Discuss the results in the context of the model and the experimental data. What do the parameters of the model tell you about the photosynthetic performance of the plant? What are the limitations of the model? How does all of this relate to the theory of photosynthesis (i.e. the relationship between light intensity and photosynthetic rate)?
+  - Exhibit 4: Why is it necessary to control the environmental conditions during the experiment? Which conditions, and why? What are any other potential sources of error in this experiment?
+  - Exhibit 5: In this experiment we measured oxygen evolution. Name and discuss a few other approaches we can use to measure photosynthetic rate.
+
+Upload your work as an MS Word file to iKamva by **08:00 on Monday, 2 November 2026**. This requirement applies to both pre-assessed and self-assessed submissions.
+
+If this Lab is self-assessed, use the model answer or rubric provided after the assignment deadline to mark your submitted work. Upload the completed self-assessment to iKamva by **23:59 on the same day**. See the [Lab submission and self-assessment policy](../BDC223/BDC223_index.llms.md#sec-lab-self-assessment) for the checking and penalty rules.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J. and J. Smit, A. and Smit, AJ},
+  title = {Lab 3: {PI} Curves {(Jassby} and {Platt)}},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BDC223/Lab3_PI_curves.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, J. Smit A, Smit A (2026) Lab 3: PI curves (Jassby and Platt). [https://tangledbank.netlify.app/BDC223/Lab3_PI_curves.html.](https://tangledbank.netlify.app/BDC223/Lab3_PI_curves.html)

@@ -1,62 +1,98 @@
 <!-- Manual page structure (styles/manual.scss). On sidebar pages in a wide window:
-     move search, the site's module list and the page sections into the contents
-     panel, and put author, affiliation and date on one line in the banner. -->
+     move search, a module switcher and the page sections into the contents panel
+     (or, in very wide windows, the sections into a column on the right), and put
+     author, affiliation, date and the page's place in its section into the banner. -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const sidebar = document.querySelector("#quarto-sidebar");
-  // shortcut: decided once at load; resizing across 992px needs a reload, fine for a reading site.
+  // shortcut: decided once at load; resizing across a breakpoint needs a reload, fine for a reading site.
   if (!sidebar || !document.body.classList.contains("nav-sidebar") ||
       !window.matchMedia("(min-width: 992px)").matches) return;
 
   const header = sidebar.querySelector(".sidebar-header") || sidebar.firstElementChild;
 
-  // Site home and every module, built from the (hidden) top bar so _quarto.yml stays the only list.
+  // Site home, the modules as a switcher, and the other resources, all built
+  // from the (hidden) top bar so _quarto.yml stays the only list.
   const navbar = document.querySelector("#quarto-header .navbar");
   if (navbar && header) {
     const site = document.createElement("div");
     site.className = "manual-site";
+    const top = document.createElement("div");
+    top.className = "manual-site-top";
     const brand = navbar.querySelector(".navbar-brand");
     const home = document.createElement("a");
     home.className = "manual-site-home";
     home.href = brand ? brand.getAttribute("href") : "/";
     home.textContent = (navbar.querySelector(".navbar-title") || {}).textContent || "Home";
-    site.appendChild(home);
+    top.appendChild(home);
+    const scheme = navbar.querySelector(".quarto-color-scheme-toggle");
+    if (scheme) top.appendChild(scheme);
+    site.appendChild(top);
 
-    const details = document.createElement("details");
-    details.innerHTML = "<summary>All modules and resources</summary>";
     const dir = h => h.slice(0, h.lastIndexOf("/") + 1);
+    const code = t => (t.match(/^[A-Z]{3}\d{3}/) || [""])[0];
+    const groups = [...navbar.querySelectorAll(".navbar-nav:not(.ms-auto) > li.dropdown")].map(li => ({
+      label: (li.querySelector(".dropdown-toggle .menu-text") || {}).textContent?.trim() || "",
+      items: [...li.querySelectorAll(".dropdown-menu a.dropdown-item")]
+    }));
+    // The module this page belongs to: the entry whose folder is the longest prefix of this page's path
     let current = null;
-    navbar.querySelectorAll(".navbar-nav:not(.ms-auto) > li.dropdown").forEach(li => {
-      const label = li.querySelector(".dropdown-toggle .menu-text");
-      const items = [...li.querySelectorAll(".dropdown-menu a.dropdown-item")];
-      if (!label || !items.length) return;
-      const group = document.createElement("div");
-      group.className = "manual-site-group";
-      group.textContent = label.textContent.trim();
-      const ul = document.createElement("ul");
-      items.forEach(a => {
-        const link = document.createElement("a");
-        link.href = a.href;
-        link.textContent = a.textContent.trim();
-        if (a.target) link.target = a.target;
-        // The module this page belongs to: the entry whose folder is the longest prefix of this page's path
-        if (a.origin === location.origin && location.pathname.startsWith(dir(a.pathname)) &&
-            (!current || dir(a.pathname).length > dir(current.pathname).length)) current = link;
-        const item = document.createElement("li");
-        item.appendChild(link);
-        ul.appendChild(item);
+    groups.forEach(g => g.items.forEach(a => {
+      if (a.origin === location.origin && location.pathname.startsWith(dir(a.pathname)) &&
+          (!current || dir(a.pathname).length > dir(current.pathname).length)) current = a;
+    }));
+
+    const switcher = document.createElement("nav");
+    switcher.className = "manual-modules";
+    switcher.setAttribute("aria-label", "Modules");
+    const seen = new Set();
+    groups.forEach(g => g.items.forEach(a => {
+      const c = code(a.textContent.trim());
+      if (!c || seen.has(c)) return;
+      seen.add(c);
+      const pill = document.createElement("a");
+      pill.href = a.href;
+      pill.textContent = c;
+      pill.title = a.textContent.trim().replace(/^[A-Z]{3}\d{3}:\s*/, "");
+      if (current && code(current.textContent.trim()) === c) {
+        pill.classList.add("current");
+        pill.setAttribute("aria-current", "true");
+      }
+      switcher.appendChild(pill);
+    }));
+    if (seen.size) site.appendChild(switcher);
+
+    const more = groups.filter(g => !g.items.some(a => code(a.textContent.trim())));
+    if (more.length) {
+      const details = document.createElement("details");
+      details.innerHTML = "<summary>More resources</summary>";
+      more.forEach(g => {
+        const group = document.createElement("div");
+        group.className = "manual-site-group";
+        group.textContent = g.label;
+        const ul = document.createElement("ul");
+        g.items.forEach(a => {
+          const link = document.createElement("a");
+          link.href = a.href;
+          link.textContent = a.textContent.trim();
+          if (a.target) link.target = a.target;
+          if (a === current) link.classList.add("current");
+          const item = document.createElement("li");
+          item.appendChild(link);
+          ul.appendChild(item);
+        });
+        details.append(group, ul);
       });
-      details.append(group, ul);
-    });
+      site.appendChild(details);
+    }
+
     if (current) {
-      current.classList.add("current");
       const name = document.createElement("a");
       name.className = "manual-module";
       name.href = current.href;
-      name.textContent = current.textContent;
+      name.textContent = current.textContent.trim();
       header.prepend(name);
     }
-    if (details.querySelector("ul")) site.appendChild(details);
     header.before(site);
 
     const search = navbar.querySelector("#quarto-search");
@@ -69,6 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (pager && main) main.prepend(pager);
 
   // Margin notes follow their block in the source; float them from the top of that block instead
+  const hasMargin = !!document.querySelector("main.content .column-margin, main.content .no-row-height");
   if (window.matchMedia("(min-width: 1560px)").matches) {
     const isMargin = el => el.matches(".column-margin, .no-row-height");
     document.querySelectorAll("main.content .column-margin, main.content .no-row-height").forEach(note => {
@@ -79,9 +116,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Author, affiliation and date as one line in the banner
+  // Banner: author, affiliation and date as one line, then the page's place in its section
   const block = document.querySelector("#title-block-header");
   const title = block && block.querySelector(".quarto-title-banner .quarto-title");
+  const active = sidebar.querySelector("a.sidebar-link.active");
   if (title) {
     const text = s => [...block.querySelectorAll(s)].map(e => e.textContent.trim()).filter(Boolean);
     const meta = [...new Set([...text("p.author > a:first-child, p.author:not(:has(a))"), ...text("p.affiliation")])];
@@ -97,25 +135,59 @@ document.addEventListener("DOMContentLoaded", function () {
       title.appendChild(p);
       block.classList.add("manual-meta-moved");
     }
+    // "Lectures · 7 of 14" and a thin bar along the foot of the banner
+    const section = active && active.closest("ul.collapse");
+    const owner = section && section.parentElement.querySelector(":scope > .sidebar-item-container .menu-text");
+    if (owner) {
+      const pages = [...section.querySelectorAll(":scope > li > .sidebar-item-container a.sidebar-link, :scope > li > a.sidebar-link")];
+      const i = pages.indexOf(active);
+      if (i >= 0 && pages.length >= 3) {
+        const where = document.createElement("p");
+        where.className = "manual-progress";
+        where.textContent = owner.textContent.trim() + "  ·  " + (i + 1) + " of " + pages.length;
+        title.appendChild(where);
+        const bar = document.createElement("div");
+        bar.className = "manual-progress-bar";
+        bar.setAttribute("aria-hidden", "true");
+        bar.style.width = ((i + 1) / pages.length * 100).toFixed(1) + "%";
+        block.querySelector(".quarto-title-banner").appendChild(bar);
+      }
+    }
   }
 
-  // The page's sections, nested under the current page in the panel
+  // The page's sections: in a column on the right when the window has room, otherwise nested
+  // under the current page in the panel, with subsections shown only for the section being read.
   const toc = document.querySelector("#TOC > ul");
-  const active = sidebar.querySelector("a.sidebar-link.active");
   if (!toc || !active) return;
   const nav = document.createElement("nav");
   nav.className = "manual-toc";
   nav.setAttribute("aria-label", "On this page");
   nav.appendChild(toc);
-  active.closest("li").appendChild(nav);
+  const rail = window.matchMedia(hasMargin ? "(min-width: 1840px)" : "(min-width: 1600px)").matches;
+  if (rail) {
+    nav.insertAdjacentHTML("afterbegin", '<p class="manual-rail-title">On this page</p>');
+    const aside = document.createElement("aside");
+    aside.className = "manual-rail" + (hasMargin ? " manual-rail-wide" : "");
+    aside.appendChild(nav);
+    document.getElementById("quarto-content").appendChild(aside);
+  } else {
+    active.closest("li").appendChild(nav);
+  }
   const actions = document.querySelector("#TOC .toc-actions"); // Edit this page / Report an issue
   if (actions) { actions.classList.add("manual-actions"); sidebar.appendChild(actions); }
   document.getElementById("TOC").hidden = true;
+
   // Accordion: opening one top-level entry folds the others, including a top-level page's own sections
   const topList = sidebar.querySelector(".sidebar-menu-container > ul");
-  const ownerLi = nav.parentElement;
+  const ownerLi = active.closest("li");
+  const closeSections = keep => {
+    if (!topList || !window.bootstrap) return;
+    topList.querySelectorAll(":scope > li > ul.collapse.show").forEach(ul => {
+      if (ul !== keep) bootstrap.Collapse.getOrCreateInstance(ul, { toggle: false }).hide();
+    });
+  };
   let foldOwner = () => {};
-  if (topList && ownerLi.parentElement === topList) {
+  if (!rail && topList && ownerLi.parentElement === topList) {
     const toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "manual-toggle";
@@ -133,12 +205,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (opening) closeSections(null);
     });
   }
-  const closeSections = keep => {
-    if (!topList || !window.bootstrap) return;
-    topList.querySelectorAll(":scope > li > ul.collapse.show").forEach(ul => {
-      if (ul !== keep) bootstrap.Collapse.getOrCreateInstance(ul, { toggle: false }).hide();
-    });
-  };
   sidebar.addEventListener("show.bs.collapse", e => {
     if (!topList || e.target.parentElement?.parentElement !== topList) return;
     closeSections(e.target);
@@ -147,10 +213,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const links = [...nav.querySelectorAll("a[href*='#']")];
   const heads = links.map(a => document.getElementById(decodeURIComponent(a.hash.slice(1))));
+  const tops = [...nav.querySelectorAll(":scope > ul > li")];
   const spy = () => {
     let i = heads.length - 1;
     while (i > 0 && (!heads[i] || heads[i].getBoundingClientRect().top > 120)) i--;
     links.forEach((a, j) => a.classList.toggle("active", j === i));
+    const open = links[i] && links[i].closest("nav.manual-toc > ul > li");
+    tops.forEach(li => li.classList.toggle("manual-open", li === open));
   };
   addEventListener("scroll", spy, { passive: true });
   spy();

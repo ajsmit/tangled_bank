@@ -1,0 +1,126 @@
+## 1 Assignment: write a new BCB743 chapter
+
+In this task you will work in your fixed group of three to write a new teaching chapter that could contribute to the BCB743 chapter list. The chapter must be written for the same audience, technical level, scholarly standard, and pedagogical purpose as the existing BCB743 chapters on Tangled Bank. If the submitted work is sufficiently strong, I may invite one or more student groups to revise their chapter for permanent inclusion in BCB743.
+
+The previous version of this task asked for a lecture series. That is no longer the main product. You will still present your chapter to the class, but the presentation is now an assessed communication outcome worth 20% of this task mark. The main product is the written Quarto chapter.
+
+### 1.1 Chapter brief
+
+Choose an ecological theory, concept, methodological theme, dataset, or emerging problem that would strengthen BCB743. Your chapter should fill a real gap in the current chapter list rather than repeat material already covered. Suitable topics might include a deeper theoretical treatment, a new worked example, a synthesis across methods, a modern extension of an existing chapter, or a carefully chosen method not yet covered in the module.
+
+Your chapter must:
+
+- be written as a coherent teaching chapter, not as a report, essay, or slide script
+- explain the ecological motivation, conceptual background, and relevance of the topic
+- connect the topic to modern ecological theory and to the analytical logic of BCB743
+- use clear examples, figures, tables, code, or diagrams where they help the reader learn
+- include a worked analytical or conceptual example where appropriate
+- show how the topic connects to existing BCB743 chapters, datasets, and methods
+- distinguish clearly between established knowledge, debated interpretations, and your own synthesis
+- include enough references to support the claims made in the chapter
+- be written in Quarto and render cleanly to HTML
+
+The chapter should be useful to future BCB743 students. A reader should be able to learn something substantive from it without needing you in the room to explain what you meant.
+
+### 1.2 Suggested chapter structure
+
+You may adapt the structure to suit your topic, but most chapters should include:
+
+- **Overview:** what the chapter is about, why it matters, and what the reader should be able to do after reading it
+- **Ecological background:** the relevant theory, historical context, assumptions, debates, and current relevance
+- **Data or worked example:** the dataset, model system, simulation, or conceptual example used to make the topic concrete
+- **Methods or analytical logic:** the relevant statistical, multivariate, modelling, graphical, or conceptual tools
+- **Worked analysis or demonstration:** reproducible code, figures, tables, diagnostics, and interpretation where appropriate
+- **Synthesis:** what the example shows, how it connects to the broader theory, and what its limitations are
+- **Further reading:** a curated set of key papers, books, or resources
+- **References:** all sources cited in the chapter
+
+### 1.3 Referencing and evidence
+
+The referencing standard for this task is higher than for an ordinary class essay. Because this chapter may become part of the teaching material, all claims must be traceable.
+
+Each group must:
+
+- cite every factual, theoretical, methodological, historical, or interpretive claim that is not common knowledge
+- keep a local PDF copy of every cited paper
+- highlight in each PDF the exact passage, figure, table, or result that supports each claim used in the chapter
+- keep the highlighted PDFs organised so they can be checked if requested
+- cite primary literature wherever possible, especially for theory, methods, and empirical claims
+- avoid relying on uncited web summaries, lecture notes, or AI-generated explanations as evidence
+
+A reference list alone is not enough. You must be able to show where, in the cited paper, the claim was checked.
+
+### 1.4 Presentation component
+
+Each group will present their chapter to the class. This presentation is worth 20% of the task mark. It should not be a separate lecture series; it should be a concise teaching presentation based on the chapter.
+
+The presentation should:
+
+- explain why the chapter topic belongs in BCB743
+- teach the central theory, method, or ecological problem clearly
+- show the key example, analysis, or conceptual demonstration
+- explain how the chapter connects to existing BCB743 material
+- identify what future students should take away from the chapter
+
+The presentation will be assessed on clarity, structure, visual quality, accuracy, timing, and the ability to teach the topic to peers.
+
+### 1.5 Submission requirements
+
+Submit:
+
+- the rendered chapter as a PDF
+- the Quarto source file
+- any supporting scripts, data-processing files, figures, or assets needed to render the chapter
+- a short author-contribution statement explaining what each member of the group contributed
+- a brief AI-use disclosure if generative AI tools were used
+
+The Quarto file must render cleanly. All code required for the chapter’s figures, tables, simulations, analyses, or examples must be reproducible, or the chapter must clearly explain why an output is static and how it was produced.
+
+All work must be thoroughly proofread. Marks may be lost for unclear writing, weak structure, unsupported claims, poor grammar, careless captions, inconsistent terminology, broken links, formatting problems, or code that does not run.
+
+### 1.6 Assessment criteria
+
+This assignment will be formally assessed and will contribute between 20% and 40% to your final BCB743 mark, depending on the weighting declaration you submit for the three assessed assignments. The three declared weights for Task A1, Task A2, and Task A3 must add to 100%, and no single task may carry more than 40%. If you do not submit a valid declaration by 17 July, the three tasks will be weighted equally.
+
+Task A2 will be assessed as a chapter-contribution project. Within this task, the written chapter is worth 80% of the task mark, and the presentation is worth 20%.
+
+Indicative mark bands:
+
+- **90-100%:** the chapter is of a standard that could plausibly be revised for permanent inclusion in BCB743. It teaches an important topic clearly, is strongly referenced, uses excellent examples, includes reproducible code or well-designed conceptual material, and adds a meaningful new contribution to the module.
+- **80-89%:** excellent chapter. The work is accurate, well structured, well referenced, pedagogically useful, and clearly extends the existing BCB743 chapter list, but may need further polish, stronger examples, or tighter integration before it could become permanent teaching material.
+- **70-79%:** good to very good chapter. The topic is relevant and mostly well explained, with sound references and a useful example, but the teaching design, synthesis, reproducibility, or integration with BCB743 is not yet fully developed.
+- **60-69%:** competent chapter. The work explains the topic and uses some appropriate references or examples, but it remains closer to an essay or report than a teaching chapter, or it lacks depth, originality, or reproducible demonstration.
+- **50-59%:** adequate but limited work. The chapter shows basic understanding, but has weak structure, shallow referencing, limited connection to BCB743, unclear teaching value, or incomplete reproducibility.
+- **Below 50%:** incomplete, poorly referenced, technically inaccurate, difficult to follow, not reproducible, or not recognisable as a BCB743 teaching chapter.
+
+The assessment will consider:
+
+- **Fit to BCB743:** the chapter must fill a plausible gap in the module and connect clearly to existing chapters, datasets, theories, or methods.
+- **Pedagogical quality:** the chapter must teach. Definitions, examples, figures, code, and explanations should help a future student understand the topic.
+- **Scholarly depth:** the chapter must be strongly supported by the ecological and methodological literature, with local highlighted PDFs available for checking.
+- **Technical accuracy:** statistical, multivariate, modelling, and ecological claims must be correct and appropriately qualified.
+- **Reproducibility:** code, data, figures, tables, and examples must be transparent and renderable from the Quarto source.
+- **Originality and synthesis:** stronger submissions will not simply summarise a few papers; they will organise the literature into a useful teaching sequence and add insight.
+- **Writing and presentation:** the prose, structure, captions, formatting, and oral presentation must be clear, polished, and professional.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {Chapter Contribution},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB743/tasks/Task_A2.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) Chapter contribution. [https://tangledbank.netlify.app/BCB743/tasks/Task_A2.html.](https://tangledbank.netlify.app/BCB743/tasks/Task_A2.html)

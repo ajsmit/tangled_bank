@@ -1,0 +1,320 @@
+[![A reminder that accuracy matters.](../../images/accurate.jpg)](../../images/accurate.jpg "A reminder that accuracy matters.")
+
+A reminder that accuracy matters.
+
+> “*Order and simplification are the first steps toward the mastery of a subject.*”
+>
+> — Thomas Mann
+
+> “*With great data comes great responsibility.*”
+>
+> — Hadley Wickham
+
+The [Tidyverse](http://tidyverse.org) is a set of R packages built around a shared idea of what a workable dataset should look like. That shared idea is **tidy data**. When your data follow those rules, `ggplot2`, `dplyr`, `tidyr`, and related packages fit together cleanly.
+
+[![](../../images/tidyverse_website.png)](../../images/tidyverse_website.png "Figure 1: A tidy workflow.")
+
+Figure 1: A tidy workflow.
+
+``` numberSource
+library(tidyverse)
+```
+
+# 1 Start with a failure
+
+Let’s begin with a deliberately frustrating dataset. The `SACTN_mangled.RData` file contains the same observations stored in progressively worse formats (SACTN1-4). Load it now:
+
+``` numberSource
+load(here::here("data", "BCB744", "SACTN_mangled.RData"))
+```
+
+Try to plot `SACTN2` (wide format). You will immediately become annoyed and frustrated — columns that *look* like data are actually variable names, and `ggplot2` cannot guess your intent.
+
+``` numberSource
+ggplot(SACTN2, aes(x = date, y = temp)) +
+  geom_line()
+```
+
+If that error feels annoying, good. The tidy rules exist to prevent *this* kind of ambiguity.
+
+# 2 Properties of tidy data
+
+As you may see in [Figure 2](#fig-tidyworkflow), the tidying of ones data should be the second step in any workflow, after loading the data.
+
+[![](../../images/r4ds_data-science.png)](../../images/r4ds_data-science.png "Figure 2: Data tidying in the data processing pipeline. Reproduced from R for Data Science.")
+
+Figure 2: Data tidying in the data processing pipeline. Reproduced from [R for Data Science](http://r4ds.had.co.nz/workflow-basics.html).
+
+But what exactly are **tidy data**? The term has a precise definition. Hadley Wickham states it in three parts in [R for Data Science](http://r4ds.had.co.nz/workflow-basics.html):
+
+> **NOTE:**
+>
+> Consider this example of tidy data:
+>
+>     R> # A tibble: 10 × 5
+>     R>    region site                Ind measurement       value
+>     R>    <chr>  <chr>             <dbl> <chr>             <dbl>
+>     R>  1 WC     Kommetjie            11 stipe_mass         4.2 
+>     R>  2 WC     Kommetjie            11 stipe_length     176   
+>     R>  3 WC     Kommetjie            11 stipe_diameter    76   
+>     R>  4 WC     Kommetjie            11 digits             8   
+>     R>  5 WC     Kommetjie            11 thallus_mass    6500   
+>     R>  6 WC     Kommetjie            11 total_length     354   
+>     R>  7 FB     Bordjiestif North     1 blade_weight       1.75
+>     R>  8 FB     Bordjiestif North     1 blade_length     145   
+>     R>  9 FB     Bordjiestif North     1 blade_thickness    1   
+>     R> 10 FB     Bordjiestif North     1 stipe_mass         0.75
+>
+> 1.  Each variable must have its own column. Some of the variables tell us *about* the measurements (the `region` where the `site` was located, the replicate number (`ind`) of the plants sampled, and the nature of the `measurement` taken), and one variable gives the `value` of the measurement.
+> 2.  Each measurement must have its own row — the value of *each of the things measured* must be in its own row; for example, in the *Laminaria* data the measured things include `blade_length`, `blade_weight`, *etc.*, and they can all be captured in one column named, for example, `measurement`.
+> 3.  Each `value` must have its own cell — each of the things that is known and measured must be in its own cell.
+>
+> The core principle of tidy data is represented graphically in [Figure 3](#fig-tidyrules)). One will generally satisfy these three rules simply by never putting more than one dataset in a file, and never putting more (or less) than one variable in the same column. We will go over this several more times today so do not fret if those guidelines are not immediately clear.
+>
+> [![](../../images/tidy-1.png)](../../images/tidy-1.png "Figure 3: Following three rules make a dataset tidy — variables are in columns, observations are in rows, and values are in cells. Reproduced from R for Data Science.")
+>
+> Figure 3: Following three rules make a dataset tidy — variables are in columns, observations are in rows, and values are in cells. Reproduced from [R for Data Science](http://r4ds.had.co.nz/workflow-basics.html).
+
+> **NOTE:**
+>
+> **Grammar of data manipulation** The Tidyverse provides a set of functions and tools for data manipulation that can be combined in a way that is similar to a grammar. This makes it easy to write complex data manipulation tasks, and also makes it easier to read, understand code written by others.
+>
+> **Consistent style** The Tidyverse provides a consistent style for functions and data structures, making it easier to work with multiple packages within the Tidyverse, as well as with other R packages.
+>
+> **Interoperability** The Tidyverse is designed to work seamlessly with other R packages, so that data can be easily moved between different analysis pipelines.
+
+# 3 Different ways to be untidy
+
+Now that you have *felt* the failure, we will fix it. The SACTN examples contain the same observations in different states of disrepair. The exercise is to **recognise the pattern of untidiness** and choose the right tool. This is faster than Excel, and, importantly, it keeps every step in your script — the core of reproducible research.
+
+With the `SACTN_mangled.RData` data loaded, have a peek at them. You will first see that you have loaded not one, but five different objects into our environment pane in the top right of our RStudio window. These all contain the exact same data in different states of disrepair. As you may have guessed, some of these datasets will be easier to use than others.
+
+``` numberSource
+SACTN1
+SACTN2
+SACTN3
+
+# Spread across two dataframes
+SACTN4a
+SACTN4b
+```
+
+> **NOTE:**
+>
+> Ask these three questions **before** choosing a tool:
+>
+> - **Do column names contain data values?** → likely `pivot_longer()`
+> - **Is more than one variable stored in one column?** → `separate_*()` / `unite()`
+> - **Is more than one observation stored in one row?** → `pivot_wider()`
+
+Start off by looking at `SACTN1`. If these data look just like all of the other SACTN data we have used thus far that is because they are. These are how tidy data should look. No surprises. In fact, because these data are already tidy it is very straightforward to use them for whatever purposes we may want. Making a time series plot, for example.
+
+``` numberSource
+ggplot(data = SACTN1, aes(x = date, y = temp)) +
+  geom_line(aes(colour = site, group = paste0(site, src))) +
+  labs(x = "", y = "Temperature (°C)", colour = "Site") +
+  theme_bw()
+```
+
+[![](13-tidy_files/figure-html/fig-tidy-1-1.svg)](13-tidy_files/figure-html/fig-tidy-1-1.svg "Figure 4: SACTN1 time series by site and source.")
+
+Figure 4: SACTN1 time series by site and source.
+
+# 4 Long and wide formatted data
+
+Before *tidy* became the adjective used to describe neatly formatted data, people used to say *long*. This is because well organised dataframes tend to always be longer than they are wide (with the exception of species assemblage data). The opposite of *long* data are *wide* data. If you ever find a dataset that is wider than it is long then this is probably because the person that created them saved one variable across many columns.
+
+It may seem odd that so much effort is being spent on something so straightforward as tidy data. Surely this is too obvious to devote an entire day of work to it? Unfortunately not. As you go out into the wild world of “real life data,” you will discover that very few datasets (especially those collected by hand) are tidy. Rather they are plagued by any number of issues. The first step then for tidying up the data is to have a look at them, separate the observations that were made/recorded (the *measurements*) from the variables within those observations. You also need to know something about *how* or *where* the data were collected or what they represent — this is information *about* the data, *i.e.*, some *meta-data*.
+
+## 4.1 `pivot_longer()`
+
+> **TIP:**
+>
+> Ask yourself:
+>
+> - **Do my column names encode data values?** (*e.g.*, “DEA”, “SAWS”)
+> - **Is one variable split across multiple columns?**
+>
+> If yes, you likely need `pivot_longer()`.
+
+The R function `pivot_longer()` is a useful tool for transforming data from wide to long format. It belongs to the **tidyr** package (loaded with **tidyverse**) and allows you to reshape your dataframe by *gathering* multiple columns into key-value pairs. Specifically, `pivot_longer()` takes in a dataframe and allows you to select a set of columns that you would like to *pivot* into longer format, while specifying the names of the key, value columns that you want to create. The resulting data frame will have a new row for each unique combination of key and value pairs. This function is particularly useful when you need to reshape your data in order to carry out certain analyses or visualisations.
+
+Have a look now at `SACTN2` for an example of what *wide* data look like, and how to fix it.
+
+In `SACTN2` you can see that the `src` column has been removed and that the temperatures are placed in columns that denote the collecting source. This may at first seem like a reasonable way to organise these data, but it is not tidy because the collecting source is one variable, and so should not take up more than one column (*i.e.*, there are multiple observations per row). You need to gather these source columns together into one column so that the separate measurements (observations) can conform to the one observation per row rule. You do this by telling `pivot_longer()` the names of the columns you want to squish together. You then tell it the name of the **key** (`names_to`) column. This is the column that will contain all of the old column names we are gathering. In this case you may call it `source`. The last piece of this puzzle is the **value** (`values_to`) column. This is where you decide what the name of the column will be for measurements you are gathering up. In this case you may name it `temperature`, because you are gathering up the temperature values that were incorrectly spread out by the source of the measurements.
+
+``` numberSource
+SACTN2_tidy <- pivot_longer(SACTN2, cols = c("DEA", "KZNSB", "SAWS"),
+                            names_to = "src",
+                            values_to = "temp")
+```
+
+## 4.2 `pivot_wider()`
+
+> **TIP:**
+>
+> Ask yourself:
+>
+> - **Are multiple variables stacked in one column?** (*e.g.*, `var` + `val`)
+> - **Is each observation split across multiple rows?**
+>
+> If yes, you likely need `pivot_wider()`.
+
+The function `pivot_wider()` is a tool for transforming data from long to wide format. It is the counterpart to the `pivot_longer()` function. `pivot_wider()` allows you to take a set of columns containing key-value pairs and convert them into a wider format, where each unique key value becomes a separate column in the resulting data frame. You can also specify a set of value columns that you want to spread across the new columns created by the key values. With `pivot_wider()`, you can quickly transform your data from long format into a more intuitive, wide format that is easier to work with in some applications.
+
+Use `pivot_wider()` when individual observations are spread across multiple rows and the data need to become wider for a particular application, usually a non-Tidyverse one. This is generally the case when two or more variables are stored within the same column, as you will see in `SACTN3`. The structure is unusual, but it does occur. To spread data into a wider form, first tell R the name of the column that contains more than one variable, in this case the `var` column. Then tell it the name of the column that contains the values that need to be spread, in this case the `val` column.
+
+``` numberSource
+SACTN3_tidy1 <- SACTN3 %>% 
+  pivot_wider(names_from = "var", values_from = "val")
+```
+
+> **NOTE:**
+>
+> - **`pivot_longer()`** turns **column names → values**.
+> - **`pivot_wider()`** turns **values → column names**.
+>
+> If you use the wrong one, you either *explode* the data (too many rows) or *flatten* it (too many columns) and lose the one-observation-per-row rule.
+
+# 5 Separating and uniting
+
+You have now seen how to make our dataframes longer or wider depending on their tidiness. Now you will look at how to manage our columns when they contain more (or less) than one variable, but the overall dataframe does not need to be made wider, longer. This is generally the case when one has a column with two variables or two or more variables are spread out across multiple columns, but there is still only one observation per row. Here are some examples to make this clearer.
+
+> **TIP:**
+>
+> A **compound variable** is a single column that encodes multiple facts (*e.g.*, `site/src` or `year-month-day`).
+>
+> If you see a compound variable, you need `separate_*()` or `unite()` — but be careful: splitting can also *break* a semantic unit (dates are the classic example).
+
+## 5.1 Separate
+
+Looking at `SACTN4a`, you see that you no longer have a `site` and `src` column. Rather these have been replaced by an `index` column. This is an efficient way to store these data, but it is not tidy because the site and source of each observation have now been combined into one column (variable). Remember that tidy data calls for each of the things known about the data to be its own variable. To re-create `site` and `src` columns, you must *separate* the `index` column. There are two options: `separate_wider_delim()` and `separate_wider_position()`. What does each do? First you give R the name of the column you want to separate, in this case `index`. Next you specify what the names of the new columns will be. Remember that because we are creating new column names, you feed these into R within inverted commas. Lastly, you should tell R where to separate the `index` column. If you look at the data you will see that the values you want to split up are separated with `/` (including a space), so that is what you need to tell R.
+
+``` numberSource
+SACTN4a_tidy <- SACTN4a |> 
+  separate_wider_delim(index, names = c("site", "src"), delim = "/ ")
+```
+
+## 5.2 Separating dates using `mutate()`
+
+Although the `date` column represents an example of a date *date type* or *class* (a kind of data in its own right), you might also want to split this column into its constituent parts, *i.e.*, create separate columns for day, month, and year. In this case you can spread these components of the date vector into three columns using the `mutate()` function and some functions in the **lubridate** package (part of the **tidyverse**).
+
+``` numberSource
+SACTN_tidy2 <- SACTN4a %>% 
+  separate_wider_delim(index, names = c("site", "src"), delim = "/ ") %>% 
+  mutate(day = lubridate::day(date),
+         month = lubridate::month(date),
+         year = lubridate::year(date))
+```
+
+Note that when the date is split into component parts the data are no longer tidy (see below).
+
+> **WARNING:**
+>
+> Splitting dates can be useful for grouping, but it also violates tidy principles by scattering one concept across multiple columns. Use this tactically and re-unite when you are done.
+
+## 5.3 Unite
+
+It is not uncommon that field/lab instruments split values across multiple columns while they are making recordings. You might sometimes see this with date values where the year, month, and day values are given in different columns. There are uses for the data in this way, though it is not terribly tidy. You usually want the date of any observation to be shown in just one column. If you look at `SACTN4b` you will see that there is a `year`, `month`, `day` column. To `unite()` them you must first tell R what you want the united column to be labelled, in this case you will use `date`. You then list the columns to be united; here this is `year`, `month`, `day`. Lastly, decide if you want the united values to have a separator between them. The standard separator for date values is “-”.
+
+``` numberSource
+SACTN4b_tidy <- SACTN4b |> 
+  unite(col = "date", year, month, day, sep = "-")
+```
+
+# 6 Joining
+
+Now you will see the process for joining two different dataframes. Remember that one of the rules of tidy data is that only one complete dataset is saved per dataframe. This rule then is violated not only when additional data are stored where they do not belong, but also when necessary data are saved elsewhere. Looking back at `SACTN4a` and `SACTN4b`, you will see that they are each missing different columns. Were you to `join()` these dataframes together they would complete each other. The `tidyverse` provides several methods of doing this, but you will see in action the most common technique to use. The function `left_join()` is so named because it joins two or more dataframes together based on the matching of columns from the left to the right. It combines values together where it sees that they match up, and adds new rows, columns where they do not.
+
+> **WARNING:**
+>
+> - **Are join keys unique** on at least one side?
+> - **Do both tables represent the same observational unit?**
+> - **What should happen to unmatched rows?** (keep them, drop them, or flag them)
+>
+> Joins can silently *duplicate* or *lose* rows. Always check counts before and after.
+
+``` numberSource
+SACTN4_tidy <- left_join(SACTN4a_tidy, SACTN4b_tidy)
+```
+
+    R> Joining with `by = join_by(site, src, date)`
+
+As you see above, if you let `left_join()` do its thing it will make a plan for and find the common columns and match up the values and observations for you as best it can. It then returns a message letting you know what it has done. That is a pleasant convenience, but you most likely want to exert more control over this process than that. In order to specify the columns to be used for joining you must add one more argument to `left_join()`. The `by` argument must be fed a list of column names in inverted commas if you want to specify how to join our dataframes. Note that when you run this it does not produce a message as you have provided enough explicit information that the function is no longer needing to ‘think’ for itself.
+
+``` numberSource
+SACTN4_tidy <- left_join(SACTN4a_tidy, SACTN4b_tidy, by = c("site", "src", "date"))
+```
+
+There are also other kinds of joins: see for example also `inner_join`, `right_join`, `full_join`, `semi-join`, `nest_join`, `anti_join` in the **dplyr** package contained within **tidyverse**.
+
+> **IMPORTANT:**
+>
+> Do this now: how do the `*_join()` functions differ from [`cbind()`](https://rdrr.io/r/base/cbind.html) and [`rbind()`](https://rdrr.io/r/base/cbind.html)? What are the differences between these functions? What are the similarities? Provide an example of each in action.
+
+# 7 Putting it all together: an analysis-ready dataset
+
+Below is a single pipeline that uses **pivoting**, **separation**, **unification**, and a **join** to create one tidy dataset (`SACTN_final`). This is the object you would keep and use for analysis. (The join against `SACTN4a` is included purely to demonstrate separation; in a real workflow you would keep one source of truth.)
+
+``` numberSource
+SACTN_final <- SACTN2 |>
+  pivot_longer(cols = c("DEA", "KZNSB", "SAWS"),
+               names_to = "src",
+               values_to = "temp") |>
+  drop_na(temp) |>
+  mutate(date = as.Date(date)) |>
+  select(site, date, src, temp) |>
+  left_join(
+    SACTN4a |>
+      separate_wider_delim(index, names = c("site", "src"), delim = "/ ") |>
+      mutate(date = as.Date(date)) |>
+      select(site, src, date),
+    by = c("site", "src", "date")
+  ) |>
+  left_join(
+    SACTN4b |>
+      unite(col = "date", year, month, day, sep = "-") |>
+      mutate(date = as.Date(date)) |>
+      select(site, src, date, depth, type),
+    by = c("site", "src", "date")
+  )
+```
+
+Use it immediately to see the payoff:
+
+``` numberSource
+ggplot(data = SACTN_final, aes(x = date, y = temp)) +
+  geom_line(aes(colour = site, group = paste0(site, src))) +
+  labs(x = "", y = "Temperature (°C)", colour = "Site") +
+  theme_bw()
+```
+
+[![](13-tidy_files/figure-html/fig-tidy-final-1.svg)](13-tidy_files/figure-html/fig-tidy-final-1.svg "Figure 5: Analysis-ready SACTN data plotted by site and source.")
+
+Figure 5: Analysis-ready SACTN data plotted by site and source.
+
+# 8 But why though?
+
+At this point you may be wondering what the point of all of this is. Sure it is all well and good to see how to tidy your data in R, but could not this be done more quickly, easily in MS Excel? Perhaps, yes, with a small dataset. But remember, (for many) the main reason you are learning R is to ensure that you are performing reproducible research. This means that every step in our workflow must be documented. And you accomplish this by writing R scripts, and part of the purpose of these scripts is to ensure that you capture all the steps taken to get the raw data into a neat, tidy format that can unambiguously be read into R in the format that will quickly get you up and running with your analyses and visualisations.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2021,
+  author = {Smit, A. J.},
+  title = {13. {Tidy} Data},
+  date = {2021-01-01},
+  url = {https://tangledbank.netlify.app/BCB744/intro_r/13-tidy.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2021) 13. Tidy data. [https://tangledbank.netlify.app/BCB744/intro_r/13-tidy.html.](https://tangledbank.netlify.app/BCB744/intro_r/13-tidy.html)

@@ -1,0 +1,192 @@
+> **TIP:**
+>
+> - Term dates, lecture and Lab times, and where to find the timetable and module policies.
+> - Consultation and how to ask for help.
+> - What I expect of you: reading beyond the slides, questioning claims, attending, and knowing your definitions.
+> - The difference between teaching and learning.
+> - Assessment: the four Labs and their self-assessment, the essay, quizzes, the class test and the exam, and how the marks are combined.
+> - The topics of the module and the order in which we cover them.
+
+> **TIP:**
+>
+> This lecture explains how BDC223 is organised and what I expect of you during the fourth term. It sets out the timetable, the Labs and the other assessments, and how they contribute to your final mark. It also outlines the topics of the module, which start with the planetary boundaries of [Lecture 1](../BDC223/L01-worldmapper.llms.md#sec-planetary-boundaries) and move through plant evolution, climate, light, photosynthesis and nutrients to plant stress in [Lecture 10](../BDC223/L10-plant_stress.llms.md). Each later lecture builds on this sequence.
+
+> **TIP:**
+>
+> By the end of this lecture, you will be able to:
+>
+> 1.  Find the module timetable, the Lab submission and self-assessment policy, and the assessment policy, and state when and where lectures and Labs take place.
+> 2.  Explain what is expected of you in this module, including reading beyond the slides and knowing the definitions of the terms we use.
+> 3.  Distinguish teaching from learning, and explain why learning is your responsibility.
+> 4.  Describe the assessment components of the module and their deadlines.
+> 5.  Calculate the contribution of each assessment component to the final module mark.
+> 6.  Explain the rules for submitting and self-assessing a Lab, and the consequence of an inaccurate self-assessment.
+> 7.  Outline the topics of the module and explain why it begins with planetary boundaries before it turns to plant stress.
+
+> **NOTE:**
+>
+> - [BDC223 module outline: timetable, assessment policy and Lab submission and self-assessment policy](../BDC223/BDC223_index.llms.md)
+> - [BDC223 frequently asked questions](../BDC223/BDC223_FAQ.llms.md)
+> - [Rockström, J., and others (2009). A safe operating space for humanity. Nature, 461, 472–475.](../docs/Rockstrom%20et%20al%20(2009).pdf) (optional; required for [Lecture 1](../BDC223/L01-worldmapper.llms.md))
+
+## 1 Basic housekeeping
+
+Before we start this module, let me give you some background on how I would like to proceed.
+
+Term 4 runs from Monday, 5 October to Friday, 13 November 2026. Lectures take place on Mondays from 11:15 to 12:00 in SC8, Tuesdays from 08:30 to 09:15 in SC9, and Thursdays from 08:30 to 09:15 in SC9. The four Labs take place on Mondays, 12, 19 and 26 October and 2 November, from 13:30 to 17:10. The Lab venue is to be confirmed. See the [module timetable](../BDC223/BDC223_index.llms.md#sec-syllabus) for the weekly topics and deadlines.
+
+On Mondays, Tuesdays, and Thursdays, we will have in-person lectures in class. I will base all the lecture material I present in class on the content of various lecture slides, which I will display as I talk.
+
+In total, you have access to in-person lectures (in class), pre-recorded lectures (accessible from iKamva) that correspond more or less to what I say in class, and textual transcripts (here on The Tangled Bank) of all the material. All of this should help you understand the content of BDC223.
+
+> **NOTE:**
+>
+> You can print these web pages or save them as PDFs using your browser’s Print function. Use the online [module timetable](../BDC223/BDC223_index.llms.md#sec-syllabus) and [Lab submission and self-assessment policy](../BDC223/BDC223_index.llms.md#sec-lab-self-assessment) to check the current dates and requirements.
+
+## 2 Consultation
+
+If there is something you do not understand, ask during lectures or use the WhatsApp group to discuss it with me and your classmates. If you need more time, arrange a meeting by sending me a calendar invitation, as explained under [Support](../BDC223/BDC223_index.llms.md#support). We can meet in my office or on Zoom, although I prefer meeting face-to-face. Consultations are by appointment.
+
+## 3 The fourth term BDC223
+
+This term we focus on plants and algae as photosynthetic organisms. The module asks what allows them to function, what constrains them, and what happens when environmental conditions shift.
+
+My own research background is marine, so many of my examples come from seaweeds and ocean processes. That is a bias in examples, not in principle. The same ecophysiological logic carries across terrestrial and marine systems.
+
+## 4 Expectations
+
+My main expectation is that you read beyond the slides. The slides are scaffolding, not the whole module. Some of the detail you will need for tests and the exam sits in the transcripts, readings, and the connections you make between topics.
+
+If you only memorise the slide bullets, you will hit a ceiling quickly. To do well, you need to connect mechanisms, examples, and definitions across lectures.
+
+Science advances by questioning claims, including mine. Do not accept something as true merely because it was said confidently in a lecture, on social media, or by a person in authority.
+
+Knowing a list is not the same as understanding a process. I am interested in whether you can explain why something happens, not only whether you can repeat the vocabulary.
+
+Having said this, I place strong emphasis in my assessments on knowing the meanings of the words we use in the module. Know your definitions.
+
+## 5 Class attendance and participation
+
+I make all of my lecture material available upfront. Everything is already accessible, and you can find it in the links provided. However, please note that although I expect you to attend my lectures, there is very little I can do to compel you to be present.
+
+There will be random quizzes during the week. Of course, you will not know when these will occur. If you miss one, the consequence is that you will lose marks that contribute towards your continuous assessment. In an ideal world, we as lecturers should not have to be concerned about whether or not you attend lectures. Many of my colleagues only release their lecture materials after they have actually presented in the class. They believe this practice encourages students to take notes in real time and creates an incentive to attend, as otherwise, students miss out on the discussions that may take place.
+
+I take a somewhat different view. You are adults, and you need to decide how serious you are about your own training. A serious student attends, prepares, and asks questions before confusion accumulates.
+
+I am not going to police you constantly. I am going to assume that you are capable of acting like responsible adults.
+
+In the end, I am here to guide you through the various lectures, but it is your own responsibility to learn. Teaching and learning are different in a very important way. Teaching is, essentially, the process of guiding you through all the content you are expected to know. Teaching also involves exploring some topics along the way, perhaps engaging with material or ideas that you may find interesting. Teaching cannot happen without an audience.
+
+Learning happens only if you engage with the material yourself. A teacher can organise, explain, and point, but cannot do the learning on your behalf. A committed student can learn a great deal independently if they read carefully, test their understanding, and keep working when things become difficult.
+
+Indeed, everything I know now, today, as I am speaking to you, I have learnt post-PhD. I would venture to say that $90\%$, perhaps $95\%$, of the knowledge I hold today I have acquired myself, in the absence of any formal teaching. Learning is a lifelong process. I sincerely hope you are serious about this journey.
+
+## 6 My research and teaching bias
+
+As I said, I am a marine biologist. I work in the ocean, especially around South Africa (but also elsewhere), and my research is often ocean-centric. That does not mean it is irrelevant to land-based biology. I encourage you to draw general conclusions and connections across different contexts, and integrate everything you learn.
+
+## 7 Assessments
+
+The class test and other assessments will focus on integration and synthesis, rather than regurgitation. You will need to demonstrate that you can apply what you have learned to new problems.
+
+### 7.1 Practical work
+
+There are four Labs covering surface area to volume ratios, calculations about light and plant growth, photosynthesis, and nutrient uptake. Complete each assignment individually and follow the file requirements on its Lab page. Upload the assignment to iKamva by 08:00 on the following Monday, whether it is pre-assessed or self-assessed.
+
+For a self-assessed Lab, a model answer or rubric will be provided after the assignment deadline. Use it to mark your submitted work, then upload the completed self-assessment to iKamva by 23:59 that day. The Lab assistant will independently mark a different random 20% of the class each week. A self-assigned mark that differs from the actual mark by more than 10% results in 0% for that Lab. Read the [Lab submission and self-assessment policy](../BDC223/BDC223_index.llms.md#sec-lab-self-assessment).
+
+### 7.2 Essay
+
+You will also write a short personal essay on “Your relationship with nature”, due on Friday, 23 October 2026 at 23:59. Follow the [essay instructions](../BDC223/BDC223_index.llms.md#essay).
+
+### 7.3 Mark allocation
+
+Labs and the essay contribute 60% of the continuous assessment mark, split 0.8 and 0.2 respectively. The class test and quizzes contribute the remaining 40%, split 0.9 and 0.1 respectively. Continuous assessment contributes 60% of the final module mark and the exam contributes 40%. See the [assessment policy](../BDC223/BDC223_index.llms.md#sec-policy).
+
+There will be one class test, on Thursday, 29 October 2026, in the first period, 08:30–09:15, in SC9. Plant Stress is on Tuesday, 10 November, followed by revision on Thursday, 12 November.
+
+## 8 Lecture content
+
+Content for this module includes:
+
+1.  Planetary boundaries (5, 6 and 8 October): about the limits to life ([Rockström et al. 2009](#ref-rockstrom2009safe)).
+2.  Photosynthetic evolution (13 October): phylogeny, plant form and resource acquisition.
+3.  Climate change (self-study on 13 October; carbon cycle on 15 October): its relevance to this module and biology as a whole.
+4.  Plant stress: how plants experience and respond to stress.
+5.  The role of light in the environment, critical to plant life.
+6.  Heat stress and plant adaptation.
+7.  Plant nutrition: their uptake of inorganic nitrogen and phosphorus, tying into global biogeochemical cycles and the carbon cycle.
+
+## 9 Module learning outcomes
+
+- Understand how environmental conditions (light, temperature, nutrients, etc.) affect plant distribution and interactions.
+- Learn physiological mechanisms for water, nutrient, and carbon uptake in plants.
+- Grasp the role of plants in the Earth system, integrating their function across contexts.
+- Discuss ecophysiological processes involved in nutrient and water transport and loss.
+- Examine the implications of global change and the limits of life on Earth.
+
+Our first topic is planetary boundaries, starting with people and their impact as the most destructive organism on the planet, then looking at how plants adapt to environmental changes.
+
+Good luck. Let us get started.
+
+## 10 Summary
+
+- Lectures take place on Mondays, Tuesdays and Thursdays, and the four Labs take place on Monday afternoons; the module timetable gives the current weekly topics and deadlines.
+- Lecture material is available in class, as pre-recorded lectures on iKamva, and as transcripts on The Tangled Bank.
+- You are expected to read beyond the slides, to question claims, and to know the definitions of the terms used in the module.
+- Teaching guides you through the content, but learning happens only when you engage with the material yourself.
+- Each Lab is uploaded to iKamva by 08:00 on the following Monday; a self-assigned Lab mark that differs from the actual mark by more than 10% results in 0% for that Lab.
+- Continuous assessment (Labs, essay, class test and quizzes) contributes 60% of the final mark, and the exam contributes 40%.
+- The module begins with planetary boundaries and human impacts on the Earth system, and then examines how plants function, what constrains them, and how they respond to stress.
+
+## 11 Self-test questions
+
+> **NOTE:**
+>
+> Labs and the essay contribute 60% of the continuous assessment mark, and the Labs take 0.8 of that share: 0.6 × 0.8 = 0.48, or 48% of the continuous assessment mark. Continuous assessment contributes 60% of the final mark, so the Labs contribute 0.48 × 0.6 = 0.288, or 28.8% of the final module mark.
+
+> **NOTE:**
+>
+> Class test: 0.4 × 0.9 = 0.36 of continuous assessment, and 0.36 × 0.6 = 0.216, or 21.6% of the final mark. Quizzes: 0.4 × 0.1 = 0.04, and 0.04 × 0.6 = 0.024, or 2.4%. Essay: 0.6 × 0.2 = 0.12, and 0.12 × 0.6 = 0.072, or 7.2%. With the Labs (28.8%) and the exam (40%), the components add up to 100%.
+
+> **NOTE:**
+>
+> The self-assigned mark differs from the actual mark by more than 10%, so you receive 0% for that Lab. The rule exists because the Lab assistant marks only a random 20% of the class each week. The self-assessment is meant to make you compare your work carefully with the model answer or rubric, and an inaccurate self-assessment shows that you have not done so.
+
+> **NOTE:**
+>
+> The slides support the lectures but do not contain the whole module. Some of the detail needed for tests and the exam is in the transcripts and readings, and the assessments focus on integration and synthesis. You must be able to explain why something happens and apply what you have learned to new problems, and you must also know the definitions of the terms used.
+
+> **NOTE:**
+>
+> Teaching is the process of guiding you through the content you are expected to know, sometimes exploring topics along the way, and it needs an audience. Learning happens only when you engage with the material yourself. A lecturer can organise, explain and point, but cannot learn on your behalf, so learning is your responsibility.
+
+> **NOTE:**
+>
+> The planetary boundaries topic examines the limits to life on Earth and how people, in very large numbers, have altered the Earth system. Those changes in climate, nutrient cycles and other Earth-system processes alter the conditions under which plants grow. Starting there explains why the later topics (light, heat, nutrients and plant stress) matter, and it connects the physiology of individual plants to the role of plants in the Earth system.
+
+## 12 References
+
+Rockström J, others (2009) A safe operating space for humanity. Nature 461:472–475.
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J. and J. Smit, A. and AJ Smit, Professor},
+  title = {Introductory Lecture},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BDC223/L00-introduction.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, J. Smit A, AJ Smit P (2026) Introductory lecture. [https://tangledbank.netlify.app/BDC223/L00-introduction.html.](https://tangledbank.netlify.app/BDC223/L00-introduction.html)

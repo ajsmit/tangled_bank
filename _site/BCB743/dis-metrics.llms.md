@@ -1,0 +1,81 @@
+**vegan** provides a variety of distance and dissimilarity measures through the `vegdist()` function. The notes below give background on several commonly used measures you might find useful.
+
+## 1 Bray-Curtis dissimilarity
+
+- **Definition**: I calculate the Bray-Curtis dissimilarity index as: $$D_{BC} = \frac{\sum |x_i - y_i|}{\sum (x_i + y_i)}$$ where $x_i$ and $y_i$ are the counts or abundances of species $i$ in samples $x$ and $y$, respectively.
+- **Properties**: Ranges from 0 (identical communities) to 1 (completely different communities). It is sensitive to the abundance of species and is unaffected by joint absences.
+- **Ecological Use**: Used for species abundance data. Commonly used to compare the composition of different communities, track changes in community structure over time, and assess the impact of environmental gradients on community composition.
+- **Limitations:** It is sensitive to outliers, so the index can be influenced by extreme values or rare species with high abundances. It is a semimetric and does not obey the triangle inequality, so embedding a Bray-Curtis matrix in a Euclidean ordination (such as PCoA) can produce negative eigenvalues. Because its denominator is the sum of the abundances, it is also affected by differences in sample totals unless the data are standardised first.
+
+## 2 Sørensen (Dice) dissimilarity
+
+- **Definition**: I define the Sørensen dissimilarity as: $$D_S = 1 - \frac{2C}{A + B}$$ where $A$ and $B$ are the numbers of species present in samples $x$ and $y$, respectively, and $C$ is the number of species shared between them.
+- **Properties**: Computed on presence-absence data, it ranges from 0 (identical species composition) to 1 (no shared species), and it weights shared presences more heavily than the Jaccard index does. In its quantitative (abundance-based) form, where $C$ becomes the sum of the shared minimum abundances and $A$ and $B$ the total abundances, Sørensen dissimilarity is identical to Bray-Curtis.
+- **Ecological Use**: Focus on presence-absence data. Used to compare the similarity of species composition between two communities. The Sørensen dissimilarity index is a measure of beta diversity, which quantifies the difference in species composition between two or more communities.
+- **Limitations:** The index does not account for the relative abundance of species, so two communities with different species abundances but similar species richness could have the same Sørensen dissimilarity. The presence or absence of rare species can disproportionately influence the Sørensen dissimilarity.
+
+## 3 Jaccard index
+
+- **Definition**: I define the Jaccard index as: $$D_J = 1 - \frac{C}{A + B - C}$$ where $A$ and $B$ are the numbers of species present in samples $x$ and $y$, and $C$ is the number of species shared between them.
+- **Properties**: Ranges from 0 (complete similarity) to 1 (complete dissimilarity). It only considers the presence or absence of species, not their abundance. In the set notation used in the [worked example in the correlations chapter](../BCB743/correlations.llms.md), $A = a + b$, $B = a + c$ and $C = a$, where $a$ is the number of shared species and $b$ and $c$ the numbers unique to each sample, so that $D_J = 1 - a / (a + b + c)$.
+- **Ecological Use**: Often used for presence-absence data to compare species diversity and composition between sites.
+- **Limitations:** The index does not account for the relative abundance of species, so two communities with different species abundances but similar species richness could have the same Jaccard dissimilarity. The Jaccard index can be biased by differences in sampling effort between sites. It is sensitive to the presence of rare species.
+
+## 4 Hellinger distance
+
+- **Definition**: I calculate Hellinger distance using the Hellinger transformation: $$h_{ij} = \sqrt{x_{ij} / \sum x_{i.}}$$ where $x_{ij}$ is the abundance of species $j$ in sample $i$. The distance is then the Euclidean distance between these transformed values.
+- **Properties**: The Hellinger distance is a measure of dissimilarity between two probability distributions. These probability distributions often represent the relative abundances of species in different communities. Unlike the Jaccard and Sørensen indices, which focus on presence/absence, the Hellinger distance accounts for both the presence/absence and the abundance of species. It ranges from 0 to $\sqrt{2}$, the maximum reached when two samples share no species. It reduces the influence of dominant species and is suited for relative abundance data.
+- **Ecological Use**: Used for ordination and clustering of community data to minimise the effect of large differences in species abundances. It reduces the influence of highly abundant species, making it less sensitive to outliers than some other dissimilarity measures. Adding species that are absent from both samples does not change the Hellinger distance, so it avoids the “double-zero problem” that inflates apparent similarity under Euclidean distance.
+- **Limitations:** Can be less intuitive to interpret than measures like Bray-Curtis, which directly relate to differences in abundances.
+
+## 5 Gower distance
+
+- **Definition**: The Gower distance is a general dissimilarity coefficient that can handle different types of variables (quantitative, binary, categorical). I calculate it as: $$D_G = \frac{\sum w_i d_i}{\sum w_i}$$ where $d_i$ is the distance between samples $x$ and $y$ for variable $i$, and $w_i$ is the weight associated with variable $i$.
+- **Properties**: Ranges from 0 to 1. It can incorporate various types of ecological data, making it flexible. The specific calculation of $d_i$ depends on the data type of variable $i$: for quantitative data, it typically uses the Manhattan distance (absolute difference) after range normalisation; for nominal (categorical) data it uses simple matching, contributing 0 when two samples share the same category and 1 when they differ; and for ordinal data, Manhattan distance on ranked values with adjustments for ties is used.
+- **Ecological Use**: Suitable for mixed data types, such as ecological surveys combining species counts, presence-absence data, and environmental variables.
+- **Limitations:** The composite nature of the Gower distance can make the interpretation of the resulting dissimilarity values less straightforward than for simpler metrics like Euclidean distance. The choice of weights and distance measures for different variable types can affect the results.
+
+## 6 Euclidean distance
+
+- **Definition**: The Euclidean distance between two samples is the straight-line distance in multivariate space: $$D_E = \sqrt{\sum (x_i - y_i)^2}$$ where $x_i$ and $y_i$ are the values of variable $i$ in samples $x$ and $y$, respectively.
+- **Properties**: Sensitive to differences in scale and magnitude of data. Often used as a baseline comparison.
+- **Ecological Use**: Useful for quantitative data where differences in magnitude are important. Not commonly used for species abundance data because of its sensitivity to large values.
+- **Limitations:** It counts shared absences as evidence of similarity (the “double-zero problem”), and it is dominated by abundant species and by differences in scale, which is why it is not recommended for raw species abundance data unless the data are first transformed, e.g. with the Hellinger transformation.
+
+## 7 Manhattan distance
+
+- **Definition**: The Manhattan distance (or city block distance) is: $$D_M = \sum |x_i - y_i|$$ where $x_i$ and $y_i$ are the values of variable $i$ in samples $x$ and $y$, respectively.
+- **Properties**: The Manhattan distance is also known as city block distance or L1 distance. It is a geometric measure of distance between two points in a multidimensional space. Unlike the Euclidean distance, which measures the straight-line distance, the Manhattan distance calculates the distance along the axes of the coordinate system. In multivariate community data, each dimension often represents a different species, and the coordinates of a point represent the abundances of those species in a particular community or sample. The Manhattan distance between two points then reflects the total difference in species abundances between those communities. Less sensitive to outliers compared to Euclidean distance. Values are always non-negative and are zero only if the two points are identical. Larger values indicate greater dissimilarity between the communities.
+- **Ecological Use**: Used for quantitative ecological data, especially when dealing with high-dimensional datasets where large outliers can skew results.
+- **Limitations:** It treats each variable (species) independently and does not account for potential correlations between them. It can be sensitive to differences in scale between variables.
+
+## 8 Canberra distance
+
+- **Definition**: I calculate the Canberra distance as: $$D_C = \sum \frac{|x_i - y_i|}{|x_i| + |y_i|}$$
+- **Properties**: The Canberra distance is a numerical measure of the dissimilarity between two sets of data points. These data points often represent the abundances of different species in two communities or samples. The Canberra distance sums the weighted absolute differences between the values of each variable (species) in the two sets. The weights are the inverse of the sum of the absolute values of the variables, which means that variables with larger values have less influence on the distance. Sensitive to differences in small values and zeroes, but unaffected by differences in the scales of variables. The Canberra distance is always non-negative and is zero only if the two points are identical. Larger values indicate greater dissimilarity between the communities.
+- **Ecological Use**: Suitable for ecological data where small differences are important, such as in studies of rare species or trace element concentrations.
+- **Limitations:** The Canberra distance is sensitive to single zeros and small values. When only one of the two values is zero, that term takes its maximum (1), so rare species and low counts can dominate. Double zeros, by contrast, are excluded, because `vegdist()` divides by the number of non-zero terms.
+
+## 9 References
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J.},
+  title = {3. {Distance} and Dissimilarity Metrics},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BCB743/dis-metrics.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ (2026) 3. Distance and dissimilarity metrics. [https://tangledbank.netlify.app/BCB743/dis-metrics.html.](https://tangledbank.netlify.app/BCB743/dis-metrics.html)

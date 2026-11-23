@@ -1,0 +1,832 @@
+> **NOTE:**
+>
+> **BDC223: Plant Ecophysiology.** This lecture takes place on Tuesday, 13 October 2026 and builds on the functional principles in [Lecture 2: SA:V](../BDC223/L02-SA_V.llms.md). The photographs and comparison tables also support revision outside class.
+
+> **TIP:**
+>
+> - The phylogeny of oxygenic phototrophs: cyanobacteria, Archaeplastida, green algae and the land-plant lineages, with clades distinguished from grades.
+> - Natural selection, evolutionary adaptation and phenotypic plasticity as explanations of plant form.
+> - Cyanobacteria and algae: small cells, colonies, thin blades and kelps as different routes to larger size.
+> - The move to land: cuticles, gas access, embryos, and the bryophytes and early branching sporophytes.
+> - Vascular plants and seed plants: xylem, roots, leaves, wood, pollen and seeds, and the diversity of gymnosperms and angiosperms.
+> - Terrestrial growth forms (trees, grasses, climbers, succulents, epiphytes and wetland plants) compared within and across branches, including convergence.
+> - Using living organisms as functional comparisons for fossils, and the limits of that comparison.
+
+> **TIP:**
+>
+> This lecture asks how the forms examined in [Lecture 2](../BDC223/L02-SA_V.llms.md) arose. It follows oxygenic phototrophs from cyanobacteria through the algae to the land plants and places each structural change on a phylogeny, together with the selective pressures that could have favoured it and the costs it imposed on other functions. The aim is to separate two kinds of explanation: what a structure does, which geometry and physiology can describe, and where and why it originated, which requires phylogenetic, fossil and developmental evidence. The organisms introduced here recur in the later lectures on light, pigments, photosynthesis, nutrient uptake and plant stress.
+
+> **TIP:**
+>
+> By the end of this lecture, you will be able to:
+>
+> 1.  Place cyanobacteria, major algal groups and the principal land-plant lineages on a simplified phylogeny, and distinguish a clade from a grade.
+> 2.  Explain how natural selection on heritable variation can change plant form, distinguishing evolutionary adaptation from a response within an individual plant.
+> 3.  Relate the origins of embryos, vascular tissues, roots, leaves, wood, pollen and seeds to specific physiological or reproductive problems.
+> 4.  Explain how environmental pressures, functional trade-offs and inherited structures contributed to different terrestrial growth forms, including cases of convergence.
+> 5.  Interpret local and whole-organism SA:V for a named surface and function, and identify the cost that accompanies each structural change.
+> 6.  Use an extant organism as a functional comparison with an extinct form, stating where that comparison breaks down.
+
+> **NOTE:**
+>
+> - [Wernberg, T., Filbee-Dexter, K., de Bettignies, T., Leclerc, J.-C., Davoult, D., Lévêque, L., Christie, H. C., Dyer, D. C., Anderson, R. J., Rothman, M. D., Bolton, J. J., Norderhaug, K. M., & Smit, A. J. (2025). Smaller plants in warmer water could have implications for future kelp forests. Scientific Reports, 15, 28616.](../docs/Wernberg%20et%20al%20(2025).pdf)
+> - [Coppin, R., Rautenbach, C., Ponton, T. J., & Smit, A. J. (2020). Investigating waves and temperature as drivers of kelp morphology. Frontiers in Marine Science, 7, 567.](../docs/Coppin%20et%20al%20(2020).pdf)
+> - [Littler, M. M., & Littler, D. S. (1980). The evolution of thallus form and survival strategies in benthic marine macroalgae: field and laboratory tests of a functional form model. The American Naturalist, 116(1), 25–44.](../docs/Littler%20and%20Littler%20(1980).pdf) (revision of [Lecture 2](../BDC223/L02-SA_V.llms.md))
+
+A forest tree must carry water from the soil to leaves many metres above it. A moss can absorb water across much of its surface, and a seaweed blade exchanges directly with the surrounding seawater. Each needs light, inorganic carbon, water and mineral nutrients, but the routes by which these resources reach its cells differ considerably.
+
+[Lecture 2](../BDC223/L02-SA_V.llms.md) dealt with the functional consequences of size and shape. Here we examine how those forms arose.
+
+We will follow the branches from oxygenic bacteria to algae and land plants, considering the conditions under which particular structures could have improved survival or reproduction. A tall stem, for example, places leaves above competitors but also lengthens the water-supply path and requires support. Its evolution involved changes to an inherited architecture, with consequences for several functions at once. Fossils, phylogenies and living examples help us reconstruct that history and explain why such different forms persist in today’s landscapes. Much of the second half concerns terrestrial plants, including ones that look nothing like a conventional leafy tree.
+
+## 1 History as a branching tree
+
+Refer back to **BDC221: Plant Diversity** for the groups you studied as “lower” and “higher” plants. Use those examples to orient yourself on the tree below. The BDC221 materials are **not hosted on Tangled Bank**; consult the materials supplied through that module.
+
+**Oxygenic photosynthesis** releases oxygen. The term photo-oxygenic photosynthesis is also used in this module. Cyanobacteria perform this process, whereas photosynthesis in other bacterial groups is anoxygenic.
+
+Photosynthetic eukaryotes acquired oxygenic photosynthesis through endosymbiosis: a cyanobacterium was engulfed by a eukaryotic host and became a plastid ([Ponce-Toledo et al. 2017](#ref-poncetoledo2017early)). The descendants of that primary endosymbiosis form **Archaeplastida**, which comprises **Glaucophyta** (glaucophytes), **Rhodophyta** (red algae) and **Viridiplantae** (green algae and land plants). The tree separates this plastid history from the ancestry of the organisms carrying the plastids. Follow Viridiplantae into the lower panel to locate the land plants.
+
+**Archaeplastida: three lineages**
+
+**Glaucophyta**: glaucophytes, also called glaucocystophytes. A small group of freshwater unicellular algae, sometimes colonial. Their plastids retain conspicuous cyanobacterial features.
+
+**Rhodophyta**: red algae. This lineage includes unicells and multicellular seaweeds; it also supplied the plastids inherited through endosymbiosis by several other algal groups.
+
+**Viridiplantae**: green plants. This clade includes both green algae and land plants. “Green plants” therefore means more than terrestrial vegetation.
+
+[![One cyanobacterial primary endosymbiosis gives rise to the plastids of Archaeplastida: Glaucophyta, Rhodophyta and Viridiplantae. Glaucophytes are freshwater unicells with plastid peptidoglycan and phycobilisomes. Secondary endosymbiosis transfers a red-algal plastid to the host lineage containing brown algae and diatoms. Viridiplantae divides into Chlorophyta and Streptophyta. Within streptophytes, Zygnematophyceae are sister to Embryophyta, the land plants. Land plants comprise bryophytes and Tracheophyta, the vascular plants. Lycophytes, ferns and seed plants branch within vascular plants. Seed plants comprise living gymnosperms and angiosperms.](images/evolution/phylogeny.svg)](images/evolution/phylogeny.svg "Figure 1: Plastid history and organismal ancestry, with scientific and familiar group names. A single primary endosymbiosis established the plastids of Archaeplastida: Glaucophyta, Rhodophyta and Viridiplantae. Solid branches indicate ancestry; dashed arrows show plastid acquisition. The green-plant branch is expanded below. Several branches are collapsed or omitted, and branch lengths do not represent time.")
+
+Figure 1: Plastid history and organismal ancestry, with scientific and familiar group names. A single primary endosymbiosis established the plastids of Archaeplastida: Glaucophyta, Rhodophyta and Viridiplantae. Solid branches indicate ancestry; dashed arrows show plastid acquisition. The green-plant branch is expanded below. Several branches are collapsed or omitted, and branch lengths do not represent time.
+
+**Following the green branch**
+
+**Chlorophyta**: the green-algal clade containing *Chlamydomonas*, *Volvox* and *Ulva*.
+
+**Streptophyta**: the other main green-plant branch, comprising streptophyte algae and land plants.
+
+**Zygnematophyceae**: conjugating green algae, including *Spirogyra* and *Zygnema*; the closest living algal relatives of land plants.
+
+**Embryophyta**: land plants, defined by retaining and nourishing a multicellular embryo on the parent. Includes bryophytes and vascular plants, even those that later returned to water.
+
+A **clade** contains a common ancestor and all its descendants. Green plants, vascular plants and angiosperms each meet that definition.
+
+Several familiar names refer to other kinds of grouping. **Algae** includes organisms from different branches that share broad ecological and morphological features. The traditional **pteridophytes** are the seed-free vascular plants: lycophytes and ferns, including horsetails. Their common ancestor also gave rise to seed plants, so excluding those descendants makes pteridophytes a grade.
+
+A brown kelp and a green seaweed can both form large thalli, although their multicellular forms evolved on separate eukaryotic branches. Within the green plants, appearance can be equally misleading. The branched *Chara* looks structurally elaborate, yet the closest living algal relatives of land plants are the Zygnematophyceae, which include the much simpler-looking *Zygnema* and *Spirogyra*. Establishing these relationships required phylogenomic evidence ([Hess et al. 2022](#ref-hess2022phylogenomically)).
+
+Liverworts, mosses and hornworts also form a bryophyte clade. Living mosses and ferns occupy separate branches, each with its own history ([Li et al. 2020](#ref-li2020anthoceros)).
+
+**Use two questions throughout:** Where does this organism belong on the tree? How does its structure meet the physical demands of its environment? Similar answers to the second question can evolve on distant branches.
+
+### 1.1 A few dates to orient the tree
+
+These are approximate evidence points, rather than dates at which a modern group suddenly appeared. Fossils provide minimum ages and preserve some structures much better than others. Molecular estimates can extend further back and depend on calibration and analytical assumptions.
+
+| Evidence point | Approximate age | What the evidence establishes |
+|----|---:|----|
+| First major atmospheric oxygenation | About 2.4 billion years ago | Oxygenic photosynthesis was operating by this interval. Atmospheric accumulation also depended on oxygen consumption and burial of reduced material. |
+| Thylakoids in *Navifusa majensis* | About 1.75 billion years ago | Direct cellular evidence for an ancient oxygenic phototroph. This is younger than the origin of oxygenic photosynthesis. |
+| Early land-plant cryptospores | About 470 million years ago | Evidence of early terrestrial plant reproduction, with uncertainty about the precise producers and their position on the tree. |
+| Small branching axes such as *Cooksonia* | Silurian, roughly 430–420 million years ago | Early experiments in branched sporophytes bearing sporangia. Anatomical evidence differs among species. |
+| Rhynie chert plants, including *Rhynia* and *Asteroxylon* | About 407 million years ago | Exceptional preservation of early land-plant anatomy and rooting structures. |
+| Early seeds, including *Elkinsia* | Late Devonian, roughly 365 million years ago | Reproduction through ovules and seeds was established before modern conifer or flowering-plant communities. |
+| Clear angiosperm fossil radiation | Early Cretaceous, roughly 135–125 million years ago | An expanding record of flowering plants. Their exact origin remains debated. |
+
+Evidence and dating discussions: Demoulin et al. ([2024](#ref-demoulin2024oldest)), Rubinstein et al. ([2010](#ref-rubinstein2010early)), Hetherington and Dolan ([2018](#ref-hetherington2018stepwise)), Serbet and Rothwell ([1992](#ref-serbet1992characterizing)) and Smith et al. ([2010](#ref-smith2010uncorrelated)).
+
+## 2 From functional advantage to evolutionary change
+
+Keep your **BDC221: Plant Diversity** notes at hand for this section too. Draw on its examples of plant structure and diversity as you consider how a feature could affect survival or reproduction. You will need to access those notes outside Tangled Bank.
+
+A thin leaf and a fine root both keep cells close to an exchange surface. A large plant can therefore retain short diffusion paths in its leaves and roots while investing substantial volume in supporting axes, as we saw in [Lecture 2](../BDC223/L02-SA_V.llms.md#sec-sa-v-geometry). The surface relevant to a particular function may belong to a cell, an organ or the whole plant. Geometry helps explain the consequences of that structure. To reconstruct its origin, we also need phylogenetic, fossil and developmental evidence.
+
+**Natural selection** occurs when heritable differences affect survival and reproductive success. Suppose a structural variant allows a plant to leave more descendants under the conditions it encounters. Over generations, the inherited traits associated with that variant can become more common. Mutation supplies new variation without regard to what the organism needs, and recombination reshuffles existing variation. Some changes are favourable, some harmful, and others have little effect under the prevailing conditions. Selection acts on these differences within the developmental and structural possibilities inherited by a lineage. A feature that is useful today may have arisen under different conditions, or initially served another function, so its present usefulness alone cannot establish its evolutionary origin.
+
+An **evolutionary adaptation** is an inherited feature shaped by selection for a function. **Phenotypic plasticity** is a response within an individual’s lifetime, such as producing different leaves in sun and shade.
+
+The capacity for plasticity can itself evolve. Keep the individual’s response and the evolution of that capacity separate.
+
+Consider a photosynthetic surface exposed to dry air. A less permeable covering can conserve water, but it also restricts entry of CO₂. The outcome depends on the openings through that surface, the water supply and the conditions in which the plant grows. Competition for light introduces another set of demands: elevated foliage intercepts light above neighbours but needs stronger axes and longer transport paths. Mineral nutrient supply may favour finer roots or microbial associations, while reproductive success depends on protecting gametes and embryos and dispersing pollen, spores or seeds. These pressures act together on a plant, and a change that benefits one function can impose a cost elsewhere.
+
+Similar structures can arise independently through **convergent evolution**. Others are inherited from a common ancestor and modified as descendants occupy different environments. Changes in gene flow and reproductive isolation contribute to the formation of distinct lineages, within which structures may be added, reduced or lost.
+
+The **form–function boxes** extend the Littler comparisons in [Lecture 2](../BDC223/L02-SA_V.llms.md#worked-example-1-the-littler-seaweed-studies). For each structural change, they connect a plausible selective pressure with gains and costs in particular functions. Treat the proposed drivers as evolutionary inferences unless the cited evidence establishes them.
+
+Specify the surface and volume being compared. A tree’s leaves and fine roots can retain high local SA:V while its trunk accounts for much of its volume.
+
+[Fick’s law](../BDC223/L02-SA_V.llms.md#sec-ficks-law) helps explain the consequences: exposed area, diffusion distance, concentration gradients and the medium all affect supply. Surface permeability matters too. Increasing exposed area can improve acquisition and also increase water loss, so an SA:V value needs to be interpreted in relation to a named function and its environment.
+
+## 3 Bacteria: oxygenic photosynthesis before roots or leaves
+
+Purple bacteria such as *Rhodobacter sphaeroides* and green sulfur bacteria such as *Chlorobaculum tepidum* use electron donors other than water in anoxygenic photosynthesis. They are living, specialised organisms with their own evolutionary histories. Arranging them as successive ancestors of cyanobacteria would misrepresent those relationships.
+
+Cyanobacteria use two photosystems to extract electrons from water. The oxygen released during photosynthesis comes from that water.
+
+Carbon fixation uses the resulting chemical energy and reducing power to incorporate carbon from CO₂. These coupled processes are covered in [Pigments and Photosynthesis](../BDC223/L07a-pigments_photosynthesis.llms.md).
+
+In a small *Synechococcus* cell, dissolved resources cross the membrane and travel only short distances internally. Light-harvesting membranes provide an extensive internal surface. Even at this scale, however, carbon supply involves physiological control: cyanobacterial carbon-concentrating mechanisms accumulate inorganic carbon around Rubisco.
+
+In *Nostoc*, cells remain linked in filaments within a mucilaginous matrix. Some differentiate into heterocysts, where nitrogen fixation is protected from oxygen. This allows neighbouring cells to perform different functions within the same filament, but the two processes must be distinguished. Nitrogen fixation converts N₂ to reduced nitrogen. Oxygenic photosynthesis releases O₂ from water, creating an oxygen-rich environment that nitrogen-fixing cells must contend with. Many cyanobacteria cannot fix nitrogen at all. [Gas-exchange experiments in *Nostoc punctiforme*](https://pmc.ncbi.nlm.nih.gov/articles/PMC383079/) show how these processes interact.
+
+[![A gelatinous Nostoc colony photographed against a white background.](images/evolution/nostoc.jpg)](images/evolution/nostoc.jpg "Figure 2: A colony collected in Catalonia and identified as Nostoc communis. The visible gelatinous matrix contains microscopic filaments. Colony dimensions therefore do not equal individual cell size or cell SA:V. Photograph: Victor M. Vicente Selvas, public domain. Source.")
+
+Figure 2: A colony collected in Catalonia and identified as *Nostoc communis*. The visible gelatinous matrix contains microscopic filaments. Colony dimensions therefore do not equal individual cell size or cell SA:V. Photograph: Victor M. Vicente Selvas, public domain. [Source](https://commons.wikimedia.org/wiki/File:Nostoc_communis003.JPG).
+
+Within a dense mat, cells shade one another and experience different conditions from those at the surface. Delivery from the surrounding water depends partly on flow. High cellular SA:V therefore gives little assurance of adequate supply to cells buried inside the colony.
+
+**Form and function: small cells, larger colonies**
+
+A *Nostoc* colony becomes large by adding small cells. Each retains high cellular SA:V, and a filament can lengthen without increasing cell diameter. Linked cells, photosynthetic membranes and mucilage add internal surfaces, cohesion and water retention. Attachment, access to resources and intermittent drying could favour different arrangements of these structures.
+
+Packing has a cost. Cells in the interior receive less light and exchange with water that neighbours have already modified. **Cellular SA:V and the exposed SA:V of a colony describe different constraints.** Protective material also takes resources to produce.
+
+## 4 Algae: several ways to become large
+
+Revisit the **Littler papers** assigned in [Lecture 2](../BDC223/L02-SA_V.llms.md). Their comparisons of seaweed form, photosynthetic performance and persistence underpin this section. Keep those functional relationships in mind as we consider how similar forms arose in different algal lineages.
+
+The three Archaeplastida lineages inherited plastids from primary endosymbiosis. Later endosymbioses transferred plastids into other eukaryotic hosts, including the red-algal plastids now carried by brown algae and diatoms ([Sánchez-Baracaldo et al. 2017](#ref-sanchezbaracaldo2017early)). This history helps explain the pigment diversity discussed in [Chromatic Adaptation](../BDC223/L08-chromatic_adaptation.llms.md).
+
+Glaucophytes are rarely encountered in the field and have few described species. Their plastids, often called **cyanelles**, retain a **peptidoglycan** layer between the envelope membranes and **phycobilisomes**, pigment–protein complexes that collect light. These cyanobacterial features provide evidence about early plastid evolution. Retention and loss differ among the other lineages: red algae also retain phycobilisomes, and peptidoglycan has been demonstrated around moss chloroplasts. [Glaucophyte plastid genomes](https://pmc.ncbi.nlm.nih.gov/articles/PMC6330054/), [red-algal phycobilisomes](https://www.nature.com/articles/nature24278), [Hirano et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/27325639/).
+
+Compare the motile unicell *Chlamydomonas reinhardtii* with *Volvox carteri*, whose spherical colonies contain differentiated reproductive and somatic cells. Both are chlorophytes. The filamentous *Spirogyra* belongs to the streptophyte branch, close to land plants.
+
+[![Microscopic Spirogyra filaments showing cell boundaries and spiral green chloroplasts.](images/evolution/spirogyra.jpg)](images/evolution/spirogyra.jpg "Spirogyra under a microscope. Individual cells form a narrow filament, with spiral chloroplasts visible inside. The image is identified to genus only. Photograph: Spicywalnut, public domain. Source.")
+
+*Spirogyra* under a microscope. Individual cells form a narrow filament, with spiral chloroplasts visible inside. The image is identified to genus only. Photograph: Spicywalnut, public domain. [Source](https://commons.wikimedia.org/wiki/File:Spirogyra.JPG).
+
+[![Bright green sea lettuce sheets spread across intertidal rock.](images/evolution/ulva.jpg)](images/evolution/ulva.jpg "Sea lettuce at Curio Bay, New Zealand. This Ulva-type sheet illustrates a broad exchange surface kept thin. A species cannot be assigned from this photograph alone. Photograph: Pseudopanax, public domain. Source.")
+
+Sea lettuce at Curio Bay, New Zealand. This *Ulva*-type sheet illustrates a broad exchange surface kept thin. A species cannot be assigned from this photograph alone. Photograph: Pseudopanax, public domain. [Source](https://commons.wikimedia.org/wiki/File:Sea_lettuce_at_Curio_Bay.jpg).
+
+An *Ulva* blade spreads photosynthetic cells across a thin sheet in direct contact with seawater. Dissolved inorganic carbon, water and mineral nutrients reach the thallus across its surface, without a terrestrial root-to-shoot supply system. Thickness still matters, but so does the water immediately around the blade. Slow flow allows a thicker diffusive boundary layer to develop, and an overlapping blade reduces both light and exposure to moving water. Measuring SA:V alone would miss these restrictions on uptake and productivity.
+
+Within Rhodophyta, *Pyropia* forms thin blades, *Gracilaria* has thicker branching axes, and coralline algae invest in calcification. The functional contrasts described by Littler and colleagues ([Littler and Littler 1980](#ref-Littler1980); [Littler and Arnold 1982](#ref-Littler1982)) can thus occur within a single lineage.
+
+A kelp partitions its thallus into a holdfast, stipe and blades. The holdfast anchors it. Dissolved nutrients are acquired mainly across the thallus, so a holdfast should be compared with a terrestrial root for attachment, rather than assumed to have the same role in uptake. Flexible stipes and buoyancy position the blades in the light, and gas-filled structures contribute in some kelps. The whole thallus moves with waves, exposing its surfaces to changing flow while also experiencing mechanical loading.
+
+[![Laminaria pallida above Ecklonia maxima on a rocky reef at Duiker Point, showing broad blades and thicker stipes.](images/evolution/kelp-duiker-point.jpg)](images/evolution/kelp-duiker-point.jpg "Figure 3: Laminaria pallida (above) and Ecklonia maxima (below) at Duiker Point, Cape Peninsula, South Africa. Compare their broad, thin blades with the thicker stipes that support them. Photograph: Peter Southwood, CC BY-SA 4.0. Source.")
+
+Figure 3: *Laminaria pallida* (above) and *Ecklonia maxima* (below) at Duiker Point, Cape Peninsula, South Africa. Compare their broad, thin blades with the thicker stipes that support them. Photograph: Peter Southwood, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). [Source](https://commons.wikimedia.org/wiki/File:Laminaria_pallida_%28top%29_and_Ecklonia_maxima_%28below%29_P3290141.JPG).
+
+Experiments in *Macrocystis* traced photosynthate from source blades to growing sinks through specialised conducting cells. Long-distance redistribution therefore evolved in kelps as well as in vascular plants, although kelp conducting tissues and plant xylem and phloem have separate evolutionary origins ([Schmitz and Srivastava 1979](#ref-schmitz1979long)).
+
+Two studies connect these Cape kelps with the [Lecture 2](../BDC223/L02-SA_V.llms.md) functional form comparisons:
+
+- Wernberg et al. ([2025](#ref-wernberg2025smaller)), [*Smaller plants in warmer water could have implications for future Kelp forests*](https://doi.org/10.1038/s41598-025-13950-z), *Scientific Reports* **15**, 28616. In *Laminaria pallida* from southern Africa and *L. hyperborea* from Europe, kelps in warmer regions had shorter, thinner stipes and supported less epiphyte biomass. Such changes affect the three-dimensional habitat a kelp forest provides.
+- Coppin et al. ([2020](#ref-coppin2020investigating)), [*Investigating Waves and Temperature as Drivers of Kelp Morphology*](https://doi.org/10.3389/fmars.2020.00567), *Frontiers in Marine Science* **7**, 567. Around the Cape Peninsula, wave exposure explained more of the morphological variation in *Ecklonia maxima* and *Laminaria pallida* than temperature did. The relationships differed between species and between shallow and deep populations.
+
+Read these papers with **SA:V** in mind. Which measurements describe exchange surfaces, and which describe investment in support? A shorter kelp does not necessarily have a higher SA:V ratio. These field comparisons also leave open how much of the variation reflects phenotypic plasticity or inherited differences.
+
+**Form and function: thin exchange surfaces on larger thalli**
+
+Thin sheets and narrow branches keep photosynthetic cells close to seawater. Kelps retain these exchange surfaces while adding thicker regions for attachment, support and transport.
+
+The likely selective pressures differ among habitats. Competition for light can favour elevated blades, whereas grazing and wave disturbance may favour investment in tissues that persist. **High local SA:V** and short diffusion paths help carbon and nutrient acquisition, but broad exposed blades also experience drag and can lose water rapidly at low tide. Thickening or reinforcing tissue changes that balance by allocating more volume to support and lengthening paths from the surface to interior cells. Similar combinations have arisen on separate algal branches.
+
+This is the Littler comparison placed on a phylogeny, with water movement and shading still needed to interpret performance.
+
+## 5 Living on land separates the resource supplies
+
+On land, light and CO₂ are available above the substrate, while most water and mineral nutrients must be obtained from within it. Air provides little buoyant support. A photosynthetic surface raised into the light is therefore exposed to drying and needs both support and a water supply, as well as protection from ultraviolet radiation and temperature extremes.
+
+A cuticle limits water loss. It also restricts gas diffusion.
+
+Openings through the surface admit CO₂, but their regulation differs among tissues and lineages. Turgor, cell walls and plant architecture determine whether the exposed tissue stays upright. As the distance from the substrate increases, supplying water to that tissue becomes a transport problem.
+
+Land plants retained a multicellular embryo in parental tissue, the defining feature of embryophytes. This protected stage, together with resistant spores, protected reproductive structures and microbial associations, contributed to life on land. These changes concern reproduction and establishment as well as the geometry of resource exchange.
+
+**Form and function: protection with access to air**
+
+Drying could favour less permeable surfaces, while access to atmospheric CO₂ favoured routes through those surfaces. Internal air spaces brought gases close to photosynthetic cells. Together, these structures allowed thin tissues with short diffusion paths to function in air, although their detailed anatomy and evolutionary origins differ among lineages. A high exposed **SA:V** increases the surface available for exchange and potential water loss, so protection and gas entry must be considered together.
+
+Embryo retention added a reproductive benefit: offspring developed within parental tissue. Protection and provisioning required resources from the parent.
+
+### 5.1 Bryophytes: small stature, varied internal organisation
+
+**Liverwort, moss or hornwort?**
+
+**Liverworts (Marchantiophyta)**: leafy shoots or flattened thalli, such as *Marchantia*. Their short-lived sporophytes bear a spore capsule. They lack stomata.
+
+**Mosses (Bryophyta)**: leafy gametophyte shoots, often forming mats, turfs or cushions. A sporophyte usually has a capsule raised on a stalk (seta).
+
+**Hornworts (Anthocerotophyta)**: thalloid gametophytes bearing elongated, horn-like sporophytes. A basal meristem allows the sporophyte to continue growing and producing spores.
+
+All three have a dominant gametophyte and an attached sporophyte. **Bryophytes** collectively means all three lineages; **Bryophyta** here means mosses only.
+
+The conspicuous bryophyte plant is usually the haploid **gametophyte**. Its diploid **sporophyte** remains attached and depends on it nutritionally to varying degrees. In a vascular plant, the large independent plant is the sporophyte.
+
+In the liverwort *Marchantia polymorpha*, a flattened, branching thallus lies close to the substrate. Rhizoids anchor it, while water moves across surfaces and through capillary spaces. Air chambers bring gases into contact with photosynthetic tissue beneath the surface. The pores opening into these chambers have no guard-cell mechanism for opening and closing, so they must be distinguished from stomata. This anatomy provides gas access within a low-growing thallus, but offers less control over the openings than a stomatal system.
+
+[![Green branching thalli of the liverwort Marchantia polymorpha.](images/evolution/marchantia.jpg)](images/evolution/marchantia.jpg "Marchantia polymorpha, a thalloid liverwort. Its flattened thallus places much of the photosynthetic tissue near the atmosphere and the moist substrate. Photograph: HermannSchachner, CC0 public-domain dedication. Source.")
+
+*Marchantia polymorpha*, a thalloid liverwort. Its flattened thallus places much of the photosynthetic tissue near the atmosphere and the moist substrate. Photograph: HermannSchachner, CC0 public-domain dedication. [Source](https://commons.wikimedia.org/wiki/File:Marchantia_polymorpha_(a,_144712-474823)_9842.jpg).
+
+[![Microscopic view of polygonal areas and air pores on a Marchantia thallus.](images/evolution/marchantia-pores.jpg)](images/evolution/marchantia-pores.jpg "The dorsal surface of Marchantia polymorpha under a microscope. Air pores connect to chambers beneath the surface. Photograph: HermannSchachner, CC0 public-domain dedication. Source.")
+
+The dorsal surface of *Marchantia polymorpha* under a microscope. Air pores connect to chambers beneath the surface. Photograph: HermannSchachner, CC0 public-domain dedication. [Source](https://commons.wikimedia.org/wiki/File:Marchantia_polymorpha_(d,_144722-474816)_7502.JPG).
+
+Mosses form creeping mats, upright turfs and dense cushions. In *Polytrichum*, leaf lamellae add photosynthetic surface, and specialised cells permit internal transport. Some mosses possess water-conducting hydroids and food-conducting leptoids, which provide conduction without the lignified xylem of tracheophytes. At the scale of the whole cushion, close packing retains capillary water and shelters shoots, although it also increases shading.
+
+[![A colony of haircap moss with leafy shoots and stalked sporophytes.](images/evolution/moss.jpg)](images/evolution/moss.jpg "Figure 4: A female colony of Polytrichum piliferum with sporophytes. Separate the leafy gametophyte shoots from the stalked spore-producing generation. Photograph: Loup-Anne, CC0 public-domain dedication. Source.")
+
+Figure 4: A female colony of *Polytrichum piliferum* with sporophytes. Separate the leafy gametophyte shoots from the stalked spore-producing generation. Photograph: Loup-Anne, CC0 public-domain dedication. [Source](https://commons.wikimedia.org/wiki/File:Polytrichum_piliferum_female_colony.jpg).
+
+*Anthoceros* has a thalloid gametophyte with elongated sporophytes. Some hornworts house *Nostoc*, and many have pyrenoid-based carbon-concentrating mechanisms. Their associations and physiology can therefore differ considerably from those of a liverwort with a superficially similar thallus ([Li et al. 2020](#ref-li2020anthoceros)).
+
+Liverworts lack stomata. Mosses and hornworts can possess them on the sporophyte, where their roles and responses differ from those usually taught for flowering-plant leaves.
+
+Bryophytes persist in wet microsites and on bark, and desiccation-tolerant species also occupy exposed habitats. A dry moss may suspend much of its metabolism until it is wetted again.
+
+**Form and function: small plants with extensive exchange surfaces**
+
+A moss leaf can have high SA:V while the cushion containing it exposes relatively little surface for its volume.
+
+This difference helps explain the benefit and cost of shoot packing. Close neighbours retain capillary water and reduce exposure during drying, conditions that could favour a compact growth form. Yet they also shade one another. Thin leaves, lamellae and the air chambers of some thalloid bryophytes provide accessible photosynthetic surfaces over short diffusion distances, but external water films can impede CO₂ entry, as [gas-exchange measurements in mosses](https://pubmed.ncbi.nlm.nih.gov/28307731/) demonstrate. Small stature also leaves the plant below taller competitors. Desiccation tolerance permits survival through dry periods, with carbon gain resuming after wetting.
+
+### 5.2 Early branching sporophytes: a fossil comparison
+
+Fossils assigned to *Cooksonia* preserve small branching axes with terminal sporangia. They show that elevation and branching preceded broad leaves, although species differ in their size and preserved anatomy. Some of the smallest forms may have depended heavily on the gametophyte: after allowing space for other tissues, little room remains in their axes for photosynthetic tissue ([Boyce 2008](#ref-boyce2008how)).
+
+The green, repeatedly forked axes of *Psilotum nudum* provide a living comparison for this architecture. The whisk fern lacks true roots and has very small appendages, but **its simple form is secondarily derived within ferns**. Fossils such as *Rhynia* provide historical anatomical evidence. *Psilotum* shows how a living plant with a similar outline functions.
+
+[![Green repeatedly forked axes of the whisk fern Psilotum nudum.](images/evolution/psilotum.jpg)](images/evolution/psilotum.jpg "Figure 5: Psilotum nudum at Longwood Gardens. Use the green branching axes as a comparison of form, while keeping its position within the fern clade in view. Photograph: Daderot, CC0 public-domain dedication. Source.")
+
+Figure 5: *Psilotum nudum* at Longwood Gardens. Use the green branching axes as a comparison of form, while keeping its position within the fern clade in view. Photograph: Daderot, CC0 public-domain dedication. [Source](https://commons.wikimedia.org/wiki/File:Psilotum_nudum_-_Longwood_Gardens_-_DSC01149.JPG).
+
+**Form and function: branching and elevating sporangia**
+
+Branching gave early sporophytes multiple sites for sporangia, and elevation could improve dispersal by releasing spores above the near-ground boundary layer. Greater reproductive output and dispersal success are therefore plausible selective advantages. Narrow photosynthetic axes could retain relatively high **SA:V** as they branched. Supporting taller axes, however, required construction resources and a water supply, while thickening those axes reduced external SA:V. Fossil anatomy constrains these interpretations, including how much nutrition a sporophyte could obtain independently.
+
+## 6 Vascular plants link exchange, transport and support
+
+**Vascular branches**
+
+**Tracheophyta**: vascular plants, with lignified water-conducting tracheary elements. Includes lycophytes, ferns and seed plants.
+
+**Lycopodiophyta**: lycophytes, including clubmosses, spikemosses and quillworts. They are vascular plants, despite the “moss” names.
+
+**Polypodiopsida**: ferns in the broad classification used here, including horsetails and whisk ferns. Lycophytes lie outside this clade.
+
+The lignified water-conducting cells of **tracheophytes** allowed water supply and photosynthesis to occur farther apart. Xylem conducts water and contributes to support. Phloem transports organic compounds between sources and sinks.
+
+As water evaporates from leaves, it helps maintain a water-potential gradient from soil through roots and xylem to the atmosphere. Cohesion transmits tension through the water columns. Root cells expend energy on selective ion uptake, but the transpiration stream in a tall tree is driven mainly by this gradient. Height and hydraulic path length increase the resistance along the route and make embolism a concern. A leaf can remain thin, with short internal diffusion paths, while depending on water that has travelled many metres through conducting tissue.
+
+At the other end of that route, fine roots, root hairs and fungal hyphae provide extensive absorbing surfaces. Mycorrhizal fungi can explore beyond the root surface in exchange for plant carbon, although the benefit depends on conditions. Other plants acquire nutrients through different associations or root specialisations. Roots themselves evolved in stages and on more than one vascular-plant branch.
+
+The rooting axes of the fossil lycophyte relative *Asteroxylon mackiei*, for example, lacked a root cap ([Hetherington and Dolan 2018](#ref-hetherington2018stepwise)).
+
+### 6.1 Lycophytes and ferns represent different branches
+
+Clubmosses (*Lycopodium*), spikemosses (*Selaginella*) and quillworts (*Isoetes*) are lycophytes. They are vascular plants. Their **lycophylls**, or small leaves, usually contain a single unbranched vein.
+
+*Selaginella* and *Isoetes* produce separate microspores and megaspores, a condition called **heterospory**. Its occurrence in water ferns and seed plants as well as lycophytes records repeated evolution of this reproductive feature.
+
+[![Branching Selaginella shoots covered with small overlapping leaves.](images/evolution/selaginella.jpg)](images/evolution/selaginella.jpg "Selaginella willdenowii, a living lycophyte with small leaves on branching shoots. The common name “peacock fern” does not make it a fern. Photograph: Suzanne ujen, CC0 public-domain dedication. Source.")
+
+*Selaginella willdenowii*, a living lycophyte with small leaves on branching shoots. The common name “peacock fern” does not make it a fern. Photograph: Suzanne ujen, CC0 public-domain dedication. [Source](https://commons.wikimedia.org/wiki/File:Peacock_fern_Selaginella_willdenowii.jpg).
+
+[![Large divided green fronds of a royal fern.](images/evolution/fern.jpg)](images/evolution/fern.jpg "A cultivated royal fern in Maryland, identified provisionally by the source as Osmunda regalis var. spectabilis. Dividing a frond distributes photosynthetic area and changes light penetration and boundary-layer behaviour. Photograph: Jim Kingdon, public domain. Source.")
+
+A cultivated royal fern in Maryland, identified provisionally by the source as *Osmunda regalis* var. *spectabilis*. Dividing a frond distributes photosynthetic area and changes light penetration and boundary-layer behaviour. Photograph: Jim Kingdon, public domain. [Source](https://commons.wikimedia.org/wiki/File:Royal_fern_closeup.jpg).
+
+The fern clade includes horsetails such as *Equisetum* and whisk ferns as well as familiar frond-bearing species. Within it, filmy ferns occupy humid shade, rock ferns can tolerate drought, *Azolla* floats, and tree ferns such as *Alsophila dregei* support elevated foliage on stems strengthened by tissues and a surrounding root mantle. Leaves or green axes capture light, while roots and rhizomes acquire and store resources. These structures allow fern sporophytes to occupy very different physical spaces, from a film of moist rock to an elevated crown. Reproduction places a separate constraint on that range of forms. In most familiar ferns, the small independent gametophyte still requires a film of water for sperm to reach an egg, even where the mature sporophyte occupies relatively exposed ground.
+
+The lycophyte branch also once contained trees, including the Carboniferous *Lepidodendron*. Today’s small clubmosses reveal only part of that lineage’s former architecture. A tree fern’s strengthened stem and root mantle, a conifer’s woody trunk and an extinct lycophyte trunk represent different constructions for supporting height.
+
+### 6.2 What a leaf, a stem and a root contribute
+
+A leaf presents photosynthetic tissue to light and connects it to a vein supply. Internal air spaces keep many cells close to a gas-exchange surface, while stomata regulate exchange with the atmosphere. Opening a stoma admits CO₂ and permits water loss. Photosynthesis and respiration both contribute to the measured net flux: an illuminated leaf may release O₂ overall, while its cells continue to respire.
+
+Stems bear the weight of leaves and transmit loads towards the ground. Turgor supports young tissues, collenchyma provides flexible strengthening, and lignified walls add stiffness. Secondary growth in many seed plants produces wood, increasing both conducting and supporting capacity. The carbon invested in a taller stem must be considered alongside the gain from placing leaves in the light, the longer hydraulic path and the greater wind exposure. Much of that supporting tissue contributes little direct carbon gain, even when it is essential to the functioning of the crown.
+
+Roots anchor the plant and acquire water and nutrients. Their cells also need oxygen for respiration, which can become limiting in waterlogged soil.
+
+Root branching, root hairs, selective membrane transport and microbial associations all influence acquisition. We develop these relationships in [Nutrient Uptake](../BDC223/L09a-nutrient_uptake.llms.md), where surface area must be considered together with nutrient availability and uptake kinetics.
+
+**Form and function: separating uptake, transport and support**
+
+A thick trunk can support a crown of thin leaves and connect them to fine roots. **Local SA:V remains high in the exchange organs**, even though whole-plant SA:V falls as supporting volume accumulates. Lignified conduits move water over distances at which diffusion alone would be inadequate. Competition for light and the separation of soil water from atmospheric CO₂ could therefore favour greater stature, provided the gains covered the costs of constructing and supplying the elevated foliage. Roots and leaves developed on branches with different histories, including multiple origins.
+
+Longer transport paths add resistance and expose water columns to embolism. Increasing leaf area also increases potential transpiration and self-shading. Closing stomata conserves water at the expense of CO₂ entry.
+
+## 7 Seed plants: reproduction and terrestrial diversification
+
+**Seed-plant branches**
+
+**Spermatophyta**: seed plants, comprising gymnosperms and angiosperms. Reproduction involves pollen and ovules that can develop into seeds.
+
+**Gymnospermae**: living gymnosperms include conifers, cycads, *Ginkgo* and gnetophytes. Their ovules are not enclosed within an ovary.
+
+**Angiospermae**: flowering plants. Ovules are enclosed within carpels; the ovary contributes to the fruit after fertilisation.
+
+A pollen grain is the dispersal stage of the male gametophyte. The ovule retains the female gametophyte, and a seed protects and provisions the embryo.
+
+These structures allow fertilisation without an external water film connecting two free-living gametophytes, extending the conditions under which reproduction can succeed. Cycads and *Ginkgo* still have motile sperm, but pollen delivery and fluid within the ovule provide the route to fertilisation. Their reproduction illustrates why the presence of swimming sperm alone does not establish dependence on free water outside the plant.
+
+*Elkinsia polymorpha*, from the Late Devonian, combined fern-like foliage with ovules. The name “seed fern” covers several extinct combinations of characters. Leaf shape on its own is weak evidence of ancestry ([Serbet and Rothwell 1992](#ref-serbet1992characterizing)).
+
+**Form and function: protecting and provisioning the next generation**
+
+Unreliable surface water and hazards during establishment could favour protected reproduction. Pollen and ovules reduced dependence on external water for fertilisation, while seed coats and reserves protected offspring and supported early growth. Delayed germination could carry offspring through an unsuitable period.
+
+Provisioning has a cost: for a fixed resource budget, investment in each seed can reduce the number produced. Enclosure can also restrict oxygen supply, as measured in [developing legume seeds](https://doi.org/10.1093/jexbot/53.371.1099). Larger seeds of comparable shape have lower external **SA:V**, but coat permeability and internal gas paths determine how that geometry affects exchange.
+
+Here, SA:V helps interpret seed function. Explaining the origin of seeds also requires evidence about reproductive history.
+
+### 7.1 Gymnosperm diversity
+
+Conifers, cycads, *Ginkgo* and gnetophytes are living gymnosperms. Their ovules develop without enclosure in an angiosperm ovary. Genomic evidence has helped resolve relationships among these seed-plant branches, whose foliage and growth forms differ considerably.
+
+| Lineage and extant example | Form to recognise | Ecophysiological connection |
+|----|----|----|
+| Conifers: *Pinus pinea*, *Podocarpus latifolius* | A pine has needle leaves, while yellowwoods have broad, flattened leaves. Many conifers form large woody trees. | Tracheids provide both conduction and support. Leaf form and hydraulic traits vary with climate and shade. Needles are one conifer strategy, not the definition of a gymnosperm. |
+| Cycads: *Encephalartos* species | A stout axis with a crown of large divided leaves and reproductive cones. | Tough, persistent foliage, stored resources and specialised coralloid roots occur in this lineage. Cyanobacterial partners can fix nitrogen in the roots. The palm-like habit evolved independently of palms. |
+| *Ginkgo biloba* | A deciduous tree with fan-shaped leaves and branching veins. | Seasonal leaf shedding limits exposure during unfavourable periods. Broad leaves and deciduousness occur outside angiosperms. |
+| Gnetophytes: *Welwitschia*, *Ephedra*, *Gnetum* | Two persistent strap leaves in *Welwitschia*, green jointed shoots in *Ephedra*, and broad leaves in many *Gnetum*. | Contrasting solutions to aridity and forest life occur within one gymnosperm branch. Gnetophyte vessel elements also caution against treating vessels as uniquely angiosperm structures. |
+
+[![A tall stone pine with a narrow trunk and spreading umbrella-shaped crown.](images/evolution/pine.jpg)](images/evolution/pine.jpg "Pinus pinea at Pompeii. A woody trunk supports a broad crown, while the individual needles remain narrow. Photograph: Jebulon, CC0 public-domain dedication. Source.")
+
+*Pinus pinea* at Pompeii. A woody trunk supports a broad crown, while the individual needles remain narrow. Photograph: Jebulon, CC0 public-domain dedication. [Source](https://commons.wikimedia.org/wiki/File:Pinus_pinea_Pompeii.jpg).
+
+[![Cones and stiff divided leaves of the South African cycad Encephalartos villosus.](images/evolution/cycad.jpg)](images/evolution/cycad.jpg "Male cones of Encephalartos villosus in a Pretoria garden. This is a cycad, with divided leaves and cones, rather than a palm. Photograph: Rotational, public domain. Source.")
+
+Male cones of *Encephalartos villosus* in a Pretoria garden. This is a cycad, with divided leaves and cones, rather than a palm. Photograph: Rotational, public domain. [Source](https://commons.wikimedia.org/wiki/File:Encephalartos_villosus07.jpg).
+
+*Welwitschia mirabilis* retains two foliage leaves that grow from their bases and split as they age. A mature plant can consequently appear to have many leaves. This low-growing Namib Desert plant belongs within the gnetophytes. [SANBI: *Welwitschia mirabilis*](https://pza.sanbi.org/welwitschia-mirabilis).
+
+[![Low Welwitschia plant with persistent strap-like leaves extending across the ground.](images/evolution/welwitschia.jpg)](images/evolution/welwitschia.jpg "A cultivated Welwitschia mirabilis at the University of California Botanical Garden. Its strap-like foliage grows from two persistent leaves, which split with age. Photograph: Awinch1001, CC0 public-domain dedication. Source.")
+
+A cultivated *Welwitschia mirabilis* at the University of California Botanical Garden. Its strap-like foliage grows from two persistent leaves, which split with age. Photograph: Awinch1001, CC0 public-domain dedication. [Source](https://commons.wikimedia.org/wiki/File:Welwitschia_mirabilis_3.jpg).
+
+### 7.2 Angiosperm phylogeny contains many different growth forms
+
+Angiosperms have flowers and ovules enclosed within carpels. Fruits develop from the ovary, sometimes with contributions from other tissues.
+
+The earliest-diverging living branches include *Amborella*, Nymphaeales, which contains water lilies, and Austrobaileyales. Beyond these lies the large mesangiosperm radiation: magnoliids, monocots, eudicots, Chloranthales and Ceratophyllales. Pollination and dispersal by animals, wind or water have contributed to variation in reproductive structures across these branches. Vegetative form also varies within them, as the examples below show.
+
+Use **eudicots** for the clade containing proteas, legumes, daisies and many familiar trees. The older “dicots” category excludes monocots from a larger ancestral group and is therefore not a clade ([The Angiosperm Phylogeny Group 2016](#ref-apg2016update)).
+
+[![Amborella, water lilies and Austrobaileyales branch successively before the mesangiosperms, which include magnoliids, monocots, eudicots, Chloranthales and Ceratophyllales.](images/evolution/angiosperm-phylogeny.svg)](images/evolution/angiosperm-phylogeny.svg "Figure 6: The principal living angiosperm branches, with the large mesangiosperm radiation expanded. Deep relationships within that radiation are omitted here. The examples in the table can be located on this tree.")
+
+Figure 6: The principal living angiosperm branches, with the large mesangiosperm radiation expanded. Deep relationships within that radiation are omitted here. The examples in the table can be located on this tree.
+
+| Branch | Examples for recognising diversity | Form and function to compare |
+|----|----|----|
+| Early-diverging angiosperm branches | *Amborella trichopoda*; water lilies such as *Nymphaea* | A terrestrial shrub and floating aquatic leaves occur on distinct early branches. The upper surface of a floating leaf has a very different gas-exchange environment from a submerged leaf. |
+| Magnoliids | *Magnolia*, avocado (*Persea americana*), *Piper* | Trees, shrubs and climbing forms. Broad leaves and woody construction also occur outside eudicots. |
+| Monocots | Grasses, sedges, restios, palms, orchids, aloes and seagrasses | Narrow blades, persistent sheaths, storage organs, succulent leaves and epiphytic roots. Palms attain tree stature without the ordinary vascular-cambium construction of an oak. |
+| Eudicots | *Protea*, *Erica*, legumes, daisies, oaks, cacti and many mangroves | Woody and herbaceous forms, compound leaves, succulence, climbing stems and specialised nutrient-acquisition systems. No single leaf shape or growth form defines the clade. |
+
+Boyce et al. ([2009](#ref-boyce2009angiosperm)) measured substantially higher vein densities in their sample of angiosperms than in the other vascular-plant groups sampled. Dense veins shorten the route from the water supply to evaporating leaf tissues, linking anatomy to potential water flux and helping explain high rates of carbon gain in some flowering plants. Interpreting the result for a particular species still requires its vessel dimensions, stomatal regulation, leaf lifespan and environment. Some angiosperms, including *Amborella*, lack ordinary vessels.
+
+[![A king protea shrub at Kirstenbosch with broad leaves and large flower heads.](images/evolution/protea.jpg)](images/evolution/protea.jpg "Figure 7: Protea cynaroides at Kirstenbosch, Cape Town. Persistent leaves, woody supporting branches and a compact shrub crown provide a local eudicot example. The conspicuous head contains many individual flowers. Photograph: Andrew Massyn, public domain. Source.")
+
+Figure 7: *Protea cynaroides* at Kirstenbosch, Cape Town. Persistent leaves, woody supporting branches and a compact shrub crown provide a local eudicot example. The conspicuous head contains many individual flowers. Photograph: Andrew Massyn, public domain. [Source](https://commons.wikimedia.org/wiki/File:Protea_cynaroides.jpg).
+
+**Form and function: supplying leaves and modifying reproduction**
+
+Dense venation can supply extensive leaf surfaces while the thin mesophyll retains short CO₂ diffusion paths. Under adequate water supply, competition for carbon gain could favour this combination. The benefit concerns hydraulic supply and gas exchange within a leaf, with no requirement for high whole-plant **SA:V**. Building veins costs resources, and high water flux becomes difficult to sustain during drought.
+
+Flowers, enclosed ovules and fruits affect mating, offspring protection and dispersal. Their advantages depend on reproductive conditions, including the availability of pollinators or dispersers where plants depend on them. These structures also require investment, but their origins need to be explained through reproduction rather than leaf geometry.
+
+## 8 Terrestrial diversity: compare strategies within and across branches
+
+A yellowwood, a grass, a succulent and an orchid are all vascular plants. Compare the surfaces through which each obtains resources and the structures that supply or support those surfaces.
+
+### 8.1 Trees, shrubs, grasses and climbers
+
+The indigenous yellowwood *Podocarpus latifolius* and the oak *Quercus robur* both support elevated crowns on woody trunks, although one is a conifer and the other a eudicot. Branching spreads leaves through a three-dimensional light field, where neighbouring leaves and plants affect exposure. A smaller *Protea* or *Erica* shrub retains its crown closer to the ground and may experience different wind, drought and fire conditions. Height changes the light environment, but also the distance over which water must be supplied and the load borne by the stem.
+
+A grass canopy is supported differently. In *Themeda triandra*, sheaths and culms hold narrow blades, parallel veins supply the long leaf surfaces, and basal growth regions allow regrowth after defoliation. Grasses can therefore build tall canopies with little conventional wood. Some bamboos reach tree height.
+
+*Themeda* uses C₄ photosynthesis, while many other grasses use C₃. Neither a narrow blade nor membership of the monocots identifies the carbon-fixation pathway.
+
+A grapevine (*Vitis vinifera*) transfers part of its supporting load to another structure as it climbs towards light. It must still maintain the vascular connection to its roots. A palm supports itself through dense fibrous tissues and a distinctive pattern of stem growth, without the usual ring-forming vascular cambium of many woody eudicots. These examples separate the functions that a trunk often combines: a plant may depend on its stem for transport while obtaining much of its support elsewhere, or build a tall self-supporting stem through a different developmental route.
+
+**Form and function: placing foliage in the light**
+
+Competition for light can favour elevated foliage, but the supporting structure depends on ancestry and conditions. Woody crowns, grass culms and climbing stems all place thin leaves in the light while differing in the volume and type of tissue invested in support. Fine exchange surfaces retain high **SA:V** as the plant grows. Greater leaf area can nevertheless increase self-shading and transpiration, and a taller hydraulic pathway costs more to supply.
+
+Repeated defoliation can favour protected basal growth regions such as those in grasses. Replacement still consumes reserves. Climbers reduce some self-support costs but depend on available supports.
+
+### 8.2 Succulents and plants in dry habitats
+
+An aloe stores water in thick leaves, whereas a cactus can store it in a thick stem. Both reduce exposed surface relative to stored volume. Similar succulence has evolved in distantly related lineages: in monocots such as aloes, and in eudicots such as cacti and euphorbias, which belong to different eudicot orders. Dryland plants also combine waxes, spines, sunken stomata, leaf shedding and changes in leaf orientation in different ways.
+
+In CAM plants, stomata open mainly at night. Carbon taken up then is stored in organic acids for use the following day, reducing water loss under suitable conditions. CAM has evolved repeatedly, and a fleshy leaf alone cannot establish its presence.
+
+The southern African quiver tree, *Aloidendron dichotomum*, combines succulent leaves with a branching, tree-like monocot form. [SANBI: *Aloidendron dichotomum*](https://pza.sanbi.org/aloidendron-dichotomum).
+
+[![A small cultivated quiver tree with a thickened stem and a rosette of fleshy leaves.](images/evolution/quiver-tree.jpg)](images/evolution/quiver-tree.jpg "A cultivated quiver tree, Aloidendron dichotomum, at the Los Angeles County Arboretum. The thickened stem and fleshy leaf rosette are visible in this small specimen. Mature plants develop the branching crowns discussed in the text. Photograph: The Fun Chronicles, CC0 public-domain dedication. Source.")
+
+A cultivated quiver tree, *Aloidendron dichotomum*, at the Los Angeles County Arboretum. The thickened stem and fleshy leaf rosette are visible in this small specimen. Mature plants develop the branching crowns discussed in the text. Photograph: The Fun Chronicles, CC0 public-domain dedication. [Source](https://commons.wikimedia.org/wiki/File:105_Aloidendron_Dichotomum,_AKA_Quiver_Tree,_Kokerboom.jpg).
+
+**Form and function: storing water behind less exposed surface**
+
+Intermittent water supply could favour tissues that store water and lose it slowly. Thickening a leaf or stem lowers exposed **SA:V** relative to the storage volume. With other surface properties held comparable, this reduces the area through which that reserve can be lost and allows the tissue to remain hydrated between wet periods.
+
+The same geometry lengthens internal diffusion paths and changes heat dissipation. Photosynthetic surface per unit volume can fall as storage tissue accumulates, and the storage organ itself costs resources to build. Stomatal behaviour and surface permeability remain necessary to explain the actual water-loss rate.
+
+### 8.3 Epiphytes and specialised nutrient acquisition
+
+An epiphytic orchid uses another plant for support, placing its leaves in the light without a trunk extending to the ground. Its roots must obtain water and nutrients from intermittent wetting, trapped debris and associated organisms. Absorbent root coverings, storage tissues and CAM occur in many orchids, with different combinations among species. Epiphytic ferns face related supply problems on a distant branch. The supporting plant need not be a source of nutrition: epiphytic attachment alone does not imply parasitism.
+
+In phosphorus-poor soils, many Proteaceae produce cluster roots with densely packed short rootlets. Their effect depends on chemistry as well as surface area. [Experiments in *Hakea*](https://research-repository.uwa.edu.au/en/publications/developmental-physiology-of-cluster-root-carboxylate-synthesis-an) connect cluster-root development with carboxylate release and phosphorus mobilisation.
+
+Other plants obtain nutrients through fungal exploration, prey digestion or nitrogen-fixing partners. *Drosera* supplements its mineral nutrition by digesting animals while continuing to fix carbon through photosynthesis. Legumes house nitrogen-fixing bacteria in nodules and supply carbon to sustain that association. The visible structures identify different routes to scarce nutrients, each with its own construction and maintenance costs.
+
+**Form and function: expanding access to scarce nutrients**
+
+Fine rootlets and fungal hyphae provide high local **SA:V**, increasing contact with small resource patches. Patchy supply and poorly available phosphorus could favour greater exploration and specialised acquisition surfaces. However, adjacent roots may deplete overlapping volumes of soil, and bound nutrients must first be mobilised before extra surface can absorb them. Producing rootlets, releasing compounds and supplying microbial partners all consume carbon.
+
+Epiphytic roots face a different supply pattern. Their position provides access to intermittent wetting and debris but leaves them exposed to drying and without reliable soil water. Storage and absorbent coverings can help, at further construction cost.
+
+### 8.4 Flooded ground and the return to water
+
+Flooded soil may contain ample water and too little oxygen for root respiration.
+
+Internal air spaces provide gas pathways in many wetland plants. Mangroves such as *Avicennia marina* also expose aerial roots to the atmosphere above the sediment. Salinity adds a separate problem by lowering the water potential of the external medium, so a description of root architecture alone cannot explain tolerance of saline, waterlogged conditions. Osmotic adjustment and ion regulation must also be considered.
+
+[![Upward-projecting roots along the edge of a black-mangrove stand beside shallow water.](images/evolution/mangrove.jpg)](images/evolution/mangrove.jpg "Pneumatophores of the black mangrove, Avicennia germinans. They expose part of the root system to air above the sediment. This photograph illustrates a related species to the southern African A. marina discussed in the text. Photograph: USDA NRCS Plant Materials Center, public domain (US government work). Source.")
+
+Pneumatophores of the black mangrove, *Avicennia germinans*. They expose part of the root system to air above the sediment. This photograph illustrates a related species to the southern African *A. marina* discussed in the text. Photograph: USDA NRCS Plant Materials Center, public domain (US government work). [Source](https://commons.wikimedia.org/wiki/File:Avicennia_germinans.jpg).
+
+A floating water-lily leaf exposes its upper surface to air. A submerged leaf exchanges through water. Seagrasses such as *Zostera capensis* retain roots and rhizomes while living fully submerged, having returned to the sea from within the monocot angiosperms. Place a seagrass blade beside an *Ulva* blade and the functional resemblance is clear, even though their positions on the phylogeny are far apart. Their shared environment helps explain the value of a thin exchange surface, while their different ancestry explains much of the remaining organisation.
+
+Drought, flooding and salinity can therefore constrain different parts of the same plant. These examples recur in [Plant Stress](../BDC223/L10-plant_stress.llms.md).
+
+**Form and function: maintaining exchange in flooded environments**
+
+Root-zone oxygen shortage could favour **aerenchyma**, with connected internal air spaces, or aerial roots that exchange above the sediment. These structures bring oxygen to respiring tissues. Air spaces occupy volume that could otherwise contain storage or supporting tissue, and exposed roots require construction and remain vulnerable to damage.
+
+In submerged leaves, thin flexible tissues retain high local **SA:V** and short diffusion paths. Slow gas diffusion in water could favour such forms, while buoyancy reduces some support demands. Flow-dependent boundary layers and limited underwater light can still restrict carbon gain. Salinity imposes additional regulatory costs.
+
+## 9 Comparing forms across the phylogeny
+
+**Form and function: compare the same surface and function**
+
+For each comparison below, name the surface and the function it serves. A thin blade provides light-intercepting and absorbing area, whereas a thick axis supplies support or storage. Both can occur in the same plant. Identify the structural change, the environmental pressure that could favour it and the cost paid elsewhere.
+
+As in the Littler studies, specify whether performance is measured per unit area, volume or dry mass. Then use the phylogeny to distinguish shared ancestry from convergence.
+
+| Lineage or growth form | Staying upright | Water and mineral nutrients | Light and gas exchange | Limitation to keep in view |
+|----|----|----|----|----|
+| Cyanobacterial cell or narrow filament | Cell walls, turgor, attachment or suspension | Membrane uptake over short distances | Pigmented membranes and carbon concentration | Boundary layers, nutrient supply and self-shading in colonies |
+| Thin algal blade | Flexible walls, attachment and buoyant support | Direct uptake across thallus | High exposed area, short paths through blade | Water motion, desiccation at low tide, drag and overlap |
+| Kelp | Holdfast, stipe, buoyancy and flexible architecture | Thallus uptake plus internal redistribution | Blades distributed vertically | Storm loading and delivery across water boundary layers |
+| Bryophyte mat, turf or thallus | Small stature, turgor and walls | Surface wetting, capillarity and some internal conduction | Thin tissues, chambers or lamellae | Dependence on hydration, with desiccation tolerance in some species |
+| Lycophyte or fern sporophyte | Lignified tissues and supported axes | Roots and vascular transport | Veined leaves or green axes, stomata | Hydraulic constraints and water-dependent fertilisation in many species |
+| Gymnosperm | Woody stems and branches in diverse growth forms | Roots, symbioses and xylem, mainly tracheids in conifers | Needles, scales or broad leaves with regulated exchange | Costs of long-lived tissues and hydraulic safety |
+| Angiosperm | Herbs, wood, culms, climbing or aquatic support | Highly diverse roots, symbioses and vascular systems | Diverse leaves, venation and carbon-fixation pathways | Trade-offs depend on growth form, ancestry and habitat |
+
+A kelp and a tree fern can both elevate photosynthetic tissue, yet their support and supply systems arose on distant branches. Comparisons such as this require both the functional descriptions in the table and evidence about the history of the structures being compared.
+
+## 10 Reading living examples alongside fossils
+
+**Form and function: separate evidence from inference**
+
+A fossil can preserve tissue thickness, conducting cells or the position of sporangia. Those observations constrain a functional interpretation: elevating sporangia could improve dispersal, for example, while thickening an axis reduces its external SA:V and increases internal supply demands. A living comparison helps test the proposed function. Establishing the selective conditions at the time of origin requires further evidence about habitat, ancestry and timing, because similar outlines can conceal different permeability, physiology and reproductive performance.
+
+Use living examples to examine what an architecture can do. Use fossils to establish when and where that architecture occurred.
+
+| Historical question | Fossil or ancestral feature | Extant comparison | What the comparison cannot establish |
+|----|----|----|----|
+| How could oxygenic cells form larger colonies or mats? | Ancient cyanobacterial cells and mats | *Nostoc* colonies and *Synechococcus* cells | The exact physiology or identity of the first oxygenic bacterium |
+| What traits preceded land plants? | The shared ancestor of land plants and their closest algal relatives | *Zygnema*, *Spirogyra* and other streptophyte algae | A direct ancestor chosen from a modern genus |
+| How could a low-growing terrestrial plant exchange with air? | Early terrestrial thalli and reproductive structures | Liverwort thalli, moss turfs and hornworts | The precise structure of the cryptospore-producing plants |
+| How could branching axes function before broad leaves? | *Cooksonia* and *Rhynia* | Green axes of *Psilotum* | That whisk ferns preserved the ancestral vascular-plant condition unchanged |
+| How did vascular plants explore soil? | Rooting structures of *Asteroxylon* | Lycophyte roots and shoots | That all living roots evolved once or have identical developmental histories |
+| How did seed reproduction combine with foliage? | *Elkinsia* and other extinct seed plants | Cycads, conifers and other seed plants | That a cycad or conifer is an unchanged seed fern |
+| What might early angiosperm diversity include? | Cretaceous flowers, pollen, leaves and whole-plant fossils | *Amborella*, water lilies and magnoliids | A single modern “first flowering plant” or one ancestral growth form |
+
+## 11 Questions for BDC223
+
+1.  An *Ulva* blade and a seagrass leaf both expose thin photosynthetic tissue to seawater. What can their shared form tell us about function, and what evidence would establish whether the structures share an evolutionary origin?
+2.  A cuticle can reduce water loss while restricting gas diffusion. Explain how selection on heritable variation could favour changes in surface protection and gas exchange under different moisture conditions. Distinguish this from a plant closing its stomata during one dry afternoon.
+3.  Compare a kelp, a tree fern and a yellowwood of similar height. Identify their supporting structures and resource pathways, then use their phylogenetic positions to explain why height alone is poor evidence of common ancestry.
+4.  Place a cycad, a palm and a tree fern on the phylogeny. Their crowns can look similar. Which features would you inspect to distinguish shared ancestry from convergence?
+5.  Compare a fynbos shrub, a CAM succulent and a wetland angiosperm. Relate their structures and physiology to the environmental pressures under which those traits could be advantageous. Explain why all three can persist in today’s landscapes.
+6.  How did pollen and seeds change the conditions under which reproduction could succeed? Explain why their evolution requires a different argument from one based only on whole-plant SA:V.
+
+> **TIP:**
+>
+> For question 1, locate *Ulva* within Chlorophyta and seagrasses within monocot angiosperms. Their thin blades provide a functional comparison across distant branches. Shared form alone does not establish shared structural origin.
+>
+> In question 2, distinguish a response during an afternoon from a change in inherited traits over generations. Stomatal closure changes water loss and carbon access within the individual. Selection requires heritable differences that affect reproductive success, and the advantage of a particular surface covering depends on the moisture and gas-exchange conditions the plant encounters. The capacity to respond plastically can itself have an evolutionary history.
+>
+> For question 3, trace the support and supply routes through each organism: a kelp’s buoyancy and flexible axes, a tree fern’s strengthened stem and root mantle, and a yellowwood’s secondary wood.
+>
+> For question 4, inspect reproductive structures as well as leaf and stem anatomy. Similar crowns conceal separate ancestry.
+>
+> Question 5 requires an account of the limiting resource or stress in each habitat. Relate the shrub, succulent and wetland plant to water supply, nutrient availability or root-zone oxygen, and identify the cost of the structure that helps each persist. Question 6 concerns a different set of functions. Pollen delivery and internal fertilisation reduce dependence on external water, while seeds protect and provision embryos. Whole-plant geometry alone provides little information about the reproductive conditions under which these features arose.
+
+## 12 Summary
+
+- Oxygenic photosynthesis originated in cyanobacteria, and a primary endosymbiosis gave rise to the plastids of Archaeplastida: glaucophytes, red algae and the green plants, which include both green algae and land plants.
+- A clade contains an ancestor and all its descendants. “Algae” and “pteridophytes” are not clades, and the closest living algal relatives of land plants are the simple-looking Zygnematophyceae.
+- An evolutionary adaptation is an inherited feature shaped by selection on heritable variation, whereas phenotypic plasticity is a response within an individual’s lifetime, and present usefulness alone does not establish how a structure originated.
+- Large algae, including *Ulva* and kelps, keep photosynthetic cells close to seawater with thin exchange surfaces, while kelps add thicker regions for attachment, support and long-distance transport.
+- On land, light and CO₂ are above the substrate and water and mineral nutrients are within it, so cuticles, gas openings, embryo retention, vascular tissue and roots address problems of drying, gas access, reproduction and supply.
+- Vascular plants separate exchange, transport and support: local SA:V stays high in leaves and fine roots while whole-plant SA:V falls as supporting volume accumulates.
+- Pollen, ovules and seeds reduced dependence on external water for fertilisation and protected and provisioned the embryo, so their origin must be explained through reproduction rather than leaf or whole-plant geometry.
+- Similar forms, such as succulence, tree stature or thin submerged blades, have evolved repeatedly on distant branches, and living organisms can test the function of a fossil architecture without establishing the conditions under which it originated.
+
+## 13 Self-test questions
+
+> **NOTE:**
+>
+> A clade contains a common ancestor and all its descendants. “Algae” groups organisms from separate eukaryotic branches that share broad ecological and morphological features, such as brown kelps and green seaweeds. The pteridophytes (lycophytes and ferns) share a common ancestor with seed plants, so leaving out the seed plants makes them a grade. Angiosperms include their common ancestor and all its descendants.
+
+> **NOTE:**
+>
+> The change in leaf thickness within one plant is phenotypic plasticity, a response during the individual’s lifetime. An evolutionary adaptation is an inherited feature shaped by selection, which requires heritable differences that affect survival and reproduction over generations. The capacity to respond plastically can itself evolve, but the individual’s response and the evolution of that capacity are separate questions.
+
+> **NOTE:**
+>
+> A kelp acquires dissolved nutrients mainly across its thallus, so the holdfast’s main role is attachment. A terrestrial root anchors the plant but also acquires water and mineral nutrients from the soil. Kelp conducting cells, which redistribute photosynthate from source blades to growing sinks, also arose separately from the xylem and phloem of vascular plants.
+
+> **NOTE:**
+>
+> A cuticle limits water loss from a photosynthetic surface exposed to dry air. It also restricts the diffusion of CO₂ into the tissue. Openings through the surface (stomata in many land plants, or the unregulated air pores of *Marchantia*) admit CO₂, and internal air spaces bring gases close to photosynthetic cells. Opening a stoma admits CO₂ but also permits water loss.
+
+> **NOTE:**
+>
+> The trunk and branches account for much of the tree’s volume, so whole-plant SA:V falls as supporting tissue accumulates. Thin leaves and fine roots still have high local SA:V and short diffusion paths. Lignified xylem carries water over distances at which diffusion would be inadequate, connecting these exchange organs. SA:V must therefore be stated for a named surface and function.
+
+> **NOTE:**
+>
+> Both store water in thick tissues (an aloe in its leaves, a cactus in its stem), which lowers exposed surface relative to stored volume. Aloes are monocots and cacti are eudicots, so their succulence is convergent rather than inherited from a shared succulent ancestor. A fleshy leaf also does not establish that a plant uses CAM, because CAM has evolved repeatedly and must be shown physiologically.
+
+> **NOTE:**
+>
+> *Psilotum* shows how a living plant with a similar outline functions, for example how narrow green axes exchange gases and bear sporangia. It cannot show that whisk ferns preserve the ancestral vascular-plant condition, because its simple form is secondarily derived within the ferns. Fossils such as *Cooksonia* and *Rhynia* provide the historical anatomical evidence, and the selective conditions at the time of origin need further evidence about habitat and timing.
+
+## 14 Sources and photographs
+
+Research papers are cited or linked beside the claims they support. Accounts of the named southern African species also draw on SANBI. The teaching phylogenies use the One Thousand Plant Transcriptomes Initiative ([2019](https://doi.org/10.1038/s41586-019-1693-2)), Hess et al. ([2022](#ref-hess2022phylogenomically)), Li et al. ([2020](#ref-li2020anthoceros)), [PPG I (2016)](https://doi.org/10.1111/jse.12229) and The Angiosperm Phylogeny Group ([2016](#ref-apg2016update)). Geometry and idealised diffusion calculations are covered in [Lecture 2](../BDC223/L02-SA_V.llms.md#sec-sa-v-geometry).
+
+Photographs are public domain, carry a CC0 dedication or are used under the Creative Commons licence stated below. Local copies preserve the source composition, although Wikimedia thumbnailing may reduce resolution. Identifications follow those records. Captions distinguish genus-level identifications, cultivated specimens and living comparisons used to discuss fossils.
+
+| Local photograph | Creator or source credit | Status | Original record |
+|----|----|----|----|
+| nostoc.jpg | Victor M. Vicente Selvas | Public domain | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Nostoc_communis003.JPG) |
+| spirogyra.jpg | en:User:Spicywalnut | Public domain | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Spirogyra.JPG) |
+| ulva.jpg | Pseudopanax at English Wikipedia | Public domain | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Sea_lettuce_at_Curio_Bay.jpg) |
+| kelp-duiker-point.jpg | Peter Southwood | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Laminaria_pallida_%28top%29_and_Ecklonia_maxima_%28below%29_P3290141.JPG) |
+| marchantia.jpg | HermannSchachner | CC0 | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Marchantia_polymorpha_(a,_144712-474823)_9842.jpg) |
+| marchantia-pores.jpg | HermannSchachner | CC0 | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Marchantia_polymorpha_(d,_144722-474816)_7502.JPG) |
+| moss.jpg | Loup-Anne | CC0 | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Polytrichum_piliferum_female_colony.jpg) |
+| selaginella.jpg | Suzanne ujen | CC0 | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Peacock_fern_Selaginella_willdenowii.jpg) |
+| psilotum.jpg | Daderot | CC0 | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Psilotum_nudum_-_Longwood_Gardens_-_DSC01149.JPG) |
+| fern.jpg | Jim Kingdon | Public domain | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Royal_fern_closeup.jpg) |
+| pine.jpg | Jebulon | CC0 | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Pinus_pinea_Pompeii.jpg) |
+| cycad.jpg | Rotational | Public domain | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Encephalartos_villosus07.jpg) |
+| protea.jpg | Andrew Massyn | Public domain | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Protea_cynaroides.jpg) |
+| welwitschia.jpg | Awinch1001 | CC0 | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Welwitschia_mirabilis_3.jpg) |
+| quiver-tree.jpg | The Fun Chronicles | CC0 | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:105_Aloidendron_Dichotomum,_AKA_Quiver_Tree,_Kokerboom.jpg) |
+| mangrove.jpg | USDA NRCS Plant Materials Center | Public domain | [Photograph and rights statement](https://commons.wikimedia.org/wiki/File:Avicennia_germinans.jpg) |
+
+The [machine-readable photograph register](images/evolution/photo-sources.json) records the original and downloaded image URLs, rights information, retrieval date and file checksums.
+
+## 15 Multiple-choice questions
+
+Click an option to check your answer. A green tick marks the correct option, and its explanation then appears below the options.
+
+**1.** Which of the following groupings is a clade?
+
+- Dicots, because the group contains many familiar broad-leaved trees, shrubs and herbaceous plants.
+- Algae, because its members share thin photosynthetic thalli and an aquatic habit across many branches.
+- Pteridophytes, because lycophytes and ferns all reproduce by spores and lack seeds of any kind.
+- Viridiplantae, because it holds the ancestor of green algae and land plants and all its descendants.
+
+A clade contains a common ancestor and all its descendants. Viridiplantae (green algae plus land plants) meets that test. Algae unite organisms from different eukaryotic branches, while pteridophytes and dicots each leave out descendants (seed plants and monocots) of their common ancestor, so shared features alone do not make a clade.
+
+**2.** The branched alga *Chara* looks structurally more elaborate than *Spirogyra* or *Zygnema*. Which statement about their relationship to land plants is best supported?
+
+- No green alga is related to land plants, because land plants descend directly from an ancestral cyanobacterium.
+- *Chara* is the closest living algal relative of land plants, because its complex branching resembles a leafy shoot.
+- *Spirogyra* and *Zygnema* are direct ancestors of land plants, because their simple filaments are the most primitive.
+- Zygnematophyceae such as *Spirogyra* are the closest living algal relatives of land plants, as phylogenomics shows.
+
+Phylogenomic evidence places the simple-looking Zygnematophyceae as sister to land plants. Structural complexity is a poor guide to relationship, and no living genus is a direct ancestor of another living lineage.
+
+**3.** In a moss such as *Polytrichum*, which statement about the two generations is correct?
+
+- The leafy shoot is the haploid gametophyte, and the stalked capsule is a diploid sporophyte that lives independently.
+- The leafy shoot and the stalked capsule are both diploid sporophytes, as they are in a fern or a flowering plant.
+- The leafy shoot is the diploid sporophyte, and the stalked capsule is a haploid gametophyte that remains attached to it.
+- The leafy shoot is the haploid gametophyte, and the stalked capsule is a diploid sporophyte attached to it.
+
+In bryophytes the conspicuous plant is the haploid gametophyte; the diploid sporophyte stays attached and depends on it nutritionally to varying degrees. In vascular plants the large independent plant is the sporophyte.
+
+**4.** The dorsal surface of a *Marchantia* thallus has pores that open into air chambers. How do these pores differ from stomata?
+
+- They admit gases to photosynthetic tissue but lack guard cells, so their aperture cannot be regulated.
+- They are sealed by cuticle in dry air, so gas exchange ceases until the thallus becomes wet again later.
+- They admit liquid water to the chambers but exclude CO₂, so photosynthesis relies on uptake by rhizoids.
+- They regulate gas exchange with guard cells, so they are true stomata located on the gametophyte thallus.
+
+Marchantia air pores give gases access to tissue below the surface but lack a guard-cell mechanism. Liverworts lack stomata, so these openings offer less control than a stomatal system.
+
+**5.** Which statement about oxygenic and anoxygenic photosynthesis is most correct?
+
+- Cyanobacteria use two photosystems to take electrons from CO₂, and the oxygen released comes from that CO₂.
+- Green sulfur bacteria release oxygen from sulfide, and they are the living ancestors of the cyanobacteria.
+- Cyanobacteria use two photosystems to take electrons from water, and the released O₂ comes from that water.
+- Purple bacteria use water as their electron donor, and they are the living ancestors of the cyanobacteria.
+
+Oxygenic photosynthesis extracts electrons from water and releases O₂ from it. Purple and green sulfur bacteria use other electron donors, and as living, specialised lineages they cannot be arranged as ancestors of cyanobacteria.
+
+**6.** Brown algae and diatoms carry plastids derived from red algae. Which conclusion follows?
+
+- Their plastids came from free-living cyanobacteria directly, so the host cells are close relatives of glaucophytes.
+- Their plastids came from the primary endosymbiosis directly, so the host cells are members of Archaeplastida.
+- Their plastids came from a red alga by a later endosymbiosis, so the host cells are members of Rhodophyta.
+- Their plastids came from a red alga by a later endosymbiosis, so the host cells are not members of Archaeplastida.
+
+A later (secondary) endosymbiosis transferred a red-algal plastid into another eukaryotic host. Plastid history and host ancestry are separate, so carrying a red-algal plastid does not place brown algae within Archaeplastida.
+
+**7.** Gnetophytes possess vessel elements, whereas the angiosperm *Amborella* lacks ordinary vessels. What do these observations show?
+
+- Vessels uniquely define angiosperms, so gnetophytes must be flowering plants that have lost their flowers.
+- Vessels do not define angiosperms, because they occur outside the clade and are missing from some members.
+- Vessels evolved once in seed plants, so their absence in *Amborella* shows it is the ancestor of all seed plants.
+- Vessels uniquely define gymnosperms, so *Amborella* must be a gymnosperm rather than a flowering plant.
+
+A trait that occurs in some non-angiosperms and is missing from an early-diverging angiosperm cannot define the clade. Angiosperms are defined by flowers and ovules enclosed in carpels.
+
+**8.** Cycads and *Ginkgo* produce motile sperm. Why does this not mean that their fertilisation depends on free water outside the plant?
+
+- The sperm are motile only in the pollen tube, so they cannot leave the male gametophyte at all.
+- Pollen delivers the male gametophyte to the ovule, and the sperm swim in fluid within the ovule.
+- The sperm swim through rainwater films on the leaves, which reach the ovule on the same plant.
+- The motile sperm are released from spores into the soil and then swim up to the ovule in soil water.
+
+In seed plants pollen carries the male gametophyte to the ovule. The swimming sperm of cycads and Ginkgo move within ovule fluid, so the presence of motile sperm alone does not establish dependence on external water.
+
+**9.** A student measures oxygen evolution per cell in *Nostoc* colonies of different diameters held in the same water flow and light. Isolated filaments and small colonies have similar rates per cell, but large colonies have much lower rates. Cell diameter and pigment content per cell do not differ between colony sizes. Which interpretation is best supported?
+
+- Cellular SA:V is unchanged across sizes; the lower rate therefore reflects reduced pigment content in each cell of large colonies.
+- Cellular SA:V is lower in large colonies; the lower rate therefore reflects smaller cells exchanging less across their membranes.
+- Cellular SA:V is unchanged across sizes; the lower rate therefore reflects interior shading and modified water within large colonies.
+- Cellular SA:V is higher in large colonies; the lower rate therefore reflects faster diffusion of oxygen out of each interior cell.
+
+Equal cell diameter means equal cellular SA:V, and pigment is matched. The lecture distinguishes cellular SA:V from the exposed SA:V of the colony: interior cells receive less light and exchange with water already modified by neighbours.
+
+**10.** Field surveys of *Laminaria pallida* along a temperature gradient find that kelps in warmer water have shorter, thinner stipes and carry less epiphyte biomass. No transplant, common-garden or genetic data were collected. A student concludes that warm-water populations have evolved thinner stipes as an adaptation to warming. Which assessment is most correct?
+
+- The pattern shows morphology varies with temperature; it establishes plasticity because stipe thickness responds within one season.
+- The pattern shows morphology varies with temperature; it cannot by itself separate phenotypic plasticity from inherited differences.
+- The pattern shows morphology is unrelated to temperature; it reflects only epiphyte loads that thin the stipes in warmer water.
+- The pattern shows morphology varies with temperature; it establishes inherited adaptation because the populations live in separate regions.
+
+A field correlation does not show whether the difference is inherited. The lecture notes that these comparisons leave open how much variation reflects plasticity or inherited differences, which transplant or common-garden work could test.
+
+**11.** In *Macrocystis*, labelled photosynthate supplied to mature blades is later recovered in growing blades near the base, having moved through specialised conducting cells in the stipe. A student argues that this shows kelps and vascular plants inherited phloem from a common ancestor. Which response is most correct?
+
+- Long-distance transport occurs in both groups; the conducting tissues share an origin, so kelps should be placed among land plants.
+- Long-distance transport occurs in both groups; the conducting tissues arose separately, so similar function does not show shared origin.
+- Long-distance transport occurs only in kelps; land-plant phloem moves water, so the comparison of the two tissues is not valid.
+- Long-distance transport occurs in both groups; the shared function proves common ancestry, since such cells evolved only once.
+
+Kelps and vascular plants both redistribute photosynthate from sources to sinks, but kelp conducting cells and plant phloem have separate evolutionary origins. Brown algae and land plants lie on distant eukaryotic branches.
+
+**12.** Two succulent species with thick, fleshy leaves are grown side by side under the same dry conditions. In species P, stomata open mainly at night and the leaves become markedly more acidic overnight, losing that acidity during the day. In species R, stomata open during the day and leaf acidity changes little. Which conclusion is best supported?
+
+- Species P shows the CAM pattern; species R does not, so fleshy leaves alone cannot establish CAM in a plant.
+- Species R shows the CAM pattern; species P does not, because CAM plants take up CO₂ mainly during the day.
+- Neither species uses CAM; acid build-up at night shows respiration only, so no carbon storage is taking place.
+- Species P and R both use CAM; fleshy leaves are sufficient, so the acid measurements add no new information.
+
+In CAM, stomata open mainly at night and carbon is stored in organic acids for use the following day. Only P shows this. Both are succulent, which illustrates that CAM must be demonstrated physiologically.
+
+**13.** Net CO₂ uptake of a moss cushion is measured in light at a range of water contents. Uptake is near zero when the cushion is air-dry, rises after wetting, and is highest at intermediate water content. When the shoots are fully saturated and covered by external water films, uptake falls again although the moss remains hydrated. Which interpretation is most consistent with the lecture?
+
+- Dry moss suspends metabolism; at saturation, the stomata on the leafy gametophyte shoots close in response to water.
+- Dry moss is killed by drying; at saturation, the recovered cells have not yet rebuilt their photosynthetic pigments.
+- Dry moss suspends metabolism; at saturation, external water films slow CO₂ entry to the photosynthetic cells.
+- Dry moss photosynthesises fastest; at saturation, external water films speed CO₂ entry to the photosynthetic cells.
+
+Desiccated mosses suspend much of their metabolism and resume carbon gain after wetting. Gas-exchange measurements show that external water films can impede CO₂ entry, because CO₂ diffuses far more slowly in water than in air. Moss leaves on the gametophyte lack the stomatal control implied in a distractor.
+
+**14.** A *Hakea* plant grown in phosphorus-poor soil forms cluster roots. In one treatment, carboxylate release from the cluster roots is suppressed, while total root surface area remains similar to that of untreated plants. Phosphorus uptake falls markedly in the treated plants. Which interpretation is most correct?
+
+- Root surface alone did not secure phosphorus; mobilisation of bound phosphorus by released compounds was also required.
+- Root surface alone did not secure phosphorus; the fall shows mycorrhizal hyphae supply all phosphorus to *Hakea*.
+- Root surface alone secured phosphorus; carboxylates instead reduce phosphorus uptake by binding it near the root.
+- Root surface alone secured phosphorus; the fall in uptake shows that the treated cluster roots were smaller in area.
+
+Surface area was held similar, yet uptake fell when carboxylate release was suppressed. Bound phosphorus must be mobilised before extra surface can absorb it, so cluster-root function depends on chemistry as well as area.
+
+**15.** Seedlings of the mangrove *Avicennia marina* grow in waterlogged sediment with aerial roots exposed above the surface. When the exposed aerial roots are coated with an airtight film, oxygen concentration in the buried roots falls and root respiration declines. Sediment salinity and water depth are unchanged. Which conclusion is best supported?
+
+- Aerial roots supply water to buried tissues; the result also explains how the plant tolerates salinity.
+- Aerial roots supply nutrients to buried tissues; the result does not explain how the plant tolerates salinity.
+- Aerial roots supply oxygen to buried tissues; the result also explains how the plant tolerates salinity.
+- Aerial roots supply oxygen to buried tissues; the result does not explain how the plant tolerates salinity.
+
+Blocking atmospheric access lowered root oxygen, so the aerial roots provide a gas pathway to respiring tissue. Salinity is a separate problem requiring osmotic adjustment and ion regulation, which this experiment did not examine.
+
+**16.** A Late Devonian fossil bears fern-like fronds. Further excavation finds ovules attached to the same plant. Before the ovules were found, a student had classified it as a fern on the basis of its leaves. Which conclusion is most correct?
+
+- The plant was a seed plant with fern-like foliage; leaf shape alone was weak evidence of ancestry.
+- The plant was an angiosperm with fern-like foliage; ovules alone are sufficient evidence of flowering.
+- The plant was a living cycad unchanged since then; ovules alone show that cycads are seed ferns.
+- The plant was a true fern with ovules; leaf shape alone was strong evidence of its ancestry.
+
+Like *Elkinsia polymorpha*, such a plant combines fern-like foliage with ovules. Ovules make it a seed plant, but not an angiosperm, which requires ovules enclosed in carpels. Leaf shape on its own is weak evidence of ancestry.
+
+**17.** Measurements of leaf vein density in a broad sample show substantially higher values in angiosperms than in ferns and gymnosperms. A student then predicts that an angiosperm shrub collected from a dry site must have higher photosynthetic rates than any co-occurring conifer. Which assessment is most correct?
+
+- Dense veins shorten water paths to evaporating tissue; the group-level result therefore guarantees the prediction.
+- Dense veins shorten water paths to evaporating tissue; the species prediction still needs data on stomata and environment.
+- Dense veins lengthen water paths to evaporating tissue; the species prediction is therefore reversed for the shrub.
+- Dense veins reduce mesophyll thickness directly; the species prediction therefore depends only on leaf thickness.
+
+Higher vein density shortens the route from water supply to evaporating tissue and can support high carbon gain. A pattern across a sample does not settle a single species; vessel dimensions, stomatal regulation, leaf lifespan and water availability also matter, and high flux is hard to sustain in drought.
+
+**18.** The lecture places the first major atmospheric oxygenation at about 2.4 billion years ago and the oldest preserved thylakoids, in *Navifusa majensis*, at about 1.75 billion years ago. What is the gap between these evidence points, and how should it be read?
+
+- About 65 million years; the thylakoid fossil is a minimum age, so such membranes may be far older.
+- About 650 million years; the thylakoid fossil is the origin, so oxygenation preceded oxygenic cells.
+- About 650 million years; the thylakoid fossil is a minimum age, so such membranes may be far older.
+- About 650 million years; the oxygenation is the origin, so no oxygenic cells existed any earlier.
+
+2.40 − 1.75 = 0.65 billion years = 650 million years. Fossils give minimum ages, and oxygenation shows oxygenic photosynthesis was operating by 2.4 billion years ago, without dating its origin. Answering 65 million years is a conversion error.
+
+**19.** An early land-plant axis is treated as a long cylinder, ignoring its ends, so that SA:V ≈ 2/r. If the axis radius increases from 0.5 mm to 1.5 mm, what happens to its external SA:V?
+
+- It falls from 4.0 to about 0.44 mm⁻¹, a ninefold drop, because the radius enters the ratio as a square.
+- It falls from 6.0 to 2.0 mm⁻¹, a threefold drop, because the axis is treated as a sphere of that radius.
+- It falls from 4.0 to about 1.3 mm⁻¹, a threefold drop, as volume rises faster than surface per unit length.
+- It rises from 0.25 to 0.75 mm, a threefold rise, because a thicker axis exposes more surface overall.
+
+SA:V = 2/r: 2/0.5 = 4.0 mm⁻¹ and 2/1.5 ≈ 1.33 mm⁻¹, a threefold decrease. Using 3/r (sphere) gives 6.0 and 2.0; inverting the ratio gives r/2 in mm. Thickening an axis reduces external SA:V and increases internal supply demands.
+
+**20.** A plant has 600 mg of resources for seed reserves. Seeds of 2 mg each are compared with seeds of 6 mg each of the same shape and density. Which prediction is correct?
+
+- Seed number falls from 300 to 100, and each seed’s SA:V falls to about 0.69 of its former value.
+- Seed number falls from 300 to 100, and each seed’s SA:V falls to about 0.33 of its former value.
+- Seed number stays at 300 in total, and each seed’s SA:V falls to about 0.69 of its former value.
+- Seed number falls from 300 to 100, and each seed’s SA:V stays the same, as the shape is unchanged.
+
+600/2 = 300 and 600/6 = 100 seeds. Tripling mass at constant density triples volume, so linear size scales by 3^(1/3) ≈ 1.44 and SA:V scales by 1/1.44 ≈ 0.69. Taking SA:V to fall in proportion to mass (0.33) ignores that area also increases.
+
+## 16 References
+
+Boyce CK (2008) How green was *cooksonia*? The importance of size in understanding the early evolution of physiology in the vascular plant lineage. Paleobiology 34:179–194. doi: [10.1666/0094-8373(2008)034\[0179:HGWCTI\]2.0.CO;2](https://doi.org/10.1666/0094-8373(2008)034%5B0179:HGWCTI%5D2.0.CO;2)
+
+Boyce CK, Brodribb TJ, Feild TS, Zwieniecki MA (2009) Angiosperm leaf vein evolution was physiologically and environmentally transformative. Proceedings of the Royal Society B: Biological Sciences 276:1771–1776. doi: [10.1098/rspb.2008.1919](https://doi.org/10.1098/rspb.2008.1919)
+
+Coppin R, Rautenbach C, Ponton TJ, Smit AJ (2020) Investigating waves and temperature as drivers of kelp morphology. Frontiers in Marine Science 7:567. doi: [10.3389/fmars.2020.00567](https://doi.org/10.3389/fmars.2020.00567)
+
+Demoulin CF, Lara YJ, Lambion A, Javaux EJ (2024) Oldest thylakoids in fossil cells directly evidence oxygenic photosynthesis. Nature 625:529–534. doi: [10.1038/s41586-023-06896-7](https://doi.org/10.1038/s41586-023-06896-7)
+
+Hess S, Williams SK, Busch A, Irisarri I, Delwiche CF, Vries S de, Darienko T, Roger AJ, Archibald JM, Buschmann H, Schwartzenberg K von, Vries J de (2022) A phylogenomically informed five-order system for the closest relatives of land plants. Current Biology 32:4473–4482.e7. doi: [10.1016/j.cub.2022.08.022](https://doi.org/10.1016/j.cub.2022.08.022)
+
+Hetherington AJ, Dolan L (2018) Stepwise and independent origins of roots among land plants. Nature 561:235–238. doi: [10.1038/s41586-018-0445-z](https://doi.org/10.1038/s41586-018-0445-z)
+
+Li F-W, Nishiyama T, Waller M, Frangedakis E, Keller J, Li Z, Fernandez-Pozo N, Barker MS, Bennett T, Blázquez MA, Cheng S, Cuming AC, Vries J de, Vries S de, Delaux P-M, Diop IS, Harrison CJ, Hauser D, Hernández-García J, Kirbis A, Meeks JC, Monte I, Mutte SK, Neubauer A, Quandt D, Robison T, Shimamura M, Rensing SA, Villarreal JC, Weijers D, Wicke S, Wong GK-S, Sakakibara K, Szövényi P (2020) Anthoceros genomes illuminate the origin of land plants and the unique biology of hornworts. Nature Plants 6:259–272. doi: [10.1038/s41477-020-0618-2](https://doi.org/10.1038/s41477-020-0618-2)
+
+Littler MM, Arnold KE (1982) Primary productivity of marine macroalgal functional-form groups from Southwestern North America. Journal of Phycology 18:307–311.
+
+Littler MM, Littler DS (1980) The evolution of thallus form and survival strategies in benthic marine macroalgae: field and laboratory tests of a functional form model. The American Naturalist 116:25–44.
+
+Ponce-Toledo RI, Deschamps P, López-García P, Zivanovic Y, Benzerara K, Moreira D (2017) An early-branching freshwater cyanobacterium at the origin of plastids. Current Biology 27:386–391. doi: [10.1016/j.cub.2016.11.056](https://doi.org/10.1016/j.cub.2016.11.056)
+
+Rubinstein CV, Gerrienne P, Puente GS de la, Astini RA, Steemans P (2010) Early middle ordovician evidence for land plants in Argentina (eastern Gondwana). New Phytologist 188:365–369. doi: [10.1111/j.1469-8137.2010.03433.x](https://doi.org/10.1111/j.1469-8137.2010.03433.x)
+
+Sánchez-Baracaldo P, Raven JA, Pisani D, Knoll AH (2017) Early photosynthetic eukaryotes inhabited low-salinity habitats. Proceedings of the National Academy of Sciences 114:E7737–E7745. doi: [10.1073/pnas.1620089114](https://doi.org/10.1073/pnas.1620089114)
+
+Schmitz K, Srivastava LM (1979) Long distance transport in *macrocystis integrifolia*. Plant Physiology 63:995–1002. doi: [10.1104/pp.63.6.995](https://doi.org/10.1104/pp.63.6.995)
+
+Serbet R, Rothwell GW (1992) Characterizing the most primitive seed ferns. I. A reconstruction of *elkinsia polymorpha*. International Journal of Plant Sciences 153:602–621. doi: [10.1086/297083](https://doi.org/10.1086/297083)
+
+Smith SA, Beaulieu JM, Donoghue MJ (2010) An uncorrelated relaxed-clock analysis suggests an earlier origin for flowering plants. Proceedings of the National Academy of Sciences 107:5897–5902. doi: [10.1073/pnas.1001225107](https://doi.org/10.1073/pnas.1001225107)
+
+The Angiosperm Phylogeny Group (2016) An update of the Angiosperm Phylogeny Group classification for the orders and families of flowering plants: APG IV. Botanical Journal of the Linnean Society 181:1–20. doi: [10.1111/boj.12385](https://doi.org/10.1111/boj.12385)
+
+Wernberg T, Filbee-Dexter K, Bettignies T de, Leclerc J-C, Davoult D, Lévêque L, Christie HC, Dyer DC, Anderson RJ, Rothman MD, Bolton JJ, Norderhaug KM, Smit AJ (2025) Smaller plants in warmer water could have implications for future kelp forests. Scientific Reports 15:28616. doi: [10.1038/s41598-025-13950-z](https://doi.org/10.1038/s41598-025-13950-z)
+
+## Reuse
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+## Citation
+
+BibTeX citation:
+
+``` quarto-appendix-bibtex
+@online{smit2026,
+  author = {Smit, A. J. and J. Smit, A.},
+  title = {Lecture 3: {Photosynthetic} Evolution},
+  date = {2026-11-06},
+  url = {https://tangledbank.netlify.app/BDC223/L03-photosynthetic-evolution.html},
+  langid = {en}
+}
+```
+
+For attribution, please cite this work as:
+
+Smit AJ, J. Smit A (2026) Lecture 3: Photosynthetic evolution. [https://tangledbank.netlify.app/BDC223/L03-photosynthetic-evolution.html.](https://tangledbank.netlify.app/BDC223/L03-photosynthetic-evolution.html)
