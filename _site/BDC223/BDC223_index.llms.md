@@ -50,7 +50,6 @@ Plants and other photo-oxygenic organisms carry much of the biological work of t
 |  | L | **[Lecture 7a: Pigments & Photosynthesis](../BDC223/L07a-pigments_photosynthesis.llms.md)** | 20 Oct |  |
 |  | L | **[Lecture 7a: Pigments & Photosynthesis](../BDC223/L07a-pigments_photosynthesis.llms.md)** | 22 Oct |  |
 |  | Self | **[Lecture 7b: Measuring Photosynthesis](../BDC223/L07b-measuring_photosynthesis.llms.md)** | 22 Oct |  |
-|  | E | **Essay due** |  | 23 Oct, 23:59 |
 | W4 | L | **[Lecture 8: Chromatic Adaptation](../BDC223/L08-chromatic_adaptation.llms.md)** | 26 Oct |  |
 |  | P3 | **[Lab 3: PI Curves (Jassby and Platt)](../BDC223/Lab3_PI_curves.llms.md)** | 26 Oct | 2 Nov, 08:00 |
 |  | L | **[Lecture 8: Chromatic Adaptation](../BDC223/L08-chromatic_adaptation.llms.md)** | 27 Oct |  |
@@ -74,24 +73,7 @@ There will be one class test:
 
 ## 5 Essay
 
-Write a two-thirds to one-page essay on:
-
-- “*Your* relationship with nature.”
-
-The due date is:
-
-- Friday, 23 October 2026, 23:59
-
-Formatting instructions for the essay are as follows:
-
-- Maximum one page (no references!) — everything on page two will be excluded from assessment.
-- 10 pt font, Times New Roman.
-- Single line spacing.
-- Left justified only — no full justification. **Ever**.
-- A single blank line between paragraphs.
-- 2.54 cm margins all round.
-- No visual embellishments… stay professional.
-- No internal section headings, but ensure the title and your name appear in bold.
+There is no essay in Term 4 of 2026. The four Labs carry the full 60% laboratory component of Continuous Assessment.
 
 ## 6 Graduate attributes
 
@@ -127,12 +109,22 @@ The schedule is set and will not be changed. Sometimes an occasional absence can
 
 The syllabus for Term 4 comprises the following mark-carrying components for Continuous Assessment (CA):
 
-- **Labs and Essay** — \[60%\] (0.8 + 0.2, respectively)
+- **Labs** — 60%. There is no essay in Term 4 of 2026.
 - **Class Test and Quizzes** — \[40%\] (0.9 + 0.1, respectively)
 
 The CA and an exam will provide a final mark for the module. The weighting of the CA and the exam is 0.6 and 0.4, respectively.
 
-### 9.1 Lab submission and self-assessment policy
+### 9.1 Lab average and missing practicals
+
+The four Lab marks are expressed as percentages and have equal weight. A missing Lab or practical is recorded as **A (absent)**. The laboratory average is calculated as follows:
+
+- **No missing Labs:** add the four percentage marks and divide by four.
+- **One missing Lab:** assign zero to the missing Lab, add the four marks and divide by four.
+- **Two or more missing Labs:** the laboratory average is **0%**, regardless of the marks for the completed Labs.
+
+For example, marks of 80%, 70% and 60%, with one missing Lab, give a laboratory average of (80 + 70 + 60 + 0) / 4 = **52.5%**. A recorded mark of zero remains a mark and is not counted as a missing Lab.
+
+### 9.2 Lab submission and self-assessment policy
 
 All Lab assignments must be uploaded to iKamva by the stated deadline. This requirement applies to both pre-assessed and self-assessed submissions.
 
@@ -142,7 +134,7 @@ Each week, the Lab assistant will randomly select a different cohort comprising 
 
 ## 10 Late submissions
 
-Late assignments will be penalised 10% per day late. They will not be accepted more than 48 hours late unless evidence such as a doctor’s note, a death certificate, or another documented emergency can be provided. If you know a submission will be late, please discuss this and seek prior approval. Class time is allocated to work on assignments, and students are expected to continue working on the projects outside class. Successfully completing (and passing) this module requires that you finish tasks based on what we have covered in the module by the following class period. Work diligently from the outset so that even if something unexpected happens at the last minute, you should already be close to completion. This approach also allows us to provide rapid feedback to you, which can only be accomplished by returning assignments quickly and punctually.
+Late Lab assignments receive a single deduction of 10% of the mark. When a doctor’s note has been supplied, the full mark is retained. Assignments will not be accepted more than 48 hours late unless evidence such as a doctor’s note, a death certificate, or another documented emergency can be provided. If you know a submission will be late, please discuss this and seek prior approval. Class time is allocated to work on assignments, and students are expected to continue working on the projects outside class. Successfully completing (and passing) this module requires that you finish tasks based on what we have covered in the module by the following class period. Work diligently from the outset so that even if something unexpected happens at the last minute, you should already be close to completion. This approach also allows us to provide rapid feedback to you, which can only be accomplished by returning assignments quickly and punctually.
 
 ## 11 Support
 
@@ -175,7 +167,7 @@ BibTeX citation:
 @online{smit2026,
   author = {Smit, A. J. and J. Smit, A.},
   title = {BDC223: {Plant} {Ecophysiology}},
-  date = {2026-11-06},
+  date = {2026-11-13},
   url = {https://tangledbank.netlify.app/BDC223/BDC223_index.html},
   langid = {en}
 }

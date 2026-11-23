@@ -150,7 +150,11 @@ All Lab assignments must be uploaded to iKamva by the stated deadline. This requ
 
 On the day a self-assessed Lab is due, students must first upload the Lab assignment to iKamva by the stated deadline. A model answer or rubric will then be provided. Students must compare their submission with the model answer or rubric, assign themselves a mark, and upload the completed self-assessment to iKamva by 23:59 on the same day.
 
-Each week, the Lab assistant will randomly select a different cohort comprising 20% of the class. The Lab assistant will independently mark the selected submissions and check whether each student’s self-assigned mark is within 10% of the actual mark. If a self-assigned mark deviates from the actual mark by more than 10%, the student will receive 0% for that Lab assignment.
+Each week, the Lab assistant will randomly select a different cohort comprising 20% of the class. The Lab assistant will independently mark the selected submissions and compare each student’s self-assigned mark with the assessor’s mark. The tolerance is 10% of the assessor’s mark. The following rules apply:
+
+- If the self-assigned mark exceeds the assessor’s mark by more than 10% of the assessor’s mark, the student will receive 0% for that Lab assignment.
+- If the self-assigned mark is lower than the assessor’s mark by more than 10% of the assessor’s mark, the student will receive the higher assessor’s mark.
+- If the self-assigned mark is within 10% of the assessor’s mark, including exactly 10% above or below it, the student will retain the self-assigned mark.
 
 The CA and an exam will provide a final mark for the module. The weighting of the CA and the exam is 0.6 and 0.4, respectively. Class Test 1 takes place on Thursday, 10 September 2026, and Class Test 2 takes place on Thursday, 1 October 2026. Both tests run from 13:30 to 15:30.
 

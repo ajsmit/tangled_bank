@@ -648,7 +648,7 @@ BibTeX citation:
 @online{smit2026,
   author = {Smit, A. J. and J. Smit, A.},
   title = {Lecture 7a: {Pigments} \& Photosynthesis},
-  date = {2026-11-06},
+  date = {2026-11-13},
   url = {https://tangledbank.netlify.app/BDC223/L07a-pigments_photosynthesis.html},
   langid = {en}
 }

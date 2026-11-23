@@ -564,7 +564,7 @@ BibTeX citation:
 @online{smit2026,
   author = {Smit, A. J. and J. Smit, A.},
   title = {Lecture 8: {Chromatic} Adaptation},
-  date = {2026-11-06},
+  date = {2026-11-13},
   url = {https://tangledbank.netlify.app/BDC223/L08-chromatic_adaptation.html},
   langid = {en}
 }

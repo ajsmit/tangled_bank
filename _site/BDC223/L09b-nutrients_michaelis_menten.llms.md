@@ -13,7 +13,7 @@
 
 > **TIP:**
 >
-> [Lecture 9a](../BDC223/L09a-nutrient_uptake.llms.md) explained how nutrients reach a seaweed and cross its membranes. This lecture shows how we measure the rate at which that happens. It works through the two standard experimental designs, the multiple flask and the perturbation experiment, and converts the raw concentration data into biomass-specific uptake rates step by step. It then fits these rates to the Michaelis–Menten model and interprets its parameters ecophysiologically. The calculations prepare you for [Lab 4](../BDC223/Lab4_nitrogen_uptake.llms.md), and the [Blender visualisations](../BDC223/L09c-nutrients_visualised.llms.md) show the same processes in animated form.
+> [Lecture 9a](../BDC223/L09a-nutrient_uptake.llms.md) explained how nutrients reach a seaweed and cross its membranes. This lecture shows how we measure the rate at which that happens. It works through the two standard experimental designs, the multiple flask and the perturbation experiment, and converts the raw concentration data into biomass-specific uptake rates step by step. It then fits these rates to the Michaelis–Menten model and interprets its parameters ecophysiologically. The calculations prepare you for [Lab 4](../BDC223/Lab4_nitrogen_uptake.llms.md), and the [animations](../BDC223/L09c-nutrients_visualised.llms.md) show the same processes in animated form.
 
 > **TIP:**
 >
@@ -47,11 +47,11 @@ The uptake process of nitrogen by algae can be measured *in situ* or under contr
 
 To do this, we use two types of experiments: **multiple flask** experiments and **perturbation** experiments. In both, a known amount of nutrient (the substrate) is introduced into the water. We measure the decrease in its concentration over a timed interval, convert that decrease into an amount using the water volume, and divide by the algal mass and elapsed time. This gives a positive uptake rate, $V$, for a corresponding substrate concentration, $[S]$. The primary difference between the methods lies in the experimental setup and the data analysis.
 
-The [Blender film, Measuring a changing uptake rate](../BDC223/L09c-nutrients_visualised.llms.md#sec-measuring-uptake), develops the same numerical example as the Manim animation above. It adds a comparison of the two experimental designs, a biomass intervention and a separate demonstration of sampling losses. Use its worked questions to check the distinction between concentration, amount and rate.
+The [Blender animation, Measuring a changing rate](../BDC223/L09c-nutrients_visualised.llms.md#sec-measuring-uptake), develops the same numerical example as the Manim animation above. It adds a comparison of the two experimental designs, a biomass intervention and a separate demonstration of sampling losses. Use its worked questions to check the distinction between concentration, amount and rate.
 
 ## 2 Multiple flask method
 
-The multiple flask method is a widely used experimental technique for measuring the nutrient uptake kinetics of macroalgae. This method is used to determine how macroalgae absorb nutrients (such as nitrogen or phosphorus) from their environment under different substrate concentrations. The goal is to generate a relationship between the rate of nutrient uptake and the nutrient concentration available to the macroalgae. The experimental data can then be used to characterise the nutrient uptake kinetics, such as maximum uptake rate ($V_{max}$) and half-saturation constant ($K_m$). These model parameters tell us about the mechanisms that algae use to remove nitrogen or other nutrients from their environment to be incorporated into biomass.
+The multiple flask method is a widely used experimental technique for measuring the nutrient uptake kinetics of macroalgae. This method is used to determine how macroalgae absorb nutrients (such as nitrogen or phosphorus) from their environment under different substrate concentrations. The goal is to generate a relationship between the rate of nutrient uptake and the nutrient concentration available to the macroalgae. The experimental data can then be used to characterise the nutrient uptake kinetics, such as maximum uptake rate ($V_{max}$) and half-saturation constant ($K_m$). These parameters describe the concentration response of uptake under the experimental conditions, and identifying the membrane mechanism requires additional evidence.
 
 ### 2.1 Experimental setup
 
@@ -256,7 +256,7 @@ $$\overline V
 
 The volume converts concentration into an amount, $M$ standardises that amount per gram of seaweed, and $5/60$ expresses the interval in hours. Keep those three operations in mind. They tell you what each part of the calculation is doing.
 
-This expression assumes that the water volume is effectively constant over the interval and that the concentration change has been attributed appropriately to uptake. If sample withdrawals appreciably reduce volume, use the remaining volume for the following interval and account for the exported nutrient in the overall inventory. The [sampling example](../BDC223/L09c-nutrients_visualised.llms.md#change-biomass-then-account-for-sampling) shows why loss of nitrogen from the flask is not always uptake.
+This expression assumes that the water volume is effectively constant over the interval and that the concentration change has been attributed appropriately to uptake. If sample withdrawals appreciably reduce volume, use the remaining volume for the following interval and account for the exported nutrient in the overall budget. The [sampling example](../BDC223/L09c-nutrients_visualised.llms.md#change-biomass-then-account-for-sampling) shows why loss of nitrogen from the flask is not always uptake.
 
 | Interval | Start $S$ | End $S$ | Mean of endpoint concentrations | Mean uptake rate $\overline V$ |
 |:---|---:|---:|---:|---:|
@@ -269,7 +269,7 @@ Concentrations are in $\mu\mathrm{mol\,N\,L^{-1}}$. Rates are in $\mu\mathrm{mol
 
 Plot the first pair, approximately $(23.15,\;4.93)$, with concentration on the horizontal axis and uptake rate on the vertical axis, then add the pairs from successive intervals. This constructs the uptake–concentration relationship from the depletion experiment.
 
-Watch the order in which the points appear. The early intervals lie towards the upper right, where both concentration and rate are high. Later intervals appear further left and lower down. **Time carries us from right to left along this curve during depletion.** Although we conventionally read an increasing concentration axis from left to right, the flask is losing nitrate as the experiment proceeds.
+Watch the order in which the points appear. The early intervals lie towards the upper right, where both concentration and rate are high. Later intervals appear further left and lower down. **During depletion, the point moves from right to left along this curve as time advances.** Although we conventionally read an increasing concentration axis from left to right, the flask is losing nitrate as the experiment proceeds.
 
 The midpoint of the two endpoint concentrations is a convenient approximation to the concentration experienced over a short interval. The calculated rate is also an interval average. It therefore sits close to, rather than necessarily exactly on, the instantaneous Michaelis–Menten curve. Very long intervals can hide substantial changes in rate.
 
@@ -288,7 +288,7 @@ If time is expressed in minutes, multiply the right-hand expressions by 60 to re
 
 The animation uses $V_{\max}=6\;\mu\mathrm{mol\,N\,g^{-1}\,h^{-1}}$ and $K_s=5\;\mu\mathrm{mol\,N\,L^{-1}}$. At $S=K_s$, the uptake rate is $3$, half of $V_{\max}$. This occurs about $31.2$ minutes into this particular experiment. $K_s$ is a concentration, so it does not itself tell us how many minutes an experiment will take.
 
-At low external concentration, nutrient arrival restricts uptake. The membrane sketch shows sites spending time waiting. When nitrate is abundant, the finite capacity of transport and subsequent processing becomes increasingly important. Doubling $S$ from $25$ to $50$ raises the modelled rate from $5.00$ to only $5.45$. The rate approaches $V_{\max}$ asymptotically. A saturating curve alone does not identify the detailed transport mechanism.
+At low concentration, the membrane sketch shows sites spending much of their time waiting for nitrate, so uptake falls with concentration whether or not external delivery is restricted. When nitrate is abundant, the finite capacity of transport and subsequent processing becomes increasingly important. Doubling $S$ from $25$ to $50$ raises the modelled rate from $5.00$ to only $5.45$. The rate approaches $V_{\max}$ asymptotically. A saturating curve alone does not identify the detailed transport mechanism.
 
 At very low $S$, $V\approx\alpha S$, where $\alpha=V_{\max}/K_s$. This initial slope describes uptake responsiveness when nitrate is scarce. Compare $V_{\max}$ as well as $K_s$ when comparing algae: a smaller $K_s$ alone does not guarantee a larger absolute uptake rate if their capacities differ.
 
@@ -324,7 +324,7 @@ $$V_i = \frac{V_{max} \cdot [S_i]}{K_m + [S_i]} + \epsilon_i \tag{1}$$
 
 Here $K_m$ denotes the half-saturation concentration, written $K_s$ in Lecture 9a and the animation. We use $K_s$ for the whole-alga uptake response. It is an operational half-saturation parameter, and need not be a direct measure of molecular binding affinity.
 
-The [Blender film on capacity and concentration](../BDC223/L09c-nutrients_visualised.llms.md#sec-capacity-concentration) shows how uptake-site occupancy can produce this relationship. That film maintains concentration at the membrane; here we measure changing concentration in the flask. Surface and bulk concentrations need not be equal when external delivery is restrictive.
+The [Blender animation on capacity and concentration](../BDC223/L09c-nutrients_visualised.llms.md#sec-capacity-concentration) shows how uptake-site occupancy can produce this relationship. That animation maintains concentration at the membrane; here we measure changing concentration in the flask. Surface and bulk concentrations need not be equal when external delivery is restrictive.
 
 Where:
 
@@ -582,7 +582,7 @@ BibTeX citation:
 @online{smit2026,
   author = {Smit, A. J. and J. Smit, A.},
   title = {Lecture 9b: {Nutrient} Uptake Kinetics},
-  date = {2026-11-06},
+  date = {2026-11-13},
   url = {https://tangledbank.netlify.app/BDC223/L09b-nutrients_michaelis_menten.html},
   langid = {en}
 }
