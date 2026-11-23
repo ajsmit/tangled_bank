@@ -1,5 +1,13 @@
 # Nine-film suite: completion and teaching review
 
+## Animation revision of 5 November 2026 (second pass)
+
+The lesson player now offers a chapter menu and optional pauses at questions, and it hides the blank control band unless captions are showing. Each film has `concept_NN_chapters.vtt` and `concept_NN_pauses.vtt`.
+
+Films 2 and 3 gained sections: apparent half-saturation against bulk nitrate (film 2, now 2:02) and the coupled cycle at seawater pH (film 3, now 2:28). In film 1's gradient section, each parcel shows only where its fixed random draw lies below the calculated local concentration, so visible density follows the profile; that scene was re-rendered from the rebuilt project. Film 3's pump-off display now holds outside pH at 6 while the cytosol acidifies, with the energy unchanged. Film 4 uses membrane concentration throughout. Film 5's sample tube matches the flask's dot density. Film 8 separates evidence from interpretation, states Smit's conditions and explains the night-time rise in the reserve. Film 9 slows its growth clock, shows biomass bars and remaining N and P, and marks the oxygen minima.
+
+Colours now carry one meaning across the suite (gold dissolved nitrate-N, blue water, green tissue and organic N, coral uptake rate, purple reserve N or a second case; coral and blue also mark the weaker and stronger flow or renewal treatments). Footnotes use larger type above a lower progress line. Earlier material in this review describes the previous build. Pre-revision assets are kept under `_private/lecture-development/BDC223/2026-11-05-animation-revision/before/`.
+
 ## Revision of 5 November 2026
 
 The nine films and the Lecture 9c companion have been revised to use connected sentences in their explanations. The older Lecture 9b animation received the same prose review. Short axis labels, symbols and section names remain concise.

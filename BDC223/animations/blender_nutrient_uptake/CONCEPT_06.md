@@ -36,7 +36,7 @@ The shapes have equal nominal tissue volume, 1 cm³. They are idealised pieces, 
 
 The rectangular surface formula is A = 2(lw + lh + wh). Cylinders use A = n(2πrL + 2πr²), with tissue volume nπr²L. The unrounded cylinder lengths produce exactly equal analytical volumes. The Blender cylinders use 128 sides: independent checks of their closed meshes show area and volume differ from the smooth-cylinder values by less than 0.05%. Rotations preserve both quantities. Geometry checks cover three frames in each quantitative scene and 24 group comparisons.
 
-The unfolded patches use 90 pixels per centimetre in both directions. Green rectangles show broad faces or lateral cylinder walls; gold shows edges or circular ends. Patch gaps and their rearrangement are for counting, not an anatomical dissection. The internal-distance diagram uses 400 pixels per centimetre; the sheet section is cropped laterally. No internal transport coefficient, diffusion time or cellular arrangement is inferred from these distances.
+The unfolded patches use 90 pixels per centimetre in both directions. Darker green rectangles show broad faces or lateral cylinder walls; pale green shows edges or circular ends. Patch gaps and their rearrangement are for counting, not an anatomical dissection. The internal-distance diagram uses 400 pixels per centimetre; the sheet section is cropped laterally. No internal transport coefficient, diffusion time or cellular arrangement is inferred from these distances.
 
 The similar-shape enlargement is a separate comparison that does not conserve tissue volume. Uniformly scaling lengths by two multiplies area by four and volume by eight. This is not a rule that any increase in one measured length must halve SA:V.
 

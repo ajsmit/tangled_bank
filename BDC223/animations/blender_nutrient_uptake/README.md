@@ -4,21 +4,21 @@ The Blender companion to BDC223 Lectures 9a and 9b contains all nine films, with
 
 | Film | Watch | Duration | Edit | Teach |
 |---|---|---|---|---|
-| 1 | [From the flask to the surface](concept_01_supply_to_surface.mp4) | 1:08 | [Blender](concept_01_supply_to_surface.blend) | [Guide](README.md#watch-and-teach) |
-| 2 | [Moving water and diffusion limitation](concept_02_moving_water.mp4) | 1:36 | [Blender](concept_02_moving_water.blend) | [Guide](CONCEPT_02.md) |
-| 3 | [Crossing the membrane](concept_03_crossing_membrane.mp4) | 2:16 | [Blender](concept_03_crossing_membrane.blend) | [Guide](CONCEPT_03.md) |
+| 1 | [From water to the surface](concept_01_supply_to_surface.mp4) | 1:08 | [Blender](concept_01_supply_to_surface.blend) | [Guide](README.md#watch-and-teach) |
+| 2 | [Moving water and diffusion limitation](concept_02_moving_water.mp4) | 2:02 | [Blender](concept_02_moving_water.blend) | [Guide](CONCEPT_02.md) |
+| 3 | [Crossing the membrane](concept_03_crossing_membrane.mp4) | 2:28 | [Blender](concept_03_crossing_membrane.blend) | [Guide](CONCEPT_03.md) |
 | 4 | [Capacity and concentration](concept_04_capacity_and_concentration.mp4) | 2:28 | [Blender](concept_04_capacity_and_concentration.blend) | [Guide](CONCEPT_04.md) |
-| 5 | [Measuring a changing uptake rate](concept_05_measuring_uptake.mp4) | 3:24 | [Blender](concept_05_measuring_uptake.blend) | [Guide](CONCEPT_05.md) |
+| 5 | [Measuring a changing rate](concept_05_measuring_uptake.mp4) | 3:24 | [Blender](concept_05_measuring_uptake.blend) | [Guide](CONCEPT_05.md) |
 | 6 | [Form and nutrient supply](concept_06_form_and_supply.mp4) | 3:10 | [Blender](concept_06_form_and_supply.blend) | [Guide](CONCEPT_06.md) |
 | 7 | [Uptake, storage and growth](concept_07_uptake_storage_growth.mp4) | 3:00 | [Blender](concept_07_uptake_storage_growth.blend) | [Guide](CONCEPT_07.md) |
-| 8 | [A changing physiological environment](concept_08_physiological_environment.mp4) | 3:20 | [Blender](concept_08_physiological_environment.blend) | [Guide](CONCEPT_08.md) |
-| 9 | [From enrichment to oxygen loss](concept_09_enrichment_and_oxygen.mp4) | 3:20 | [Blender](concept_09_enrichment_and_oxygen.blend) | [Guide](CONCEPT_09.md) |
+| 8 | [A changing physiology](concept_08_physiological_environment.mp4) | 3:20 | [Blender](concept_08_physiological_environment.blend) | [Guide](CONCEPT_08.md) |
+| 9 | [Enrichment and oxygen](concept_09_enrichment_and_oxygen.mp4) | 3:20 | [Blender](concept_09_enrichment_and_oxygen.blend) | [Guide](CONCEPT_09.md) |
 
-Total viewing time: **23:42**. The prose and figures were reviewed on 5 November 2026; see the [revision account](SUITE_REVIEW.md#revision-of-5-november-2026) and [current verification](REVISION_2026-11-05.json). The [suite plan](SUITE_PLAN.md) maps the films to the lecture, and the [completion report](SUITE_REVIEW.md) records the teaching changes and verification. The remainder of this page documents concept 1.
+Total viewing time: **24:20**. The prose and figures were reviewed on 5 November 2026; see the [revision account](SUITE_REVIEW.md#revision-of-5-november-2026) and [current verification](REVISION_2026-11-05_animations.json). The [suite plan](SUITE_PLAN.md) maps the films to the lecture, and the [completion report](SUITE_REVIEW.md) records the teaching changes and verification. The remainder of this page documents concept 1.
 
 ## Watch and teach
 
-- [Film: From the flask to the surface](concept_01_supply_to_surface.mp4), 1:08, 1920 × 1280, 30 fps, H.264. Written explanations; no audio.
+- [Film: From water to the surface](concept_01_supply_to_surface.mp4), 1:08, 1920 × 1280, 30 fps, H.264. Written explanations; no audio.
 - [Editable Blender project](concept_01_supply_to_surface.blend), containing three named scenes. The three-dimensional objects, materials, cameras and particle paths are editable. Ordinary keyframes are baked into the project, so playback does not require enabling script execution.
 - [Lecture companion and practice](../../L09c-nutrients_visualised.qmd).
 - [Captions](concept_01.vtt) and [narration notes](#narration-notes).

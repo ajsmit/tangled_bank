@@ -10,6 +10,13 @@
 .lesson-player-time { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .lesson-player-status { flex: 1 0 100%; margin: 0; }
 .lesson-player-status:empty { display: none; }
+.lesson-player-prompt { flex: 1 0 100%; margin: 0; padding: .6rem .75rem; border-left: 4px solid #f8be4c; background: #152f3d; font-weight: 600; }
+.lesson-player-prompt:empty { display: none; }
+.lesson-player-controls select { flex: 1; min-width: 0; padding: .35rem; border: 1px solid #829ba5; border-radius: 4px; background: #152f3d; color: #fff; font: inherit; }
+.lesson-player-controls label.lesson-player-check { flex: 0 1 auto; gap: .4rem; }
+.lesson-player-controls label.lesson-player-check input { flex: none; }
+/* Films reserve a blank band below the teaching frame for native controls and captions. */
+.lesson-player.crop-band:not(:fullscreen) video { aspect-ratio: 16 / 9; height: auto; object-fit: cover; object-position: top; }
 .lesson-player:fullscreen { display: flex; flex-direction: column; justify-content: center; width: 100%; height: 100%; border-radius: 0; }
 .lesson-player:fullscreen video { flex: 1; min-height: 0; object-fit: contain; }
 .lesson-player:fullscreen .lesson-player-controls { flex-shrink: 0; }
@@ -39,10 +46,24 @@
       '<button type="button" data-action="captions" aria-pressed="false">Captions</button>' +
       '<button type="button" data-action="fullscreen">Full screen</button>' +
       '<a class="lesson-player-download">Download video</a>' +
+      '<label class="lesson-player-chapter" hidden>Chapter <select aria-label="Jump to chapter"></select></label>' +
+      '<label class="lesson-player-check" hidden><input type="checkbox" checked> Pause at questions</label>' +
+      '<p class="lesson-player-prompt" role="status"></p>' +
       '<p class="lesson-player-status" role="status"></p>';
     wrapper.append(controls);
     const button = action => controls.querySelector(`[data-action="${action}"]`);
-    const slider = controls.querySelector('input');
+    const slider = controls.querySelector('input[type="range"]');
+    const prompt = controls.querySelector('.lesson-player-prompt');
+    const chapterLabel = controls.querySelector('.lesson-player-chapter');
+    const chapterMenu = chapterLabel.querySelector('select');
+    const pauseLabel = controls.querySelector('.lesson-player-check');
+    const pauseToggle = pauseLabel.querySelector('input');
+    const trackOf = (...kinds) => [...video.textTracks].find(track => kinds.includes(track.kind));
+    const captionTrack = trackOf('captions', 'subtitles');
+    const cropBand = () => {
+      const padded = video.videoHeight && Math.abs(video.videoWidth / video.videoHeight - 1.5) < .01;
+      wrapper.classList.toggle('crop-band', Boolean(padded) && captionTrack?.mode !== 'showing');
+    };
     const status = controls.querySelector('.lesson-player-status');
     const download = controls.querySelector('a');
     download.href = video.querySelector('source')?.src || video.src;
@@ -57,6 +78,11 @@
       slider.setAttribute('aria-valuetext', `${clock(Number(slider.value))} of ${clock(video.duration)}`);
       controls.querySelector('.lesson-player-time').textContent = `${clock(video.currentTime)} / ${clock(video.duration)}`;
       button('play').textContent = video.paused || video.ended ? 'Play' : 'Pause';
+      const cues = trackOf('chapters')?.cues;
+      if (cues?.length) {
+        const current = [...cues].findLastIndex(cue => cue.startTime <= video.currentTime + .05);
+        if (current >= 0 && document.activeElement !== chapterMenu) chapterMenu.selectedIndex = current;
+      }
     };
     let seekSource;
     let seekTarget = 0;
@@ -109,16 +135,49 @@
     button('back').addEventListener('click', () => seek(video.currentTime - 10));
     button('forward').addEventListener('click', () => seek(video.currentTime + 10));
     button('restart').addEventListener('click', () => seek(0));
+    const showChapters = () => {
+      const cues = trackOf('chapters')?.cues;
+      // Cues can arrive in stages, so rebuild the menu until the list is complete.
+      if (!cues?.length || chapterMenu.options.length === cues.length) return;
+      chapterMenu.length = 0;
+      for (const cue of cues) chapterMenu.add(new Option(`${clock(cue.startTime)}  ${cue.text}`, cue.startTime));
+      chapterLabel.hidden = false;
+      update();
+    };
+    chapterMenu.addEventListener('change', () => seek(Number(chapterMenu.value)));
+    let previousTime = 0;
+    const pausePoints = () => {
+      const cues = trackOf('metadata')?.cues;
+      if (cues?.length) pauseLabel.hidden = false;
+      return cues ? [...cues] : [];
+    };
+    video.addEventListener('timeupdate', () => {
+      const now = video.currentTime;
+      // Only ordinary forward playback stops at a question; seeking past one does not.
+      if (!video.paused && pauseToggle.checked && now > previousTime && now - previousTime < 1.5) {
+        const cue = pausePoints().find(item => item.startTime > previousTime && item.startTime <= now);
+        if (cue) { video.pause(); prompt.textContent = cue.text; }
+      }
+      previousTime = now;
+    });
+    video.addEventListener('seeked', () => { previousTime = video.currentTime; prompt.textContent = ''; });
+    video.addEventListener('play', () => { prompt.textContent = ''; });
+    for (const element of video.querySelectorAll('track[kind="chapters"], track[kind="metadata"]')) {
+      element.track.mode = 'hidden';
+      element.addEventListener('load', () => { showChapters(); pausePoints(); });
+    }
+    showChapters();
+    pausePoints();
     slider.addEventListener('pointerdown', () => { scrubbing = true; });
     slider.addEventListener('input', () => seek(Number(slider.value)));
     slider.addEventListener('change', () => { scrubbing = false; seek(Number(slider.value)); });
     slider.addEventListener('pointercancel', () => { scrubbing = false; update(); });
     button('captions').hidden = !video.querySelector('track[kind="captions"], track[kind="subtitles"]');
     button('captions').addEventListener('click', () => {
-      const track = video.textTracks[0];
-      if (!track) return;
-      track.mode = track.mode === 'showing' ? 'hidden' : 'showing';
-      button('captions').setAttribute('aria-pressed', String(track.mode === 'showing'));
+      if (!captionTrack) return;
+      captionTrack.mode = captionTrack.mode === 'showing' ? 'hidden' : 'showing';
+      button('captions').setAttribute('aria-pressed', String(captionTrack.mode === 'showing'));
+      cropBand();
     });
     button('fullscreen').hidden = !wrapper.requestFullscreen && !video.webkitEnterFullscreen;
     button('fullscreen').addEventListener('click', async () => {
@@ -131,6 +190,8 @@
     document.addEventListener('fullscreenchange', () => {
       button('fullscreen').textContent = document.fullscreenElement === wrapper ? 'Exit full screen' : 'Full screen';
     });
+    video.addEventListener('loadedmetadata', cropBand);
+    if (video.readyState >= 1) cropBand();
     for (const event of ['loadedmetadata', 'durationchange', 'timeupdate', 'play', 'pause', 'ended', 'seeked']) video.addEventListener(event, update);
     video.addEventListener('error', () => { status.textContent = 'The video could not load. Use Download video to open it separately.'; });
     update();

@@ -2,7 +2,7 @@
 
 [Watch the film](concept_03_crossing_membrane.mp4) · [Editable Blender project](concept_03_crossing_membrane.blend) · [Lecture and practice](../../L09c-nutrients_visualised.qmd#sec-crossing-membrane)
 
-The film is 2:16, 1920 × 1080, 30 fps, H.264, with written explanations, a [caption track](concept_03.vtt) and no audio. It continues from external delivery to the next boundary: the plasma membrane. [Production verification](concept_03_verification.json) records the model, native animation, rendered video and local lecture checks.
+The film is 2:28, 1920 × 1080, 30 fps, H.264, with written explanations, a [caption track](concept_03.vtt) and no audio. It continues from external delivery to the next boundary: the plasma membrane. [Production verification](concept_03_verification.json) records the model, native animation, rendered video and local lecture checks.
 
 ## Teaching sequence
 
@@ -14,8 +14,9 @@ The film is 2:16, 1920 × 1080, 30 fps, H.264, with written explanations, a [cap
 | 0:46–1:04 | A generic carrier binds solute, encloses it, opens inside and releases it. | Alternating access can mediate passive transport. The protein stays embedded in the membrane. |
 | 1:04–1:28 | An ATP-driven pump exports protons; a separate symporter brings protons and nitrate inward. | Distinguish primary and secondary active transport. Define symport within one protein. |
 | 1:28–1:44 | The energy changes of one nitrate and two protons are added. | Uphill nitrate movement can be supported by downhill proton movement when the processes are coupled. |
-| 1:44–2:00 | Pumping stops; an imposed decay of voltage and pH difference changes the cycle energy. | Does the driving gradient disappear immediately? Do not read an energy graph as an uptake-rate graph. |
-| 2:00–2:16 | Two matching saturating curves and a prediction before the answer appears. | A plateau does not distinguish a passive carrier from an energy-coupled carrier. |
+| 1:44–1:56 | The same cycle at seawater pH 8.1 and cytosol pH 7.3. | Two protons release 6.30 kJ/mol against nitrate's 19.13, so the cycle is uphill by 12.83. |
+| 1:56–2:12 | Pumping stops; an imposed decay of voltage and pH difference changes the cycle energy. | Does the driving gradient disappear immediately? Do not read an energy graph as an uptake-rate graph. |
+| 2:12–2:28 | Two matching saturating curves and a prediction before the answer appears. | A plateau does not distinguish a passive carrier from an energy-coupled carrier. |
 
 The central questions are: **What route is available? What favours movement? What establishes the rate?** These questions concern different properties. The last leads into concept 4, finite capacity and the Michaelis–Menten response.
 
@@ -88,9 +89,11 @@ All motion is baked as ordinary keyframes; opening the project does not require 
 
 **1:28–1:44.** Nitrate entry costs free energy under these conditions. Proton entry releases more than enough to compensate. Add the movements belonging to one coupled cycle. These pH values and the coupling ratio are chosen to explain the mechanism, not to represent every seaweed.
 
-**1:44–2:00.** Stop pumping. The existing gradient remains initially, then dissipates. The graph follows the energy of a possible inward cycle. It does not give the rate of uptake. What measurements would establish how a real cell responds?
+**1:44–1:56.** Repeat the sum at seawater pH. The proton concentration difference now opposes entry, and only the voltage favours it. Uptake under these conditions needs a more negative voltage, more coupled ions, lower internal nitrate or another coupling ion.
 
-**2:00–2:16.** Both carriers have finite capacity and can saturate. Does the curve prove active transport? No. We need evidence about the gradients and coupling. The next concept asks how capacity produces the concentration response.
+**1:56–2:12.** Stop pumping. The existing gradient remains initially, then dissipates. The graph follows the energy of a possible inward cycle. It does not give the rate of uptake. What measurements would establish how a real cell responds?
+
+**2:12–2:28.** Both carriers have finite capacity and can saturate. Does the curve prove active transport? No. We need evidence about the gradients and coupling. The next concept asks how capacity produces the concentration response.
 
 These notes support live teaching; they are not an audio track or a guarantee of narration timing. The companion provides six prediction questions with suggested answers.
 

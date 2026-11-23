@@ -2,7 +2,7 @@
 
 [Watch the film](concept_02_moving_water.mp4) · [Editable Blender project](concept_02_moving_water.blend) · [Lecture and practice](../../L09c-nutrients_visualised.qmd#sec-moving-water)
 
-The film is 1:36, 1920 × 1080, 30 fps, H.264, with written explanations, a [caption track](concept_02.vtt) and no audio. It continues from concept 1's prediction: what happens when we move the water, keeping the biology the same? The [production verification](concept_02_verification.json) records the mathematical, native-project, video and lecture checks.
+The film is 2:02, 1920 × 1080, 30 fps, H.264, with written explanations, a [caption track](concept_02.vtt) and no audio. It continues from concept 1's prediction: what happens when we move the water, keeping the biology the same? The [production verification](concept_02_verification.json) records the mathematical, native-project, video and lecture checks.
 
 ## What the film explains
 
@@ -14,6 +14,7 @@ The film is 1:36, 1920 × 1080, 30 fps, H.264, with written explanations, a [cap
 | 0:46–1:04 | Concentration profiles, surface tangents, surface concentrations and fluxes. | A smaller bulk-to-surface difference can support greater flux when the surface gradient is steeper. In this example uptake increases by 94.2%. |
 | 1:04–1:20 | Uptake capacity is reduced equally in both treatments through 181 steady comparisons. | With low capacity, improved delivery yields only a 2.1% uptake increase. This is a parameter comparison, not a simulated physiological time course. |
 | 1:20–1:36 | A prediction and its qualified explanation. | Almost unchanged uptake under stronger flow is consistent with a capacity restriction, but does not identify the membrane mechanism. |
+| 1:36–2:02 | Flux against bulk nitrate at both flows, with surface Jmax and K fixed. | Delivery changes the apparent half-saturation (28.7 and 15.0, against 2.0) and the initial slope. Smit (2002) measured the same direction of change with shaking. |
 
 The lesson is the conditional explanation. Neither “stirring always greatly increases uptake” nor “a small response proves nutrient sufficiency” follows from these comparisons.
 
@@ -72,6 +73,8 @@ The model omits waves, turbulent fluctuations, moving thalli, complex geometry, 
 
 **1:20–1:36.** If stronger flow produces almost unchanged uptake, what might restrict the rate? Membrane transport or internal processing is one possibility. It is a testable explanation, not proof of a particular mechanism or of nutrient-sufficient growth.
 
+**1:36–2:02.** Fit uptake against bulk water and delivery becomes part of the fit. The surface uptake parameters have not changed, yet half of maximum flux needs about 29 µmol/L under weak movement and 15 under stronger movement. This is why a flow treatment can change an apparent Ks. The [sweep values](concept_02_bulk_sweep.csv) and [checks](concept_02_bulk_sweep_checks.json) are included.
+
 These are live-teaching notes, not an audio track or a speech-duration guarantee. The companion lecture contains five prediction questions with suggested answers, including an alternative explanation involving whether shaker treatments actually changed flow at the thallus.
 
 ## Production source
@@ -82,4 +85,4 @@ The local production scripts, dependencies and reproduction instructions are kep
 
 The narrative follows [Lecture 9a](../../L09a-nutrient_uptake.qmd), particularly its boundary-layer and water-movement discussion. [Smit (2002)](../../../docs/Smit_2002.pdf) supplies the course's experimental context for water movement and nutrient uptake. [Lindemann et al. (2016)](https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2016.00026/full) supports distinguishing diffusive supply from biological constraints. The planar model and illustrative parameter comparisons here are constructed for teaching; they are not a reproduction of either paper's measurements or geometry.
 
-Concepts 1–9 are available locally; continue to [Crossing the membrane](CONCEPT_03.md), [Capacity and concentration](CONCEPT_04.md) and [Measuring a changing uptake rate](CONCEPT_05.md). All nine films are linked in the [suite index](README.md).
+Concepts 1–9 are available locally; continue to [Crossing the membrane](CONCEPT_03.md), [Capacity and concentration](CONCEPT_04.md) and [Measuring a changing rate](CONCEPT_05.md). All nine films are linked in the [suite index](README.md).

@@ -1,4 +1,4 @@
-# Measuring a changing uptake rate
+# Measuring a changing rate
 
 The fifth BDC223 film follows nitrate from a finite water reservoir into the seaweed. One model supplies the nitrogen budget, depletion curve, accumulated uptake, interval calculations and movement along the Michaelis–Menten curve. A second pulse, a biomass comparison and a sampling counterexample test students' explanations.
 
@@ -80,13 +80,13 @@ The sampling example is a separate inventory at S = 10 µmol/L. Removing 0.010 L
 
 **1:06–1:28.** Subtract the two concentrations. Multiply by litres to get an amount, divide by grams to standardise biomass, and divide by elapsed hours to get the hourly rate. A five-minute interval is five divided by sixty hours.
 
-**1:28–1:52.** The two graphs have different horizontal axes. Time advances while concentration falls. On the uptake graph this carries us left and down. Blue circles are estimates from intervals; the coral point follows the instantaneous model.
+**1:28–1:52.** The two graphs have different horizontal axes. Time advances while concentration falls. On the uptake graph the point moves left and down. White circles are estimates from intervals; the coral point follows the instantaneous model.
 
 **1:52–2:12.** These flasks begin at different concentrations. Their initial slopes provide different positions on the uptake curve. In the depletion experiment, we instead visit concentrations through time in the same flask. Tissue differences and changes in tissue condition need attention in either design.
 
 **2:12–2:24.** Restore the concentration after uptake has slowed. Predict the slope, the uptake-curve position and the acquired amount before continuing.
 
-**2:24–2:46.** The rate returns to its initial value because we have restored concentration without changing uptake properties. The blue jump records an input, not uptake. Acquired N remains in the tissue, while total added N increases. Measure depletion slopes between additions.
+**2:24–2:46.** The rate returns to its initial value because we have restored concentration without changing uptake properties. The white jump records an input, not uptake. Acquired N remains in the tissue, while total added N increases. Measure depletion slopes between additions.
 
 **2:46–3:02.** Twice the biomass means twice the initial whole-flask uptake, with the same initial rate per gram. It takes less time to deplete the same initial nitrogen supply.
 
